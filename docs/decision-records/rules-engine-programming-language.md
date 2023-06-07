@@ -6,7 +6,7 @@ Proposed
 
 ## Context
 
-In order to build the web app version of the Heat Energy Analysis Tool, we will need to choose what frameworks and programming languages to use.
+In order to build the web app version of the Home Energy Analysis Tool, we will need to choose what frameworks and programming languages to use.
 
 There is a similar wizard-style tool called the [Windfall app](https://windfall-develop.netlify.app/) that was previously built by Code for Boston.  This app uses a C++ WASM rules engine with a React/Typescript frontend ([repo](https://github.com/codeforboston/windfall-elimination)).  It can provide a good foundation for building this app.
 

@@ -6,7 +6,7 @@ Proposed
 
 ## Context
 
-Users of the home energy analysis tool need to input square footage of the home.  In the Excel sheet, this is cell B10 on the Summary tab.
+Users of the Home Energy Analysis Tool need to input square footage of the home.  In the Excel sheet, this is cell B10 on the Summary tab.
 
 We explored whether we could automatically fetch square footage data for homes by address from publicly available information.  We found that while this data is accessible online, cities store it in different formats and expose it with different APIs.  It would be difficult to fetch this data in a consistent way.
 
