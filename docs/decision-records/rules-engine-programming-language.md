@@ -18,4 +18,6 @@ We will use React and Typescript to create the frontend.
 ## Consequences
 We will have a foundation to build the HEAT app from, accelerating development.
 
-Although we are switching languages on the rules engine, using Python/Pyodide will allow us to leverage more complex data analysis libraries like Pandas out of the box, which will help with the complex rules in the current Excel tool.
+Although we are switching languages on the rules engine:
+- Using Python/Pyodide will allow us to leverage more complex data analysis libraries like Pandas out of the box, which will help with the complex rules in the current Excel tool.
+- After the project is delivered, it will be maintained long-term by a different group.  Python is more familiar to the long-term maintainers of the project than C++.
