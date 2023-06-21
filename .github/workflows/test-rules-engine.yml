@@ -25,6 +25,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Test with pytest
+      - name: Check style
+        run: |
+          isort --check .
+          black --check .
+      - name: Check typing
+        run: |
+          mypy .
+      - name: Run tests
         run: |
           pytest
