@@ -10,5 +10,11 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = [
+    "black",
+    "isort",
+    "mypy",
     "pytest"
 ]
+
+[tool.isort]
+profile = "black"
