@@ -1,0 +1,23 @@
+# Collaborative Development
+
+## Status
+
+Proposed
+
+## Context
+
+To effectively utilize our weekly hacking time, we will use a collaborative development tool to facilitate development among a number of live (and often remote) participants.
+
+Other Code for Boston projects, such as the [Urban League Heat Pump](https://github.com/codeforboston/urban-league-heat-pump-accelerator) project, use GitHub Codespaces for live collaboration.
+
+## Decision
+
+We will use GitHub Codespaces along with ensemble programming to collaboratively develop for the HEAT project.
+
+## Consequences
+
+Code for Boston contributors do not need to set up their own development environments to be able to contribute.
+
+Contributors who have used other live editing tools (such as Google Docs) may be comfortable using GitHub Codespaces.
+
+New members will be able to participate immediately upon being added to the GitHub repository.
