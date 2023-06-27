@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'export',
-}
+  output: 'export',
+  webpack: (config, options) => {
+    config.module.rules.push({
+      test: /\.py/,
+      type: 'asset/source',
+    });
 
-module.exports = nextConfig
+    return config;
+  },
+};
+
+module.exports = nextConfig;
