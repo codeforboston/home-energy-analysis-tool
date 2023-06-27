@@ -21,11 +21,11 @@ def hdd(avg_temp: float, balance_point: float) -> float:
     else:
         return diff
     
-def period_hdd(avg_temps: list, balance_point: float) -> float:
-    """Calculate the total heating degree days in a given time period for a given home.
+def period_hdd(avg_temps: list, balance_point: float) -> float:                 
+    """Sum up total heating degree days in a given time period for a given home.
 
     Arguments:
-    avg_temps -- list of the daily average outdoor temperatures (F) for the time period
+    avg_temps -- list of daily average outdoor temperatures (F) for the period
     balance_point -- outdoor temperature (F) above which no heating is required
     in a given home
     """
@@ -37,16 +37,16 @@ def ua(days_in_period: int, daily_heat_usage: float, BTU_per_usage: float,
 
     Arguments:
     days_in_period -- number of days in the given billing period
-    daily_heat_usage -- average daily usage for heating during the billing period
+    daily_heat_usage -- average daily usage for heating during the period
     BTU_per_usage -- energy density constant for a given fuel type
-    heat_sys_efficiency -- heating system efficiency as a decimal between 0 and 1
-    period_hdd -- total number of heating degree days in the given billing period
+    heat_sys_efficiency -- heating system efficiency (decimal between 0 and 1)
+    period_hdd -- total number of heating degree days in the given period
     """
     return days_in_period * daily_heat_usage * BTU_per_usage * \
         heat_sys_efficiency / (period_hdd * 24)
 
 def get_avg_temps(end_dates: list, days_in_bills: list) -> list:
-    """Returns a list of lists of average daily temperatures for each billing period
+    """Returns a list of lists of average daily temperatures for each period
     
     Arguments:
     end_dates -- list of ending dates for each billing period
@@ -55,11 +55,12 @@ def get_avg_temps(end_dates: list, days_in_bills: list) -> list:
     pass # TODO: write this method once we know how we're getting temp data
 
 def uas(fuel_type: str, balance_point: float, non_heating_usage: float, 
-        heat_sys_efficiency: float, end_dates: list, days_in_bills: list, usages: list):
-    """Given a list of billing periods, returns a list of estimated UA coefficients
+        heat_sys_efficiency: float, end_dates: list, days_in_bills: list, 
+        usages: list):
+    """Given a list of billing periods, returns a list of UA coefficients
     
     Arguments:
-    fuel_type -- heating fuel type in the home. One of "gas", "oil", or "propane"
+    fuel_type -- heating fuel type in the home. One of "gas", "oil", "propane"
     balance_point -- outdoor temperature (F) above which no heating is required
     in a given home
     non_heating_usage -- estimate of daily non-heating fuel usage
@@ -72,8 +73,10 @@ def uas(fuel_type: str, balance_point: float, non_heating_usage: float,
     # length, and also that the fuel_type string is valid. Not sure if this is
     # the place to do that checking, or if it will be handled earlier
 
-    avg_daily_heating_usages = [usage/days - non_heating_usage for usage, days in zip(usages, days_in_bills)]
-    period_hdds = [period_hdd(temps, balance_point) for temps in get_avg_temps(end_dates, days_in_bills)]
+    avg_daily_heating_usages = [usage/days - non_heating_usage \
+                                for usage, days in zip(usages, days_in_bills)]
+    period_hdds = [period_hdd(temps, balance_point) \
+                   for temps in get_avg_temps(end_dates, days_in_bills)]
     BTU_per_usage = btu_per_usage[fuel_type]
 
     return [ua(days_in_bills[period], avg_daily_heating_usages[period],
