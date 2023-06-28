@@ -39,7 +39,7 @@ def ua(
     daily_heat_usage: float,
     BTU_per_usage: float,
     heat_sys_efficiency: float,
-    period_hdd: int,
+    period_hdd: float,
 ) -> float:
     """Computes the UA coefficient for a given billing period.
 
