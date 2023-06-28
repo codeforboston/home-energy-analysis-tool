@@ -66,7 +66,8 @@ def get_avg_temps(end_dates: list, days_in_bills: list) -> list:
     end_dates -- list of ending dates for each billing period
     days_in_bills -- lengths in days for the list of billing periods
     """
-    pass  # TODO: write this method once we know how we're getting temp data
+    # TODO: write this method once we know how we're getting temp data
+    return [[]]
 
 
 def uas(
