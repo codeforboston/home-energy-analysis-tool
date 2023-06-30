@@ -25,3 +25,13 @@ def test_ua():
     heat_eff = 0.88
 
     assert engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd) - 799.4 < 0.2
+
+
+def test_average_indoor_temp():
+    set_temp = 68
+    setback = 62
+    setback_hrs = 8
+
+    # when there is no setback, just put 0 for the setback parameters
+    assert engine.average_indoor_temp(set_temp, 0, 0) == set_temp
+    assert engine.average_indoor_temp(set_temp, setback, setback_hrs) == 66
