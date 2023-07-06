@@ -27,6 +27,13 @@ def test_ua():
     assert engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd) - 799.4 < 0.2
 
 
+def test_bp_ua_estimates():
+    # TODO: write some actual tests for this, contingent on get_average_temps()
+    # for these tests, it might make sense to use someactual spreadsheet data
+    # and then test some edge cases, like different initial bps
+    assert 1 == 1
+
+
 def test_average_indoor_temp():
     set_temp = 68
     setback = 62

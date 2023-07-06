@@ -1,11 +1,4 @@
-from datetime import datetime, timedelta
 import statistics as sts
-
-btu_per_usage = {
-    "gas": 100000,  # usage in therms
-    "oil": 139600,  # usage in gallons
-    "propane": 91333,  # usage in gallons
-}
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -71,16 +64,17 @@ def get_avg_temps(end_dates: list, days_in_bills: list) -> list:
     return [[]]
 
 
-def uas(
+def bp_ua_estimates(
     fuel_type: str,
-    balance_point: float,
     non_heat_usage: float,
     heat_sys_efficiency: float,
     end_dates: list,
     bills_days: list,
     usages: list,
+    initial_bp: float = 60,
 ):
-    """Given a list of billing periods, returns a list of UA coefficients
+    """Given a list of billing periods, returns an estimate of balance point,
+    a list of UA coefficients for each period, and the average UA coefficient.
 
     Arguments:
     fuel_type -- heating fuel type in the home. One of "gas", "oil", "propane"
@@ -99,13 +93,17 @@ def uas(
     avg_daily_heating_usages = [
         usage / days - non_heat_usage for usage, days in zip(usages, bills_days)
     ]
-    period_hdds = [
-        period_hdd(temps, balance_point)
-        for temps in get_avg_temps(end_dates, bills_days)
-    ]
+    avg_temps_lists = get_avg_temps(end_dates, bills_days)
+    period_hdds = [period_hdd(temps, initial_bp) for temps in avg_temps_lists]
+
+    btu_per_usage = {
+        "gas": 100000,  # usage in therms
+        "oil": 139600,  # usage in gallons
+        "propane": 91333,  # usage in gallons
+    }
     bpu = btu_per_usage[fuel_type]
 
-    return [
+    uas = [
         ua(
             bills_days[period],
             avg_daily_heating_usages[period],
@@ -115,29 +113,28 @@ def uas(
         )
         for period in range(len(usages))
     ]
-
-
-def refine_balance_point():
-    uas_params = ...
-    bp = 60
-    bp_sensitivity = 2
-    directions_to_check = [1, -1]
-    uas = uas(uas_params, bp)
+    partial_uas = [ua * period_hdds[period] for period, ua in enumerate(uas)]
     avg_ua = sts.mean(uas)
     stdev_pct = sts.stdev(uas) / avg_ua
 
+    bp_sensitivity = 2
+    directions_to_check = [1, -1]
+    bp = initial_bp
+
     while directions_to_check:
         bp_i = bp + directions_to_check[0] * bp_sensitivity
-        uas_i = uas(uas_params, bp_i)
+        period_hdds_i = [period_hdd(temps, bp_i) for temps in avg_temps_lists]
+        uas_i = [pua / period_hdds_i[n] for n, pua in enumerate(partial_uas)]
         avg_ua_i = sts.mean(uas_i)
         stdev_pct_i = sts.stdev(uas_i) / avg_ua_i
         if stdev_pct_i < stdev_pct:
-            bp, avg_ua, stdev_pct = bp_i, avg_ua_i, stdev_pct_i
+            bp, uas, avg_ua, stdev_pct = bp_i, uas_i, avg_ua_i, stdev_pct_i
             if len(directions_to_check) == 2:
                 directions_to_check.pop(-1)
         else:
             directions_to_check.pop(0)
-    return bp, avg_ua
+
+    return bp, uas, avg_ua
 
 
 def average_indoor_temp(
