@@ -24,14 +24,8 @@ def test_ua():
     btu_per_u = 100000
     heat_eff = 0.88
 
-    assert engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd) - 799.4 < 0.2
-
-
-def test_bp_ua_estimates():
-    # TODO: write some actual tests for this, contingent on get_average_temps()
-    # for these tests, it might make sense to use someactual spreadsheet data
-    # and then test some edge cases, like different initial bps
-    assert 1 == 1
+    ua_estimate = engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd)
+    assert abs(ua_estimate - 799.4) < 0.2
 
 
 def test_average_indoor_temp():
@@ -42,3 +36,26 @@ def test_average_indoor_temp():
     # when there is no setback, just put 0 for the setback parameters
     assert engine.average_indoor_temp(set_temp, 0, 0) == set_temp
     assert engine.average_indoor_temp(set_temp, setback, setback_hrs) == 66
+
+
+def test_bp_ua_estimates():
+    avg_temps_1 = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
+    usages_1 = [50, 45, 30]
+    bp, uas, avg_ua, stdev_pct = engine.bp_ua_estimates(
+        "gas", 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
+    )
+    ua_1, ua_2, ua_3 = uas
+    assert bp == 60
+    assert abs(ua_1 - 1450.5) < 1
+    assert abs(ua_2 - 1615.3) < 1
+    assert abs(ua_3 - 1479.6) < 1
+    assert abs(avg_ua - 1515.1) < 1
+    assert abs(stdev_pct - 0.0474) < 0.01
+
+
+if __name__ == "__main__":
+    test_hdd()
+    test_period_hdd()
+    test_ua()
+    test_average_indoor_temp()
+    test_bp_ua_estimates()
