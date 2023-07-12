@@ -1,3 +1,5 @@
+from pytest import approx
+
 from rules_engine import engine
 
 
@@ -46,11 +48,11 @@ def test_bp_ua_estimates():
     )
     ua_1, ua_2, ua_3 = uas
     assert bp == 60
-    assert abs(ua_1 - 1450.5) < 1
-    assert abs(ua_2 - 1615.3) < 1
-    assert abs(ua_3 - 1479.6) < 1
-    assert abs(avg_ua - 1515.1) < 1
-    assert abs(stdev_pct - 0.0474) < 0.01
+    assert ua_1 == approx(1450.5, abs=1)
+    assert ua_2 == approx(1615.3, abs=1)
+    assert ua_3 == approx(1479.6, abs=1)
+    assert avg_ua == approx(1515.1, abs=1)
+    assert stdev_pct == approx(0.0474, abs=0.01)
 
 
 if __name__ == "__main__":
