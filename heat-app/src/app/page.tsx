@@ -2,7 +2,7 @@
 'use client';
 import Image from 'next/image';
 import Script from 'next/script';
-import pythonScript from './python/main.py';
+import engine from '../../../rules-engine/src/rules_engine/engine.py';
 import { useState, useEffect } from 'react';
 
 /** https://stackoverflow.com/questions/74471642/nextjs-13-button-onclick-event-handlers-cannot-be-passed-to-client-componen
@@ -25,7 +25,9 @@ const getPyodide = async () => {
 
 const runPythonScript = async () => {
   const pyodide = await getPyodide();
-  return await pyodide.runPythonAsync(pythonScript);
+  console.log(engine);
+  await pyodide.runPythonAsync(engine);
+  return pyodide;
 };
 
 export default function Home() {
@@ -33,7 +35,9 @@ export default function Home() {
 
   useEffect(() => {
     const run = async () => {
-      const result = await runPythonScript();
+      const pyodide = await runPythonScript();
+      console.log(pyodide);
+      const result = await pyodide.runPythonAsync("hdd(57, 60)");
       setOutput(result);
     };
     run();
