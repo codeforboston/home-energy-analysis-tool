@@ -1,3 +1,5 @@
+from pytest import approx
+
 from rules_engine import engine
 
 
@@ -24,4 +26,38 @@ def test_ua():
     btu_per_u = 100000
     heat_eff = 0.88
 
-    assert engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd) - 799.4 < 0.2
+    ua_estimate = engine.ua(bill_days, htg, btu_per_u, heat_eff, p_hdd)
+    assert abs(ua_estimate - 799.4) < 0.2
+
+
+def test_average_indoor_temp():
+    set_temp = 68
+    setback = 62
+    setback_hrs = 8
+
+    # when there is no setback, just put 0 for the setback parameters
+    assert engine.average_indoor_temp(set_temp, 0, 0) == set_temp
+    assert engine.average_indoor_temp(set_temp, setback, setback_hrs) == 66
+
+
+def test_bp_ua_estimates():
+    avg_temps_1 = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
+    usages_1 = [50, 45, 30]
+    bp, uas, avg_ua, stdev_pct = engine.bp_ua_estimates(
+        "gas", 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
+    )
+    ua_1, ua_2, ua_3 = uas
+    assert bp == 60
+    assert ua_1 == approx(1450.5, abs=1)
+    assert ua_2 == approx(1615.3, abs=1)
+    assert ua_3 == approx(1479.6, abs=1)
+    assert avg_ua == approx(1515.1, abs=1)
+    assert stdev_pct == approx(0.0474, abs=0.01)
+
+
+if __name__ == "__main__":
+    test_hdd()
+    test_period_hdd()
+    test_ua()
+    test_average_indoor_temp()
+    test_bp_ua_estimates()
