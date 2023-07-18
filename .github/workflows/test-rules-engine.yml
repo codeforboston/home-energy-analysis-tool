@@ -2,6 +2,9 @@ name: rules engine
 
 on: [push]
 
+env:
+  working-directory: rules-engine
+
 defaults:
   run:
     working-directory: rules-engine
