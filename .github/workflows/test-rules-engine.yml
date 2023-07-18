@@ -1,0 +1,52 @@
+name: lint Rules Engine
+
+on: [push]
+
+defaults:
+  run:
+    working-directory: rules-engine
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Set up environment
+        uses: "./.github/actions/setup-rules-engine"
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check style
+        run: |
+          isort --check .
+          black --check .
+  mypy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Set up environment
+        uses: "./.github/actions/setup-rules-engine"
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check typing
+        run: |
+          mypy .
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Set up environment
+        uses: "./.github/actions/setup-rules-engine"
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run tests
+        run: |
+          pytest
