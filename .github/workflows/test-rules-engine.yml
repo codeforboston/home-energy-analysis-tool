@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up environment
-        uses: "../.github/actions/setup-rules-engine"
+        uses: "./.github/actions/setup-rules-engine"
         with:
           python-version: ${{ matrix.python-version }}
       - name: Check typing
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up environment
-        uses: "../.github/actions/setup-rules-engine"
+        uses: "./.github/actions/setup-rules-engine"
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run tests
