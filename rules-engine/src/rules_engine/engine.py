@@ -1,4 +1,12 @@
 import statistics as sts
+from typing import List, NamedTuple
+
+
+class EstimatesResult(NamedTuple):
+    bp: float
+    uas: List[float]
+    avg_ua: float
+    stdev_pct: float
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -17,7 +25,7 @@ def hdd(avg_temp: float, balance_point: float) -> float:
         return diff
 
 
-def period_hdd(avg_temps: list, balance_point: float) -> float:
+def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     """Sum up total heating degree days in a given time period for a given home.
 
     Arguments:
@@ -74,11 +82,11 @@ def bp_ua_estimates(
     fuel_type: str,
     non_heat_usage: float,
     heat_sys_efficiency: float,
-    avg_temps_lists: list,
-    usages: list,
+    avg_temps_lists: List[List[float]],
+    usages: List[float],
     initial_bp: float = 60,
     bp_sensitivity: float = 2,
-):
+) -> EstimatesResult:
     """Given a list of billing periods, returns an estimate of balance point,
     a list of UA coefficients for each period, and the average UA coefficient.
 
@@ -139,4 +147,4 @@ def bp_ua_estimates(
         else:
             directions_to_check.pop(0)
 
-    return bp, uas, avg_ua, stdev_pct
+    return EstimatesResult(bp, uas, avg_ua, stdev_pct)
