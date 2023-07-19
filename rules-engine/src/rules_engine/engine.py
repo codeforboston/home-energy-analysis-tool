@@ -1,4 +1,5 @@
 import statistics as sts
+
 import numpy as np
 
 
@@ -124,23 +125,34 @@ def bp_ua_estimates(
     avg_ua = sts.mean(uas)
     stdev_pct = sts.pstdev(uas) / avg_ua
 
-    bp, uas, avg_ua, stdev_pct = recalculate_bp(initial_bp, bp_sensitivity, avg_ua, avg_temps_lists, partial_uas, uas)
+    bp, uas, avg_ua, stdev_pct = recalculate_bp(
+        initial_bp, bp_sensitivity, avg_ua, stdev_pct, avg_temps_lists, partial_uas, uas
+    )
 
     # if the standard deviation of the UAs is below 10% / some threshold,
     # then we can return what we have
     while stdev_pct > 0.10:
         # remove an outlier, recalculate stdev_pct, etc
         biggest_outlier_idx = np.argmax([abs(ua - avg_ua) for ua in uas])
-        uas.pop(biggest_outlier_idx) # removes the biggest outlier
+        uas.pop(biggest_outlier_idx)  # removes the biggest outlier
         avg_ua = sts.mean(uas)
         stdev_pct = sts.pstdev(uas) / avg_ua
-        bp, uas, avg_ua, stdev_pct = recalculate_bp(bp, 0.5, avg_ua, avg_temps_lists, partial_uas, uas)
+        bp, uas, avg_ua, stdev_pct = recalculate_bp(
+            bp, 0.5, avg_ua, stdev_pct, avg_temps_lists, partial_uas, uas
+        )
 
     return bp, uas, avg_ua, stdev_pct
 
-    
-def recalculate_bp(initial_bp: float, bp_sensitivity: float, avg_ua: float,
-                   avg_temps_lists: list, partial_uas: list, uas: list):
+
+def recalculate_bp(
+    initial_bp: float,
+    bp_sensitivity: float,
+    avg_ua: float,
+    stdev_pct: float,
+    avg_temps_lists: list,
+    partial_uas: list,
+    uas: list,
+):
     directions_to_check = [1, -1]
     bp = initial_bp
 
@@ -156,7 +168,7 @@ def recalculate_bp(initial_bp: float, bp_sensitivity: float, avg_ua: float,
                 directions_to_check.pop(-1)
         else:
             directions_to_check.pop(0)
-    
+
     return bp, uas, avg_ua, stdev_pct
 
 
