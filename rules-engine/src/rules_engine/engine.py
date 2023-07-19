@@ -1,12 +1,5 @@
 import statistics as sts
-from typing import List, NamedTuple
-
-
-class EstimatesResult(NamedTuple):
-    bp: float
-    uas: List[float]
-    avg_ua: float
-    stdev_pct: float
+from typing import List, Tuple
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -86,7 +79,7 @@ def bp_ua_estimates(
     usages: List[float],
     initial_bp: float = 60,
     bp_sensitivity: float = 2,
-) -> EstimatesResult:
+) -> Tuple[float, List[float], float, float]:
     """Given a list of billing periods, returns an estimate of balance point,
     a list of UA coefficients for each period, and the average UA coefficient.
 
@@ -147,4 +140,4 @@ def bp_ua_estimates(
         else:
             directions_to_check.pop(0)
 
-    return EstimatesResult(bp, uas, avg_ua, stdev_pct)
+    return bp, uas, avg_ua, stdev_pct
