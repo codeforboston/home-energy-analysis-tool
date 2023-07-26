@@ -150,10 +150,10 @@ def recalculate_bp(
     bp_sensitivity: float,
     avg_ua: float,
     stdev_pct: float,
-    avg_temps_lists: list,
-    partial_uas: list,
-    uas: list,
-):
+    avg_temps_lists: List[float],
+    partial_uas: List[float],
+    uas: List[float],
+) -> Tuple[float, List[float], float, float]:
     directions_to_check = [1, -1]
     bp = initial_bp
 
