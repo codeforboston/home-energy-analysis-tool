@@ -103,11 +103,6 @@ def bp_ua_estimates(
     initial_bp -- Balance point temperature in degrees F to try at first
     bp_sensitivity -- Degrees F to add/subtract from balance point when refining
     """
-
-    # this implementation assumes that the three list arguments are the same
-    # length, and also that the fuel_type string is valid. Not sure if this is
-    # the place to do that checking, or if it will be handled earlier
-
     bills_days = [len(l) for l in avg_temps_lists]
     avg_daily_heating_usages = [
         usage / days - non_heat_usage for usage, days in zip(usages, bills_days)
@@ -140,6 +135,8 @@ def bp_ua_estimates(
         # remove an outlier, recalculate stdev_pct, etc
         biggest_outlier_idx = np.argmax([abs(ua - avg_ua) for ua in uas])
         uas.pop(biggest_outlier_idx)  # removes the biggest outlier
+        avg_temps_lists.pop(biggest_outlier_idx)
+        partial_uas.pop(biggest_outlier_idx)
         avg_ua = sts.mean(uas)
         stdev_pct = sts.pstdev(uas) / avg_ua
         bp, uas, avg_ua, stdev_pct = recalculate_bp(
@@ -158,6 +155,9 @@ def recalculate_bp(
     partial_uas: List[float],
     uas: List[float],
 ) -> Tuple[float, List[float], float, float]:
+    """Tries different balance points plus or minus a given number of degrees,
+    choosing whichever one minimizes the standard deviation of the UAs.
+    """
     directions_to_check = [1, -1]
     bp = initial_bp
 
