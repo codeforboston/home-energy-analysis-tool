@@ -48,6 +48,20 @@ import { useNonce } from './utils/nonce-provider.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { useToast } from './utils/useToast.tsx'
 import { useOptionalUser, useUser } from './utils/user.ts'
+import * as pyodideModule from 'pyodide'
+
+const getPyodide = async () => {
+	if (!('pyodide' in window)) {
+		// window.pyodide = await window.loadPyodide()
+
+		// public folder:
+		return await pyodideModule.loadPyodide({
+			indexURL: 'pyodide-env/',
+		})
+	}
+
+	return window.pyodide
+}
 
 export const links: LinksFunction = () => {
 	return [
