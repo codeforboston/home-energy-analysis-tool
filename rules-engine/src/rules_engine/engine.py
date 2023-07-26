@@ -1,12 +1,13 @@
 import statistics as sts
-from typing import List, Tuple
 from enum import Enum
+from typing import List, Tuple
 
 import numpy as np
 
+
 class FuelType(Enum):
-    """Enum for fuel types. Values are BTU per usage
-    """""""""
+    """Enum for fuel types. Values are BTU per usage"""
+
     GAS = 100000
     OIL = 139600
     PROPANE = 91333
@@ -113,7 +114,7 @@ def bp_ua_estimates(
     ]
     period_hdds = [period_hdd(temps, initial_bp) for temps in avg_temps_lists]
 
-    bpu = fuel_type.value # the value in this case is the BTU per usage
+    bpu = fuel_type.value  # the value in this case is the BTU per usage
 
     uas = [
         ua(
@@ -157,7 +158,6 @@ def recalculate_bp(
     partial_uas: List[float],
     uas: List[float],
 ) -> Tuple[float, List[float], float, float]:
-
     directions_to_check = [1, -1]
     bp = initial_bp
 
