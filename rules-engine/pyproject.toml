@@ -20,3 +20,7 @@ dev = [
 
 [tool.isort]
 profile = "black"
+
+[tool.mypy]
+disallow_any_generics = true
+disallow_incomplete_defs = true
