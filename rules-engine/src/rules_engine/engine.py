@@ -175,7 +175,3 @@ def recalculate_bp(
             directions_to_check.pop(0)
 
     return bp, uas, avg_ua, stdev_pct
-
-
-# at some point, check to make sure BP does not go over the typical thermostat setting
-# this will need to produce an error that we can't calculate the heat load for that home
