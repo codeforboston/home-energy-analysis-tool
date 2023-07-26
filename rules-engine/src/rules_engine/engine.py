@@ -1,7 +1,15 @@
 import statistics as sts
 from typing import List, Tuple
+from enum import Enum
 
 import numpy as np
+
+class FuelType(Enum):
+    """Enum for fuel types. Values are BTU per usage
+    """""""""
+    GAS = 100000
+    OIL = 139600
+    PROPANE = 91333
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -34,25 +42,25 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
 def ua(
     days_in_period: int,
     daily_heat_usage: float,
-    BTU_per_usage: float,
+    btu_per_usage: float,
     heat_sys_efficiency: float,
-    period_hdd: float,
+    p_hdd: float,
 ) -> float:
     """Computes the UA coefficient for a given billing period.
 
     Arguments:
     days_in_period -- number of days in the given billing period
     daily_heat_usage -- average daily usage for heating during the period
-    BTU_per_usage -- energy density constant for a given fuel type
+    btu_per_usage -- energy density constant for a given fuel type
     heat_sys_efficiency -- heating system efficiency (decimal between 0 and 1)
-    period_hdd -- total number of heating degree days in the given period
+    p_hdd -- total number of heating degree days in the given period
     """
     return (
         days_in_period
         * daily_heat_usage
-        * BTU_per_usage
+        * btu_per_usage
         * heat_sys_efficiency
-        / (period_hdd * 24)
+        / (p_hdd * 24)
     )
 
 
@@ -74,7 +82,7 @@ def average_indoor_temp(
 
 
 def bp_ua_estimates(
-    fuel_type: str,
+    fuel_type: FuelType,
     non_heat_usage: float,
     heat_sys_efficiency: float,
     avg_temps_lists: List[List[float]],
@@ -105,12 +113,7 @@ def bp_ua_estimates(
     ]
     period_hdds = [period_hdd(temps, initial_bp) for temps in avg_temps_lists]
 
-    btu_per_usage = {
-        "gas": 100000,  # usage in therms
-        "oil": 139600,  # usage in gallons
-        "propane": 91333,  # usage in gallons
-    }
-    bpu = btu_per_usage[fuel_type]
+    bpu = fuel_type.value # the value in this case is the BTU per usage
 
     uas = [
         ua(
@@ -150,10 +153,11 @@ def recalculate_bp(
     bp_sensitivity: float,
     avg_ua: float,
     stdev_pct: float,
-    avg_temps_lists: List[float],
+    avg_temps_lists: List[List[float]],
     partial_uas: List[float],
     uas: List[float],
 ) -> Tuple[float, List[float], float, float]:
+
     directions_to_check = [1, -1]
     bp = initial_bp
 
@@ -174,4 +178,4 @@ def recalculate_bp(
 
 
 # at some point, check to make sure BP does not go over the typical thermostat setting
-# at that point, this will need to produce an error that we can't calculate the heat load for that home
+# this will need to produce an error that we can't calculate the heat load for that home
