@@ -44,7 +44,7 @@ def test_bp_ua_estimates():
     avg_temps_1 = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
     usages_1 = [50, 45, 30]
     bp, uas, avg_ua, stdev_pct = engine.bp_ua_estimates(
-        "gas", 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
+        engine.FuelType.GAS, 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
     )
     ua_1, ua_2, ua_3 = uas
     assert bp == 60
