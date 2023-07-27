@@ -41,12 +41,15 @@ def test_average_indoor_temp():
 
 
 def test_bp_ua_estimates():
-    avg_temps_1 = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
-    usages_1 = [50, 45, 30]
-    bp, uas, avg_ua, stdev_pct = engine.bp_ua_estimates(
-        engine.FuelType.GAS, 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
-    )
-    ua_1, ua_2, ua_3 = uas
+    temps = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
+    usages = [50, 45, 30]
+    billing_periods = [
+        engine.BillingPeriod(temps[i], usages[i], engine.FuelType.GAS, 0.24, 58, 0.88)
+        for i in range(len(usages))
+    ]
+    bp, bills, avg_ua, stdev_pct = engine.bp_ua_estimates(billing_periods)
+    ua_1, ua_2, ua_3 = [bill.ua for bill in bills]
+
     assert bp == 60
     assert ua_1 == approx(1450.5, abs=1)
     assert ua_2 == approx(1615.3, abs=1)
@@ -56,20 +59,20 @@ def test_bp_ua_estimates():
 
 
 def test_bp_ua_with_outlier():
-    avg_temps_1 = [
+    temps = [
         [41.7, 41.6, 32, 25.4],
         [28, 29, 30, 29],
         [32, 35, 35, 38],
         [41, 43, 42, 42],
     ]
-    usages_1 = [60, 50, 45, 30]
-    bp, uas, avg_ua, stdev_pct = engine.bp_ua_estimates(
-        engine.FuelType.GAS, 0.24, 0.88, avg_temps_1, usages_1, initial_bp=58
-    )
-    print(bp)
-    print(uas)
-    print(stdev_pct)
-    ua_1, ua_2, ua_3 = uas
+    usages = [60, 50, 45, 30]
+    billing_periods = [
+        engine.BillingPeriod(temps[i], usages[i], engine.FuelType.GAS, 0.24, 58, 0.88)
+        for i in range(len(usages))
+    ]
+    bp, bills, avg_ua, stdev_pct = engine.bp_ua_estimates(billing_periods)
+    ua_1, ua_2, ua_3 = [bill.ua for bill in bills]
+
     assert bp == 60
     assert ua_1 == approx(1450.5, abs=1)
     assert ua_2 == approx(1615.3, abs=1)
