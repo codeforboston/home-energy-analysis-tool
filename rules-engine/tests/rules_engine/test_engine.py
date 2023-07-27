@@ -31,7 +31,9 @@ def test_average_indoor_temp():
 
 
 def test_bp_ua_estimates():
-    home = engine.Home(engine.FuelType.GAS, heat_sys_efficiency = 0.88, initial_balance_point = 58)
+    home = engine.Home(
+        engine.FuelType.GAS, heat_sys_efficiency=0.88, initial_balance_point=58
+    )
 
     daily_temps_lists = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
     usages = [50, 45, 30]
@@ -48,7 +50,9 @@ def test_bp_ua_estimates():
 
 
 def test_bp_ua_with_outlier():
-    home = engine.Home(engine.FuelType.GAS, heat_sys_efficiency = 0.88, initial_balance_point = 58)
+    home = engine.Home(
+        engine.FuelType.GAS, heat_sys_efficiency=0.88, initial_balance_point=58
+    )
     daily_temps_lists = [
         [41.7, 41.6, 32, 25.4],
         [28, 29, 30, 29],

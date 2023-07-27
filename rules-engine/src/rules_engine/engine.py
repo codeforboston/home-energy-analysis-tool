@@ -77,7 +77,7 @@ class Home:
         temps: List[List[float]],
         usages: List[float],
         avg_non_heating_usage: float = 0,
-    ):
+    ) -> None:
         """Eventually, this method should categorize the billing periods by
         season and calculate avg_non_heating_usage based on that. For now, we
         just pass in winter-only heating periods and manually define non-heating
@@ -89,7 +89,9 @@ class Home:
         for i in range(len(usages)):
             self.bills.append(BillingPeriod(temps[i], usages[i], self))
 
-    def calculate_balance_point_and_ua(self, balance_point_sensitivity: float = 2):
+    def calculate_balance_point_and_ua(
+        self, balance_point_sensitivity: float = 2
+    ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home,
         removing UA outliers based on a normalized standard deviation threshold.
         """
@@ -116,7 +118,7 @@ class Home:
 
             self.refine_balance_point(0.5)
 
-    def refine_balance_point(self, balance_point_sensitivity: float):
+    def refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """Tries different balance points plus or minus a given number of degrees,
         choosing whichever one minimizes the standard deviation of the UAs.
         """
@@ -169,10 +171,10 @@ class BillingPeriod:
             self.usage / self.days
         ) - self.home.avg_non_heating_usage
         self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
-        self.partial_ua = self.partial_ua()
+        self.partial_ua = self.calculate_partial_ua()
         self.ua = self.partial_ua / self.total_hdd
 
-    def partial_ua(self):
+    def calculate_partial_ua(self):
         """The portion of UA that is not dependent on the balance point"""
         return (
             self.days
