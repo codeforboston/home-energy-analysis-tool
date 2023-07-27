@@ -82,14 +82,33 @@ def average_indoor_temp(
     ) / 24
 
 
+class BillingPeriod:
+    def __init__(
+        self,
+        avg_temps: List[float],
+        usage: float,
+        fuel_type: FuelType,
+        avg_non_heat_usage: float,
+        balance_point: float,
+        heat_sys_efficiency: float,
+    ):
+        self.avg_temps = avg_temps
+        self.usage = usage
+        self.days = len(self.avg_temps)
+        self.avg_heating_usage = (self.usage / self.days) - avg_non_heat_usage
+        self.total_hdd = period_hdd(self.avg_temps, balance_point)
+        self.ua = ua(
+            self.days,
+            self.avg_heating_usage,
+            fuel_type.value,
+            heat_sys_efficiency,
+            self.total_hdd,
+        )
+        self.partial_ua = self.ua * self.total_hdd
+
+
 def bp_ua_estimates(
-    fuel_type: FuelType,
-    non_heat_usage: float,
-    heat_sys_efficiency: float,
-    avg_temps_lists: List[List[float]],
-    usages: List[float],
-    initial_bp: float = 60,
-    bp_sensitivity: float = 2,
+    billing_periods: List[BillingPeriod],
 ) -> Tuple[float, List[float], float, float]:
     """Given a list of billing periods, returns an estimate of balance point,
     a list of UA coefficients for each period, and the average UA coefficient.
@@ -103,47 +122,29 @@ def bp_ua_estimates(
     initial_bp -- Balance point temperature in degrees F to try at first
     bp_sensitivity -- Degrees F to add/subtract from balance point when refining
     """
-    bills_days = [len(l) for l in avg_temps_lists]
-    avg_daily_heating_usages = [
-        usage / days - non_heat_usage for usage, days in zip(usages, bills_days)
-    ]
-    period_hdds = [period_hdd(temps, initial_bp) for temps in avg_temps_lists]
-
-    bpu = fuel_type.value  # the value in this case is the BTU per usage
-
-    uas = [
-        ua(
-            bills_days[period],
-            avg_daily_heating_usages[period],
-            bpu,
-            heat_sys_efficiency,
-            period_hdds[period],
-        )
-        for period in range(len(usages))
-    ]
-    partial_uas = [ua * period_hdds[period] for period, ua in enumerate(uas)]
+    uas = [bp.ua for bp in billing_periods]
     avg_ua = sts.mean(uas)
     stdev_pct = sts.pstdev(uas) / avg_ua
 
-    bp, uas, avg_ua, stdev_pct = recalculate_bp(
-        initial_bp, bp_sensitivity, avg_ua, stdev_pct, avg_temps_lists, partial_uas, uas
+    bp, bills, avg_ua, stdev_pct = recalculate_bp(
+        58, 2, avg_ua, stdev_pct, billing_periods
     )
 
     # if the standard deviation of the UAs is below 10% / some threshold,
     # then we can return what we have
     while stdev_pct > 0.10:
         # remove an outlier, recalculate stdev_pct, etc
-        biggest_outlier_idx = np.argmax([abs(ua - avg_ua) for ua in uas])
-        uas.pop(biggest_outlier_idx)  # removes the biggest outlier
-        avg_temps_lists.pop(biggest_outlier_idx)
-        partial_uas.pop(biggest_outlier_idx)
-        avg_ua = sts.mean(uas)
-        stdev_pct = sts.pstdev(uas) / avg_ua
-        bp, uas, avg_ua, stdev_pct = recalculate_bp(
-            bp, 0.5, avg_ua, stdev_pct, avg_temps_lists, partial_uas, uas
-        )
+        biggest_outlier_idx = np.argmax([abs(bill.ua - avg_ua) for bill in bills])
+        outlier = bills.pop(biggest_outlier_idx)  # removes the biggest outlier
+        avg_ua_i = sts.mean(uas)
+        stdev_pct_i = sts.pstdev(uas) / avg_ua
+        if stdev_pct - stdev_pct_i < 0.01:
+            bills.append(outlier)
+            break  # may want some kind of warning to be raised as well
 
-    return bp, uas, avg_ua, stdev_pct
+        bp, bills, avg_ua, stdev_pct = recalculate_bp(bp, 0.5, avg_ua, stdev_pct, bills)
+
+    return bp, bills, avg_ua, stdev_pct
 
 
 def recalculate_bp(
@@ -151,10 +152,8 @@ def recalculate_bp(
     bp_sensitivity: float,
     avg_ua: float,
     stdev_pct: float,
-    avg_temps_lists: List[List[float]],
-    partial_uas: List[float],
-    uas: List[float],
-) -> Tuple[float, List[float], float, float]:
+    bills: List[BillingPeriod],
+) -> Tuple[float, List[BillingPeriod], float, float]:
     """Tries different balance points plus or minus a given number of degrees,
     choosing whichever one minimizes the standard deviation of the UAs.
     """
@@ -163,15 +162,20 @@ def recalculate_bp(
 
     while directions_to_check:
         bp_i = bp + directions_to_check[0] * bp_sensitivity
-        period_hdds_i = [period_hdd(temps, bp_i) for temps in avg_temps_lists]
-        uas_i = [pua / period_hdds_i[n] for n, pua in enumerate(partial_uas)]
+        period_hdds_i = [period_hdd(bill.avg_temps, bp_i) for bill in bills]
+        uas_i = [bill.partial_ua / period_hdds_i[n] for n, bill in enumerate(bills)]
         avg_ua_i = sts.mean(uas_i)
         stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
         if stdev_pct_i < stdev_pct:
-            bp, uas, avg_ua, stdev_pct = bp_i, uas_i, avg_ua_i, stdev_pct_i
+            bp, avg_ua, stdev_pct = bp_i, avg_ua_i, stdev_pct_i
+
+            for n, bill in enumerate(bills):
+                bill.total_hdd = period_hdds_i[n]
+                bill.ua = uas_i[n]
+
             if len(directions_to_check) == 2:
                 directions_to_check.pop(-1)
         else:
             directions_to_check.pop(0)
 
-    return bp, uas, avg_ua, stdev_pct
+    return bp, bills, avg_ua, stdev_pct
