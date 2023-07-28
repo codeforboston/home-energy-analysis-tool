@@ -49,6 +49,38 @@ def average_indoor_temp(
     ) / 24
 
 
+def average_heat_load(
+    design_set_point: float, avg_indoor_temp: float, balance_point: float, design_temp: float, ua: float
+) -> float:
+    """Calculate the average heat load. 
+
+    Arguments:
+    design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
+    avg_indoor_temp -- average indoor temperature on a given day
+    balance_point -- outdoor temperature (F) above which no heating is required
+    design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
+    ua -- the heat transfer coefficient 
+    """
+    return (
+        design_set_point - (avg_indoor_temp - balance_point) - design_temp
+    ) * ua
+
+
+def max_heat_load(
+    design_set_point: float, design_temp: float, ua: float
+) -> float:
+    """Calculate the max heat load. 
+
+    Arguments:
+    design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
+    design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
+    ua -- the heat transfer coefficient 
+    """
+    return (
+        design_set_point - design_temp
+    ) * ua
+
+
 class FuelType(Enum):
     """Enum for fuel types. Values are BTU per usage"""
 
