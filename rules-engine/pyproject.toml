@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name="rules-engine"
 version="0.0.1"
 requires-python=">=3.8"
-dependencies = []
+dependencies = [
+    "numpy"
+]
 
 [project.optional-dependencies]
 dev = [

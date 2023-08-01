@@ -4,3 +4,5 @@
 #
 #    pip-compile pyproject.toml
 #
+numpy==1.24.4
+    # via rules-engine (pyproject.toml)

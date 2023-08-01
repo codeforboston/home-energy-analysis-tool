@@ -1,5 +1,8 @@
 import statistics as sts
+from enum import Enum
 from typing import List, Tuple
+
+import numpy as np
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -29,31 +32,6 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     return sum([hdd(temp, balance_point) for temp in avg_temps])
 
 
-def ua(
-    days_in_period: int,
-    daily_heat_usage: float,
-    BTU_per_usage: float,
-    heat_sys_efficiency: float,
-    period_hdd: float,
-) -> float:
-    """Computes the UA coefficient for a given billing period.
-
-    Arguments:
-    days_in_period -- number of days in the given billing period
-    daily_heat_usage -- average daily usage for heating during the period
-    BTU_per_usage -- energy density constant for a given fuel type
-    heat_sys_efficiency -- heating system efficiency (decimal between 0 and 1)
-    period_hdd -- total number of heating degree days in the given period
-    """
-    return (
-        days_in_period
-        * daily_heat_usage
-        * BTU_per_usage
-        * heat_sys_efficiency
-        / (period_hdd * 24)
-    )
-
-
 def average_indoor_temp(
     tstat_set: float, tstat_setback: float, setback_daily_hrs: float
 ) -> float:
@@ -71,73 +49,143 @@ def average_indoor_temp(
     ) / 24
 
 
-def bp_ua_estimates(
-    fuel_type: str,
-    non_heat_usage: float,
-    heat_sys_efficiency: float,
-    avg_temps_lists: List[List[float]],
-    usages: List[float],
-    initial_bp: float = 60,
-    bp_sensitivity: float = 2,
-) -> Tuple[float, List[float], float, float]:
-    """Given a list of billing periods, returns an estimate of balance point,
-    a list of UA coefficients for each period, and the average UA coefficient.
+class FuelType(Enum):
+    """Enum for fuel types. Values are BTU per usage"""
 
-    Arguments:
-    fuel_type -- heating fuel type in the home. One of "gas", "oil", "propane"
-    non_heat_usage -- estimate of daily non-heating fuel usage
-    heat_sys_efficiency -- heating system efficiency (decimal between 0 and 1)
-    avg_temps_lists -- list of lists of avg daily temps for each period
-    usages -- list of fuel usages (one for each period, same order as above)
-    initial_bp -- Balance point temperature in degrees F to try at first
-    bp_sensitivity -- Degrees F to add/subtract from balance point when refining
-    """
+    GAS = 100000
+    OIL = 139600
+    PROPANE = 91333
 
-    # this implementation assumes that the three list arguments are the same
-    # length, and also that the fuel_type string is valid. Not sure if this is
-    # the place to do that checking, or if it will be handled earlier
 
-    bills_days = [len(l) for l in avg_temps_lists]
-    avg_daily_heating_usages = [
-        usage / days - non_heat_usage for usage, days in zip(usages, bills_days)
-    ]
-    period_hdds = [period_hdd(temps, initial_bp) for temps in avg_temps_lists]
+class Home:
+    """Defines attributes and methods for calculating home heat metrics"""
 
-    btu_per_usage = {
-        "gas": 100000,  # usage in therms
-        "oil": 139600,  # usage in gallons
-        "propane": 91333,  # usage in gallons
-    }
-    bpu = btu_per_usage[fuel_type]
+    def __init__(
+        self,
+        fuel_type: FuelType,
+        heat_sys_efficiency: float,
+        initial_balance_point: float = 60,
+        thermostat_set_point: float = 68,
+    ):
+        self.fuel_type = fuel_type
+        self.heat_sys_efficiency = heat_sys_efficiency
+        self.balance_point = initial_balance_point
+        self.thermostat_set_point = thermostat_set_point
 
-    uas = [
-        ua(
-            bills_days[period],
-            avg_daily_heating_usages[period],
-            bpu,
-            heat_sys_efficiency,
-            period_hdds[period],
+    def initialize_billing_periods(
+        self,
+        temps: List[List[float]],
+        usages: List[float],
+        avg_non_heating_usage: float = 0,
+    ) -> None:
+        """Eventually, this method should categorize the billing periods by
+        season and calculate avg_non_heating_usage based on that. For now, we
+        just pass in winter-only heating periods and manually define non-heating
+        """
+        # assume for now that temps and usages have the same number of elements
+        self.bills = []
+        self.avg_non_heating_usage = avg_non_heating_usage
+
+        for i in range(len(usages)):
+            self.bills.append(BillingPeriod(temps[i], usages[i], self))
+
+    def calculate_balance_point_and_ua(
+        self,
+        initial_balance_point_sensitivity: float = 2,
+        stdev_pct_max: float = 0.10,
+        max_stdev_pct_diff: float = 0.01,
+        next_balance_point_sensitivity: float = 0.5,
+    ) -> None:
+        """Calculates the estimated balance point and UA coefficient for the home,
+        removing UA outliers based on a normalized standard deviation threshold.
+        """
+        self.uas = [bp.ua for bp in self.bills]
+        self.avg_ua = sts.mean(self.uas)
+        self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
+        self.refine_balance_point(initial_balance_point_sensitivity)
+
+        while self.stdev_pct > stdev_pct_max:
+            biggest_outlier_idx = np.argmax(
+                [abs(bill.ua - self.avg_ua) for bill in self.bills]
+            )
+            outlier = self.bills.pop(biggest_outlier_idx)  # removes the biggest outlier
+            uas_i = [bp.ua for bp in self.bills]
+            avg_ua_i = sts.mean(uas_i)
+            stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
+            if (
+                self.stdev_pct - stdev_pct_i < max_stdev_pct_diff
+            ):  # if it's a small enough change
+                self.bills.append(
+                    outlier
+                )  # then it's not worth removing it, and we exit
+                break  # may want some kind of warning to be raised as well
+            else:
+                self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
+
+            self.refine_balance_point(next_balance_point_sensitivity)
+
+    def refine_balance_point(self, balance_point_sensitivity: float) -> None:
+        """Tries different balance points plus or minus a given number of degrees,
+        choosing whichever one minimizes the standard deviation of the UAs.
+        """
+        directions_to_check = [1, -1]
+
+        while directions_to_check:
+            bp_i = (
+                self.balance_point + directions_to_check[0] * balance_point_sensitivity
+            )
+
+            if bp_i > self.thermostat_set_point:
+                break  # may want to raise some kind of warning as well
+
+            period_hdds_i = [period_hdd(bill.avg_temps, bp_i) for bill in self.bills]
+            uas_i = [
+                bill.partial_ua / period_hdds_i[n] for n, bill in enumerate(self.bills)
+            ]
+            avg_ua_i = sts.mean(uas_i)
+            stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
+
+            if stdev_pct_i < self.stdev_pct:
+                self.balance_point, self.avg_ua, self.stdev_pct = (
+                    bp_i,
+                    avg_ua_i,
+                    stdev_pct_i,
+                )
+
+                for n, bill in enumerate(self.bills):
+                    bill.total_hdd = period_hdds_i[n]
+                    bill.ua = uas_i[n]
+
+                if len(directions_to_check) == 2:
+                    directions_to_check.pop(-1)
+            else:
+                directions_to_check.pop(0)
+
+
+class BillingPeriod:
+    def __init__(
+        self,
+        avg_temps: List[float],
+        usage: float,
+        home: Home,
+    ):
+        self.avg_temps = avg_temps
+        self.usage = usage
+        self.home = home
+        self.days = len(self.avg_temps)
+        self.avg_heating_usage = (
+            self.usage / self.days
+        ) - self.home.avg_non_heating_usage
+        self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
+        self.partial_ua = self.calculate_partial_ua()
+        self.ua = self.partial_ua / self.total_hdd
+
+    def calculate_partial_ua(self):
+        """The portion of UA that is not dependent on the balance point"""
+        return (
+            self.days
+            * self.avg_heating_usage
+            * self.home.fuel_type.value
+            * self.home.heat_sys_efficiency
+            / 24
         )
-        for period in range(len(usages))
-    ]
-    partial_uas = [ua * period_hdds[period] for period, ua in enumerate(uas)]
-    avg_ua = sts.mean(uas)
-    stdev_pct = sts.pstdev(uas) / avg_ua
-
-    directions_to_check = [1, -1]
-    bp = initial_bp
-
-    while directions_to_check:
-        bp_i = bp + directions_to_check[0] * bp_sensitivity
-        period_hdds_i = [period_hdd(temps, bp_i) for temps in avg_temps_lists]
-        uas_i = [pua / period_hdds_i[n] for n, pua in enumerate(partial_uas)]
-        avg_ua_i = sts.mean(uas_i)
-        stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
-        if stdev_pct_i < stdev_pct:
-            bp, uas, avg_ua, stdev_pct = bp_i, uas_i, avg_ua_i, stdev_pct_i
-            if len(directions_to_check) == 2:
-                directions_to_check.pop(-1)
-        else:
-            directions_to_check.pop(0)
-
-    return bp, uas, avg_ua, stdev_pct
