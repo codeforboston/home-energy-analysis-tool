@@ -157,6 +157,9 @@ class Home:
         balance_point_sensitivity: float = 2, 
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home based on user input 
+
+        Arguments:
+        bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
         """
 
         # 1. user enters a list of BillingPeriods and presses calculate
