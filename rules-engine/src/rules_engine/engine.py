@@ -94,7 +94,7 @@ class Home:
         initial_balance_point_sensitivity: float = 2,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
-        next_balance_point_sensitivity=0.5,
+        next_balance_point_sensitivity: float = 0.5,
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home,
         removing UA outliers based on a normalized standard deviation threshold.
