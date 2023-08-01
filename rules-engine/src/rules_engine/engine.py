@@ -90,7 +90,9 @@ class Home:
             self.bills.append(BillingPeriod(temps[i], usages[i], self))
 
     def calculate_balance_point_and_ua(
-        self, balance_point_sensitivity: float = 2
+        self,
+        balance_point_sensitivity: float = 2,
+        stdev_pct_max: float = 0.10,
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home,
         removing UA outliers based on a normalized standard deviation threshold.
@@ -100,7 +102,7 @@ class Home:
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
         self.refine_balance_point(balance_point_sensitivity)
 
-        while self.stdev_pct > 0.10:
+        while self.stdev_pct > stdev_pct_max:
             biggest_outlier_idx = np.argmax(
                 [abs(bill.ua - self.avg_ua) for bill in self.bills]
             )
@@ -116,7 +118,7 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self.refine_balance_point(0.5)
+            self.refine_balance_point(balance_point_sensitivity=0.5)
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """Tries different balance points plus or minus a given number of degrees,
