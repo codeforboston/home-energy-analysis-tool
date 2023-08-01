@@ -148,7 +148,33 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self.refine_balance_point(0.5)
+            self.refine_balance_point(0.5) # why isn't the argument bp_sensitivity too?
+
+
+    def calculate_balance_point_and_ua_customizable(
+        self, 
+        bps_to_remove: List, # List[BillingPeriod]
+        balance_point_sensitivity: float = 2, 
+    ) -> None:
+        """Calculates the estimated balance point and UA coefficient for the home based on user input 
+        """
+
+        # 1. user enters a list of BillingPeriods and presses calculate
+        # 2. function calculates bp and UA, display a graph of UA values including outliers
+        # 3. user can de-select individual BillingPeriods (one with UA outliers or not) 
+        #    thru a checkbox, removing them from self.bills. user presses 'calculate'
+        # 4. go back to step 2
+
+        customized_bills = [bp for bp in self.bills if bp not in bps_to_remove]
+        uas_i = [bp.ua for bp in customized_bills]
+        avg_ua_i = sts.mean(uas_i)
+        stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
+         
+        self.bills = customized_bills # I believe self.bills should be modified here so self.refine_balance_point() generates a different bp
+        self.refine_balance_point(balance_point_sensitivity)
+
+        return customized_bills, stdev_pct_i #for stdev_pct_i against customized_bills BillingPeriod visualization
+        
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """Tries different balance points plus or minus a given number of degrees,
