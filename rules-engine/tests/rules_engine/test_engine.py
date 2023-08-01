@@ -70,11 +70,3 @@ def test_bp_ua_with_outlier():
     assert ua_3 == approx(1479.6, abs=1)
     assert home.avg_ua == approx(1515.1, abs=1)
     assert home.stdev_pct == approx(0.0474, abs=0.01)
-
-
-if __name__ == "__main__":
-    test_hdd()
-    test_period_hdd()
-    test_average_indoor_temp()
-    test_bp_ua_estimates()
-    test_bp_ua_with_outlier()
