@@ -169,14 +169,12 @@ class Home:
         # 4. go back to step 2
 
         customized_bills = [bp for bp in self.bills if bp not in bps_to_remove]
-        uas_i = [bp.ua for bp in customized_bills]
-        avg_ua_i = sts.mean(uas_i)
-        stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
-         
+        self.uas = [bp.ua for bp in customized_bills]
+        self.avg_ua = sts.mean(self.uas)
+        self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
+
         self.bills = customized_bills # I believe self.bills should be modified here so self.refine_balance_point() generates a different bp
         self.refine_balance_point(balance_point_sensitivity)
-
-        return customized_bills, stdev_pct_i #for stdev_pct_i against customized_bills BillingPeriod visualization
         
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
