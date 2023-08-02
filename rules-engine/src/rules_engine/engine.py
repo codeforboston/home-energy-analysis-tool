@@ -112,7 +112,6 @@ class Home:
         temps: List[List[float]],
         usages: List[float],
 
-
         # avg_non_heating_usage: float = 0,
         inclusion_codes = List[int], 
     ) -> None:
