@@ -122,7 +122,11 @@ class Home:
             self.bills.append(BillingPeriod(temps[i], usages[i], self))
 
     def calculate_balance_point_and_ua(
-        self, balance_point_sensitivity: float = 2
+        self,
+        initial_balance_point_sensitivity: float = 2,
+        stdev_pct_max: float = 0.10,
+        max_stdev_pct_diff: float = 0.01,
+        next_balance_point_sensitivity: float = 0.5,
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home,
         removing UA outliers based on a normalized standard deviation threshold.
@@ -130,9 +134,9 @@ class Home:
         self.uas = [bp.ua for bp in self.bills]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
-        self.refine_balance_point(balance_point_sensitivity)
+        self.refine_balance_point(initial_balance_point_sensitivity)
 
-        while self.stdev_pct > 0.10:
+        while self.stdev_pct > stdev_pct_max:
             biggest_outlier_idx = np.argmax(
                 [abs(bill.ua - self.avg_ua) for bill in self.bills]
             )
@@ -140,7 +144,9 @@ class Home:
             uas_i = [bp.ua for bp in self.bills]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
-            if self.stdev_pct - stdev_pct_i < 0.01:  # if it's a small enough change
+            if (
+                self.stdev_pct - stdev_pct_i < max_stdev_pct_diff
+            ):  # if it's a small enough change
                 self.bills.append(
                     outlier
                 )  # then it's not worth removing it, and we exit
@@ -148,7 +154,7 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self.refine_balance_point(0.5) # why isn't the argument bp_sensitivity too?
+            self.refine_balance_point(next_balance_point_sensitivity)
 
 
     def calculate_balance_point_and_ua_customizable(
