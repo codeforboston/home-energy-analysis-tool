@@ -20,5 +20,3 @@ This team will help convert or read the existing spreadsheet logic into somethin
 ### Auth/Persistence
 
 This team will determine the best way to allow users to store their past cases with the households they visit. Possible solutions span Django, Auth0, and Firebase.
-
-Oh hey it's a change
