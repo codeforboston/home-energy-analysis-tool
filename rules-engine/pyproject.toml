@@ -15,7 +15,8 @@ dev = [
     "black",
     "isort",
     "mypy",
-    "pytest"
+    "parameterized",
+    "pytest",
 ]
 
 [tool.isort]
