@@ -10,11 +10,11 @@ import numpy as np
 def hdd(avg_temp: float, balance_point: float) -> float:
     """Calculate the heating degree days on a given day for a given home.
 
-    Arguments:
-    avg_temp -- average outdoor temperature on a given day
-    balance_point -- outdoor temperature above which no heating is required in
-    a given home
+    Args:
+        avg_temp: average outdoor temperature on a given day
+        balance_point: outdoor temperature (F) above which no heating is required in a given home
     """
+
     diff = balance_point - avg_temp
 
     if diff < 0:
@@ -26,10 +26,9 @@ def hdd(avg_temp: float, balance_point: float) -> float:
 def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     """Sum up total heating degree days in a given time period for a given home.
 
-    Arguments:
-    avg_temps -- list of daily average outdoor temperatures (F) for the period
-    balance_point -- outdoor temperature (F) above which no heating is required
-    in a given home
+    Args:
+        avg_temps: list of daily average outdoor temperatures (F) for the period
+        balance_point: outdoor temperature (F) above which no heating is required in a given home
     """
     return sum([hdd(temp, balance_point) for temp in avg_temps])
 
@@ -39,10 +38,10 @@ def average_indoor_temp(
 ) -> float:
     """Calculates the average indoor temperature.
 
-    Arguments:
-    tstat_set -- the temp in F at which the home is normally set
-    tstat_setback -- temp in F at which the home is set during off hours
-    setback_daily_hrs -- average # of hours per day the home is at setback temp
+    Args:
+        tstat_set: the temp in F at which the home is normally set
+        tstat_setback: temp in F at which the home is set during off hours
+        setback_daily_hrs: average # of hours per day the home is at setback temp
     """
     # again, not sure if we should check for valid values here or whether we can
     # assume those kinds of checks will be handled at the point of user entry
@@ -60,12 +59,12 @@ def average_heat_load(
 ) -> float:
     """Calculate the average heat load.
 
-    Arguments:
-    design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
-    avg_indoor_temp -- average indoor temperature on a given day
-    balance_point -- outdoor temperature (F) above which no heating is required
-    design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
-    ua -- the heat transfer coefficient
+    Args:
+        design_set_point: a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
+        avg_indoor_temp: average indoor temperature on a given day
+        balance_point: outdoor temperature (F) above which no heating is required
+        design_temp: an outside temperature that represents one of the coldest days of the year for the given location of a home
+        ua: the heat transfer coefficient
     """
     return (design_set_point - (avg_indoor_temp - balance_point) - design_temp) * ua
 
@@ -73,10 +72,10 @@ def average_heat_load(
 def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
     """Calculate the max heat load.
 
-    Arguments:
-    design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
-    design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
-    ua -- the heat transfer coefficient
+    Args:
+        design_set_point: a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
+        design_temp: an outside temperature that represents one of the coldest days of the year for the given location of a home
+        ua: the heat transfer coefficient
     """
     return (design_set_point - design_temp) * ua
 
@@ -163,15 +162,9 @@ class Home:
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home based on user input
 
-        Arguments:
-        bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
+        Args:
+            bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
         """
-
-        # 1. user enters a list of BillingPeriods and presses calculate
-        # 2. function calculates bp and UA, display a graph of UA values including outliers
-        # 3. user can de-select individual BillingPeriods (one with UA outliers or not)
-        #    thru a checkbox, removing them from self.bills. user presses 'calculate'
-        # 4. go back to step 2
 
         customized_bills = [bp for bp in self.bills if bp not in bps_to_remove]
         self.uas = [bp.ua for bp in customized_bills]
