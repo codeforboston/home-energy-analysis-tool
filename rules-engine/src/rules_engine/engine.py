@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import statistics as sts
 from enum import Enum
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -159,7 +161,7 @@ class Home:
 
     def calculate_balance_point_and_ua_customizable(
         self, 
-        bps_to_remove: List, # List[BillingPeriod]
+        bps_to_remove: List[BillingPeriod], 
         balance_point_sensitivity: float = 2, 
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home based on user input 
