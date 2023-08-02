@@ -5,6 +5,7 @@ In GitHub CodingSpace:
 
 - After updating pyodide with `npm install`, you must run this command to update the wasm files:
 `cp ./node_modules/pyodide/* public/pyodide-env/`
+- To add pyodide dependencies like `numpy`, extract them from [a full 150+mb release](https://github.com/pyodide/pyodide/releases) and upload the wasm file into the `public/pyodide-env` folder.
 
 To re-create the patch for py file support in `/patch` using [instruction](https://github.com/remix-run/remix/discussions/2468#discussioncomment-2639271):
 - edit the `node_modules/@remix-run/dev/dist/modules.d` file to add py, just like sql format.

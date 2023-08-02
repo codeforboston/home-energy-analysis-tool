@@ -117,7 +117,7 @@ app.use(
 				'script-src': [
 					"'strict-dynamic'", //heat-app: this may need to be commented for the below
 					"'self'", //heat-app: this may need to be commented for the below
-					// "'unsafe-eval'", //heat-app: this may be required on localhost without SSL
+					"'unsafe-eval'", //heat-app: this may be required on localhost without SSL
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,
 				],

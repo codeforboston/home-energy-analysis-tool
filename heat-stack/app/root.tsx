@@ -73,6 +73,7 @@ const getPyodide = async () => {
 const runPythonScript = async () => {
 	const pyodide: any = await getPyodide();
 	console.log(engine);
+	await pyodide.loadPackage("numpy")
 	await pyodide.runPythonAsync(engine);
 	return pyodide;
   };
