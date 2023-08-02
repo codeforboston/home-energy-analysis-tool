@@ -1,23 +1,29 @@
+from parameterized import parameterized
 from pytest import approx
 
 from rules_engine import engine
 
 
-def test_hdd():
-    assert engine.hdd(72, 60) == 0  # outside hotter than balance point
-    assert engine.hdd(60, 60) == 0  # outside equal to balance point
-    assert engine.hdd(57, 60) == 3  # outside cooler than balance point
+@parameterized(
+    [
+        (72, 60, 0),  # outside hotter than balance point
+        (60, 60, 0),  # outside equal to balance point
+        (57, 60, 3),  # outside cooler than balance point
+    ]
+)
+def test_hdd(avg_temp, balance_point, expected_result):
+    assert engine.hdd(avg_temp, balance_point) == expected_result
 
 
-def test_period_hdd():
-    bp = 60
-    temps_1 = [72, 60, 55, 61]
-    temps_2 = [52, 60, 55]
-    temps_3 = [72, 60, 65, 60, 80]
-
-    assert engine.period_hdd(temps_1, bp) == 5  # one day with HDDs
-    assert engine.period_hdd(temps_2, bp) == 13  # two days with HDDs
-    assert engine.period_hdd(temps_3, bp) == 0  # no days with HDDs
+@parameterized(
+    [
+        ([72, 60, 55, 61], 5),  # one day with HDDs
+        ([52, 60, 55], 13),  # two days with HDDs
+        ([72, 60, 65, 60, 80], 0),  # no days with HDDs
+    ]
+)
+def test_period_hdd(temps, expected_result):
+    assert engine.period_hdd(temps, 60) == expected_result
 
 
 def test_average_indoor_temp():
