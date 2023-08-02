@@ -1,3 +1,18 @@
+### H.E.A.T. app docs:
+
+In GitHub CodingSpace:
+- `nvm use 18` to avoid engine error with node v19+ which is default. nvm is preinstalled in coding spaces.
+
+- After updating pyodide with `npm install`, you must run this command to update the wasm files:
+`cp ./node_modules/pyodide/* public/pyodide-env/`
+
+To re-create the patch for py file support in `/patch`:
+- edit the `node_modules/@remix-run/dev/dist/modules.d` file to add py, just like sql format.
+- edit the `node_modules/@remix-run/dev/dist/compiler/utils/loader.ts` to add py, just like sql format.
+- `npx patch-package @remix-run/dev`
+- it should auto-apply any time you do `npm install`, but it may get out of sync with upstream
+
+### Epic Stack docs:
 <div align="center">
   <h1 align="center"><a href="https://www.epicweb.dev/epic-stack">The Epic Stack 🚀</a></h1>
   <strong align="center">

@@ -18,18 +18,35 @@ export async function insertNewUser({
 	password,
 }: { username?: string; password?: string } = {}) {
 	const userData = createUser()
-	const user = await prisma.user.create({
-		data: {
-			...userData,
-			username: username ?? userData.username,
-			password: {
-				create: {
-					hash: await getPasswordHash(password || userData.username),
+	username = username ?? userData.username
+	const user = (await prisma.user
+		.create({
+			data: {
+				...userData,
+				username,
+				password: {
+					create: {
+						hash: await getPasswordHash(password || userData.username),
+					},
 				},
 			},
-		},
-		select: { id: true, name: true, username: true, email: true },
-	})
+			select: { id: true, name: true, username: true, email: true },
+		})
+		.catch(async err => {
+			// sometimes the tests fail before data cleanup can happen. So we'll just
+			// delete the user and try again.
+			if (
+				err instanceof Error &&
+				err.message.includes(
+					'Unique constraint failed on the fields: (`username`)',
+				)
+			) {
+				await prisma.user.delete({ where: { username } })
+				return insertNewUser({ username, password })
+			} else {
+				throw err
+			}
+		})) as { id: string; name: string; username: string; email: string }
 	dataCleanup.users.add(user.id)
 	return user
 }
@@ -90,6 +107,34 @@ export async function loginPage({
 		},
 	])
 	return user
+}
+
+/**
+ * This allows you to wait for something (like an email to be available).
+ *
+ * It calls the callback every 50ms until it returns a value (and does not throw
+ * an error). After the timeout, it will throw the last error that was thrown or
+ * throw the error message provided as a fallback
+ */
+export async function waitFor<ReturnValue>(
+	cb: () => ReturnValue | Promise<ReturnValue>,
+	{
+		errorMessage,
+		timeout = 5000,
+	}: { errorMessage?: string; timeout?: number } = {},
+) {
+	const endTime = Date.now() + timeout
+	let lastError: unknown = new Error(errorMessage)
+	while (Date.now() < endTime) {
+		try {
+			const response = await cb()
+			if (response) return response
+		} catch (e: unknown) {
+			lastError = e
+		}
+		await new Promise(r => setTimeout(r, 100))
+	}
+	throw lastError
 }
 
 test.afterEach(async () => {

@@ -1,4 +1,4 @@
-app = "heat-stack-70a4"
+app = "heat-stack-ab8b"
 primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
@@ -24,7 +24,7 @@ script_checks = [ ]
   [services.concurrency]
   hard_limit = 100
   soft_limit = 80
-  type = "connections"
+  type = "requests"
 
   [[services.ports]]
   handlers = [ "http" ]

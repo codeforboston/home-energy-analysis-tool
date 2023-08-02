@@ -1,11 +1,11 @@
 import { type Password, type User } from '@prisma/client'
 import { redirect } from '@remix-run/node'
 import bcrypt from 'bcryptjs'
-import { Authenticator } from 'remix-auth'
+import { Authenticator, AuthorizationError } from 'remix-auth'
 import { FormStrategy } from 'remix-auth-form'
 import { prisma } from '~/utils/db.server.ts'
-import { invariant } from './misc.ts'
 import { sessionStorage } from './session.server.ts'
+import { z } from 'zod'
 
 export type { User }
 
@@ -15,20 +15,21 @@ export const authenticator = new Authenticator<string>(sessionStorage, {
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
 
+const signInForm = z.object({
+	username: z.string(),
+	password: z.string(),
+})
+
 authenticator.use(
 	new FormStrategy(async ({ form }) => {
-		const username = form.get('username')
-		const password = form.get('password')
+		const { username, password } = signInForm.parse({
+			username: form.get('username'),
+			password: form.get('password'),
+		})
 
-		invariant(typeof username === 'string', 'username must be a string')
-		invariant(username.length > 0, 'username must not be empty')
-
-		invariant(typeof password === 'string', 'password must be a string')
-		invariant(password.length > 0, 'password must not be empty')
-
-		const user = await verifyLogin(username, password)
+		const user = await verifyUserPassword({ username }, password)
 		if (!user) {
-			throw new Error('Invalid username or password')
+			throw new AuthorizationError('Invalid username or password')
 		}
 		const session = await prisma.session.create({
 			data: {
@@ -151,12 +152,12 @@ export async function getPasswordHash(password: string) {
 	return hash
 }
 
-export async function verifyLogin(
-	username: User['username'],
+export async function verifyUserPassword(
+	where: Pick<User, 'username'> | Pick<User, 'id'>,
 	password: Password['hash'],
 ) {
 	const userWithPassword = await prisma.user.findUnique({
-		where: { username },
+		where,
 		select: { id: true, password: { select: { hash: true } } },
 	})
 

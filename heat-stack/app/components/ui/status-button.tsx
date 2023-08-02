@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Button, type ButtonProps } from './button.tsx'
-import { cn } from '~/utils/misc.ts'
+import { cn } from '~/utils/misc.tsx'
 import { useSpinDelay } from 'spin-delay'
 import { Icon } from './icon.tsx'
 import {
@@ -48,7 +48,7 @@ export const StatusButton = React.forwardRef<
 			className={cn('flex justify-center gap-4', className)}
 			{...props}
 		>
-			<div>{children}</div>
+			{children}
 			{message ? (
 				<TooltipProvider>
 					<Tooltip>

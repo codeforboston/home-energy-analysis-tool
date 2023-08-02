@@ -23,7 +23,11 @@ import { StatusButton } from '~/components/ui/status-button.tsx'
 import * as deleteImageRoute from '~/routes/resources+/delete-image.tsx'
 import { authenticator, requireUserId } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { getUserImgSrc, useDoubleCheck, useIsSubmitting } from '~/utils/misc.ts'
+import {
+	getUserImgSrc,
+	useDoubleCheck,
+	useIsSubmitting,
+} from '~/utils/misc.tsx'
 
 export const handle = {
 	breadcrumb: <Icon name="avatar">Photo</Icon>,
@@ -65,13 +69,7 @@ export async function action({ request }: DataFunctionArgs) {
 		return json({ status: 'idle', submission } as const)
 	}
 	if (!submission.value) {
-		return json(
-			{
-				status: 'error',
-				submission,
-			} as const,
-			{ status: 400 },
-		)
+		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
 	const { photoFile } = submission.value
@@ -225,6 +223,15 @@ export default function PhotoRoute() {
 				action={deleteImageRoute.ROUTE_PATH}
 				onSubmit={() => setNewImageSrc(null)}
 			>
+				<ServerOnly>
+					{() => (
+						<input
+							name="redirectTo"
+							value="/settings/profile/photo"
+							type="hidden"
+						/>
+					)}
+				</ServerOnly>
 				<input name="intent" type="hidden" value="submit" />
 				<input name="imageId" type="hidden" value={data.user?.imageId ?? ''} />
 			</deleteImageFetcher.Form>

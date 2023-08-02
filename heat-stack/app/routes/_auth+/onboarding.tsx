@@ -29,10 +29,12 @@ import {
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { redirectWithConfetti } from '~/utils/flash-session.server.ts'
 import { prisma } from '~/utils/db.server.ts'
+import { invariant } from '~/utils/misc.tsx'
+import { type VerifyFunctionArgs } from '../resources+/verify.tsx'
 
 export const onboardingEmailSessionKey = 'onboardingEmail'
 
-const onboardingFormSchema = z
+const OnboardingFormSchema = z
 	.object({
 		username: usernameSchema,
 		name: nameSchema,
@@ -66,11 +68,7 @@ export async function loader({ request }: DataFunctionArgs) {
 	const message = error?.message ?? null
 	return json(
 		{ formError: typeof message === 'string' ? message : null },
-		{
-			headers: {
-				'Set-Cookie': await commitSession(session),
-			},
-		},
+		{ headers: { 'Set-Cookie': await commitSession(session) } },
 	)
 }
 
@@ -83,7 +81,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 	const formData = await request.formData()
 	const submission = await parse(formData, {
-		schema: onboardingFormSchema.superRefine(async (data, ctx) => {
+		schema: OnboardingFormSchema.superRefine(async (data, ctx) => {
 			const existingUser = await prisma.user.findUnique({
 				where: { username: data.username },
 				select: { id: true },
@@ -104,13 +102,7 @@ export async function action({ request }: DataFunctionArgs) {
 		return json({ status: 'idle', submission } as const)
 	}
 	if (!submission.value) {
-		return json(
-			{
-				status: 'error',
-				submission,
-			} as const,
-			{ status: 400 },
-		)
+		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 	const {
 		username,
@@ -135,6 +127,18 @@ export async function action({ request }: DataFunctionArgs) {
 	})
 }
 
+export async function handleVerification({
+	request,
+	submission,
+}: VerifyFunctionArgs) {
+	invariant(submission.value, 'submission.value should be defined by now')
+	const session = await getSession(request.headers.get('cookie'))
+	session.set(onboardingEmailSessionKey, submission.value.target)
+	return redirect('/onboarding', {
+		headers: { 'Set-Cookie': await commitSession(session) },
+	})
+}
+
 export const meta: V2_MetaFunction = () => {
 	return [{ title: 'Setup Epic Notes Account' }]
 }
@@ -148,10 +152,10 @@ export default function OnboardingPage() {
 
 	const [form, fields] = useForm({
 		id: 'onboarding',
-		constraint: getFieldsetConstraint(onboardingFormSchema),
+		constraint: getFieldsetConstraint(OnboardingFormSchema),
 		lastSubmission: actionData?.submission,
 		onValidate({ formData }) {
-			return parse(formData, { schema: onboardingFormSchema })
+			return parse(formData, { schema: OnboardingFormSchema })
 		},
 		shouldRevalidate: 'onBlur',
 	})

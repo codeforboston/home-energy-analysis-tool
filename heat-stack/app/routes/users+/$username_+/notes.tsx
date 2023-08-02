@@ -7,12 +7,13 @@ import { Link, NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
 import { prisma } from '~/utils/db.server.ts'
-import { cn, getUserImgSrc } from '~/utils/misc.ts'
+import { cn, getUserImgSrc } from '~/utils/misc.tsx'
 import {
 	combineServerTimings,
 	makeTimings,
 	time,
 } from '~/utils/timing.server.ts'
+import { useOptionalUser } from '~/utils/user.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const timings = makeTimings('notes loader')
@@ -61,6 +62,7 @@ export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
 
 export default function NotesRoute() {
 	const data = useLoaderData<typeof loader>()
+	const user = useOptionalUser()
 	const ownerDisplayName = data.owner.name ?? data.owner.username
 	const navLinkDefaultClassName =
 		'line-clamp-2 block rounded-l-full py-2 pl-8 pr-6 text-base lg:text-xl'
@@ -83,18 +85,20 @@ export default function NotesRoute() {
 							</h1>
 						</Link>
 						<ul className="overflow-y-auto overflow-x-hidden pb-12">
-							<li>
-								<NavLink
-									to="new"
-									className={({ isActive }) =>
-										cn(navLinkDefaultClassName, isActive && 'bg-accent')
-									}
-								>
-									<Icon name="plus">New Note</Icon>
-								</NavLink>
-							</li>
+							{user?.id === data.owner.id ? (
+								<li className="p-1 pr-0">
+									<NavLink
+										to="new"
+										className={({ isActive }) =>
+											cn(navLinkDefaultClassName, isActive && 'bg-accent')
+										}
+									>
+										<Icon name="plus">New Note</Icon>
+									</NavLink>
+								</li>
+							) : null}
 							{data.notes.map(note => (
-								<li key={note.id}>
+								<li key={note.id} className="p-1 pr-0">
 									<NavLink
 										to={note.id}
 										className={({ isActive }) =>
@@ -108,9 +112,9 @@ export default function NotesRoute() {
 						</ul>
 					</div>
 				</div>
-				<main className="relative col-span-3 bg-accent md:rounded-r-3xl">
+				<div className="relative col-span-3 bg-accent md:rounded-r-3xl">
 					<Outlet />
-				</main>
+				</div>
 			</div>
 		</main>
 	)

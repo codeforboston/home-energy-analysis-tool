@@ -7,8 +7,11 @@ import {
 	useSearchParams,
 	useSubmit,
 } from '@remix-run/react'
-import { getAllInstances, getInstanceInfo } from 'litefs-js'
-import { ensureInstance } from 'litefs-js/remix.js'
+import {
+	getAllInstances,
+	getInstanceInfo,
+	ensureInstance,
+} from '~/utils/litefs.server.ts'
 import * as React from 'react'
 import { Field } from '~/components/forms.tsx'
 import { Spacer } from '~/components/spacer.tsx'
@@ -19,7 +22,11 @@ import {
 	lruCache,
 	searchCacheKeys,
 } from '~/utils/cache.server.ts'
-import { invariantResponse, useDebounce, useDoubleCheck } from '~/utils/misc.ts'
+import {
+	invariantResponse,
+	useDebounce,
+	useDoubleCheck,
+} from '~/utils/misc.tsx'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 
 export async function loader({ request }: DataFunctionArgs) {

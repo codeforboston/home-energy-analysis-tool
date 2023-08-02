@@ -29,13 +29,7 @@ export async function action({ request }: DataFunctionArgs) {
 		return json({ status: 'idle', submission } as const)
 	}
 	if (!submission.value) {
-		return json(
-			{
-				status: 'error',
-				submission,
-			} as const,
-			{ status: 400 },
-		)
+		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 	let note: { id: string; owner: { username: string } }
 
@@ -136,8 +130,9 @@ export function NoteEditor({
 					type="reset"
 					className="min-[525px]:max-md:aspect-square min-[525px]:max-md:px-0"
 				>
-					<Icon name="reset" className="scale-125 max-md:scale-150 md:mr-2" />
-					<span className="max-md:hidden">Reset</span>
+					<Icon name="reset" className="scale-125 max-md:scale-150">
+						<span className="max-md:hidden">Reset</span>
+					</Icon>
 				</Button>
 				<StatusButton
 					status={
@@ -149,11 +144,9 @@ export function NoteEditor({
 					disabled={noteEditorFetcher.state !== 'idle'}
 					className="min-[525px]:max-md:aspect-square min-[525px]:max-md:px-0"
 				>
-					<Icon
-						name="arrow-right"
-						className="scale-125 max-md:scale-150 md:mr-2"
-					/>
-					<span className="max-md:hidden">Submit</span>
+					<Icon name="arrow-right" className="scale-125 max-md:scale-150">
+						<span className="max-md:hidden">Submit</span>
+					</Icon>
 				</StatusButton>
 			</div>
 		</noteEditorFetcher.Form>

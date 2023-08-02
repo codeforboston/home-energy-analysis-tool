@@ -15,7 +15,6 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: 'html',
 	use: {
-		headless: true,
 		baseURL: `http://localhost:${PORT}/`,
 		trace: 'on-first-retry',
 	},
@@ -24,7 +23,6 @@ export default defineConfig({
 		{
 			name: 'chromium',
 			use: {
-				headless: true,
 				...devices['Desktop Chrome'],
 			},
 		},
