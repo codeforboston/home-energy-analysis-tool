@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import statistics as sts
 from enum import Enum
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -50,35 +52,33 @@ def average_indoor_temp(
 
 
 def average_heat_load(
-    design_set_point: float, avg_indoor_temp: float, balance_point: float, design_temp: float, ua: float
+    design_set_point: float,
+    avg_indoor_temp: float,
+    balance_point: float,
+    design_temp: float,
+    ua: float,
 ) -> float:
-    """Calculate the average heat load. 
+    """Calculate the average heat load.
 
     Arguments:
     design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
     avg_indoor_temp -- average indoor temperature on a given day
     balance_point -- outdoor temperature (F) above which no heating is required
     design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
-    ua -- the heat transfer coefficient 
+    ua -- the heat transfer coefficient
     """
-    return (
-        design_set_point - (avg_indoor_temp - balance_point) - design_temp
-    ) * ua
+    return (design_set_point - (avg_indoor_temp - balance_point) - design_temp) * ua
 
 
-def max_heat_load(
-    design_set_point: float, design_temp: float, ua: float
-) -> float:
-    """Calculate the max heat load. 
+def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
+    """Calculate the max heat load.
 
     Arguments:
     design_set_point -- a standard internal temperature / thermostat set point - different from the preferred set point of an individual homeowner
     design_temp -- an outside temperature that represents one of the coldest days of the year for the given location of a home
-    ua -- the heat transfer coefficient 
+    ua -- the heat transfer coefficient
     """
-    return (
-        design_set_point - design_temp
-    ) * ua
+    return (design_set_point - design_temp) * ua
 
 
 class FuelType(Enum):
@@ -156,13 +156,12 @@ class Home:
 
             self.refine_balance_point(next_balance_point_sensitivity)
 
-
     def calculate_balance_point_and_ua_customizable(
-        self, 
-        bps_to_remove: List, # List[BillingPeriod]
-        balance_point_sensitivity: float = 2, 
+        self,
+        bps_to_remove: List[BillingPeriod],
+        balance_point_sensitivity: float = 2,
     ) -> None:
-        """Calculates the estimated balance point and UA coefficient for the home based on user input 
+        """Calculates the estimated balance point and UA coefficient for the home based on user input
 
         Arguments:
         bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
@@ -170,7 +169,7 @@ class Home:
 
         # 1. user enters a list of BillingPeriods and presses calculate
         # 2. function calculates bp and UA, display a graph of UA values including outliers
-        # 3. user can de-select individual BillingPeriods (one with UA outliers or not) 
+        # 3. user can de-select individual BillingPeriods (one with UA outliers or not)
         #    thru a checkbox, removing them from self.bills. user presses 'calculate'
         # 4. go back to step 2
 
@@ -179,9 +178,8 @@ class Home:
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
-        self.bills = customized_bills # I believe self.bills should be modified here so self.refine_balance_point() generates a different bp
+        self.bills = customized_bills  # I believe self.bills should be modified here so self.refine_balance_point() generates a different bp
         self.refine_balance_point(balance_point_sensitivity)
-        
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """Tries different balance points plus or minus a given number of degrees,
