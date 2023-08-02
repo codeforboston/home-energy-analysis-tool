@@ -1,6 +1,6 @@
 name: rules engine
 
-on: [push]
+on: [push, pull_request_target]
 
 env:
   working-directory: rules-engine
