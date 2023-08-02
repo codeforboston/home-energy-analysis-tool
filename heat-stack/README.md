@@ -1,4 +1,4 @@
-### H.E.A.T. app docs:
+### H.E.A.T. frontend app docs:
 
 In GitHub CodingSpace:
 - `nvm use 18` to avoid engine error with node v19+ which is default. nvm is preinstalled in coding spaces.
@@ -6,7 +6,7 @@ In GitHub CodingSpace:
 - After updating pyodide with `npm install`, you must run this command to update the wasm files:
 `cp ./node_modules/pyodide/* public/pyodide-env/`
 
-To re-create the patch for py file support in `/patch`:
+To re-create the patch for py file support in `/patch` using [instruction](https://github.com/remix-run/remix/discussions/2468#discussioncomment-2639271):
 - edit the `node_modules/@remix-run/dev/dist/modules.d` file to add py, just like sql format.
 - edit the `node_modules/@remix-run/dev/dist/compiler/utils/loader.ts` to add py, just like sql format.
 - `npx patch-package @remix-run/dev`
