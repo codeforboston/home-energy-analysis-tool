@@ -1,19 +1,47 @@
-### H.E.A.T. frontend app docs:
+## H.E.A.T. frontend app docs
 
-In GitHub CodingSpace:
-- `nvm use 18` to avoid engine error with node v19+ which is default. nvm is preinstalled in coding spaces.
+### Set up in a new GitHub CodingSpace:
 
-- After updating pyodide with `npm install`, you must run this command to update the wasm files:
-`cp ./node_modules/pyodide/* public/pyodide-env/`
-- To add pyodide dependencies like `numpy`, extract them from [a full 150+mb release](https://github.com/pyodide/pyodide/releases) and upload the wasm file into the `public/pyodide-env` folder.
+```
+nvm use 18
+npm install
+npm run dev
+```
 
-To re-create the patch for py file support in `/patch` using [instruction](https://github.com/remix-run/remix/discussions/2468#discussioncomment-2639271):
+`nvm use 18` avoids engine error with node v19+ which is default. nvm is preinstalled in coding spaces.
+
+### Under special circumstances:
+
+Assume you don't need to, but if the version of pyodide changes run:
+
+```
+cp ./node_modules/pyodide/* public/pyodide-env/
+```
+
+If the pyodide wheel for `numpy` for your version of `pyodide` isn't in `public/pyodide-env`:
+
+- Make sure you have enough space on your computer for 1GB
+- Download [a full 150+mb release](https://github.com/pyodide/pyodide/releases) onto your own computer. The filename is something like `pyodide-<some version number>.tar.bz2`.
+- Double click it to extract it. It will take about 1GB to decompress.
+- Upload the `numpy` .whl file into the `public/pyodide-env` folder.
+
+How do you know if your version of `numpy` is right? You can check your version of pyodide by running `npm list pyodide`. You should check that the `numpy` .whl file name includes the same version number as the output of that command.
+
+If you get an error saying you don't have the right loader:
+
+```
+npm run postinstall
+```
+
+It fixes the loader problem by doing the following programatically:
+
+To re-create the patch for py file support in `/patch`, use these [instructions](https://github.com/remix-run/remix/discussions/2468#discussioncomment-2639271):
 - edit the `node_modules/@remix-run/dev/dist/modules.d` file to add py, just like sql format.
 - edit the `node_modules/@remix-run/dev/dist/compiler/utils/loader.ts` to add py, just like sql format.
 - `npx patch-package @remix-run/dev`
 - it should auto-apply any time you do `npm install`, but it may get out of sync with upstream
 
-### Epic Stack docs:
+## Epic Stack docs:
 <div align="center">
   <h1 align="center"><a href="https://www.epicweb.dev/epic-stack">The Epic Stack 🚀</a></h1>
   <strong align="center">

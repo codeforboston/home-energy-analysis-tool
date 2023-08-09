@@ -58,16 +58,10 @@ import * as pyodideModule from 'pyodide'
 import engine from '../../rules-engine/src/rules_engine/engine.py';
 
 const getPyodide = async () => {
-	if (!('pyodide' in window)) {
-		// window.pyodide = await window.loadPyodide()
-
-		// public folder:
-		return await pyodideModule.loadPyodide({
-			indexURL: 'pyodide-env/',
-		})
-	}
-
-	return window.pyodide
+	// public folder:
+	return await pyodideModule.loadPyodide({
+		indexURL: 'pyodide-env/',
+	})
 }
 
 const runPythonScript = async () => {
