@@ -97,86 +97,29 @@ class Home:
         heat_sys_efficiency: float,
         initial_balance_point: float = 60,
         thermostat_set_point: float = 68,
-
-        has_boiler_for_dhw: bool = False,
     ):
         self.fuel_type = fuel_type
         self.heat_sys_efficiency = heat_sys_efficiency
         self.balance_point = initial_balance_point
         self.thermostat_set_point = thermostat_set_point
 
-        self.has_boiler_for_dhw = has_boiler_for_dhw
-
     def initialize_billing_periods(
         self,
         temps: List[List[float]],
         usages: List[float],
-
-        # avg_non_heating_usage: float = 0,
-        inclusion_codes = List[int], 
+        avg_non_heating_usage: float = 0,
     ) -> None:
         """Eventually, this method should categorize the billing periods by
         season and calculate avg_non_heating_usage based on that. For now, we
         just pass in winter-only heating periods and manually define non-heating
         """
         # assume for now that temps and usages have the same number of elements
+        self.bills = []
+        self.avg_non_heating_usage = avg_non_heating_usage
 
-        # self.bills = []
-        # for i in range(len(usages)):
-        #     self.bills.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
-        # self.avg_non_heating_usage = avg_non_heating_usage
-
-        self.bills_winter = []
-        self.bills_summer = []
-        self.bills_shoulder = []
-
-        # winter months 1; summer months -1; shoulder months 0
         for i in range(len(usages)):
-            if inclusion_codes[i] == 1:
-                self.bills_winter.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
-            elif inclusion_codes[i] == -1:
-                self.bills_summer.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
-            else:
-                self.bills_shoulder.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
+            self.bills.append(BillingPeriod(temps[i], usages[i], self))
 
-
-    def calculate_avg_summer_usage(
-            self,
-        ):
-        """Calculate average daily summer usage
-        """
-        summer_usage_total = sum([bp.usage for bp in self.bills_summer])
-        summer_days = sum([bp.days for bp in self.bills_summer])
-        self.avg_summer_usage = summer_usage_total / summer_days
-
-
-    def calculate_oil_boiler_usage(
-        self,
-        num_occupants: int,
-        water_heat_efficiency: float,
-    ):
-        """Calculate oil + boiler usage 
-        
-        """
-        return 
-        
-    
-    def calculate_avg_non_heating_usage(
-        self,
-    ):
-        """Calculate avg non heating usage for this Home
-        
-        Args:
-
-        """
-        if self.fuel_type == FuelType.GAS:
-          self.avg_non_heating_usage = self.avg_summer_usage
-        if self.fuel_type == FuelType.OIL and self.has_boiler_for_dhw: 
-          self.avg_non_heating_usage = self.calculate_oil_boiler_usage()
-        else: 
-          self.avg_non_heating_usage = 0
-
-    
     def calculate_balance_point_and_ua(
         self,
         initial_balance_point_sensitivity: float = 2,
@@ -187,23 +130,23 @@ class Home:
         """Calculates the estimated balance point and UA coefficient for the home,
         removing UA outliers based on a normalized standard deviation threshold.
         """
-        self.uas = [bp.ua for bp in self.bills_winter]
+        self.uas = [bp.ua for bp in self.bills]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
         self.refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
             biggest_outlier_idx = np.argmax(
-                [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
+                [abs(bill.ua - self.avg_ua) for bill in self.bills]
             )
-            outlier = self.bills_winter.pop(biggest_outlier_idx)  # removes the biggest outlier
-            uas_i = [bp.ua for bp in self.bills_winter]
+            outlier = self.bills.pop(biggest_outlier_idx)  # removes the biggest outlier
+            uas_i = [bp.ua for bp in self.bills]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
                 self.stdev_pct - stdev_pct_i < max_stdev_pct_diff
             ):  # if it's a small enough change
-                self.bills_winter.append(
+                self.bills.append(
                     outlier
                 )  # then it's not worth removing it, and we exit
                 break  # may want some kind of warning to be raised as well
@@ -218,15 +161,17 @@ class Home:
         balance_point_sensitivity: float = 2,
     ) -> None:
         """Calculates the estimated balance point and UA coefficient for the home based on user input
+
         Args:
             bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
         """
-        customized_bills = [bp for bp in self.bills_winter if bp not in bps_to_remove]
+
+        customized_bills = [bp for bp in self.bills if bp not in bps_to_remove]
         self.uas = [bp.ua for bp in customized_bills]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
-        self.bills_winter = customized_bills  
+        self.bills = customized_bills  # I believe self.bills should be modified here so self.refine_balance_point() generates a different bp
         self.refine_balance_point(balance_point_sensitivity)
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
@@ -243,9 +188,9 @@ class Home:
             if bp_i > self.thermostat_set_point:
                 break  # may want to raise some kind of warning as well
 
-            period_hdds_i = [period_hdd(bill.avg_temps, bp_i) for bill in self.bills_winter]
+            period_hdds_i = [period_hdd(bill.avg_temps, bp_i) for bill in self.bills]
             uas_i = [
-                bill.partial_ua / period_hdds_i[n] for n, bill in enumerate(self.bills_winter)
+                bill.partial_ua / period_hdds_i[n] for n, bill in enumerate(self.bills)
             ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
@@ -257,7 +202,7 @@ class Home:
                     stdev_pct_i,
                 )
 
-                for n, bill in enumerate(self.bills_winter):
+                for n, bill in enumerate(self.bills):
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
 
@@ -273,8 +218,6 @@ class BillingPeriod:
         avg_temps: List[float],
         usage: float,
         home: Home,
-        
-        inclusion_code: int, 
     ):
         self.avg_temps = avg_temps
         self.usage = usage
@@ -286,8 +229,6 @@ class BillingPeriod:
         self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
         self.partial_ua = self.calculate_partial_ua()
         self.ua = self.partial_ua / self.total_hdd
-
-        self.inclusion_code = inclusion_code
 
     def calculate_partial_ua(self):
         """The portion of UA that is not dependent on the balance point"""
