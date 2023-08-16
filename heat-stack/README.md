@@ -1,14 +1,33 @@
 ## H.E.A.T. frontend app docs
 
+### On your computer
+
+```
+git clone git@github.com:codeforboston/home-energy-analysis-tool.git
+# create an environment file
+cp .env.example .env
+
+# make sure you're using node version 18
+npm install -g nvm
+nvm use 18
+
+# install and patch the environment
+npm install
+npm run dev
+```
+
 ### Set up in a new GitHub CodingSpace:
 
 ```
+# create an environment file
+cp .env.example .env
+
 nvm use 18
 npm install
 npm run dev
 ```
 
-`nvm use 18` avoids engine error with node v19+ which is default. nvm is preinstalled in coding spaces.
+If you have the node version manager (`nvm`), then `nvm use 18` avoids engine error with node v19+ or newer which is default. nvm is preinstalled in coding spaces.
 
 ### Under special circumstances:
 
