@@ -1,26 +1,28 @@
-from parameterized import parameterized
+import pytest
 from pytest import approx
 
 from rules_engine import engine
 
 
-@parameterized(
+@pytest.mark.parametrize(
+    "avg_temp, balance_point, expected_result",
     [
         (72, 60, 0),  # outside hotter than balance point
         (60, 60, 0),  # outside equal to balance point
         (57, 60, 3),  # outside cooler than balance point
-    ]
+    ],
 )
 def test_hdd(avg_temp, balance_point, expected_result):
     assert engine.hdd(avg_temp, balance_point) == expected_result
 
 
-@parameterized(
+@pytest.mark.parametrize(
+    "temps, expected_result",
     [
         ([72, 60, 55, 61], 5),  # one day with HDDs
         ([52, 60, 55], 13),  # two days with HDDs
         ([72, 60, 65, 60, 80], 0),  # no days with HDDs
-    ]
+    ],
 )
 def test_period_hdd(temps, expected_result):
     assert engine.period_hdd(temps, 60) == expected_result
