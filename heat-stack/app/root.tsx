@@ -49,28 +49,13 @@ import { makeTimings, time } from './utils/timing.server.ts'
 import { useToast } from './utils/useToast.tsx'
 import { useOptionalUser, useUser } from './utils/user.ts'
 import rdtStylesheetUrl from 'remix-development-tools/stylesheet.css'
+
+import { usePython } from './hooks/usePython.ts'
+
 const RemixDevTools =
 	process.env.NODE_ENV === 'development'
 		? lazy(() => import('remix-development-tools'))
 		: undefined
-
-import * as pyodideModule from 'pyodide'
-import engine from '../../rules-engine/src/rules_engine/engine.py';
-
-const getPyodide = async () => {
-	// public folder:
-	return await pyodideModule.loadPyodide({
-		indexURL: 'pyodide-env/',
-	})
-}
-
-const runPythonScript = async () => {
-	const pyodide: any = await getPyodide();
-	console.log(engine);
-	await pyodide.loadPackage("numpy")
-	await pyodide.runPythonAsync(engine);
-	return pyodide;
-  };
   
 
 export const links: LinksFunction = () => {
@@ -181,17 +166,8 @@ function Document({
 	theme?: 'dark' | 'light'
 	env?: Record<string, string>
 }) {
-	const [output, setOutput] = useState<string | null>('(loading python...)');
+	const output = usePython('hdd(57, 60)')
 
-	useEffect(() => {
-		const run = async () => {
-		  const pyodide: any = await runPythonScript();
-		  console.log(pyodide);
-		  const result = await pyodide.runPythonAsync("hdd(57, 60)");
-		  setOutput(result);
-		};
-		run();
-	  }, []);
 	return (
 		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
 			<head>
