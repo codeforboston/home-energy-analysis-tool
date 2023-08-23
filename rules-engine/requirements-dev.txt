@@ -28,8 +28,6 @@ packaging==23.1
     # via
     #   black
     #   pytest
-parameterized==0.9.0
-    # via rules-engine (pyproject.toml)
 pathspec==0.11.1
     # via black
 platformdirs==3.7.0

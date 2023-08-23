@@ -15,7 +15,6 @@ dev = [
     "black",
     "isort",
     "mypy",
-    "parameterized",
     "pydocstyle",
     "pytest",
 ]
@@ -26,10 +25,6 @@ profile = "black"
 [tool.mypy]
 disallow_any_generics = true
 disallow_incomplete_defs = true
-
-[[tool.mypy.overrides]]
-module = "parameterized.*"
-ignore_missing_imports = true
 
 [tool.pydocstyle]
 select = "D207,D208,D3,D417"
