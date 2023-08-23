@@ -50,7 +50,7 @@ import { useToast } from './utils/useToast.tsx'
 import { useOptionalUser, useUser } from './utils/user.ts'
 import rdtStylesheetUrl from 'remix-development-tools/stylesheet.css'
 
-import { usePython } from './hooks/usePython.ts'
+import { useRulesEngine } from './hooks/useRulesEngine.ts'
 
 const RemixDevTools =
 	process.env.NODE_ENV === 'development'
@@ -166,7 +166,7 @@ function Document({
 	theme?: 'dark' | 'light'
 	env?: Record<string, string>
 }) {
-	const output = usePython('hdd(57, 60)')
+	const output = useRulesEngine('hdd(57, 60ß)')
 
 	return (
 		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
