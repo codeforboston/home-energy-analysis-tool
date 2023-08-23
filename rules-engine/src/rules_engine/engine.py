@@ -164,6 +164,7 @@ class Home:
 
         Args:
             bps_to_remove: a list of Billing Periods that user wishes to remove from calculation
+            balance_point_sensitivity: the amount to adjust when refining the balance point
         """
 
         customized_bills = [bp for bp in self.bills if bp not in bps_to_remove]

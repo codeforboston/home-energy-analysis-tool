@@ -28,16 +28,18 @@ packaging==23.1
     # via
     #   black
     #   pytest
-parameterized==0.9.0
-    # via rules-engine (pyproject.toml)
 pathspec==0.11.1
     # via black
 platformdirs==3.7.0
     # via black
 pluggy==1.0.0
     # via pytest
+pydocstyle==6.3.0
+    # via rules-engine (pyproject.toml)
 pytest==7.3.2
     # via rules-engine (pyproject.toml)
+snowballstemmer==2.2.0
+    # via pydocstyle
 tomli==2.0.1
     # via
     #   black
