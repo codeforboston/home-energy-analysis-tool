@@ -1,0 +1,1 @@
+These test cases are derived from the examples that come bundled in the Heat Load Analysis tool
