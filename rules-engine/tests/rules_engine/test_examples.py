@@ -4,11 +4,11 @@ import os
 import pathlib
 from datetime import datetime
 from typing import List, Literal, Optional
-from typing_extensions import Annotated
 
 import pytest
-from pytest import approx
 from pydantic import BaseModel, BeforeValidator
+from pytest import approx
+from typing_extensions import Annotated
 
 from rules_engine import engine
 
@@ -22,7 +22,9 @@ def validate_fuel_type(value):
     try:
         return engine.FuelType[value]
     except KeyError as e:
-        raise ValueError(f"Error validating fuel type {e}. Valid choices are: {[x.name for x in engine.FuelType]}")
+        raise ValueError(
+            f"Error validating fuel type {e}. Valid choices are: {[x.name for x in engine.FuelType]}"
+        )
 
 
 class Summary(BaseModel):
@@ -48,10 +50,7 @@ class Summary(BaseModel):
 
 
 def validate_datetime(value):
-    return datetime.strptime(
-        value,
-        "%m/%d/%Y"
-    ).date()
+    return datetime.strptime(value, "%m/%d/%Y").date()
 
 
 def validate_inclusion(value):
@@ -63,12 +62,13 @@ class NaturalGasUsage(BaseModel):
     end_date: Annotated[datetime, BeforeValidator(validate_datetime)]
     days_in_bill: int
     usage: int
-    inclusion_override: Annotated[Optional[Literal[-1, 0, 1]], BeforeValidator(validate_inclusion)]
+    inclusion_override: Annotated[
+        Optional[Literal[-1, 0, 1]], BeforeValidator(validate_inclusion)
+    ]
     inclusion_code: Annotated[Literal[-1, 0, 1], BeforeValidator(validate_inclusion)]
     avg_daily_usage: float
     daily_htg_usage: float
 
-        
 
 class Example(BaseModel):
     summary: Summary
@@ -87,8 +87,7 @@ def load_natural_gas(folder: str) -> List[NaturalGasUsage]:
     with open(ROOT_DIR / folder / "natural-gas.csv") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            print("row:", row)
-            item = NaturalGasUsage(**row)
+            item = NaturalGasUsage(**row)  # type: ignore[arg-type]
             result.append(item)
 
     return result
