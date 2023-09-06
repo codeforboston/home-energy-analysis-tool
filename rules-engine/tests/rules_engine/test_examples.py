@@ -70,7 +70,7 @@ def load_natural_gas(folder: str) -> List[NaturalGasUsage]:
     with open(ROOT_DIR / folder / "natural-gas.csv") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            item = NaturalGasUsage(**row)
+            item = NaturalGasUsage(**row)  # type: ignore[arg-type]
             result.append(item)
 
     return result
