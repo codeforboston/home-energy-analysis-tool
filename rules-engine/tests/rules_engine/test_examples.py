@@ -2,12 +2,13 @@ import csv
 import json
 import os
 import pathlib
-from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Literal, Optional
+from typing_extensions import Annotated
 
 import pytest
 from pytest import approx
+from pydantic import BaseModel, BeforeValidator
 
 from rules_engine import engine
 
@@ -17,14 +18,20 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 INPUT_DATA = next(os.walk(ROOT_DIR))[1]
 
 
-@dataclass
-class Summary:
+def validate_fuel_type(value):
+    try:
+        return engine.FuelType[value]
+    except KeyError as e:
+        raise ValueError(f"Error validating fuel type {e}. Valid choices are: {[x.name for x in engine.FuelType]}")
+
+
+class Summary(BaseModel):
     local_weather_station: str
     design_temperature_override: Optional[float]
     living_area: int
-    fuel_type: engine.FuelType
+    fuel_type: Annotated[engine.FuelType, BeforeValidator(validate_fuel_type)]
     heating_system_efficiency: float
-    other_fuel_usage: float
+    other_fuel_usage: Optional[float]
     other_fuel_usage_override: Optional[float]
     thermostat_set_point: float
     setback_temp: float
@@ -40,22 +47,32 @@ class Summary:
     max_heat_load: int
 
 
-@dataclass
-class NaturalGasUsage:
-    start_date: datetime
-    end_date: datetime
+def validate_datetime(value):
+    return datetime.strptime(
+        value,
+        "%m/%d/%Y"
+    ).date()
+
+
+def validate_inclusion(value):
+    return int(value) if value else None
+
+
+class NaturalGasUsage(BaseModel):
+    start_date: Annotated[datetime, BeforeValidator(validate_datetime)]
+    end_date: Annotated[datetime, BeforeValidator(validate_datetime)]
     days_in_bill: int
     usage: int
-    inclusion_override: Literal[-1, 0, 1]
-    inclusion_code: Literal[-1, 0, 1]
+    inclusion_override: Annotated[Optional[Literal[-1, 0, 1]], BeforeValidator(validate_inclusion)]
+    inclusion_code: Annotated[Literal[-1, 0, 1], BeforeValidator(validate_inclusion)]
     avg_daily_usage: float
     daily_htg_usage: float
 
+        
 
-@dataclass
-class Example:
+class Example(BaseModel):
     summary: Summary
-    natural_gas_usage: List[NaturalGasUsage]
+    natural_gas_usage: Optional[List[NaturalGasUsage]]
 
 
 def load_summary(folder: str) -> Summary:
@@ -70,7 +87,8 @@ def load_natural_gas(folder: str) -> List[NaturalGasUsage]:
     with open(ROOT_DIR / folder / "natural-gas.csv") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            item = NaturalGasUsage(**row)  # type: ignore[arg-type]
+            print("row:", row)
+            item = NaturalGasUsage(**row)
             result.append(item)
 
     return result
