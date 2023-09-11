@@ -55,7 +55,7 @@ def average_heat_load(
     avg_indoor_temp: float,
     balance_point: float,
     design_temp: float,
-    ua: float
+    ua: float,
 ) -> float:
     """Calculate the average heat load.
 
@@ -98,7 +98,7 @@ class Home:
         initial_balance_point: float = 60,
         thermostat_set_point: float = 68,
         has_boiler_for_dhw: bool = False,
-        same_fuel_dhw_heating: bool = False
+        same_fuel_dhw_heating: bool = False,
     ):
         self.fuel_type = fuel_type
         self.heat_sys_efficiency = heat_sys_efficiency
@@ -108,10 +108,7 @@ class Home:
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
 
     def initialize_billing_periods(
-        self,
-        temps: List[List[float]],
-        usages: List[float],
-        inclusion_codes: List[int]
+        self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
     ) -> None:
         """Eventually, this method should categorize the billing periods by
         season and calculate avg_non_heating_usage based on that. For now, we
@@ -126,12 +123,22 @@ class Home:
         # winter months 1; summer months -1; shoulder months 0
         for i in range(len(usages)):
             if inclusion_codes[i] == 1:
-                self.bills_winter.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
+                self.bills_winter.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
             elif inclusion_codes[i] == -1:
-                self.bills_summer.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
+                self.bills_summer.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
             else:
-                self.bills_shoulder.append(BillingPeriod(temps[i], usages[i], self, inclusion_codes[i]))
+                self.bills_shoulder.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
 
+        self.calculate_avg_summer_usage()
+        self.calculate_avg_non_heating_usage()
+        for bill in self.bills_winter:
+            bill.initialize_ua()
 
     def calculate_avg_summer_usage(
         self,
@@ -141,23 +148,22 @@ class Home:
         """
         summer_usage_total = sum([bp.usage for bp in self.bills_summer])
         summer_days = sum([bp.days for bp in self.bills_summer])
-        self.avg_summer_usage = summer_usage_total / summer_days
+        if summer_days != 0:
+            self.avg_summer_usage = summer_usage_total / summer_days
+        else:
+            self.avg_summer_usage = 0.24
 
-
-    def calculate_boiler_usage(
-        self,
-        fuel_multiplier: float
-    ):
-        """Calculate boiler usage with oil or propane 
+    def calculate_boiler_usage(self, fuel_multiplier: float):
+        """Calculate boiler usage with oil or propane
         Args:
-            fuel_multiplier: a constant that's determined by the fuel type 
+            fuel_multiplier: a constant that's determined by the fuel type
         """
-        
+
         # self.num_occupants: the number of occupants in Home
         # self.water_heat_efficiency: a number indicating how efficient the heating system is
-        
+
         return
-        
+
     """
     your pseudocode looks correct provided there's outer logic that 
     check whether the home uses the same fuel for DHW as for heating. If not, anhu=0.
@@ -167,7 +173,7 @@ class Home:
     station, and the Winter, Summer and Shoulder billing periods. Of course, Location
       would be a property of the Home.
     """
-    
+
     def calculate_avg_non_heating_usage(
         self,
     ):
@@ -177,15 +183,14 @@ class Home:
         """
 
         if self.fuel_type == FuelType.GAS:
-            self.avg_non_heating_usage = self.avg_summer_usage 
-        if self.has_boiler_for_dhw and self.same_fuel_dhw_heating:
-            fuel_multiplier = 1 # default multiplier, for oil, placeholder number
-            if self.fuel_type == FuelType.PROPANE: 
-                fuel_multiplier = 2 # a placeholder number 
+            self.avg_non_heating_usage = self.avg_summer_usage
+        elif self.has_boiler_for_dhw and self.same_fuel_dhw_heating:
+            fuel_multiplier = 1  # default multiplier, for oil, placeholder number
+            if self.fuel_type == FuelType.PROPANE:
+                fuel_multiplier = 2  # a placeholder number
             self.avg_non_heating_usage = self.calculate_boiler_usage(fuel_multiplier)
-        else: 
+        else:
             self.avg_non_heating_usage = 0
-
 
     def calculate_balance_point_and_ua(
         self,
@@ -206,7 +211,9 @@ class Home:
             biggest_outlier_idx = np.argmax(
                 [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
             )
-            outlier = self.bills_winter.pop(biggest_outlier_idx)  # removes the biggest outlier
+            outlier = self.bills_winter.pop(
+                biggest_outlier_idx
+            )  # removes the biggest outlier
             uas_i = [bp.ua for bp in self.bills_winter]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
@@ -239,7 +246,7 @@ class Home:
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
-        self.bills_winter = customized_bills  
+        self.bills_winter = customized_bills
         self.refine_balance_point(balance_point_sensitivity)
 
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
@@ -256,9 +263,12 @@ class Home:
             if bp_i > self.thermostat_set_point:
                 break  # may want to raise some kind of warning as well
 
-            period_hdds_i = [period_hdd(bill.avg_temps, bp_i) for bill in self.bills_winter]
+            period_hdds_i = [
+                period_hdd(bill.avg_temps, bp_i) for bill in self.bills_winter
+            ]
             uas_i = [
-                bill.partial_ua / period_hdds_i[n] for n, bill in enumerate(self.bills_winter)
+                bill.partial_ua / period_hdds_i[n]
+                for n, bill in enumerate(self.bills_winter)
             ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
@@ -282,23 +292,23 @@ class Home:
 
 class BillingPeriod:
     def __init__(
-        self,
-        avg_temps: List[float],
-        usage: float,
-        home: Home,
-        inclusion_code: int
+        self, avg_temps: List[float], usage: float, home: Home, inclusion_code: int
     ):
         self.avg_temps = avg_temps
         self.usage = usage
         self.home = home
         self.days = len(self.avg_temps)
+        self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
+        self.inclusion_code = inclusion_code
+
+    def initialize_ua(self):
+        """average heating usage, partial UA, initial UA. requires that self.home
+        have non heating usage calculated"""
         self.avg_heating_usage = (
             self.usage / self.days
         ) - self.home.avg_non_heating_usage
-        self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
         self.partial_ua = self.calculate_partial_ua()
         self.ua = self.partial_ua / self.total_hdd
-        self.inclusion_code = inclusion_code
 
     def calculate_partial_ua(self):
         """The portion of UA that is not dependent on the balance point"""

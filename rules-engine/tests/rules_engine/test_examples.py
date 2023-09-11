@@ -5,7 +5,6 @@ from typing import Any
 
 import pytest
 from pytest import approx
-
 from rules_engine import engine
 
 # Test inputs are provided as separate directory within the "cases/examples" directory
@@ -14,7 +13,7 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 INPUT_DATA = next(os.walk(ROOT_DIR))[1]
 
 
-def load_example(folder: str) -> dict[str, Any]:
+def load_example(folder: str) -> "dict[str, Any]":
     with open(ROOT_DIR / folder / "summary.json") as f:
         return json.load(f)
 

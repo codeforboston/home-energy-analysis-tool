@@ -1,6 +1,5 @@
 import pytest
 from pytest import approx
-
 from rules_engine import engine
 
 
@@ -49,7 +48,7 @@ def test_bp_ua_estimates():
     home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
     home.calculate_avg_non_heating_usage()
     home.calculate_balance_point_and_ua()
-    
+
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
     assert home.balance_point == 60
