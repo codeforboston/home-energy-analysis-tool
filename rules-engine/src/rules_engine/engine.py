@@ -162,7 +162,7 @@ class Home:
         # self.num_occupants: the number of occupants in Home
         # self.water_heat_efficiency: a number indicating how efficient the heating system is
 
-        return
+        return 0
 
     """
     your pseudocode looks correct provided there's outer logic that 
