@@ -2,7 +2,7 @@
     "local_weather_station": "KOWD-Norwood",
     "design_temperature_override": null,
     "living_area": 3066,
-    "fuel_type": "Natural Gas",
+    "fuel_type": "GAS",
     "heating_system_efficiency": 0.9,
     "other_fuel_usage": 0.51,
     "other_fuel_usage_override": null,
