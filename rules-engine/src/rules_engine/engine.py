@@ -151,7 +151,7 @@ class Home:
         if summer_days != 0:
             self.avg_summer_usage = summer_usage_total / summer_days
         else:
-            self.avg_summer_usage = 0.24
+            self.avg_summer_usage = 0
 
     def calculate_boiler_usage(self, fuel_multiplier: float):
         """Calculate boiler usage with oil or propane

@@ -42,9 +42,14 @@ def test_bp_ua_estimates():
         engine.FuelType.GAS, heat_sys_efficiency=0.88, initial_balance_point=58
     )
 
-    daily_temps_lists = [[28, 29, 30, 29], [32, 35, 35, 38], [41, 43, 42, 42]]
-    usages = [50, 45, 30]
-    inclusion_codes = [1, 1, 1]
+    daily_temps_lists = [
+        [28, 29, 30, 29],
+        [32, 35, 35, 38],
+        [41, 43, 42, 42],
+        [72, 71, 70, 69],
+    ]
+    usages = [50, 45, 30, 0.96]
+    inclusion_codes = [1, 1, 1, -1]
     home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
     home.calculate_avg_non_heating_usage()
     home.calculate_balance_point_and_ua()
@@ -68,9 +73,10 @@ def test_bp_ua_with_outlier():
         [28, 29, 30, 29],
         [32, 35, 35, 38],
         [41, 43, 42, 42],
+        [72, 71, 70, 69],
     ]
-    usages = [60, 50, 45, 30]
-    inclusion_codes = [1, 1, 1, 1]
+    usages = [60, 50, 45, 30, 0.96]
+    inclusion_codes = [1, 1, 1, 1, -1]
     home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
     home.calculate_avg_non_heating_usage()
     home.calculate_balance_point_and_ua()
