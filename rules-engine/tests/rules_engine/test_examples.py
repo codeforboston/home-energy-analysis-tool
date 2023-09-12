@@ -49,7 +49,7 @@ class Summary(BaseModel):
     max_heat_load: int
 
 
-def validate_datetime(value):
+def validate_usage_datetime(value):
     return datetime.strptime(value, "%m/%d/%Y").date()
 
 
@@ -58,8 +58,8 @@ def validate_inclusion(value):
 
 
 class NaturalGasUsage(BaseModel):
-    start_date: Annotated[datetime, BeforeValidator(validate_datetime)]
-    end_date: Annotated[datetime, BeforeValidator(validate_datetime)]
+    start_date: Annotated[datetime, BeforeValidator(validate_usage_datetime)]
+    end_date: Annotated[datetime, BeforeValidator(validate_usage_datetime)]
     days_in_bill: int
     usage: int
     inclusion_override: Annotated[
@@ -70,9 +70,19 @@ class NaturalGasUsage(BaseModel):
     daily_htg_usage: float
 
 
+def validate_temperature_datetime(value):
+    return datetime.strptime(value, "%Y-%m-%d").date()
+
+
+class TemperatureDataRecord(BaseModel):
+    date: Annotated[datetime, BeforeValidator(validate_temperature_datetime)]
+    temperature: float
+
+
 class Example(BaseModel):
     summary: Summary
     natural_gas_usage: Optional[List[NaturalGasUsage]]
+    temperature_data: List[TemperatureDataRecord]
 
 
 def load_summary(folder: str) -> Summary:
@@ -93,15 +103,38 @@ def load_natural_gas(folder: str) -> List[NaturalGasUsage]:
     return result
 
 
+def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
+    result = []
+
+    with open(ROOT_DIR / "temperature-data.csv", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            print(row)
+            item = TemperatureDataRecord(
+                date=row["Date"], temperature=row[weather_station]
+            )
+            result.append(item)
+
+    return result
+
+
 @pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
     summary = load_summary(request.param)
+
     if summary.fuel_type == engine.FuelType.GAS:
         natural_gas_usage = load_natural_gas(request.param)
     else:
         natural_gas_usage = None
 
-    example = Example(summary=summary, natural_gas_usage=natural_gas_usage)
+    weather_station_short_name = summary.local_weather_station[:4]
+    temperature_data = load_temperature_data(weather_station_short_name)
+
+    example = Example(
+        summary=summary,
+        natural_gas_usage=natural_gas_usage,
+        temperature_data=temperature_data,
+    )
     yield example
 
 
