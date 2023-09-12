@@ -109,9 +109,8 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
     with open(ROOT_DIR / "temperature-data.csv", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            print(row)
             item = TemperatureDataRecord(
-                date=row["Date"], temperature=row[weather_station]
+                date=row["Date"], temperature=row[weather_station]  # type: ignore[arg-type]
             )
             result.append(item)
 
