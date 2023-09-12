@@ -142,7 +142,7 @@ class Home:
 
     def calculate_avg_summer_usage(
         self,
-    ):
+    ) -> None:
         """
         Calculate average daily summer usage
         """
@@ -153,7 +153,7 @@ class Home:
         else:
             self.avg_summer_usage = 0
 
-    def calculate_boiler_usage(self, fuel_multiplier: float):
+    def calculate_boiler_usage(self, fuel_multiplier: float) -> float:
         """Calculate boiler usage with oil or propane
         Args:
             fuel_multiplier: a constant that's determined by the fuel type
@@ -162,7 +162,7 @@ class Home:
         # self.num_occupants: the number of occupants in Home
         # self.water_heat_efficiency: a number indicating how efficient the heating system is
 
-        return 0
+        return 0 * fuel_multiplier
 
     """
     your pseudocode looks correct provided there's outer logic that 
@@ -176,7 +176,7 @@ class Home:
 
     def calculate_avg_non_heating_usage(
         self,
-    ):
+    ) -> None:
         """Calculate avg non heating usage for this Home
         Args:
         #use_same_fuel_DHW_heating
