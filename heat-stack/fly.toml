@@ -1,4 +1,4 @@
-app = "heat-stack-ab8b"
+app = "heat-app-7964"
 primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
@@ -50,3 +50,10 @@ script_checks = [ ]
   timeout = "2s"
   tls_skip_verify = false
   headers = { }
+
+  [[services.http_checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/litefs/health"
