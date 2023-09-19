@@ -1,14 +1,13 @@
+import { generateTOTP } from '@epic-web/totp'
 import { faker } from '@faker-js/faker'
-import { expect, insertNewUser, test } from '../playwright-utils.ts'
-import { generateTOTP } from '~/utils/totp.server.ts'
+import { expect, test } from '#tests/playwright-utils.ts'
 
 test('Users can add 2FA to their account and use it when logging in', async ({
-	login,
 	page,
+	login,
 }) => {
 	const password = faker.internet.password()
-	const user = await insertNewUser({ password })
-	await login(user)
+	const user = await login({ password })
 	await page.goto('/settings/profile')
 
 	await page.getByRole('link', { name: /enable 2fa/i }).click()
@@ -21,18 +20,18 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 		.innerText()
 
 	const otpUri = new URL(otpUriString)
-	const options = Object.fromEntries(otpUri.searchParams.entries())
+	const options = Object.fromEntries(otpUri.searchParams)
 
 	await main
 		.getByRole('textbox', { name: /code/i })
 		.fill(generateTOTP(options).otp)
-	await main.getByRole('button', { name: /confirm/i }).click()
+	await main.getByRole('button', { name: /submit/i }).click()
 
 	await expect(main).toHaveText(/You have enabled two-factor authentication./i)
 	await expect(main.getByRole('link', { name: /disable 2fa/i })).toBeVisible()
 
 	await page.getByRole('link', { name: user.name ?? user.username }).click()
-	await page.getByRole('menuitem', { name: /logout/i }).click()
+	await page.getByRole('button', { name: /logout/i }).click()
 	await expect(page).toHaveURL(`/`)
 
 	await page.goto('/login')
@@ -45,7 +44,7 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 		.getByRole('textbox', { name: /code/i })
 		.fill(generateTOTP(options).otp)
 
-	await page.getByRole('button', { name: /confirm/i }).click()
+	await page.getByRole('button', { name: /submit/i }).click()
 
 	await expect(
 		page.getByRole('link', { name: user.name ?? user.username }),

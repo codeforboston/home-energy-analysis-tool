@@ -2,11 +2,11 @@
  * This file contains utilities for using client hints for user preference which
  * are needed by the server, but are only known by the browser.
  */
+import { useRevalidator } from '@remix-run/react'
 import * as React from 'react'
 import { useRequestInfo } from './request-info.ts'
-import { useRevalidator } from '@remix-run/react'
 
-export const clientHints = {
+const clientHints = {
 	theme: {
 		cookieName: 'CH-prefers-color-scheme',
 		getValueCode: `window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'`,

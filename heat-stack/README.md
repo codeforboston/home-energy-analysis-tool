@@ -60,7 +60,7 @@ To re-create the patch for py file support in `/patch`, use these [instructions]
 - `npx patch-package @remix-run/dev`
 - it should auto-apply any time you do `npm install`, but it may get out of sync with upstream
 
-## Epic Stack docs:
+### Epic Stack Docs: 
 <div align="center">
   <h1 align="center"><a href="https://www.epicweb.dev/epic-stack">The Epic Stack 🚀</a></h1>
   <strong align="center">
@@ -75,7 +75,7 @@ To re-create the patch for py file support in `/patch`, use these [instructions]
 </div>
 
 ```sh
-npx create-remix@latest --typescript --install --template epicweb-dev/epic-stack
+npx create-remix@latest --install --template epicweb-dev/epic-stack
 ```
 
 [![The Epic Stack](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/246885449-1b00286c-aa3d-44b2-9ef2-04f694eb3592.png)](https://www.epicweb.dev/epic-stack)
