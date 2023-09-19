@@ -1,113 +1,101 @@
-import { test as base, type Page } from '@playwright/test'
-import { parse } from 'cookie'
-import { authenticator, getPasswordHash } from '~/utils/auth.server.ts'
-import { prisma } from '~/utils/db.server.ts'
-import { commitSession, getSession } from '~/utils/session.server.ts'
-import { createUser } from '../tests/db-utils.ts'
+import { test as base } from '@playwright/test'
+import { type User as UserModel } from '@prisma/client'
+import * as setCookieParser from 'set-cookie-parser'
+import {
+	getPasswordHash,
+	getSessionExpirationDate,
+	sessionKey,
+} from '#app/utils/auth.server.ts'
+import { prisma } from '#app/utils/db.server.ts'
+import { sessionStorage } from '#app/utils/session.server.ts'
+import { createUser } from './db-utils.ts'
 
-export const dataCleanup = {
-	users: new Set<string>(),
+export * from './db-utils.ts'
+
+type GetOrInsertUserOptions = {
+	id?: string
+	username?: UserModel['username']
+	password?: string
+	email?: UserModel['email']
 }
 
-export function deleteUserByUsername(username: string) {
-	return prisma.user.delete({ where: { username } })
+type User = {
+	id: string
+	email: string
+	username: string
+	name: string | null
 }
 
-export async function insertNewUser({
+async function getOrInsertUser({
+	id,
 	username,
 	password,
-}: { username?: string; password?: string } = {}) {
-	const userData = createUser()
-	username = username ?? userData.username
-	const user = (await prisma.user
-		.create({
+	email,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
+		return await prisma.user.create({
+			select,
 			data: {
 				...userData,
+				email,
 				username,
-				password: {
-					create: {
-						hash: await getPasswordHash(password || userData.username),
-					},
-				},
+				roles: { connect: { name: 'user' } },
+				password: { create: { hash: await getPasswordHash(password) } },
 			},
-			select: { id: true, name: true, username: true, email: true },
 		})
-		.catch(async err => {
-			// sometimes the tests fail before data cleanup can happen. So we'll just
-			// delete the user and try again.
-			if (
-				err instanceof Error &&
-				err.message.includes(
-					'Unique constraint failed on the fields: (`username`)',
-				)
-			) {
-				await prisma.user.delete({ where: { username } })
-				return insertNewUser({ username, password })
-			} else {
-				throw err
-			}
-		})) as { id: string; name: string; username: string; email: string }
-	dataCleanup.users.add(user.id)
-	return user
+	}
 }
 
 export const test = base.extend<{
-	login: (user?: { id: string }) => ReturnType<typeof loginPage>
+	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
+	login(options?: GetOrInsertUserOptions): Promise<User>
 }>({
-	login: [
-		async ({ page, baseURL }, use) => {
-			await use(user => loginPage({ page, baseURL, user }))
-		},
-		{ auto: true },
-	],
-})
-
-export const { expect } = test
-
-export async function loginPage({
-	page,
-	baseURL = `http://localhost:${process.env.PORT}/`,
-	user: givenUser,
-}: {
-	page: Page
-	baseURL: string | undefined
-	user?: { id: string }
-}) {
-	const user = givenUser
-		? await prisma.user.findUniqueOrThrow({
-				where: { id: givenUser.id },
-				select: {
-					id: true,
-					email: true,
-					username: true,
-					name: true,
+	insertNewUser: async ({}, use) => {
+		let userId: string | undefined = undefined
+		await use(async options => {
+			const user = await getOrInsertUser(options)
+			userId = user.id
+			return user
+		})
+		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+	},
+	login: async ({ page }, use) => {
+		let userId: string | undefined = undefined
+		await use(async options => {
+			const user = await getOrInsertUser(options)
+			userId = user.id
+			const session = await prisma.session.create({
+				data: {
+					expirationDate: getSessionExpirationDate(),
+					userId: user.id,
 				},
-		  })
-		: await insertNewUser()
-	const session = await prisma.session.create({
-		data: {
-			expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-			userId: user.id,
-		},
-		select: { id: true },
-	})
+				select: { id: true },
+			})
 
-	const cookieSession = await getSession()
-	cookieSession.set(authenticator.sessionKey, session.id)
-	const cookieValue = await commitSession(cookieSession)
-	const { _session } = parse(cookieValue)
-	await page.context().addCookies([
-		{
-			name: '_session',
-			sameSite: 'Lax',
-			url: baseURL,
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			value: _session,
-		},
-	])
-	return user
-}
+			const cookieSession = await sessionStorage.getSession()
+			cookieSession.set(sessionKey, session.id)
+			const cookieConfig = setCookieParser.parseString(
+				await sessionStorage.commitSession(cookieSession),
+			) as any
+			await page
+				.context()
+				.addCookies([{ ...cookieConfig, domain: 'localhost' }])
+			return user
+		})
+		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+	},
+})
+export const { expect } = test
 
 /**
  * This allows you to wait for something (like an email to be available).
@@ -136,19 +124,3 @@ export async function waitFor<ReturnValue>(
 	}
 	throw lastError
 }
-
-test.afterEach(async () => {
-	type Delegate = {
-		deleteMany: (opts: {
-			where: { id: { in: Array<string> } }
-		}) => Promise<unknown>
-	}
-	async function deleteAll(items: Set<string>, delegate: Delegate) {
-		if (items.size > 0) {
-			await delegate.deleteMany({
-				where: { id: { in: [...items] } },
-			})
-		}
-	}
-	await deleteAll(dataCleanup.users, prisma.user)
-})

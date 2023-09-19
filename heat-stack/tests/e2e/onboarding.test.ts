@@ -1,30 +1,40 @@
 import { faker } from '@faker-js/faker'
-import {
-	deleteUserByUsername,
-	expect,
-	insertNewUser,
-	test,
-} from '../playwright-utils.ts'
-import { readEmail } from '../mocks/utils.ts'
-import { createUser } from 'tests/db-utils.ts'
-import { invariant } from '~/utils/misc.tsx'
+import { prisma } from '#app/utils/db.server.ts'
+import { invariant } from '#app/utils/misc.tsx'
+import { readEmail } from '#tests/mocks/utils.ts'
+import { createUser, expect, test as base } from '#tests/playwright-utils.ts'
 
-const urlRegex = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
+const URL_REGEX = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
+const CODE_REGEX = /Here's your verification code: (?<code>[\d\w]+)/
 function extractUrl(text: string) {
-	const match = text.match(urlRegex)
+	const match = text.match(URL_REGEX)
 	return match?.groups?.url
 }
 
-function getOnboardingData() {
-	const userData = createUser()
-	const onboardingData = {
-		...userData,
-		password: faker.internet.password(),
+const test = base.extend<{
+	getOnboardingData(): {
+		username: string
+		name: string
+		email: string
+		password: string
 	}
-	return onboardingData
-}
+}>({
+	getOnboardingData: async ({}, use) => {
+		const userData = createUser()
+		await use(() => {
+			const onboardingData = {
+				...userData,
+				password: faker.internet.password(),
+			}
+			return onboardingData
+		})
+		await prisma.user
+			.delete({ where: { username: userData.username } })
+			.catch(() => {})
+	},
+})
 
-test('onboarding with link', async ({ page }) => {
+test('onboarding with link', async ({ page, getOnboardingData }) => {
 	const onboardingData = getOnboardingData()
 
 	await page.goto('/')
@@ -71,8 +81,6 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByLabel(/terms/i).check()
 
-	await page.getByLabel(/offers/i).check()
-
 	await page.getByLabel(/remember me/i).check()
 
 	await page.getByRole('button', { name: /Create an account/i }).click()
@@ -87,12 +95,9 @@ test('onboarding with link', async ({ page }) => {
 	await page.getByRole('link', { name: onboardingData.name }).click()
 	await page.getByRole('menuitem', { name: /logout/i }).click()
 	await expect(page).toHaveURL(`/`)
-
-	// have to do this here because we didn't use insertNewUser (because we're testing user create)
-	await deleteUserByUsername(onboardingData.username)
 })
 
-test('onboarding with a short code', async ({ page }) => {
+test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	const onboardingData = getOnboardingData()
 
 	await page.goto('/signup')
@@ -112,9 +117,7 @@ test('onboarding with a short code', async ({ page }) => {
 	expect(email.to).toBe(onboardingData.email.toLowerCase())
 	expect(email.from).toBe('hello@epicstack.dev')
 	expect(email.subject).toMatch(/welcome/i)
-	const codeMatch = email.text.match(
-		/Here's your verification code: (?<code>\d+)/,
-	)
+	const codeMatch = email.text.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
 	invariant(code, 'Onboarding code not found')
 	await page.getByRole('textbox', { name: /code/i }).fill(code)
@@ -123,7 +126,7 @@ test('onboarding with a short code', async ({ page }) => {
 	await expect(page).toHaveURL(`/onboarding`)
 })
 
-test('login as existing user', async ({ page }) => {
+test('login as existing user', async ({ page, insertNewUser }) => {
 	const password = faker.internet.password()
 	const user = await insertNewUser({ password })
 	invariant(user.name, 'User name not found')
@@ -136,7 +139,7 @@ test('login as existing user', async ({ page }) => {
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
 
-test('reset password with a link', async ({ page }) => {
+test('reset password with a link', async ({ page, insertNewUser }) => {
 	const originalPassword = faker.internet.password()
 	const user = await insertNewUser({ password: originalPassword })
 	invariant(user.name, 'User name not found')
@@ -189,7 +192,7 @@ test('reset password with a link', async ({ page }) => {
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
 
-test('reset password with a short code', async ({ page }) => {
+test('reset password with a short code', async ({ page, insertNewUser }) => {
 	const user = await insertNewUser()
 	await page.goto('/login')
 
@@ -211,9 +214,7 @@ test('reset password with a short code', async ({ page }) => {
 	expect(email.subject).toMatch(/password reset/i)
 	expect(email.to).toBe(user.email)
 	expect(email.from).toBe('hello@epicstack.dev')
-	const codeMatch = email.text.match(
-		/Here's your verification code: (?<code>\d+)/,
-	)
+	const codeMatch = email.text.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
 	invariant(code, 'Reset Password code not found')
 	await page.getByRole('textbox', { name: /code/i }).fill(code)
