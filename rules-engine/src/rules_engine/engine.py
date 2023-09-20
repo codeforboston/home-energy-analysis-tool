@@ -1,10 +1,49 @@
 from __future__ import annotations
 
 import statistics as sts
+from datetime import date
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 import numpy as np
+from pydantic import BaseModel, Field
+
+
+class SummaryInput(BaseModel):
+    # From Summary Tab
+    name: str = Field(description="Summary!B4")
+    address: str = Field(description="Summary!B5")
+    design_temperature_override: Optional[float] = Field(description="Summary!B7")
+    living_area: float = Field(description="Summary!B10")
+    fuel_type: FuelType = Field(description="Summary!B11")
+    heat_sys_efficiency: float = Field(description="Summary!B12")
+    other_fuel_usage_override: Optional[float] = Field(description="Summary!B16")
+    thermostat_set_point: float = Field(description="Summary!B17")
+    setback_temp: float = Field(description="Summary!B18")
+    setback_hours_per_day: float = Field(description="Summary!B19")
+
+    # we will calculate these:
+    # initial_balance_point: float
+    # balance_point_sensitivity: float
+
+
+class DhwInput(BaseModel):
+    # From DHW Tab
+    number_of_occupants: int = Field(description="DHW!B4")
+    estimated_water_heating_efficiency: float = Field(description="DHW!B5")
+    stand_by_losses: float = Field(description="DHW!B6")
+
+
+class OilPropaneBillingInput(BaseModel):
+    # From Oil-Propane tab
+    period_end_date: date = Field(description="Oil-Propane!B")
+    gallons: float = Field(description="Oil-Propane!C")
+
+
+class NaturalGasBillingInput(BaseModel):
+    # From Natural Gas tab
+    period_end_date: date = Field(description="Natural Gas!B")
+    usage_therms: float = Field(description="Natural Gas!D")
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
