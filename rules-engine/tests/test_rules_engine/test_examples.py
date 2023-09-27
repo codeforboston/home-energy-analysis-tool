@@ -61,11 +61,11 @@ class NaturalGasUsage(BaseModel):
     start_date: Annotated[date, BeforeValidator(validate_usage_date)]
     end_date: Annotated[date, BeforeValidator(validate_usage_date)]
     days_in_bill: int
-    usage: int
+    usage: float
     inclusion_override: Annotated[
-        Optional[Literal[-1, 0, 1]], BeforeValidator(validate_inclusion)
+        Optional[int], BeforeValidator(validate_inclusion)
     ]
-    inclusion_code: Annotated[Literal[-1, 0, 1], BeforeValidator(validate_inclusion)]
+    inclusion_code: Annotated[int, BeforeValidator(validate_inclusion)]
     avg_daily_usage: float
     daily_htg_usage: float
 
@@ -81,7 +81,7 @@ class TemperatureDataRecord(BaseModel):
 
 class Example(BaseModel):
     summary: Summary
-    natural_gas_usage: Optional[List[NaturalGasUsage]]
+    natural_gas_usage: List[NaturalGasUsage]
     temperature_data: List[TemperatureDataRecord]
 
 
@@ -146,11 +146,14 @@ def test_average_indoor_temp(data: Example) -> None:
     )
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
 
+
 def test_ua(data: Example) -> None:
     # build Home instance - input summary information and bills
-    home = engine.Home(data.summary.fuel_type,
-                       data.summary.heating_system_efficiency,
-                       thermostat_set_point=data.summary.thermostat_set_point)
+    home = engine.Home(
+        data.summary.fuel_type,
+        data.summary.heating_system_efficiency,
+        thermostat_set_point=data.summary.thermostat_set_point,
+    )
     temps = []
     usages = []
     inclusion_codes = []
@@ -159,7 +162,9 @@ def test_ua(data: Example) -> None:
             temps_for_period = []
             for i in range(usage.days_in_bill):
                 date_in_period = usage.start_date + timedelta(days=i)
-                matching_records = [d for d in data.temperature_data if d.date == date_in_period]
+                matching_records = [
+                    d for d in data.temperature_data if d.date == date_in_period
+                ]
                 assert len(matching_records) == 1
                 temps_for_period.append(matching_records[0].temperature)
             assert date_in_period == usage.end_date
@@ -170,7 +175,7 @@ def test_ua(data: Example) -> None:
             else:
                 inclusion_codes.append(usage.inclusion_code)
     else:
-        raise NotImplementedError('Fuel type {}'.format(data.summary.fuel_type))
+        raise NotImplementedError("Fuel type {}".format(data.summary.fuel_type))
     home.initialize_billing_periods(temps, usages, inclusion_codes)
 
     # now check outputs
