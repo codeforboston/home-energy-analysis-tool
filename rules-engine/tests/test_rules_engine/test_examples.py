@@ -118,7 +118,7 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
 
 
 # @pytest.fixture(scope="module", params=INPUT_DATA)
-@pytest.fixture(scope="module", params=["example-1"])
+@pytest.fixture(scope="module", params=["example-1", "example-4"])
 def data(request):
     summary = load_summary(request.param)
 
@@ -147,34 +147,57 @@ def test_average_indoor_temp(data: Example) -> None:
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
 
 def test_ua(data: Example) -> None:
+    """
+    Test how the rules engine calculates UA from energy bills.
+
+    Pulls in data and pre-calculated results from example spreadsheets
+    and compares them to the UA calculated from that data by the
+    engine.
+    """
+    # TODO: Handle oil and propane fuel types too
+    usage_data = None
+    if data.summary.fuel_type is engine.FuelType.GAS:
+        usage_data = data.natural_gas_usage
+    else:
+        raise NotImplementedError('Fuel type {}'.format(data.summary.fuel_type))
+
     # build Home instance - input summary information and bills
     home = engine.Home(data.summary.fuel_type,
                        data.summary.heating_system_efficiency,
                        thermostat_set_point=data.summary.thermostat_set_point)
+
     temps = []
     usages = []
     inclusion_codes = []
-    if data.summary.fuel_type is engine.FuelType.GAS:
-        for usage in data.natural_gas_usage:
-            temps_for_period = []
-            for i in range(usage.days_in_bill):
-                date_in_period = usage.start_date + timedelta(days=i)
-                matching_records = [d for d in data.temperature_data if d.date == date_in_period]
-                assert len(matching_records) == 1
-                temps_for_period.append(matching_records[0].temperature)
-            assert date_in_period == usage.end_date
-            temps.append(temps_for_period)
-            usages.append(usage.usage)
-            if usage.inclusion_override is not None:
-                inclusion_codes.append(usage.inclusion_override)
-            else:
-                inclusion_codes.append(usage.inclusion_code)
-    else:
-        raise NotImplementedError('Fuel type {}'.format(data.summary.fuel_type))
+    for usage in usage_data:
+        temps_for_period = []
+        for i in range(usage.days_in_bill):
+            date_in_period = usage.start_date + timedelta(days=i)
+            matching_records = [d for d in data.temperature_data if d.date == date_in_period]
+            assert len(matching_records) == 1
+            temps_for_period.append(matching_records[0].temperature)
+        assert date_in_period == usage.end_date
+
+        inclusion_code = usage.inclusion_code
+        if usage.inclusion_override is not None:
+            inclusion_code = usage.inclusion_override
+
+        temps.append(temps_for_period)
+        usages.append(usage.usage)
+        inclusion_codes.append(inclusion_code)
+
+    print(temps)
+    print(usages)
+    print(inclusion_codes)
     home.initialize_billing_periods(temps, usages, inclusion_codes)
 
     # now check outputs
     home.calculate_balance_point_and_ua()
+    for bp in home.bills_winter:
+        print("Avg Heating Usage:", bp.avg_heating_usage)
+        print("Partial UA:", bp.partial_ua)
+        print("UA:", bp.ua)
+
     assert home.avg_ua == approx(data.summary.whole_home_ua, abs=1)
     assert home.stdev_pct == approx(data.summary.standard_deviation_of_ua, abs=0.01)
     # TODO: check average heat load and max heat load
