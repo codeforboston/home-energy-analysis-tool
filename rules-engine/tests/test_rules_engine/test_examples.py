@@ -62,9 +62,7 @@ class NaturalGasUsage(BaseModel):
     end_date: Annotated[date, BeforeValidator(validate_usage_date)]
     days_in_bill: int
     usage: float
-    inclusion_override: Annotated[
-        Optional[int], BeforeValidator(validate_inclusion)
-    ]
+    inclusion_override: Annotated[Optional[int], BeforeValidator(validate_inclusion)]
     inclusion_code: Annotated[int, BeforeValidator(validate_inclusion)]
     avg_daily_usage: float
     daily_htg_usage: float
