@@ -15,7 +15,8 @@ from rules_engine import engine
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
-INPUT_DATA = next(os.walk(ROOT_DIR))[1]
+# Filter out example 2 for now, since it's for oil fuel type
+INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
 
 
 def validate_fuel_type(value):
@@ -117,8 +118,7 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
     return result
 
 
-# @pytest.fixture(scope="module", params=INPUT_DATA)
-@pytest.fixture(scope="module", params=["example-1", "example-4", "breslow", "cali", "feldman"])
+@pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
     summary = load_summary(request.param)
 
@@ -186,18 +186,14 @@ def test_ua(data: Example) -> None:
         usages.append(usage.usage)
         inclusion_codes.append(inclusion_code)
 
-    print(temps)
-    print(usages)
-    print(inclusion_codes)
     home.initialize_billing_periods(temps, usages, inclusion_codes)
 
     # now check outputs
-    home.calculate_balance_point_and_ua()
-    for bp in home.bills_winter:
-        print("Avg Heating Usage:", bp.avg_heating_usage)
-        print("Partial UA:", bp.partial_ua)
-        print("UA:", bp.ua)
+    home.calculate_balance_point_and_ua(
+        initial_balance_point_sensitivity=data.summary.balance_point_sensitivity
+    )
 
+    assert home.balance_point == approx(data.summary.estimated_balance_point, abs=0.01)
     assert home.avg_ua == approx(data.summary.whole_home_ua, abs=1)
     assert home.stdev_pct == approx(data.summary.standard_deviation_of_ua, abs=0.01)
     # TODO: check average heat load and max heat load
