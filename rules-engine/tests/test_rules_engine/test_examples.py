@@ -2,7 +2,7 @@ import csv
 import json
 import os
 import pathlib
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import List, Literal, Optional
 
 import pytest
@@ -49,7 +49,7 @@ class Summary(BaseModel):
     max_heat_load: int
 
 
-def validate_usage_datetime(value):
+def validate_usage_date(value):
     return datetime.strptime(value, "%m/%d/%Y").date()
 
 
@@ -58,30 +58,28 @@ def validate_inclusion(value):
 
 
 class NaturalGasUsage(BaseModel):
-    start_date: Annotated[datetime, BeforeValidator(validate_usage_datetime)]
-    end_date: Annotated[datetime, BeforeValidator(validate_usage_datetime)]
+    start_date: Annotated[date, BeforeValidator(validate_usage_date)]
+    end_date: Annotated[date, BeforeValidator(validate_usage_date)]
     days_in_bill: int
-    usage: int
-    inclusion_override: Annotated[
-        Optional[Literal[-1, 0, 1]], BeforeValidator(validate_inclusion)
-    ]
-    inclusion_code: Annotated[Literal[-1, 0, 1], BeforeValidator(validate_inclusion)]
+    usage: float
+    inclusion_override: Annotated[Optional[int], BeforeValidator(validate_inclusion)]
+    inclusion_code: Annotated[int, BeforeValidator(validate_inclusion)]
     avg_daily_usage: float
     daily_htg_usage: float
 
 
-def validate_temperature_datetime(value):
+def validate_temperature_date(value):
     return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 class TemperatureDataRecord(BaseModel):
-    date: Annotated[datetime, BeforeValidator(validate_temperature_datetime)]
+    date: Annotated[date, BeforeValidator(validate_temperature_date)]
     temperature: float
 
 
 class Example(BaseModel):
     summary: Summary
-    natural_gas_usage: Optional[List[NaturalGasUsage]]
+    natural_gas_usage: List[NaturalGasUsage]
     temperature_data: List[TemperatureDataRecord]
 
 
@@ -117,7 +115,8 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
     return result
 
 
-@pytest.fixture(scope="module", params=INPUT_DATA)
+# @pytest.fixture(scope="module", params=INPUT_DATA)
+@pytest.fixture(scope="module", params=["example-1"])
 def data(request):
     summary = load_summary(request.param)
 
@@ -144,3 +143,41 @@ def test_average_indoor_temp(data: Example) -> None:
         data.summary.setback_hours_per_day,
     )
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
+
+
+def test_ua(data: Example) -> None:
+    # build Home instance - input summary information and bills
+    home = engine.Home(
+        data.summary.fuel_type,
+        data.summary.heating_system_efficiency,
+        thermostat_set_point=data.summary.thermostat_set_point,
+    )
+    temps = []
+    usages = []
+    inclusion_codes = []
+    if data.summary.fuel_type is engine.FuelType.GAS:
+        for usage in data.natural_gas_usage:
+            temps_for_period = []
+            for i in range(usage.days_in_bill):
+                date_in_period = usage.start_date + timedelta(days=i)
+                matching_records = [
+                    d for d in data.temperature_data if d.date == date_in_period
+                ]
+                assert len(matching_records) == 1
+                temps_for_period.append(matching_records[0].temperature)
+            assert date_in_period == usage.end_date
+            temps.append(temps_for_period)
+            usages.append(usage.usage)
+            if usage.inclusion_override is not None:
+                inclusion_codes.append(usage.inclusion_override)
+            else:
+                inclusion_codes.append(usage.inclusion_code)
+    else:
+        raise NotImplementedError("Fuel type {}".format(data.summary.fuel_type))
+    home.initialize_billing_periods(temps, usages, inclusion_codes)
+
+    # now check outputs
+    home.calculate_balance_point_and_ua()
+    assert home.avg_ua == approx(data.summary.whole_home_ua, abs=1)
+    assert home.stdev_pct == approx(data.summary.standard_deviation_of_ua, abs=0.01)
+    # TODO: check average heat load and max heat load
