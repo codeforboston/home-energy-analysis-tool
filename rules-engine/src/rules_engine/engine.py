@@ -34,7 +34,7 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
 
 
 def average_indoor_temp(
-    tstat_set: float, tstat_setback: float, setback_daily_hrs: float
+    tstat_set: float, tstat_setback: float | None, setback_daily_hrs: float | None
 ) -> float:
     """Calculates the average indoor temperature.
 
@@ -43,12 +43,10 @@ def average_indoor_temp(
         tstat_setback: temp in F at which the home is set during off hours
         setback_daily_hrs: average # of hours per day the home is at setback temp
     """
-    if tstat_setback is None and setback_daily_hrs is not None:
-        raise TypeError("setback hours but no setback temp")
-    if tstat_setback is not None and setback_daily_hrs is None:
-        raise TypeError("setback temp but no setback hours")
-    if tstat_setback is None and setback_daily_hrs is None:
+    if setback_daily_hrs is None or setback_daily_hrs == 0:
         return tstat_set
+    if tstat_setback is None:
+        raise TypeError("setback hours but no setback temp")
     return (
         (24 - setback_daily_hrs) * tstat_set + setback_daily_hrs * tstat_setback
     ) / 24
