@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class SummaryInput(BaseModel):
     """From Summary Tab"""
+
     name: str = Field(description="Summary!B4")
     address: str = Field(description="Summary!B5")
     design_temperature_override: Optional[float] = Field(description="Summary!B7")
@@ -25,6 +26,7 @@ class SummaryInput(BaseModel):
 
 class DhwInput(BaseModel):
     """From DHW Tab"""
+
     number_of_occupants: int = Field(description="DHW!B4")
     estimated_water_heating_efficiency: float = Field(description="DHW!B5")
     stand_by_losses: float = Field(description="DHW!B6")
@@ -32,20 +34,26 @@ class DhwInput(BaseModel):
 
 class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab"""
+
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
 
 
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab"""
+
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
 
+
 class SummaryOutput(BaseModel):
     """From Summary tab"""
-    estimated_balance_point: float = Field(description="Summary!B20") # This is hand-calculated in the spreadsheet
+
+    estimated_balance_point: float = Field(
+        description="Summary!B20"
+    )  # This is hand-calculated in the spreadsheet
     other_fuel_usage: float = Field(description="Summary!B15")
-    average_indoor_temperature: float = Field(description="Summary!B24") 
+    average_indoor_temperature: float = Field(description="Summary!B24")
     difference_between_ti_and_tbp: float = Field(description="Summary!B25")
     design_temperature: float = Field(description="Summary!B26")
     whole_home_ua: float = Field(description="Summary!B27")
@@ -53,18 +61,19 @@ class SummaryOutput(BaseModel):
     avg_heat_load: float = Field(description="Summary!B29")
     max_heat_load: float = Field(description="Summary!B30")
 
+
 class Constants:
     balance_point_sensitivity: float = 2.0
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
     """
-    Calculate the heating degree days on a given day for a given 
+    Calculate the heating degree days on a given day for a given
     home.
 
     Args:
         avg_temp: average outdoor temperature on a given day
-        balance_point: outdoor temperature (F) above which no heating 
+        balance_point: outdoor temperature (F) above which no heating
         is required in a given home
     """
     return max(0, balance_point - avg_temp)
@@ -72,7 +81,7 @@ def hdd(avg_temp: float, balance_point: float) -> float:
 
 def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     """
-    Sum up total heating degree days in a given time period for a given 
+    Sum up total heating degree days in a given time period for a given
     home.
 
     Args:
@@ -85,14 +94,14 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
 
 
 def average_indoor_temp(
-        tstat_set: float, tstat_setback: float, setback_daily_hrs: float
-    ) -> float:
+    tstat_set: float, tstat_setback: float, setback_daily_hrs: float
+) -> float:
     """
     Calculates the average indoor temperature.
 
     Args:
         tstat_set: the temp in F at which the home is normally set
-        tstat_setback: temp in F at which the home is set during off 
+        tstat_setback: temp in F at which the home is set during off
         hours
         setback_daily_hrs: average # of hours per day the home is at
         setback temp
@@ -105,18 +114,18 @@ def average_indoor_temp(
 
 
 def average_heat_load(
-        design_set_point: float,
-        avg_indoor_temp: float,
-        balance_point: float,
-        design_temp: float,
-        ua: float,
-    ) -> float:
+    design_set_point: float,
+    avg_indoor_temp: float,
+    balance_point: float,
+    design_temp: float,
+    ua: float,
+) -> float:
     """
     Calculate the average heat load.
 
     Args:
-        design_set_point: a standard internal temperature / thermostat 
-        set point - different from the preferred set point of an 
+        design_set_point: a standard internal temperature / thermostat
+        set point - different from the preferred set point of an
         individual homeowner
         avg_indoor_temp: average indoor temperature on a given day
         balance_point: outdoor temperature (F) above which no heating
@@ -134,9 +143,9 @@ def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> flo
 
     Args:
         design_set_point: a standard internal temperature / thermostat
-        set point - different from the preferred set point of an 
+        set point - different from the preferred set point of an
         individual homeowner
-        design_temp: an outside temperature that represents one of the 
+        design_temp: an outside temperature that represents one of the
         coldest days of the year for the given location of a home
         ua: the heat transfer coefficient
     """
@@ -145,10 +154,11 @@ def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> flo
 
 class FuelType(Enum):
     """Enum for fuel types. Values are BTU per usage"""
+
     GAS = 100000
     OIL = 139600
     PROPANE = 91333
-    
+
 
 class Home:
     """
@@ -156,9 +166,10 @@ class Home:
 
     The information associated with the energy usage of a single home owner
     is used to instantiate this class.  Using that information and the type
-    of fuel used, calculates the UA for different billing periods and the 
+    of fuel used, calculates the UA for different billing periods and the
     standard deviation of the UA values across them.
     """
+
     def __init__(
         self,
         fuel_type: FuelType,
@@ -176,12 +187,12 @@ class Home:
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
 
     def initialize_billing_periods(
-            self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
-        ) -> None:
+        self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
+    ) -> None:
         """
         Eventually, this method should categorize the billing periods by
-        season and calculate avg_non_heating_usage based on that. For 
-        now, we just pass in winter-only heating periods and manually 
+        season and calculate avg_non_heating_usage based on that. For
+        now, we just pass in winter-only heating periods and manually
         define non-heating
         """
         # assume for now that temps and usages have the same number of elements
@@ -225,7 +236,7 @@ class Home:
         """
         Calculate boiler usage with oil or propane
         Args:
-            fuel_multiplier: a constant that's determined by the fuel 
+            fuel_multiplier: a constant that's determined by the fuel
             type
         """
 
@@ -262,15 +273,15 @@ class Home:
             self.avg_non_heating_usage = 0
 
     def calculate_balance_point_and_ua(
-            self,
-            initial_balance_point_sensitivity: float = 2,
-            stdev_pct_max: float = 0.10,
-            max_stdev_pct_diff: float = 0.01,
-            next_balance_point_sensitivity: float = 0.5,
-        ) -> None:
+        self,
+        initial_balance_point_sensitivity: float = 2,
+        stdev_pct_max: float = 0.10,
+        max_stdev_pct_diff: float = 0.01,
+        next_balance_point_sensitivity: float = 0.5,
+    ) -> None:
         """
         Calculates the estimated balance point and UA coefficient for
-        the home, removing UA outliers based on a normalized standard 
+        the home, removing UA outliers based on a normalized standard
         deviation threshold.
         """
         self.uas = [bp.ua for bp in self.bills_winter]
@@ -301,18 +312,18 @@ class Home:
             self.refine_balance_point(next_balance_point_sensitivity)
 
     def calculate_balance_point_and_ua_customizable(
-            self,
-            bps_to_remove: List[BillingPeriod],
-            balance_point_sensitivity: float = 2,
-        ) -> None:
+        self,
+        bps_to_remove: List[BillingPeriod],
+        balance_point_sensitivity: float = 2,
+    ) -> None:
         """
-        Calculates the estimated balance point and UA coefficient for 
+        Calculates the estimated balance point and UA coefficient for
         the home based on user input
 
         Args:
-            bps_to_remove: a list of Billing Periods that user wishes 
+            bps_to_remove: a list of Billing Periods that user wishes
             to remove from calculation
-            balance_point_sensitivity: the amount to adjust when 
+            balance_point_sensitivity: the amount to adjust when
             refining the balance point
         """
 
@@ -327,15 +338,15 @@ class Home:
     def refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """
         Tries different balance points plus or minus a given number
-        of degrees, choosing whichever one minimizes the standard 
+        of degrees, choosing whichever one minimizes the standard
         deviation of the UAs.
         """
         directions_to_check = [1, -1]
 
         while directions_to_check:
-            bp_i = (self.balance_point 
-                    + directions_to_check[0] 
-                    * balance_point_sensitivity)
+            bp_i = (
+                self.balance_point + directions_to_check[0] * balance_point_sensitivity
+            )
 
             if bp_i > self.thermostat_set_point:
                 break  # may want to raise some kind of warning as well
@@ -343,8 +354,10 @@ class Home:
             period_hdds_i = [
                 period_hdd(bill.avg_temps, bp_i) for bill in self.bills_winter
             ]
-            uas_i = [bill.partial_ua / period_hdds_i[n]
-                    for n, bill in enumerate(self.bills_winter)]
+            uas_i = [
+                bill.partial_ua / period_hdds_i[n]
+                for n, bill in enumerate(self.bills_winter)
+            ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
@@ -363,7 +376,6 @@ class Home:
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
-                
 
 
 class BillingPeriod:
@@ -379,7 +391,7 @@ class BillingPeriod:
 
     def initialize_ua(self):
         """
-        Average heating usage, partial UA, initial UA. requires that 
+        Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
         """
         self.avg_heating_usage = (
