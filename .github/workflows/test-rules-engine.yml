@@ -85,4 +85,5 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Build wheel
         run: |
+          pip install -q build
           python -m build
