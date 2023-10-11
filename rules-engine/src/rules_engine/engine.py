@@ -43,8 +43,12 @@ def average_indoor_temp(
         tstat_setback: temp in F at which the home is set during off hours
         setback_daily_hrs: average # of hours per day the home is at setback temp
     """
-    # again, not sure if we should check for valid values here or whether we can
-    # assume those kinds of checks will be handled at the point of user entry
+    if tstat_setback is None and setback_daily_hrs is not None:
+        raise TypeError("setback hours but no setback temp")
+    if tstat_setback is not None and setback_daily_hrs is None:
+        raise TypeError("setback temp but no setback hours")
+    if tstat_setback is None and setback_daily_hrs is None:
+        return tstat_set
     return (
         (24 - setback_daily_hrs) * tstat_set + setback_daily_hrs * tstat_setback
     ) / 24

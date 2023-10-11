@@ -37,8 +37,8 @@ class Summary(BaseModel):
     other_fuel_usage: Optional[float]
     other_fuel_usage_override: Optional[float]
     thermostat_set_point: float
-    setback_temp: float
-    setback_hours_per_day: float
+    setback_temp: Optional[float]
+    setback_hours_per_day: Optional[float]
     estimated_balance_point: float
     balance_point_sensitivity: float
     average_indoor_temperature: float
@@ -116,8 +116,7 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
     return result
 
 
-# @pytest.fixture(scope="module", params=INPUT_DATA)
-@pytest.fixture(scope="module", params=["example-1"])
+@pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
     summary = load_summary(request.param)
 
