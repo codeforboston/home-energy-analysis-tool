@@ -10,7 +10,7 @@
     "setback_temp": 68.0,
     "setback_hours_per_day": 6.0,
     "estimated_balance_point": 62.5,
-    "balance_point_sensitivity": 2.0,
+    "balance_point_sensitivity": 0.5,
     "average_indoor_temperature": 69.5,
     "difference_between_ti_and_tbp": 7.0,
     "design_temperature": 8.4,
