@@ -1,0 +1,21 @@
+{
+    "local_weather_station": "KBED-Bedford",
+    "design_temperature_override": null,
+    "living_area": 1250,
+    "fuel_type": "GAS",
+    "heating_system_efficiency": 0.85,
+    "other_fuel_usage": 0.41,
+    "other_fuel_usage_override": null,
+    "thermostat_set_point": 68.0,
+    "setback_temp": 62.0,
+    "setback_hours_per_day": 12.0,
+    "estimated_balance_point": 68.0,
+    "balance_point_sensitivity": 2.0,
+    "average_indoor_temperature": 65.0,
+    "difference_between_ti_and_tbp": -3.0,
+    "design_temperature": 8.4,
+    "whole_home_ua": 444,
+    "standard_deviation_of_ua": 0.0787,
+    "avg_heat_load": 28672,
+    "max_heat_load": 27340
+}
