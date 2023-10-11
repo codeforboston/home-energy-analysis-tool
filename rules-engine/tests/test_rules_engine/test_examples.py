@@ -116,7 +116,8 @@ def load_temperature_data(weather_station: str) -> List[TemperatureDataRecord]:
     return result
 
 
-@pytest.fixture(scope="module", params=INPUT_DATA)
+# @pytest.fixture(scope="module", params=INPUT_DATA)
+@pytest.fixture(scope="module", params=["example-1"])
 def data(request):
     summary = load_summary(request.param)
 

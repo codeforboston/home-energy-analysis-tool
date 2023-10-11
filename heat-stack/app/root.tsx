@@ -25,7 +25,7 @@ import {
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
+import { object, z } from 'zod'
 import { Confetti } from './components/confetti.tsx'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { ErrorList } from './components/forms.tsx'
@@ -60,7 +60,8 @@ import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 
-// import { WeatherExample } from './components/WeatherExample.tsx'
+import { WeatherExample } from './components/WeatherExample.tsx'
+import type { Weather } from './WeatherExample.d.ts';
 
 import * as pyodideModule from 'pyodide'
 import engine from '../../rules-engine/src/rules_engine/engine.py';
@@ -74,7 +75,7 @@ const getPyodide = async () => {
 
 const runPythonScript = async () => {
 	const pyodide: any = await getPyodide();
-	console.log(engine);
+	// console.log(engine);
 	await pyodide.loadPackage("numpy")
 	await pyodide.runPythonAsync(engine);
 	return pyodide;
@@ -116,6 +117,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
+// We can only have one `loader()`. More requires special gymnastics.
 export async function loader({ request }: DataFunctionArgs) {
 	const timings = makeTimings('root loader')
 	const userId = await time(() => getUserId(request), {
@@ -156,8 +158,14 @@ export async function loader({ request }: DataFunctionArgs) {
 	const { toast, headers: toastHeaders } = await getToast(request)
 	const { confettiId, headers: confettiHeaders } = getConfetti(request)
 
+	// Weather station data
+	const w_href: string = 'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit';
+	const w_res: Response = await fetch(w_href);
+	const weather: Weather = (await w_res.json()) as Weather
+
 	return json(
 		{
+			weather: weather,
 			user,
 			requestInfo: {
 				hints: getHints(request),
@@ -232,7 +240,7 @@ function Document({
 	useEffect(() => {
 		const run = async () => {
 		  const pyodide: any = await runPythonScript();
-		  console.log(pyodide);
+		//   console.log(pyodide);
 		  const result = await pyodide.runPythonAsync("hdd(57, 60)");
 		  setOutput(result);
 		};
@@ -252,17 +260,17 @@ function Document({
           <div>Output:</div>
           {output}
         </div>
-		{/* <WeatherExample /> */}
-				{children}
-				<script
-					nonce={nonce}
-					dangerouslySetInnerHTML={{
-						__html: `window.ENV = ${JSON.stringify(env)}`,
-					}}
-				/>
-				<ScrollRestoration nonce={nonce} />
-				<Scripts nonce={nonce} />
-				<LiveReload nonce={nonce} />
+		<WeatherExample />
+		{children}
+		<script
+			nonce={nonce}
+			dangerouslySetInnerHTML={{
+				__html: `window.ENV = ${JSON.stringify(env)}`,
+			}}
+		/>
+		<ScrollRestoration nonce={nonce} />
+		<Scripts nonce={nonce} />
+		<LiveReload nonce={nonce} />
 			</body>
 		</html>
 	)
