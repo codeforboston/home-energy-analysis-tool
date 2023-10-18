@@ -7,63 +7,12 @@ from typing import List, Optional
 
 import numpy as np
 from pydantic import BaseModel, Field
+from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, SensitivityGraph
 
+def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, SensitivityGraph):
+    """"""
 
-class SummaryInput(BaseModel):
-    """From Summary Tab"""
-
-    name: str = Field(description="Summary!B4")
-    address: str = Field(description="Summary!B5")
-    design_temperature_override: Optional[float] = Field(description="Summary!B7")
-    living_area: float = Field(description="Summary!B10")
-    fuel_type: FuelType = Field(description="Summary!B11")
-    heat_sys_efficiency: float = Field(description="Summary!B12")
-    other_fuel_usage_override: Optional[float] = Field(description="Summary!B16")
-    thermostat_set_point: float = Field(description="Summary!B17")
-    setback_temp: float = Field(description="Summary!B18")
-    setback_hours_per_day: float = Field(description="Summary!B19")
-
-
-class DhwInput(BaseModel):
-    """From DHW Tab"""
-
-    number_of_occupants: int = Field(description="DHW!B4")
-    estimated_water_heating_efficiency: float = Field(description="DHW!B5")
-    stand_by_losses: float = Field(description="DHW!B6")
-
-
-class OilPropaneBillingInput(BaseModel):
-    """From Oil-Propane tab"""
-
-    period_end_date: date = Field(description="Oil-Propane!B")
-    gallons: float = Field(description="Oil-Propane!C")
-
-
-class NaturalGasBillingInput(BaseModel):
-    """From Natural Gas tab"""
-
-    period_end_date: date = Field(description="Natural Gas!B")
-    usage_therms: float = Field(description="Natural Gas!D")
-
-
-class SummaryOutput(BaseModel):
-    """From Summary tab"""
-
-    estimated_balance_point: float = Field(
-        description="Summary!B20"
-    )  # This is hand-calculated in the spreadsheet
-    other_fuel_usage: float = Field(description="Summary!B15")
-    average_indoor_temperature: float = Field(description="Summary!B24")
-    difference_between_ti_and_tbp: float = Field(description="Summary!B25")
-    design_temperature: float = Field(description="Summary!B26")
-    whole_home_ua: float = Field(description="Summary!B27")
-    standard_deviation_of_ua: float = Field(description="Summary!B28")
-    avg_heat_load: float = Field(description="Summary!B29")
-    max_heat_load: float = Field(description="Summary!B30")
-
-
-class Constants:
-    balance_point_sensitivity: float = 2.0
+    pass    
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
