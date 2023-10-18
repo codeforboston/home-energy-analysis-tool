@@ -1,4 +1,4 @@
-import { conform, useForm } from '@conform-to/react'
+import { useForm } from '@conform-to/react'
 import { parse } from '@conform-to/zod'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import {
@@ -26,10 +26,9 @@ import {
 import { withSentry } from '@sentry/remix'
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { object, z } from 'zod'
-// import { Confetti } from './components/confetti.tsx'
+import { Confetti } from './components/confetti.tsx'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
-// import { ErrorList } from './components/forms.tsx'
-import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList } from './components/forms.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { EpicToaster } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
@@ -45,7 +44,7 @@ import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { authenticator, getUserId } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints, useHints } from './utils/client-hints.tsx'
-// import { getConfetti } from './utils/confetti.server.ts'
+import { getConfetti } from './utils/confetti.server.ts'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import {
@@ -64,30 +63,30 @@ import { useOptionalUser, useUser } from './utils/user.ts'
 import { WeatherExample } from './components/WeatherExample.tsx'
 import type { Weather } from './WeatherExample.d.ts';
 
-// import * as pyodideModule from 'pyodide'
-// import engine from '../../rules-engine/src/rules_engine/engine.py';
+import * as pyodideModule from 'pyodide'
+import engine from '../../rules-engine/src/rules_engine/engine.py';
 
-// const getPyodide = async () => {
-// 	// public folder:
-// 	return await pyodideModule.loadPyodide({
-// 		indexURL: 'pyodide-env/',
-// 	})
-// }
-// declare global {
-// 	interface Window {
-// 	  pydd?: any;
-// 	}
-//   }
+const getPyodide = async () => {
+	// public folder:
+	return await pyodideModule.loadPyodide({
+		indexURL: 'pyodide-env/',
+	})
+}
+declare global {
+	interface Window {
+	  pydd?: any;
+	}
+  }
   
-// const runPythonScript = async () => {
-// 	const pyodide: any = await getPyodide();
-// 	// console.log(engine);
-// 	await pyodide.loadPackage("numpy")
-// 	await pyodide.runPythonAsync(engine);
-// 	window.pydd = pyodide as null;
+const runPythonScript = async () => {
+	const pyodide: any = await getPyodide();
+	// console.log(engine);
+	await pyodide.loadPackage("numpy")
+	await pyodide.runPythonAsync(engine);
+	window.pydd = pyodide as null;
 
-// 	return pyodide;
-// };
+	return pyodide;
+};
 
 
 export const links: LinksFunction = () => {
@@ -164,7 +163,7 @@ export async function loader({ request }: DataFunctionArgs) {
 		await authenticator.logout(request, { redirectTo: '/' })
 	}
 	const { toast, headers: toastHeaders } = await getToast(request)
-	// const { confettiId, headers: confettiHeaders } = getConfetti(request)
+	const { confettiId, headers: confettiHeaders } = getConfetti(request)
 
 	// Weather station data
 	const w_href: string = 'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit';
@@ -185,13 +184,13 @@ export async function loader({ request }: DataFunctionArgs) {
 			},
 			ENV: getEnv(),
 			toast,
-			// confettiId,
+			confettiId,
 		},
 		{
 			headers: combineHeaders(
 				{ 'Server-Timing': timings.toString() },
 				toastHeaders,
-				// confettiHeaders,
+				confettiHeaders,
 			),
 		},
 	)
@@ -254,27 +253,6 @@ function Document({
 	// 	};
 	// 	run();
 	//   }, []);
-	const TrialFormSchema = z.object({
-		imageUrl: z.string().optional(),
-		username: z.string(),
-		name: z.string(),
-		agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
-			required_error: 'You must agree to the terms of service and privacy policy',
-		}),
-		remember: z.boolean().optional(),
-		redirectTo: z.string().optional(),
-	})
-
-	const [form, fields] = useForm({
-		id: 'onboarding-provider-form',
-		constraint: getFieldsetConstraint(TrialFormSchema),
-		lastSubmission: actionData?.submission ?? data.submission,
-		onValidate({ formData }) {
-			return parse(formData, { schema: TrialFormSchema })
-		},
-		shouldRevalidate: 'onBlur',
-	})
-
 	return (
 		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
 			<head>
@@ -285,16 +263,6 @@ function Document({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-
-			<Field
-				labelProps={{ htmlFor: "1234", children: 'Username' }}
-				inputProps={{
-					type: 'text',
-					autoComplete: 'username',
-					className: 'lowercase',
-				}}
-				errors={[]}
-			/>
 			<div>
           <div>Output:</div>
           {/* {output} */}
@@ -320,6 +288,8 @@ function App() {
 	const nonce = useNonce()
 	const user = useOptionalUser()
 	const theme = useTheme()
+	const matches = useMatches()
+	const isOnSearchPage = matches.find(m => m.id === 'routes/users+/index')
 
 	return (
 		<Document nonce={nonce} theme={theme} env={data.ENV}>
@@ -330,6 +300,11 @@ function App() {
 							<div className="font-light">epic</div>
 							<div className="font-bold">notes</div>
 						</Link>
+						{isOnSearchPage ? null : (
+							<div className="ml-auto max-w-sm flex-1 pr-10">
+								<SearchBar status="idle" />
+							</div>
+						)}
 						<div className="flex items-center gap-10">
 							{user ? (
 								<UserDropdown />
@@ -343,7 +318,7 @@ function App() {
 				</header>
 
 				<div className="flex-1">
-					{/* <Outlet /> */}
+					<Outlet />
 				</div>
 
 				<div className="container flex justify-between pb-5">
@@ -354,7 +329,7 @@ function App() {
 					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 				</div>
 			</div>
-			{/* <Confetti id={data.confettiId} /> */}
+			<Confetti id={data.confettiId} />
 			<EpicToaster toast={data.toast} />
 		</Document>
 	)
