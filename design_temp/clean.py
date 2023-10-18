@@ -3,13 +3,6 @@ import re
 from dataclasses import dataclass
 
 
-# This script generates design_temp_by_county.csv
-# from the raw text copied from the ENERGY STAR pdf located at:
-# https://www.energystar.gov/ia/partners/bldrs_lenders_raters/downloads/County%20Level%20Design%20Temperature%20Reference%20Guide%20-%202015-06-24.pdf
-# To copy the text from the PDF you can open it in chrome and select the 'print' option
-# to save it as a PDF that will allow copying
-
-
 # Number of counties (according to PDF) for each of the 50 states and for DC
 # Same order as PDF
 REGIONS = {
