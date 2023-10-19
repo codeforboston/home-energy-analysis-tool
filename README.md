@@ -1,8 +1,8 @@
-**Goal**: Help heat pump survey teams pick the right heat pump size for a given house. This app would help calculate how many BTUs/hr a house needs in its particular geographical location. Eventually, the tool should store the data for each home to analyze general trends.
+**Goal**: Provide an app that helps residential energy coaches or advocates, and some homeowners, estimate a home's heating requirements (heat load) and assess whether proposed heat pumps have sufficient heating capacity for the home. The app will use information about the home including it's location, usual thermostat settings, and historical energy usage, provided by the resident, to calculate the heating requirements in BTUs/hr. Key outputs will include two graphs, one showing the heating requirement vs. outdoor temperature and another comparing the home with other homes based on floor area. In the future, this app may be extended to provide more information, such an estimate of electricity use by a heat pump, cost of heating with a heat pump vs. fossil fuel and other such features.
 
-**Users**: Teams like the Heatsmart Alliance coaches via the [sibling project](https://github.com/codeforboston/urban-league-heat-pump-accelerator).
+**Users**: [Heatsmart Alliance coaches](https://heatsmartalliance.org/about-our-volunteer-coaches/), energy coaches with other affiliations, and users of the CfB [sibling project](https://github.com/codeforboston/urban-league-heat-pump-accelerator).
 
-**Current method**: Excel spreadsheets with formulas that make the calculations. The current spreadsheet inputs include things like historic energy usage, current house thermostat settings, and yearly weather in the house's zipcode. See [this Slack message](https://cfb-public.slack.com/archives/C0563F96JSG/p1684285954706029) to download a Zip file of that original Excel, or make a request for a copy from HeatSmart at [this link](https://heatsmartalliance.org/coaching-tools/heat-load-analysis/).
+**Current method**: An Excel spreadsheet with formulas that perform the calculations. Inputs to the existing spreadsheet include historic energy usage, typical thermostat settings, and temperature data from a weather station close to the home. More info on this existing spreadsheet and a link to request a download are available from the HeatSmart Alliance at [this link](https://heatsmartalliance.org/coaching-tools/heat-load-analysis/).
 
 ## Teams
 
@@ -10,7 +10,7 @@
 
 This team will work with the other teams to match the interface and necessary research together.
 
-### Frontend
+### JavaScript
 
 This team will plan and build the user interface. React and Remix in [Epic Stack](https://github.com/epicweb-dev/epic-stack). Uses Pyodide to run python code on frontend.
 It will also get information from the weather station API that the rules engine can use for its calculations. In the future, it may work on permissions and persistence of household data.
