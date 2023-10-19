@@ -5,6 +5,7 @@
 ```
 git clone git@github.com:codeforboston/home-energy-analysis-tool.git
 # create an environment file
+cd heat-stack
 cp .env.example .env
 
 # make sure you're using node version 18

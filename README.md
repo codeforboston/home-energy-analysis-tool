@@ -7,17 +7,22 @@
 ## Teams
 
 ### UI/UX and/or Design
+
 This team will work with the other teams to match the interface and necessary research together.
 
 ### Frontend
 
 This team will plan and build the user interface. React and Remix in [Epic Stack](https://github.com/epicweb-dev/epic-stack). Uses Pyodide to run python code on frontend.
- It will also get information from the weather station API that the rules engine can use for its calculations. In the future, it may work on permissions and persistence of household data. 
+It will also get information from the weather station API that the rules engine can use for its calculations. In the future, it may work on permissions and persistence of household data.
 
-### Rules Engine 
+### Rules Engine
+
 This team will help convert or read the existing spreadsheet logic into something the app can act upon. Uses numpy and Python: likely to run in-browser rather than on backend.
 
 ### Auth/Persistence
 
 This team will determine the best way to allow users to store their past cases with the households they visit. Likely to use SQLite and Prisma in [Epic Stack](https://github.com/epicweb-dev/epic-stack).
 
+### Installation
+
+To install the front end, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
