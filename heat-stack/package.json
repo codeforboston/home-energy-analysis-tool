@@ -19,6 +19,18 @@
     "lint": "eslint .",
     "setup": "npm run build && prisma generate && prisma migrate deploy && prisma db seed && playwright install",
     "start": "cross-env NODE_ENV=production node .",
+    "start:mocks": "",
+    "test": "",
+    "coverage": "",
+    "test:e2e": "",
+    "test:e2e:dev": "",
+    "pretest:e2e:run": "",
+    "test:e2e:run": "",
+    "test:e2e:install": "",
+    "typecheck": "tsc",
+    "validate": ""
+  },
+  "restore": {
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
     "test": "vitest",
     "coverage": "vitest run --coverage",

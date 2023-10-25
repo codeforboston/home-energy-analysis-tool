@@ -16,9 +16,10 @@ npm install
 npm run dev
 ```
 
-### Set up in a new GitHub CodingSpace:
+### Set up in a new GitHub Codespace:
 
 ```
+cd heat-stack
 # create an environment file
 cp .env.example .env
 
