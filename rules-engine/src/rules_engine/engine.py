@@ -7,10 +7,13 @@ from typing import List, Optional
 
 import numpy as np
 from pydantic import BaseModel, Field
-from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, SensitivityGraph
+from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, BalancePointGraph
 
-def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, SensitivityGraph):
-    """"""
+def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, BalancePointGraph):
+
+    # home = Home(summaryInput, naturalGasBillingInput, dhwInput, naturalGasBillingInput)
+    # home.calculate()
+    # return(home.summaryOutput, home.balancePointGraph)
 
     pass    
 
@@ -123,6 +126,9 @@ class Home:
         self,
         fuel_type: FuelType,
         heat_sys_efficiency: float,
+        temps: List[List[float]],
+        usages: List[float],
+        inclusion_codes: List[int],
         initial_balance_point: float = 60,
         thermostat_set_point: float = 68,
         has_boiler_for_dhw: bool = False,
@@ -134,15 +140,13 @@ class Home:
         self.thermostat_set_point = thermostat_set_point
         self.has_boiler_for_dhw = has_boiler_for_dhw
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
+        self._initialize_billing_periods(temps, usages, inclusion_codes)
 
-    def initialize_billing_periods(
+    def _initialize_billing_periods(
         self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
     ) -> None:
         """
-        Eventually, this method should categorize the billing periods by
-        season and calculate avg_non_heating_usage based on that. For
-        now, we just pass in winter-only heating periods and manually
-        define non-heating
+        TODO
         """
         # assume for now that temps and usages have the same number of elements
 
@@ -165,12 +169,50 @@ class Home:
                     BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
                 )
 
-        self.calculate_avg_summer_usage()
-        self.calculate_avg_non_heating_usage()
+        self._calculate_avg_summer_usage()
+        self._calculate_avg_non_heating_usage()
         for bill in self.bills_winter:
             bill.initialize_ua()
 
-    def calculate_avg_summer_usage(self) -> None:
+
+    def _initialize_billing_periods_reworked(
+        self, billingperiods: NaturalGasBillingInput
+        ) -> None:
+        """
+        TODO
+        """
+        # assume for now that temps and usages have the same number of elements
+
+        self.bills_winter = []
+        self.bills_summer = []
+        self.bills_shoulder = []
+
+        ngb_start_date = billingperiods.period_start_date
+        ngbs = billingperiods.records
+
+
+        # winter months 1; summer months -1; shoulder months 0
+        for i in range(len(usages)):
+            if inclusion_codes[i] == 1:
+                self.bills_winter.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
+            elif inclusion_codes[i] == -1:
+                self.bills_summer.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
+            else:
+                self.bills_shoulder.append(
+                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
+                )
+
+        self._calculate_avg_summer_usage()
+        self._calculate_avg_non_heating_usage()
+        for bill in self.bills_winter:
+            bill.initialize_ua()
+
+
+    def _calculate_avg_summer_usage(self) -> None:
         """
         Calculate average daily summer usage
         """
@@ -181,7 +223,7 @@ class Home:
         else:
             self.avg_summer_usage = 0
 
-    def calculate_boiler_usage(self, fuel_multiplier: float) -> float:
+    def _calculate_boiler_usage(self, fuel_multiplier: float) -> float:
         """
         Calculate boiler usage with oil or propane
         Args:
@@ -204,7 +246,7 @@ class Home:
       would be a property of the Home.
     """
 
-    def calculate_avg_non_heating_usage(self) -> None:
+    def _calculate_avg_non_heating_usage(self) -> None:
         """
         Calculate avg non heating usage for this Home
         Args:
@@ -217,11 +259,11 @@ class Home:
             fuel_multiplier = 1  # default multiplier, for oil, placeholder number
             if self.fuel_type == FuelType.PROPANE:
                 fuel_multiplier = 2  # a placeholder number
-            self.avg_non_heating_usage = self.calculate_boiler_usage(fuel_multiplier)
+            self.avg_non_heating_usage = self._calculate_boiler_usage(fuel_multiplier)
         else:
             self.avg_non_heating_usage = 0
 
-    def calculate_balance_point_and_ua(
+    def _calculate_balance_point_and_ua(
         self,
         initial_balance_point_sensitivity: float = 2,
         stdev_pct_max: float = 0.10,
@@ -236,7 +278,7 @@ class Home:
         self.uas = [bp.ua for bp in self.bills_winter]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
-        self.refine_balance_point(initial_balance_point_sensitivity)
+        self._refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
             biggest_outlier_idx = np.argmax(
@@ -258,14 +300,17 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self.refine_balance_point(next_balance_point_sensitivity)
+            self._refine_balance_point(next_balance_point_sensitivity)
 
-    def calculate_balance_point_and_ua_customizable(
+    def _calculate_balance_point_and_ua_customizable(
         self,
         bps_to_remove: List[BillingPeriod],
         balance_point_sensitivity: float = 2,
     ) -> None:
         """
+        QUESTIONABLE if this is still needed when frontend only sends datapoints selected by user,
+        so _calculate_balance_point_and_ua() should suffice
+
         Calculates the estimated balance point and UA coefficient for
         the home based on user input
 
@@ -282,9 +327,9 @@ class Home:
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
         self.bills_winter = customized_bills
-        self.refine_balance_point(balance_point_sensitivity)
+        self._refine_balance_point(balance_point_sensitivity)
 
-    def refine_balance_point(self, balance_point_sensitivity: float) -> None:
+    def _refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """
         Tries different balance points plus or minus a given number
         of degrees, choosing whichever one minimizes the standard
@@ -326,6 +371,20 @@ class Home:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
+    def calculate(self, 
+        initial_balance_point_sensitivity: float = 2,
+        stdev_pct_max: float = 0.10,
+        max_stdev_pct_diff: float = 0.01,
+        next_balance_point_sensitivity: float = 0.5):
+        """
+        For this Home, calculates avg non heating usage and then the estimated balance point 
+        and UA coefficient for the home, removing UA outliers based on a normalized standard
+        deviation threshold.
+        """
+        self._calculate_avg_non_heating_usage()
+        self._calculate_balance_point_and_ua(initial_balance_point_sensitivity, 
+                stdev_pct_max, max_stdev_pct_diff, next_balance_point_sensitivity)
+        
 
 class BillingPeriod:
     def __init__(

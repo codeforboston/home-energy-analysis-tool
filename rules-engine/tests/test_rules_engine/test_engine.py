@@ -39,21 +39,24 @@ def test_average_indoor_temp():
 
 
 def test_bp_ua_estimates():
-    home = engine.Home(
-        engine.FuelType.GAS, heat_sys_efficiency=0.88, initial_balance_point=58
-    )
-
     daily_temps_lists = [
         [28, 29, 30, 29],
         [32, 35, 35, 38],
         [41, 43, 42, 42],
         [72, 71, 70, 69],
     ]
+
     usages = [50, 45, 30, 0.96]
     inclusion_codes = [1, 1, 1, -1]
-    home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
-    home.calculate_avg_non_heating_usage()
-    home.calculate_balance_point_and_ua()
+    heat_sys_efficiency = 0.88
+    home = engine.Home(
+        engine.FuelType.GAS,heat_sys_efficiency,daily_temps_lists, usages, inclusion_codes,  initial_balance_point=58
+    )
+
+    #home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
+    #home.calculate_avg_non_heating_usage()
+    #home.calculate_balance_point_and_ua()
+    home.calculate()
 
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
@@ -66,9 +69,8 @@ def test_bp_ua_estimates():
 
 
 def test_bp_ua_with_outlier():
-    home = engine.Home(
-        engine.FuelType.GAS, heat_sys_efficiency=0.88, initial_balance_point=58
-    )
+
+
     daily_temps_lists = [
         [41.7, 41.6, 32, 25.4],
         [28, 29, 30, 29],
@@ -78,9 +80,16 @@ def test_bp_ua_with_outlier():
     ]
     usages = [60, 50, 45, 30, 0.96]
     inclusion_codes = [1, 1, 1, 1, -1]
-    home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
-    home.calculate_avg_non_heating_usage()
-    home.calculate_balance_point_and_ua()
+    heat_sys_efficiency=0.88
+    home = engine.Home(
+        engine.FuelType.GAS,heat_sys_efficiency,daily_temps_lists, usages, inclusion_codes,  initial_balance_point=58
+    )
+
+    # home.initialize_billing_periods(daily_temps_lists, usages, inclusion_codes)
+    # home.calculate_avg_non_heating_usage()
+    # home.calculate_balance_point_and_ua()
+    home.calculate()
+
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
     assert home.balance_point == 60

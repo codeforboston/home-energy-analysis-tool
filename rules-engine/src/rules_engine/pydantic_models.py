@@ -36,13 +36,14 @@ class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab"""
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
+    exclude: bool
 
 
 class NaturalGasBillingRecordInput(BaseModel):
     """From Natural Gas tab. A single row of the Billing input table."""
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
-
+    exclude: bool
 
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
@@ -57,7 +58,7 @@ class SummaryOutput(BaseModel):
     average_indoor_temperature: float = Field(description="Summary!B24")
     difference_between_ti_and_tbp: float = Field(description="Summary!B25")
     design_temperature: float = Field(description="Summary!B26")
-    whole_home_heat_loss_rate: float = sField(description="Summary!B27") # UA = heat loss rate
+    whole_home_heat_loss_rate: float = Field(description="Summary!B27") # UA = heat loss rate
     standard_deviation_of_heat_loss_rate: float = Field(description="Summary!B28")
     average_heat_load: float = Field(description="Summary!B29")
     maximum_heat_load: float = Field(description="Summary!B30")
