@@ -139,8 +139,8 @@ def data(request):
 def test_average_indoor_temp(data: Example) -> None:
     avg_indoor_temp = engine.average_indoor_temp(
         data.summary.thermostat_set_point,
-        data.summary.setback_temp,
-        data.summary.setback_hours_per_day,
+        data.summary.setback_temp or 0,
+        data.summary.setback_hours_per_day or 0,
     )
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
 
