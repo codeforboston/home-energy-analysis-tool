@@ -6,7 +6,7 @@ from enum import Enum
 from typing import List, Optional
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, BalancePointGraph
 
 def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, BalancePointGraph):
@@ -155,24 +155,24 @@ class Home:
         self.bills_shoulder = []
 
         # winter months 1; summer months -1; shoulder months 0
-        for i in range(len(usages)):
+        for i, usage in enumerate(usages):
+            billing_period = BillingPeriod(
+                avg_temps=temps[i], 
+                usage=usage, 
+                balance_point=self.balance_point, 
+                inclusion_code=inclusion_codes[i]
+            )
             if inclusion_codes[i] == 1:
-                self.bills_winter.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_winter.append( billing_period )
             elif inclusion_codes[i] == -1:
-                self.bills_summer.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_summer.append( billing_period )
             else:
-                self.bills_shoulder.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_shoulder.append( billing_period )
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
-        for bill in self.bills_winter:
-            bill.initialize_ua()
+        for billing_period in self.bills_winter:
+            self.initialize_ua(billing_period)
 
 
     def _initialize_billing_periods_reworked(
@@ -192,24 +192,25 @@ class Home:
 
 
         # winter months 1; summer months -1; shoulder months 0
-        for i in range(len(usages)):
+        for i, usage in enumerate(usages):
+            billing_period = BillingPeriod(
+                avg_temps=temps[i], 
+                usage=usage, 
+                balance_point=self.balance_point, 
+                inclusion_code=inclusion_codes[i]
+            )
+
             if inclusion_codes[i] == 1:
-                self.bills_winter.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_winter.append( billing_period )
             elif inclusion_codes[i] == -1:
-                self.bills_summer.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_summer.append( billing_period )
             else:
-                self.bills_shoulder.append(
-                    BillingPeriod(temps[i], usages[i], self, inclusion_codes[i])
-                )
+                self.bills_shoulder.append( billing_period )
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
-        for bill in self.bills_winter:
-            bill.initialize_ua()
+        for billing_period in self.bills_winter:
+            self.initialize_ua(billing_period)
 
 
     def _calculate_avg_summer_usage(self) -> None:
@@ -301,34 +302,7 @@ class Home:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
             self._refine_balance_point(next_balance_point_sensitivity)
-
-    def _calculate_balance_point_and_ua_customizable(
-        self,
-        bps_to_remove: List[BillingPeriod],
-        balance_point_sensitivity: float = 2,
-    ) -> None:
-        """
-        QUESTIONABLE if this is still needed when frontend only sends datapoints selected by user,
-        so _calculate_balance_point_and_ua() should suffice
-
-        Calculates the estimated balance point and UA coefficient for
-        the home based on user input
-
-        Args:
-            bps_to_remove: a list of Billing Periods that user wishes
-            to remove from calculation
-            balance_point_sensitivity: the amount to adjust when
-            refining the balance point
-        """
-
-        customized_bills = [bp for bp in self.bills_winter if bp not in bps_to_remove]
-        self.uas = [bp.ua for bp in customized_bills]
-        self.avg_ua = sts.mean(self.uas)
-        self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
-
-        self.bills_winter = customized_bills
-        self._refine_balance_point(balance_point_sensitivity)
-
+            
     def _refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """
         Tries different balance points plus or minus a given number
@@ -384,38 +358,88 @@ class Home:
         self._calculate_avg_non_heating_usage()
         self._calculate_balance_point_and_ua(initial_balance_point_sensitivity, 
                 stdev_pct_max, max_stdev_pct_diff, next_balance_point_sensitivity)
-        
 
-class BillingPeriod:
-    def __init__(
-        self, avg_temps: List[float], usage: float, home: Home, inclusion_code: int
-    ):
-        self.avg_temps = avg_temps
-        self.usage = usage
-        self.home = home
-        self.days = len(self.avg_temps)
-        self.total_hdd = period_hdd(self.avg_temps, self.home.balance_point)
-        self.inclusion_code = inclusion_code
-
-    def initialize_ua(self):
+    def initialize_ua(self, billing_period: BillingPeriod) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
         """
-        self.avg_heating_usage = (
-            self.usage / self.days
-        ) - self.home.avg_non_heating_usage
-        self.partial_ua = self.calculate_partial_ua()
-        self.ua = self.partial_ua / self.total_hdd
+        billing_period.avg_heating_usage = (
+            billing_period.usage / billing_period.days
+        ) - self.avg_non_heating_usage
+        billing_period.partial_ua = self.calculate_partial_ua(billing_period)
+        billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
 
-    def calculate_partial_ua(self):
+    def calculate_partial_ua(self, billing_period: BillingPeriod) -> None:
         """
         The portion of UA that is not dependent on the balance point
         """
         return (
-            self.days
-            * self.avg_heating_usage
-            * self.home.fuel_type.value
-            * self.home.heat_sys_efficiency
+            billing_period.days
+            * billing_period.avg_heating_usage
+            * self.fuel_type.value
+            * self.heat_sys_efficiency
             / 24
         )
+
+
+class BillingPeriod(BaseModel):
+    avg_temps: List[float]
+    usage: float
+    balance_point: float
+    inclusion_code: int
+    total_hdd: float
+    avg_heating_usage: Optional[float] = None
+    partial_ua: Optional[float] = None
+    ua: Optional[float] = None
+
+    # days=len(temps[i])
+    # total_hdd=period_hdd(temps[i], balance_point)
+
+    @computed_field
+    @property
+    def days(self) -> int:
+        return len(self.avg_temps)
+    
+    @computed_field
+    @property
+    def total_hdd(self) -> float:
+        return period_hdd(self.avg_temps, self.balance_point)
+
+
+class InitialUAResult(BaseModel):
+    avg_heating_usage: float
+    partial_ua: float
+    ua: float
+
+
+def calculate_initial_ua(billing_period: BillingPeriod, home: Home) -> InitialUAResult:
+    avg_heating_usage = (
+        billing_period.usage / billing_period.days
+    ) - home.avg_non_heating_usage
+    partial_ua = (
+        billing_period.days
+        * avg_heating_usage
+        * home.fuel_type.value
+        * home.heat_sys_efficiency
+        / 24
+    )
+    ua = partial_ua / billing_period.total_hdd
+
+    return InitialUAResult(
+        avg_heating_usage=avg_heating_usage,
+        partial_ua=partial_ua,
+        ua=ua
+    )
+
+# More testable?
+def initialize_ua(billing_period, avg_non_heating_usage):
+    """
+    Average heating usage, partial UA, initial UA. requires that
+    self.home have non heating usage calculated.
+    """
+    billing_period.avg_heating_usage = (
+        billing_period.usage / billing_period.days
+    ) - avg_non_heating_usage
+    billing_period.partial_ua = billing_period.calculate_partial_ua()
+    billing_period.ua = billing_period.partial_ua / billing_period.total_hdd

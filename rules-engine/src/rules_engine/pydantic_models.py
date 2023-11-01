@@ -75,9 +75,6 @@ class BalancePointGraph(BaseModel):
     """From Summary page"""
     records: List[BalancePointGraphRow]
 
-    
-
 
 class Constants:
     balance_point_sensitivity: float = 0.5
-
