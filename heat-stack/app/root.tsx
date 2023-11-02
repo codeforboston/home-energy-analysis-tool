@@ -67,6 +67,8 @@ import type { Weather } from './WeatherExample.d.ts'
 import * as pyodideModule from 'pyodide'
 import engine from '../../rules-engine/src/rules_engine/engine.py'
 
+import './App.css'
+
 const getPyodide = async () => {
 	// public folder:
 	return await pyodideModule.loadPyodide({
@@ -257,11 +259,11 @@ function Document({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-				<div>
+				{/* <div>
 					<div>Output:</div>
 					{output}
-				</div>
-				<WeatherExample />
+				</div> */}
+				{/* <WeatherExample /> */}
 				{children}
 				<script
 					nonce={nonce}
@@ -287,10 +289,14 @@ function App() {
 
 	return (
 		<Document nonce={nonce} theme={theme} env={data.ENV}>
+			<CaseSummary />
+			<div className="flex-1">
+				<Outlet />
+			</div>
 			<div className="flex h-screen flex-col justify-between">
 				<header className="container py-6">
 					<nav className="flex items-center justify-between">
-						<Link to="/">
+						{/* <Link to="/">
 							<div className="font-light">epic</div>
 							<div className="font-bold">notes</div>
 						</Link>
@@ -307,14 +313,9 @@ function App() {
 									<Link to="/login">Log In</Link>
 								</Button>
 							)}
-						</div>
+						</div> */}
 					</nav>
 				</header>
-
-				<div className="flex-1">
-					<CaseSummary />
-					<Outlet />
-				</div>
 
 				<div className="container flex justify-between pb-5">
 					<Link to="/">
