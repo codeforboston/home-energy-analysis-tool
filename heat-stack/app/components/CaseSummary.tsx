@@ -1,12 +1,4 @@
-import {
-	LineChart,
-	Line,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-} from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 
 export function CaseSummary() {
 	const data = [
@@ -138,12 +130,6 @@ export function CaseSummary() {
 						<b className="card-statistic">1057 BTU/h-F</b>
 					</div>
 				</div>
-			</div>
-
-			<div className="main-cards">
-				<div className="card-inner"></div>
-
-				<div className="card-inner"></div>
 			</div>
 		</main>
 	)
