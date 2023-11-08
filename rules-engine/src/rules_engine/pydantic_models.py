@@ -2,10 +2,11 @@
 Data models for input and output data in the rules engine.
 """
 
+from datetime import date
 from enum import Enum
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
-from datetime import date
 
 
 class FuelType(Enum):
@@ -17,7 +18,7 @@ class FuelType(Enum):
 
 class SummaryInput(BaseModel):
     """From Summary Tab"""
-    design_temperature: float
+    #design_temperature_override: float
     living_area: float = Field(description="Summary!B10")
     fuel_type: FuelType = Field(description="Summary!B11")
     heating_system_efficiency: float = Field(description="Summary!B12")

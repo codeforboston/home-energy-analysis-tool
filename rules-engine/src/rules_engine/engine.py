@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 import statistics as sts
-from enum import Enum
 from typing import List, Optional
 
 import numpy as np
-from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, BalancePointGraph
+
+from rules_engine.pydantic_models import (
+    BalancePointGraph,
+    DhwInput,
+    FuelType,
+    NaturalGasBillingInput,
+    SummaryInput,
+    SummaryOutput,
+)
+
 
 def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, BalancePointGraph):
 
@@ -101,15 +109,6 @@ def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> flo
     """
     return (design_set_point - design_temp) * ua
 
-
-class FuelType(Enum):
-    """Enum for fuel types. Values are BTU per usage"""
-
-    GAS = 100000
-    OIL = 139600
-    PROPANE = 91333
-
-
 class Home:
     """
     Defines attributes and methods for calculating home heat metrics.
@@ -122,20 +121,18 @@ class Home:
 
     def __init__(
         self,
-        fuel_type: FuelType,
-        heat_sys_efficiency: float,
+        summary_input: SummaryInput,
         temps: List[List[float]],
         usages: List[float],
         inclusion_codes: List[int],
         initial_balance_point: float = 60,
-        thermostat_set_point: float = 68,
         has_boiler_for_dhw: bool = False,
         same_fuel_dhw_heating: bool = False,
     ):
-        self.fuel_type = fuel_type
-        self.heat_sys_efficiency = heat_sys_efficiency
+        self.fuel_type = summary_input.fuel_type
+        self.heat_sys_efficiency = summary_input.heating_system_efficiency
+        self.thermostat_set_point = summary_input.thermostat_set_point
         self.balance_point = initial_balance_point
-        self.thermostat_set_point = thermostat_set_point
         self.has_boiler_for_dhw = has_boiler_for_dhw
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
         self._initialize_billing_periods(temps, usages, inclusion_codes)
