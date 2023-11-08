@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import statistics as sts
-from datetime import date
 from enum import Enum
 from typing import List, Optional
 
 import numpy as np
-from pydantic import BaseModel, Field, root_validator
 from rules_engine.pydantic_models import SummaryInput, DhwInput, NaturalGasBillingInput, SummaryOutput, BalancePointGraph
 
 def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, BalancePointGraph):
@@ -383,63 +381,18 @@ class Home:
         )
 
 
-class BillingPeriod(BaseModel):
-    avg_temps: List[float]
-    usage: float
-    balance_point: float
-    inclusion_code: int
-    total_hdd: float
-    avg_heating_usage: Optional[float] = None
-    partial_ua: Optional[float] = None
-    ua: Optional[float] = None
+class BillingPeriod:
+    def __init__(
+        self,
+        avg_temps: List[float],
+        usage: float,
+        balance_point: float,
+        inclusion_code: int
+    ) -> None:
+        self.avg_temps = avg_temps
+        self.usage = usage
+        self.balance_point = balance_point
+        self.inclusion_code = inclusion_code
 
-    # days=len(temps[i])
-    # total_hdd=period_hdd(temps[i], balance_point)
-
-    @computed_field
-    @property
-    def days(self) -> int:
-        return len(self.avg_temps)
-    
-    @computed_field
-    @property
-    def total_hdd(self) -> float:
-        return period_hdd(self.avg_temps, self.balance_point)
-
-
-class InitialUAResult(BaseModel):
-    avg_heating_usage: float
-    partial_ua: float
-    ua: float
-
-
-def calculate_initial_ua(billing_period: BillingPeriod, home: Home) -> InitialUAResult:
-    avg_heating_usage = (
-        billing_period.usage / billing_period.days
-    ) - home.avg_non_heating_usage
-    partial_ua = (
-        billing_period.days
-        * avg_heating_usage
-        * home.fuel_type.value
-        * home.heat_sys_efficiency
-        / 24
-    )
-    ua = partial_ua / billing_period.total_hdd
-
-    return InitialUAResult(
-        avg_heating_usage=avg_heating_usage,
-        partial_ua=partial_ua,
-        ua=ua
-    )
-
-# More testable?
-def initialize_ua(billing_period, avg_non_heating_usage):
-    """
-    Average heating usage, partial UA, initial UA. requires that
-    self.home have non heating usage calculated.
-    """
-    billing_period.avg_heating_usage = (
-        billing_period.usage / billing_period.days
-    ) - avg_non_heating_usage
-    billing_period.partial_ua = billing_period.calculate_partial_ua()
-    billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
+        self.days = len(self.avg_temps)
+        self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
