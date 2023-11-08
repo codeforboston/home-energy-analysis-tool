@@ -2,16 +2,6 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
-.grid-container {
-  display: grid;
-  grid-template-columns: 260px 1fr 1fr 1fr;
-  grid-template-rows: 0.2fr 3fr;
-  grid-template-areas:
-    'sidebar header header header'
-    'sidebar main main main';
-  height: 100vh;
-}
-
 /* Main  */
 .main-container {
   grid-area: main;
@@ -20,47 +10,13 @@ body {
   color: #9e9ea4;
 }
 
-.two-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 5px 0;
-}
-.three-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin: 5px 0;
-}
-
-.four-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 20px;
-  margin: 15px 0;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  padding: 8px 15px;
-  border-radius: 5px;
-}
-
-.card-title {
-  font-size: smaller;
-}
-.card-statistic {
-  font-size: large;
-}
-
 .page-title {
-  font-size: x-large;
+  font-size: large;
   text-align: center;
 }
 .section-title {
-  font-size: large;
+  font-size: xx-large;
+  margin: 20px 20px;
 }
 
 .item-title {
@@ -74,20 +30,6 @@ body {
 
 .item {
   font-size: medium
-}
-
-.card-inner {
-  display: flex;
-  /* align-items: center; */
-  justify-content: space-between;
-}
-
-.charts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 60px;
-  height: 300px;
 }
 
 /* End Main  */
