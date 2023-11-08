@@ -1,4 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { Form, useSearchParams, useSubmit } from '@remix-run/react'
+import { Input } from './ui/input.tsx'
+import { Label } from './ui/label.tsx'
 
 export function CaseSummary() {
 	const name = 'Pietro Schirano'
@@ -59,9 +62,8 @@ export function CaseSummary() {
 	return (
 		<main className="main-container">
 			<div>
-				<div className="page-title"> Case Summary</div>
-
-				<div className="section-title"> Home Information </div>
+				<h1 className="page-title">Case Summary</h1>
+				<h2 className="section-title">Home Information </h2>
 				<div className="two-cards">
 					<div className="card-inner">
 						<div className="item-title">
@@ -83,7 +85,25 @@ export function CaseSummary() {
 						<div className="item-title">
 							Design Temperature (°F) <br />
 							<div className="item">{designTemperature}</div> <br />
-							<div className="item">Override: {designTemperatureOverride}</div>
+							<Form
+								method="GET"
+								action="/users"
+								className="flex flex-wrap items-center justify-center gap-2"
+								onChange = {e => true}
+								>
+								<div className="flex-1">
+									<Label htmlFor="override" >
+										Override
+									</Label>
+									<Input
+										type="text"
+										name="override"
+										id="override"
+										defaultValue={designTemperatureOverride}
+										className="w-full"
+									/>
+								</div>
+							</Form>
 						</div>
 					</div>
 				</div>
