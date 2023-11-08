@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import statistics as sts
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -19,12 +19,12 @@ def getOutputsNaturalGas(
     summaryInput: SummaryInput,
     dhwInput: Optional[DhwInput],
     naturalGasBillingInput: NaturalGasBillingInput,
-) -> (SummaryOutput, BalancePointGraph):
+) -> Tuple[SummaryOutput, BalancePointGraph]:
     # home = Home(summaryInput, naturalGasBillingInput, dhwInput, naturalGasBillingInput)
     # home.calculate()
     # return(home.summaryOutput, home.balancePointGraph)
 
-    pass
+    raise NotImplementedError
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -188,6 +188,11 @@ class Home:
         ngb_start_date = billingperiods.period_start_date
         ngbs = billingperiods.records
 
+        # TODO: fix these
+        usages: List[float] = []
+        inclusion_codes: List[int] = []
+        temps: List[List[float]] = []
+
         # winter months 1; summer months -1; shoulder months 0
         for i, usage in enumerate(usages):
             billing_period = BillingPeriod(
@@ -347,7 +352,7 @@ class Home:
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
-    ):
+    ) -> None:
         """
         For this Home, calculates avg non heating usage and then the estimated balance point
         and UA coefficient for the home, removing UA outliers based on a normalized standard
@@ -372,7 +377,7 @@ class Home:
         billing_period.partial_ua = self.calculate_partial_ua(billing_period)
         billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
 
-    def calculate_partial_ua(self, billing_period: BillingPeriod) -> None:
+    def calculate_partial_ua(self, billing_period: BillingPeriod) -> float:
         """
         The portion of UA that is not dependent on the balance point
         """
@@ -386,6 +391,10 @@ class Home:
 
 
 class BillingPeriod:
+    avg_heating_usage: float
+    partial_ua: float
+    ua: float
+
     def __init__(
         self,
         avg_temps: List[float],
