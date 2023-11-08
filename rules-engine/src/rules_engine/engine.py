@@ -15,13 +15,16 @@ from rules_engine.pydantic_models import (
 )
 
 
-def getOutputsNaturalGas(summaryInput: SummaryInput, dhwInput: Optional[DhwInput], naturalGasBillingInput: NaturalGasBillingInput)->(SummaryOutput, BalancePointGraph):
-
+def getOutputsNaturalGas(
+    summaryInput: SummaryInput,
+    dhwInput: Optional[DhwInput],
+    naturalGasBillingInput: NaturalGasBillingInput,
+) -> (SummaryOutput, BalancePointGraph):
     # home = Home(summaryInput, naturalGasBillingInput, dhwInput, naturalGasBillingInput)
     # home.calculate()
     # return(home.summaryOutput, home.balancePointGraph)
 
-    pass    
+    pass
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -109,6 +112,7 @@ def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> flo
     """
     return (design_set_point - design_temp) * ua
 
+
 class Home:
     """
     Defines attributes and methods for calculating home heat metrics.
@@ -152,27 +156,26 @@ class Home:
         # winter months 1; summer months -1; shoulder months 0
         for i, usage in enumerate(usages):
             billing_period = BillingPeriod(
-                avg_temps=temps[i], 
-                usage=usage, 
-                balance_point=self.balance_point, 
-                inclusion_code=inclusion_codes[i]
+                avg_temps=temps[i],
+                usage=usage,
+                balance_point=self.balance_point,
+                inclusion_code=inclusion_codes[i],
             )
             if inclusion_codes[i] == 1:
-                self.bills_winter.append( billing_period )
+                self.bills_winter.append(billing_period)
             elif inclusion_codes[i] == -1:
-                self.bills_summer.append( billing_period )
+                self.bills_summer.append(billing_period)
             else:
-                self.bills_shoulder.append( billing_period )
+                self.bills_shoulder.append(billing_period)
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
         for billing_period in self.bills_winter:
             self.initialize_ua(billing_period)
 
-
     def _initialize_billing_periods_reworked(
         self, billingperiods: NaturalGasBillingInput
-        ) -> None:
+    ) -> None:
         """
         TODO
         """
@@ -185,28 +188,26 @@ class Home:
         ngb_start_date = billingperiods.period_start_date
         ngbs = billingperiods.records
 
-
         # winter months 1; summer months -1; shoulder months 0
         for i, usage in enumerate(usages):
             billing_period = BillingPeriod(
-                avg_temps=temps[i], 
-                usage=usage, 
-                balance_point=self.balance_point, 
-                inclusion_code=inclusion_codes[i]
+                avg_temps=temps[i],
+                usage=usage,
+                balance_point=self.balance_point,
+                inclusion_code=inclusion_codes[i],
             )
 
             if inclusion_codes[i] == 1:
-                self.bills_winter.append( billing_period )
+                self.bills_winter.append(billing_period)
             elif inclusion_codes[i] == -1:
-                self.bills_summer.append( billing_period )
+                self.bills_summer.append(billing_period)
             else:
-                self.bills_shoulder.append( billing_period )
+                self.bills_shoulder.append(billing_period)
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
         for billing_period in self.bills_winter:
             self.initialize_ua(billing_period)
-
 
     def _calculate_avg_summer_usage(self) -> None:
         """
@@ -297,7 +298,7 @@ class Home:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
             self._refine_balance_point(next_balance_point_sensitivity)
-            
+
     def _refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """
         Tries different balance points plus or minus a given number
@@ -340,19 +341,25 @@ class Home:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
-    def calculate(self, 
+    def calculate(
+        self,
         initial_balance_point_sensitivity: float = 2,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
-        next_balance_point_sensitivity: float = 0.5):
+        next_balance_point_sensitivity: float = 0.5,
+    ):
         """
-        For this Home, calculates avg non heating usage and then the estimated balance point 
+        For this Home, calculates avg non heating usage and then the estimated balance point
         and UA coefficient for the home, removing UA outliers based on a normalized standard
         deviation threshold.
         """
         self._calculate_avg_non_heating_usage()
-        self._calculate_balance_point_and_ua(initial_balance_point_sensitivity, 
-                stdev_pct_max, max_stdev_pct_diff, next_balance_point_sensitivity)
+        self._calculate_balance_point_and_ua(
+            initial_balance_point_sensitivity,
+            stdev_pct_max,
+            max_stdev_pct_diff,
+            next_balance_point_sensitivity,
+        )
 
     def initialize_ua(self, billing_period: BillingPeriod) -> None:
         """
@@ -384,7 +391,7 @@ class BillingPeriod:
         avg_temps: List[float],
         usage: float,
         balance_point: float,
-        inclusion_code: int
+        inclusion_code: int,
     ) -> None:
         self.avg_temps = avg_temps
         self.usage = usage

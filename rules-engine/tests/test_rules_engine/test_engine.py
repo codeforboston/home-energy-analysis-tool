@@ -62,14 +62,22 @@ def test_bp_ua_estimates():
     setback_temperature = 60
     setback_hours_per_day = 8
     fuel_type = FuelType.GAS
-    summary_input = SummaryInput(living_area=living_area, fuel_type=fuel_type, heating_system_efficiency=heat_sys_efficiency, thermostat_set_point=thermostat_set_point, setback_temperature=setback_temperature,setback_hours_per_day=setback_hours_per_day) 
-
-
-    home = engine.Home(
-        summary_input, daily_temps_lists, usages, inclusion_codes,  initial_balance_point=58
+    summary_input = SummaryInput(
+        living_area=living_area,
+        fuel_type=fuel_type,
+        heating_system_efficiency=heat_sys_efficiency,
+        thermostat_set_point=thermostat_set_point,
+        setback_temperature=setback_temperature,
+        setback_hours_per_day=setback_hours_per_day,
     )
 
-
+    home = engine.Home(
+        summary_input,
+        daily_temps_lists,
+        usages,
+        inclusion_codes,
+        initial_balance_point=58,
+    )
 
     home.calculate()
 
@@ -84,8 +92,6 @@ def test_bp_ua_estimates():
 
 
 def test_bp_ua_with_outlier():
-
-
     daily_temps_lists = [
         [41.7, 41.6, 32, 25.4],
         [28, 29, 30, 29],
@@ -102,13 +108,22 @@ def test_bp_ua_with_outlier():
     setback_temperature = 60
     setback_hours_per_day = 8
     fuel_type = FuelType.GAS
-    summary_input = SummaryInput(living_area=living_area, fuel_type=fuel_type, heating_system_efficiency=heat_sys_efficiency, thermostat_set_point=thermostat_set_point, setback_temperature=setback_temperature,setback_hours_per_day=setback_hours_per_day) 
-
-
-    home = engine.Home(
-        summary_input, daily_temps_lists, usages, inclusion_codes,  initial_balance_point=58
+    summary_input = SummaryInput(
+        living_area=living_area,
+        fuel_type=fuel_type,
+        heating_system_efficiency=heat_sys_efficiency,
+        thermostat_set_point=thermostat_set_point,
+        setback_temperature=setback_temperature,
+        setback_hours_per_day=setback_hours_per_day,
     )
 
+    home = engine.Home(
+        summary_input,
+        daily_temps_lists,
+        usages,
+        inclusion_codes,
+        initial_balance_point=58,
+    )
 
     home.calculate()
 
