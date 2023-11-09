@@ -38,7 +38,7 @@ export function EnergyUseHistory() {
 					<div className="item-title-small">
 						Standard Deviation of UA (%) <br />
 						<div className="item">{standardDevationUA}</div> <br />
-						Whole-home UA (BTU/h-F) <br />
+						Whole-home UA (BTU/h-°F) <br />
 						<div className="item">{wholeHomeUA}</div> <br />
 					</div>
 				</div>

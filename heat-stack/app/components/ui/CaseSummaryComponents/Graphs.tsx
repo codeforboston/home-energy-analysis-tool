@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
 export function Graphs() {
 	const data = [
@@ -38,6 +39,7 @@ export function Graphs() {
 		<div className="section-title">
 			Graphs
 			<hr />
+			<WholeHomeUAComparison />
 			<div className="item-title">
 				Balance point
 				<LineChart
