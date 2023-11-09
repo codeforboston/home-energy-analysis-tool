@@ -9,11 +9,8 @@ export function CaseSummary() {
 			<div>
 				<h1 className="page-title">Case Summary</h1>
 				<HomeInformation />
-				<hr />
 				<CurrentHeatingSystem />
-				<hr />
 				<EnergyUseHistory />
-				<hr />
 				<Graphs />
 			</div>
 		</main>

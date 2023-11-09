@@ -10,12 +10,13 @@ export function EnergyUseHistory() {
 	return (
 		<div className="section-title">
 			Energy Use History
-			<div className="item-title">
+			<hr />
+			<div className="item-group-title">
 				Data Source
 				<br />
 				<div className="item">{fileName}</div> <br />
 			</div>
-			<div className="item-title">Analysis</div>
+			<div className="item-group-title">Analysis</div>
 			<div className="flex flex-row">
 				<div className="basis-1/3">
 					<div className="item-title-small">

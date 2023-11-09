@@ -1,35 +1,78 @@
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Main  */
 .main-container {
   grid-area: main;
   overflow-y: auto;
   padding: 20px 20px;
-  color: #9e9ea4;
+  margin: 30px 30px;
 }
 
 .page-title {
-  font-size: large;
-  text-align: center;
+  color: #000;
+    font-size: 30px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 36px;
+    letter-spacing: -0.225px;
+    text-align: center;
+    padding-block: 20px;
+      /*vertical padding */
 }
 .section-title {
-  font-size: xx-large;
-  margin: 20px 20px;
+color: var(--slate-700, #334155);
+  font-size: 24px;
+  font-style: normal;
+  line-height: 32px;
+  letter-spacing: -0.144px;
+  padding-block: 20px;
+    /*vertical padding */
 }
 
+.item-group-title {
+  color: var(--slate-900, #0F172A);
+    /* h2 */
+    font-size: 30px;
+    font-style: normal;
+    line-height: 36px;
+    /* 120% */
+    letter-spacing: -0.225px;
+      padding-block: 20px;
+        /*vertical padding */
+}
 .item-title {
-  font: bold;
-  font-size: x-large
+color: var(--slate-900, #0F172A);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 28px;
+  padding-block: 20px;
+    /*vertical padding */
 }
 .item-title-small {
-  font: bold;
-  font-size: medium
+color: var(--slate-900, #0F172A);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 28px;
+  padding-block: 20px;
+    /*vertical padding */
 }
 
+.item-big {
+  color: var(--slate-900, #0F172A);
+    font-size: 30px;
+    font-weight: 300;
+    font-style: normal;
+    line-height: 36px;
+    letter-spacing: -0.225px;
+}
 .item {
-  font-size: medium
+  color: var(--slate-900, #0F172A);
+  font-size: 20px;
+  font-weight: 300;
+  font-style: normal;
+  line-height: 28px;
 }
 
-/* End Main  */

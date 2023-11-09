@@ -9,33 +9,34 @@ export function HomeInformation() {
 	const state = 'MA'
 	const zip = '02856'
 	const country = 'United States of America'
-	const livingArea = '3000'
+	const livingArea = '3,000'
 	const designTemperature = '63'
 	const designTemperatureOverride = '65'
 	return (
 		<div className="section-title">
 			Home Information
+			<hr />
 			<div className="flex flex-row">
 				<div className="basis-1/2">
 					<div className="item-title">
 						Resident / Client
 						<br />
-						<div className="item">{name}</div> <br />
+						<div className="item-big">{name}</div> <br />
 						Address
-						<div className="item">{street}</div>
-						<div className="item">
+						<div className="item-big">{street}</div>
+						<div className="item-big">
 							{city}, {state}, {zip}
 						</div>
-						<div className="item">{country}</div> <br />
+						<div className="item-big">{country}</div> <br />
 						Living Area (sf)
-						<div className="item">{livingArea}</div>
+						<div className="item-big">{livingArea}</div>
 					</div>
 				</div>
 
 				<div className="basis-1/2">
 					<div className="item-title">
 						Design Temperature (°F) <br />
-						<div className="item">{designTemperature}</div> <br />
+						<div className="item-big">{designTemperature}</div> <br />
 						<Form
 							method="GET"
 							action="/users"
@@ -43,7 +44,9 @@ export function HomeInformation() {
 							onChange={e => true}
 						>
 							<div className="flex-1">
-								<Label htmlFor="override">Override</Label>
+								<Label className="item-title" htmlFor="override">
+									Override
+								</Label>
 								<Input
 									type="text"
 									name="override"

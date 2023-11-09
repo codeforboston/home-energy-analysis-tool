@@ -37,6 +37,7 @@ export function Graphs() {
 	return (
 		<div className="section-title">
 			Graphs
+			<hr />
 			<div className="item-title">
 				Balance point
 				<LineChart
