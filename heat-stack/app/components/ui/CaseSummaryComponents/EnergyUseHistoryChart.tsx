@@ -1,3 +1,5 @@
+import { Checkbox } from '../../../components/ui/checkbox.tsx'
+
 import {
 	Table,
 	TableBody,
@@ -44,7 +46,9 @@ export function EnergyUseHistoryChart() {
 				{months.map((month, index) => (
 					<TableRow key={index}>
 						<TableCell className="font-medium">{index + 1}</TableCell>
-						<TableCell>{month.includeData}</TableCell>
+						<TableCell>
+							<Checkbox checked={month.includeData} />
+						</TableCell>
 						<TableCell>{month.startDate}</TableCell>
 						<TableCell>{month.endDate}</TableCell>
 						<TableCell>{month.daysInBill}</TableCell>
