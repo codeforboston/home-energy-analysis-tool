@@ -1,3 +1,5 @@
+import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
+
 export function EnergyUseHistory() {
 	const averageIndoorTemperature = '63.5'
 	const dailyOtherUsage = '1.07'
@@ -44,7 +46,7 @@ export function EnergyUseHistory() {
 				</div>
 			</div>
 			<div className="item-title-small">Usage Details</div>
-			<div className="item-title-small">(insert chart here)</div>
+			<EnergyUseHistoryChart />
 		</div>
 	)
 }
