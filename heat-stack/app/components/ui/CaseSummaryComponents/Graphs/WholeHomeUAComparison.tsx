@@ -1,10 +1,11 @@
 import {
-	ScatterChart,
-	Scatter,
+	ComposedChart,
+	Line,
 	XAxis,
 	YAxis,
 	CartesianGrid,
 	Tooltip,
+	Scatter,
 	ResponsiveContainer,
 } from 'recharts'
 
@@ -104,6 +105,8 @@ const data = [
 	{ x: 2093, y: 418 },
 	{ x: 2028, y: 651 },
 	{ x: 2849, y: 799 },
+	{ x: 0, yLine: 0 },
+	{ x: 5000, yLine: 1650 },
 ]
 
 export function WholeHomeUAComparison() {
@@ -112,15 +115,19 @@ export function WholeHomeUAComparison() {
 			<div className="item-title">Whole Home UA Comparison</div>
 
 			<ResponsiveContainer width="100%" height={400}>
-				<ScatterChart
+				<ComposedChart
+					width={500}
+					height={400}
+					data={data}
 					margin={{
 						top: 20,
-						right: 20,
+						right: 80,
 						bottom: 20,
 						left: 100,
 					}}
 				>
-					<CartesianGrid />
+					<CartesianGrid stroke="#f5f5f5" />
+					<Tooltip />
 					<XAxis type="number" dataKey="x" name="Living Area" unit=" sf" />
 					<YAxis
 						type="number"
@@ -128,9 +135,14 @@ export function WholeHomeUAComparison() {
 						name="Whole-home UA"
 						unit="BTU/h-°F"
 					/>
-					<Tooltip cursor={{ strokeDasharray: '3 3' }} />
-					<Scatter name="Whole Home UA Comparison" data={data} fill="#8884d8" />
-				</ScatterChart>
+					<Scatter name="BTU/h-°F" dataKey="y" fill="#8884d8" />
+					<Line
+						dataKey="yLine"
+						dot={false}
+						activeDot={false}
+						legendType="none"
+					/>
+				</ComposedChart>
 			</ResponsiveContainer>
 		</div>
 	)
