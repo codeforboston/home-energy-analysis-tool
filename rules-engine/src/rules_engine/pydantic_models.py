@@ -60,6 +60,11 @@ class NaturalGasBillingInput(BaseModel):
     records: List[NaturalGasBillingRecordInput]
 
 
+class TemperatureInput(BaseModel):
+    date_of_temp: List[date]
+    temperature: List[float]
+
+
 class SummaryOutput(BaseModel):
     """From Summary tab"""
 
@@ -96,3 +101,9 @@ class BalancePointGraph(BaseModel):
 
 class Constants:
     balance_point_sensitivity: float = 0.5
+
+
+class AnalysisType(Enum):
+    DO_NOT_INCLUDE = 0
+    INCLUDE = 1
+    INCLUDE_IN_OTHER_ANALYSIS = -1

@@ -1,29 +1,93 @@
 from __future__ import annotations
 
 import statistics as sts
-from typing import List, Optional, Tuple
+from datetime import date
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
 from rules_engine.pydantic_models import (
+    AnalysisType,
     BalancePointGraph,
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
+    OilPropaneBillingInput,
     SummaryInput,
     SummaryOutput,
+    TemperatureInput,
 )
 
 
-def getOutputsNaturalGas(
-    summaryInput: SummaryInput,
-    dhwInput: Optional[DhwInput],
-    naturalGasBillingInput: NaturalGasBillingInput,
+def get_outputs_oil_propane(
+    summary_input: SummaryInput,
+    dhw_input: Optional[DhwInput],
+    temperature_input: TemperatureInput,
+    oil_propane_billing_input: OilPropaneBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # home = Home(summaryInput, naturalGasBillingInput, dhwInput, naturalGasBillingInput)
-    # home.calculate()
-    # return(home.summaryOutput, home.balancePointGraph)
+    # TODO: normalize oil & propane to billing periods
+    billing_periods = NotImplementedError()
 
+    return get_outputs_normalized(
+        summary_input, dhw_input, temperature_input, billing_periods
+    )
+
+
+def get_outputs_natural_gas(
+    summary_input: SummaryInput,
+    dhw_input: Optional[DhwInput],
+    temperature_input: TemperatureInput,
+    natural_gas_billing_input: NaturalGasBillingInput,
+) -> Tuple[SummaryOutput, BalancePointGraph]:
+    # TODO: normalize natural gas to billing periods
+    billing_periods = NotImplementedError()
+
+    return get_outputs_normalized(
+        summary_input, dhw_input, temperature_input, billing_periods
+    )
+
+
+def get_outputs_normalized(
+    summary_input: SummaryInput,
+    dhw_input: Optional[DhwInput],
+    temperature_input: TemperatureInput,
+    billing_periods: Any,
+) -> Tuple[SummaryOutput, BalancePointGraph]:
+    # smush together temp and billing periods
+
+    # home = Home(summary_input, temperature_input, dhw_input, billing_periods)
+    # home.calculate()
+
+    # summary_input: SummaryInput,     summary_input
+    # temps: List[List[float]],        temperature_input
+    # usages: List[float],             billing_periods
+    # inclusion_codes: List[int],       billing_periods*
+    # initial_balance_point: float = 60,  n/a
+    # has_boiler_for_dhw: bool = False,    dhw_input
+    # same_fuel_dhw_heating: bool = False, dhw_input
+
+    # return (home.summaryOutput, home.balancePointGraph)
+
+    raise NotImplementedError
+
+
+def date_to_analysis_type(d: date) -> AnalysisType:
+    months = {
+        1: AnalysisType.INCLUDE,
+        2: AnalysisType.INCLUDE,
+        3: AnalysisType.INCLUDE,
+        4: AnalysisType.DO_NOT_INCLUDE,
+        5: AnalysisType.DO_NOT_INCLUDE,
+        6: AnalysisType.DO_NOT_INCLUDE,
+        7: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
+        8: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
+        9: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
+        10: AnalysisType.DO_NOT_INCLUDE,
+        11: AnalysisType.DO_NOT_INCLUDE,
+        12: AnalysisType.INCLUDE,
+    }
+
+    # TODO: finish implementation and unit test
     raise NotImplementedError
 
 
