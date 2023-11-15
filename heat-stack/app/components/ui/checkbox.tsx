@@ -4,6 +4,13 @@ import { Check } from 'lucide-react'
 
 import { cn } from '#app/utils/misc.tsx'
 
+export type CheckboxProps = Omit<
+	React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
+	'type'
+> & {
+	type?: string
+}
+
 const Checkbox = React.forwardRef<
 	React.ElementRef<typeof CheckboxPrimitive.Root>,
 	React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
@@ -20,6 +27,14 @@ const Checkbox = React.forwardRef<
 			className={cn('flex items-center justify-center text-current')}
 		>
 			<Check className="h-4 w-4" />
+			{/* <svg viewBox="0 0 8 8">
+				<path
+					d="M1,4 L3,6 L7,2"
+					stroke="currentcolor"
+					strokeWidth="1"
+					fill="none"
+				/>
+			</svg> */}
 		</CheckboxPrimitive.Indicator>
 	</CheckboxPrimitive.Root>
 ))
