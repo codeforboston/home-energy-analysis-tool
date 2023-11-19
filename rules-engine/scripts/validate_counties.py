@@ -1,11 +1,7 @@
 import csv
-import json
-import os
 import pathlib
 from pydantic import BaseModel
-from typing import List
 import requests
-from requests import Response
 import io
 
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent / ".." / ".." / "design_temp"
@@ -36,7 +32,6 @@ class DTBC(BaseModel):
 
 _counties = {}
 _states={}
-_design_temp={}
 def load_design_temp_data():
     result = {}
 
@@ -90,7 +85,7 @@ counties = fetch_census_counties()
 
 dtbc = load_design_temp_data()
 
-with open("merged_structure_temps.csv", "w", newline="") as oFile:
+with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline="") as oFile:
     writer = csv.DictWriter(oFile, fieldnames=NEW_HEADERS)
     writer.writeheader()
     for s, cbs in _counties.items():
@@ -98,4 +93,4 @@ with open("merged_structure_temps.csv", "w", newline="") as oFile:
             for c in cbs:
                 if d.county in c.county_name:
                     ostr=f"{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county}"
-                    print(ostr) # Writer here
+                    writer.writerow(ostr) #Says writerow expects a Map, this probably wont work.
