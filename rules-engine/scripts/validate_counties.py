@@ -21,7 +21,6 @@ class State(BaseModel):
     state_abbr: str
     state_name: str
 
-#STATE(the 2 letter abbr)|STATEFP(the id)|COUNTYFP(3 digit code)|COUNTYNS(8digit unique)|COUNTYNAME
 class County(BaseModel):
     state_id: str
     state_abbr: str
@@ -48,10 +47,8 @@ def load_design_temp_data():
                 state=row["state"], county=row["county"],temp=row["design_temp"]
             )
             if row["state"] in result:
-                # result[row["state"]].append(row["county"])
                 result[row["state"]].append(item) 
             else:
-                # result[row["state"]] = [row["county"]]
                 result[row["state"]] = [item]
             
             
@@ -73,16 +70,6 @@ def fetch_census_counties():
         )
         _counties[sn].append(item)
     
-
-
-    # this way sucks. would need to loop over each county when combining with states values.
-    # for row in reader:
-    #     item = County(
-    #         state_id=row["STATEFP"], county_fp=row["COUNTYFP"], county_ns=row["COUNTYNS"],county_name=row["COUNTYNAME"]
-    #     )
-    #     ret.append(item)
-    # return ret
-    
 def fetch_census_states():
     states_url = CENSUS_DOCS_BASE_URL + CENSUS_STATE_PATH
 
@@ -96,50 +83,19 @@ def fetch_census_states():
         )
         _states[row["STATE"]] = item
     return _states
-    # This way blows. maybe a dict instead
-    # for row in reader:
-    #     item = State(
-    #         state_id=row["STATE"], state_abbr=row["STUSAB"], state_name=row["STATE_NAME"]
-    #     )
-    #     ret.append(item)
-    # return ret
-    # return process(response)
-
-    # woof, no need for this. just use fancy dictreader on response text property.
-    # token_count = start_p = end_p = idx = 0
-    # line = []
-    
-    # for c in response.iter_content():
-    #     line.append(c)
-    #     if c == CENSUS_DELIMETER:
-    #         token_count += 1
-    #     elif c == NEW_LINE:
-    #         token_count = start_p = end_p = 0
-
-        
 
 
 states = fetch_census_states()
 counties = fetch_census_counties()
-# print(_counties)
+
 dtbc = load_design_temp_data()
-# print(dtbc)
+
 with open("merged_structure_temps.csv", "w", newline="") as oFile:
     writer = csv.DictWriter(oFile, fieldnames=NEW_HEADERS)
     writer.writeheader()
     for s, cbs in _counties.items():
-        # print(f"S: {s} => CBS: {cbs}")
         for d in dtbc[s]:
             for c in cbs:
                 if d.county in c.county_name:
                     ostr=f"{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county}"
                     print(ostr) # Writer here
-        # exit()
-#avoid all this bs by doing it in the counties fetch
-# intermediate=[]
-# for id,state in states.items():
-#     print(_counties[id])
-#     for c in _counties[id]:
-#         print(str(c.state_id))
-#     exit()
-    # for county in counties
