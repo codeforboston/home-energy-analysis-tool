@@ -7,7 +7,8 @@ name="rules-engine"
 version="0.0.1"
 requires-python=">=3.8"
 dependencies = [
-    "numpy"
+    "numpy",
+    "requests"
 ]
 
 [project.optional-dependencies]
