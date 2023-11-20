@@ -10,7 +10,7 @@ CENSUS_STATE_PATH = "/state.txt"
 CENSUS_COUNTY_PATH = "/codes2020/national_county2020.txt"
 CENSUS_DELIMETER = '|'
 NEW_LINE = '\n'
-NEW_HEADERS="state_id","state_name","state_abbr","county_fp","county_ns","county_name","county_design_temp"
+NEW_HEADERS="state_id,state_name,state_abbr,county_fp,county_ns,county_name,county_design_temp"
 
 class State(BaseModel):
     state_id: str
@@ -85,12 +85,12 @@ counties = fetch_census_counties()
 
 dtbc = load_design_temp_data()
 
-with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline="") as oFile:
-    # writer = csv.DictWriter(oFile, fieldnames=NEW_HEADERS)
+with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline="\n") as oFile:
     oFile.write(NEW_HEADERS)
     for s, cbs in _counties.items():
-        for d in dtbc[s]:
-            for c in cbs:
-                if d.county in c.county_name:
-                    ostr=f"{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county}"
-                    oFile.write(ostr)
+        if dtbc.get(s):
+            for d in dtbc.get(s):
+                for c in cbs:
+                    if d.county in c.county_name:
+                        ostr=f"\n{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county}"
+                        oFile.write(ostr)
