@@ -4,9 +4,15 @@ Data models for input and output data in the rules engine.
 
 from datetime import date
 from enum import Enum
-from typing import List, Optional
+from typing import Annotated, Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
+
+
+class AnalysisType(Enum):
+    DO_NOT_INCLUDE = 0
+    INCLUDE = 1
+    INCLUDE_IN_OTHER_ANALYSIS = -1
 
 
 class FuelType(Enum):
@@ -17,16 +23,30 @@ class FuelType(Enum):
     PROPANE = 91333
 
 
+def validate_fuel_type(value: Any):
+    if isinstance(value, FuelType):
+        return value
+
+    try:
+        return FuelType[value]
+    except KeyError as e:
+        raise ValueError(
+            f"Error validating fuel type {e}. Valid choices are: {[x.name for x in FuelType]}"
+        )
+
+
 class SummaryInput(BaseModel):
     """From Summary Tab"""
 
     # design_temperature_override: float
     living_area: float = Field(description="Summary!B10")
-    fuel_type: FuelType = Field(description="Summary!B11")
+    fuel_type: Annotated[FuelType, BeforeValidator(validate_fuel_type)] = Field(
+        description="Summary!B11"
+    )
     heating_system_efficiency: float = Field(description="Summary!B12")
     thermostat_set_point: float = Field(description="Summary!B17")
-    setback_temperature: float = Field(description="Summary!B18")
-    setback_hours_per_day: float = Field(description="Summary!B19")
+    setback_temperature: Optional[float] = Field(description="Summary!B18")
+    setback_hours_per_day: Optional[float] = Field(description="Summary!B19")
 
 
 class DhwInput(BaseModel):
@@ -42,27 +62,27 @@ class OilPropaneBillingInput(BaseModel):
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
-    exclude: bool
+    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
 
 
 class NaturalGasBillingRecordInput(BaseModel):
     """From Natural Gas tab. A single row of the Billing input table."""
 
+    period_start_date: date = Field(description="Natural Gas!A")
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
-    exclude: bool
+    inclusion_override: Optional[AnalysisType] = Field(description="Natural Gas!E")
 
 
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
-    period_start_date: date
     records: List[NaturalGasBillingRecordInput]
 
 
 class TemperatureInput(BaseModel):
-    date_of_temp: List[date]
-    temperature: List[float]
+    dates: List[date]
+    temperatures: List[float]
 
 
 class SummaryOutput(BaseModel):
@@ -101,9 +121,3 @@ class BalancePointGraph(BaseModel):
 
 class Constants:
     balance_point_sensitivity: float = 0.5
-
-
-class AnalysisType(Enum):
-    DO_NOT_INCLUDE = 0
-    INCLUDE = 1
-    INCLUDE_IN_OTHER_ANALYSIS = -1

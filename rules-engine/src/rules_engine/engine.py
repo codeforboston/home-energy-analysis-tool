@@ -5,18 +5,11 @@ from datetime import date
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
-
-from rules_engine.pydantic_models import (
-    AnalysisType,
-    BalancePointGraph,
-    DhwInput,
-    FuelType,
-    NaturalGasBillingInput,
-    OilPropaneBillingInput,
-    SummaryInput,
-    SummaryOutput,
-    TemperatureInput,
-)
+from rules_engine.pydantic_models import (AnalysisType, BalancePointGraph,
+                                          DhwInput, FuelType,
+                                          NaturalGasBillingInput,
+                                          OilPropaneBillingInput, SummaryInput,
+                                          SummaryOutput, TemperatureInput)
 
 
 def get_outputs_oil_propane(
@@ -249,8 +242,8 @@ class Home:
         self.bills_summer = []
         self.bills_shoulder = []
 
-        ngb_start_date = billingperiods.period_start_date
-        ngbs = billingperiods.records
+        # ngb_start_date = billingperiods.period_start_date
+        # ngbs = billingperiods.records
 
         # TODO: fix these
         usages: List[float] = []
