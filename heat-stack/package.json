@@ -20,7 +20,7 @@
     "setup": "npm run build && prisma generate && prisma migrate deploy && prisma db seed && playwright install",
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
-    "test": "vitest",
+    "test": "pushd ../rules-engine && python3 -m venv venv && source venv/bin/activate && pip install -q build && python3 -m build && popd && vitest",
     "coverage": "vitest run --coverage",
     "test:e2e": "npm run test:e2e:dev --silent",
     "test:e2e:dev": "playwright test --ui",
