@@ -6,6 +6,13 @@ on:
       # - dev
   pull_request: {}
 
+env:
+  working-directory: heat-stack
+
+defaults:
+  run:
+    working-directory: heat-stack
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
