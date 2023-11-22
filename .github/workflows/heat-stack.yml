@@ -36,12 +36,17 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory:  ${{ env.working-directory }}
 
       - name: 🖼 Build icons
+        working-directory:  ${{ env.working-directory }}
         run: npm run build:icons
 
       - name: 🔬 Lint
+        working-directory:  ${{ env.working-directory }}
         run: npm run lint
+        
 
   typecheck:
     name: ʦ TypeScript
