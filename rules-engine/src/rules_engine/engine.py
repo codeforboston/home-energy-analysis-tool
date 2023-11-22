@@ -5,11 +5,18 @@ from datetime import date
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
-from rules_engine.pydantic_models import (AnalysisType, BalancePointGraph,
-                                          DhwInput, FuelType,
-                                          NaturalGasBillingInput,
-                                          OilPropaneBillingInput, SummaryInput,
-                                          SummaryOutput, TemperatureInput)
+
+from rules_engine.pydantic_models import (
+    AnalysisType,
+    BalancePointGraph,
+    DhwInput,
+    FuelType,
+    NaturalGasBillingInput,
+    OilPropaneBillingInput,
+    SummaryInput,
+    SummaryOutput,
+    TemperatureInput,
+)
 
 
 def get_outputs_oil_propane(

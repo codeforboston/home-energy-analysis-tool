@@ -23,7 +23,7 @@ class FuelType(Enum):
     PROPANE = 91333
 
 
-def validate_fuel_type(value: Any):
+def validate_fuel_type(value: Any) -> FuelType:
     if isinstance(value, FuelType):
         return value
 

@@ -8,12 +8,16 @@ from typing import Any, List, Literal, Optional
 import pytest
 from pydantic import BaseModel
 from pytest import approx
-from rules_engine import engine
-from rules_engine.pydantic_models import (NaturalGasBillingInput,
-                                          NaturalGasBillingRecordInput,
-                                          SummaryInput, SummaryOutput,
-                                          TemperatureInput)
 from typing_extensions import Annotated
+
+from rules_engine import engine
+from rules_engine.pydantic_models import (
+    NaturalGasBillingInput,
+    NaturalGasBillingRecordInput,
+    SummaryInput,
+    SummaryOutput,
+    TemperatureInput,
+)
 
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner

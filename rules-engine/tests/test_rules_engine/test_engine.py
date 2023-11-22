@@ -1,9 +1,15 @@
 import pytest
 from pytest import approx
+
 from rules_engine import engine
-from rules_engine.pydantic_models import (BalancePointGraph, DhwInput,
-                                          FuelType, NaturalGasBillingInput,
-                                          SummaryInput, SummaryOutput)
+from rules_engine.pydantic_models import (
+    BalancePointGraph,
+    DhwInput,
+    FuelType,
+    NaturalGasBillingInput,
+    SummaryInput,
+    SummaryOutput,
+)
 
 
 @pytest.mark.parametrize(
