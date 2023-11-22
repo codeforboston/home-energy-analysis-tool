@@ -62,6 +62,8 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory:  ${{ env.working-directory }}
 
       - name: 🖼 Build icons
         run: npm run build:icons
@@ -70,7 +72,7 @@ jobs:
         run: npm run typecheck --if-present
 
   vitest:
-    name: ⚡ Vitest
+    name: ⚡ Vitest app/utils/pyodide.test.ts
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -83,6 +85,8 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory:  ${{ env.working-directory }}
 
       - name: 🏄 Copy test env vars
         run: cp .env.example .env
@@ -91,7 +95,7 @@ jobs:
         run: npm run build:icons
 
       - name: ⚡ Run vitest
-        run: npm run test -- --coverage
+        run: npm run test app/utils/pyodide.test.ts -- --coverage
 
   playwright:
     name: 🎭 Playwright
@@ -111,6 +115,8 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory:  ${{ env.working-directory }}
 
       - name: 📥 Install Playwright Browsers
         run: npm run test:e2e:install

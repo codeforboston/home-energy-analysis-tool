@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
 import * as pyodideModule from 'pyodide'
+import { expect, test } from 'vitest'
 
 /* For this to pass, you must run 
     `pushd ../rules-engine && python3 -m venv venv && source venv/bin/activate && pip install -q build && python3 -m build && popd` */
