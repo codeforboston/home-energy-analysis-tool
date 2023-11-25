@@ -88,9 +88,10 @@ dtbc = load_design_temp_data()
 with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline="\n") as oFile:
     oFile.write(NEW_HEADERS)
     for s, cbs in _counties.items():
-        if dtbc.get(s):
-            for d in dtbc.get(s):
+        d_row = dtbc.get(s)
+        if d_row:
+            for d in d_row:
                 for c in cbs:
                     if d.county in c.county_name:
-                        ostr=f"\n{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county}"
+                        ostr=f"\n{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county},{d.temp}"
                         oFile.write(ostr)
