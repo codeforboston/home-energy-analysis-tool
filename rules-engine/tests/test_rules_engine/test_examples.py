@@ -76,7 +76,7 @@ def load_temperature_data(weather_station: str) -> TemperatureInput:
 
         row: Any
         for row in reader:
-            dates.append(row["Date"])
+            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d"))
             temperatures.append(row[weather_station])
 
     return TemperatureInput(dates=dates, temperatures=temperatures)
