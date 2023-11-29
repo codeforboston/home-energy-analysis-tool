@@ -7,15 +7,15 @@
     "other_fuel_usage": 0.51,
     "other_fuel_usage_override": null,
     "thermostat_set_point": 68.0,
-    "setback_temp": 58.0,
+    "setback_temperature": 58.0,
     "setback_hours_per_day": 7.0,
     "estimated_balance_point": 60.0,
     "balance_point_sensitivity": 1.0,
     "average_indoor_temperature": 65.1,
     "difference_between_ti_and_tbp": 5.1,
     "design_temperature": 9,
-    "whole_home_ua": 1591,
-    "standard_deviation_of_ua": 0.0233,
-    "avg_heat_load": 88981,
-    "max_heat_load": 97070
+    "whole_home_heat_loss_rate": 1591,
+    "standard_deviation_of_heat_loss_rate": 0.0233,
+    "average_heat_load": 88981,
+    "maximum_heat_load": 97070
 }
