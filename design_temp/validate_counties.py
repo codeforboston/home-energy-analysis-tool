@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import requests
 import io
 
-DESIGN_TEMP_DIR = pathlib.Path(__file__).parent / ".." / ".." / "design_temp"
+DESIGN_TEMP_DIR = pathlib.Path(__file__).parent
 CENSUS_DOCS_BASE_URL = "https://www2.census.gov/geo/docs/reference"
 CENSUS_STATE_PATH = "/state.txt"
 CENSUS_COUNTY_PATH = "/codes2020/national_county2020.txt"
