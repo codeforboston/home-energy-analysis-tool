@@ -12,6 +12,7 @@ from rules_engine.pydantic_models import (
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
+    NormalizedBillingPeriodRecordInput,
     OilPropaneBillingInput,
     SummaryInput,
     SummaryOutput,
@@ -51,21 +52,40 @@ def get_outputs_normalized(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: Any,
+    billing_periods: List[NormalizedBillingPeriodRecordInput],
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # smush together temp and billing periods
+    # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
+    # in the corresponding billing period
+    intermediate_billing_periods = []
+    initial_balance_point = 60
 
-    # home = Home(summary_input, temperature_input, dhw_input, billing_periods)
+    for billing_period in billing_periods:
+        temperatures = []
+        for i, d in enumerate(temperature_input.dates):
+            # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
+            if billing_period.period_start_date <= d <= billing_period.period_end_date:
+                temperatures.append(temperature_input[i])
+
+        analysis_type = date_to_analysis_type(billing_period.period_end_date)
+        if billing_period.inclusion_override:
+            analysis_type = billing_period.inclusion_override
+
+        intermediate_billing_period = BillingPeriod(
+            avg_temps=temperatures,
+            usage=billing_period.usage,
+            balance_point=initial_balance_point,
+            analysis_type=analysis_type
+        )
+        intermediate_billing_periods.append(intermediate_billing_period)
+
+    home = Home(
+        summary_input=summary_input,
+        billing_periods=intermediate_billing_periods,
+        initial_balance_point=initial_balance_point,
+        has_boiler_for_dhw=dhw_input is not None,
+        same_fuel_dhw_heating=dhw_input is not None,
+    )
     # home.calculate()
-
-    # summary_input: SummaryInput,     summary_input
-    # temps: List[List[float]],        temperature_input
-    # usages: List[float],             billing_periods
-    # inclusion_codes: List[int],       billing_periods*
-    # initial_balance_point: float = 60,  n/a
-    # has_boiler_for_dhw: bool = False,    dhw_input
-    # same_fuel_dhw_heating: bool = False, dhw_input
-
     # return (home.summaryOutput, home.balancePointGraph)
 
     raise NotImplementedError
@@ -190,9 +210,7 @@ class Home:
     def __init__(
         self,
         summary_input: SummaryInput,
-        temps: List[List[float]],
-        usages: List[float],
-        inclusion_codes: List[int],
+        billing_periods: List[BillingPeriod],
         initial_balance_point: float = 60,
         has_boiler_for_dhw: bool = False,
         same_fuel_dhw_heating: bool = False,
@@ -203,31 +221,23 @@ class Home:
         self.balance_point = initial_balance_point
         self.has_boiler_for_dhw = has_boiler_for_dhw
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
-        self._initialize_billing_periods(temps, usages, inclusion_codes)
+        self._initialize_billing_periods(billing_periods)
 
     def _initialize_billing_periods(
-        self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
+        self, billing_periods: List[BillingPeriod]
     ) -> None:
         """
         TODO
         """
-        # assume for now that temps and usages have the same number of elements
-
         self.bills_winter = []
         self.bills_summer = []
         self.bills_shoulder = []
 
         # winter months 1; summer months -1; shoulder months 0
-        for i, usage in enumerate(usages):
-            billing_period = BillingPeriod(
-                avg_temps=temps[i],
-                usage=usage,
-                balance_point=self.balance_point,
-                inclusion_code=inclusion_codes[i],
-            )
-            if inclusion_codes[i] == 1:
+        for billing_period in billing_periods:
+            if billing_period.analysis_type == AnalysisType.INCLUDE:
                 self.bills_winter.append(billing_period)
-            elif inclusion_codes[i] == -1:
+            elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
                 self.bills_summer.append(billing_period)
             else:
                 self.bills_shoulder.append(billing_period)
@@ -464,12 +474,12 @@ class BillingPeriod:
         avg_temps: List[float],
         usage: float,
         balance_point: float,
-        inclusion_code: int,
+        analysis_type: AnalysisType,
     ) -> None:
         self.avg_temps = avg_temps
         self.usage = usage
         self.balance_point = balance_point
-        self.inclusion_code = inclusion_code
+        self.analysis_type = analysis_type
 
         self.days = len(self.avg_temps)
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
