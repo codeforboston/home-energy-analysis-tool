@@ -80,6 +80,13 @@ class NaturalGasBillingInput(BaseModel):
     records: List[NaturalGasBillingRecordInput]
 
 
+class NormalizedBillingPeriodRecordInput(BaseModel):
+    period_start_date: date
+    period_end_date: date
+    usage: float
+    inclusion_override: Optional[AnalysisType]
+
+
 class TemperatureInput(BaseModel):
     dates: List[date]
     temperatures: List[float]
