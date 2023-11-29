@@ -3,6 +3,7 @@ from pytest import approx
 
 from rules_engine import engine
 from rules_engine.pydantic_models import (
+    AnalysisType,
     BalancePointGraph,
     DhwInput,
     FuelType,
@@ -47,15 +48,12 @@ def test_average_indoor_temp():
 
 
 def test_bp_ua_estimates():
-    daily_temps_lists = [
-        [28, 29, 30, 29],
-        [32, 35, 35, 38],
-        [41, 43, 42, 42],
-        [72, 71, 70, 69],
+    billing_periods = [
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
     ]
-
-    usages = [50, 45, 30, 0.96]
-    inclusion_codes = [1, 1, 1, -1]
     heat_sys_efficiency = 0.88
     living_area = 1000
     thermostat_set_point = 68
@@ -73,9 +71,7 @@ def test_bp_ua_estimates():
 
     home = engine.Home(
         summary_input,
-        daily_temps_lists,
-        usages,
-        inclusion_codes,
+        billing_periods,
         initial_balance_point=58,
     )
 
@@ -92,15 +88,14 @@ def test_bp_ua_estimates():
 
 
 def test_bp_ua_with_outlier():
-    daily_temps_lists = [
-        [41.7, 41.6, 32, 25.4],
-        [28, 29, 30, 29],
-        [32, 35, 35, 38],
-        [41, 43, 42, 42],
-        [72, 71, 70, 69],
+    billing_periods = [
+        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
     ]
-    usages = [60, 50, 45, 30, 0.96]
-    inclusion_codes = [1, 1, 1, 1, -1]
+
     heat_sys_efficiency = 0.88
 
     living_area = 1000
@@ -119,9 +114,7 @@ def test_bp_ua_with_outlier():
 
     home = engine.Home(
         summary_input,
-        daily_temps_lists,
-        usages,
-        inclusion_codes,
+        billing_periods,
         initial_balance_point=58,
     )
 
