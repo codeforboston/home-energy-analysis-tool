@@ -27,7 +27,7 @@ def get_outputs_oil_propane(
     oil_propane_billing_input: OilPropaneBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
     # TODO: normalize oil & propane to billing periods
-    billing_periods = NotImplementedError()
+    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     return get_outputs_normalized(
         summary_input, dhw_input, temperature_input, billing_periods
@@ -41,7 +41,7 @@ def get_outputs_natural_gas(
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
     # TODO: normalize natural gas to billing periods
-    billing_periods = NotImplementedError()
+    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     return get_outputs_normalized(
         summary_input, dhw_input, temperature_input, billing_periods
@@ -64,7 +64,7 @@ def get_outputs_normalized(
         for i, d in enumerate(temperature_input.dates):
             # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
             if billing_period.period_start_date <= d <= billing_period.period_end_date:
-                temperatures.append(temperature_input[i])
+                temperatures.append(temperature_input.temperatures[i])
 
         analysis_type = date_to_analysis_type(billing_period.period_end_date)
         if billing_period.inclusion_override:
@@ -73,8 +73,7 @@ def get_outputs_normalized(
         intermediate_billing_period = BillingPeriod(
             avg_temps=temperatures,
             usage=billing_period.usage,
-            balance_point=initial_balance_point,
-            analysis_type=analysis_type
+            analysis_type=analysis_type,
         )
         intermediate_billing_periods.append(intermediate_billing_period)
 
@@ -223,9 +222,7 @@ class Home:
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
         self._initialize_billing_periods(billing_periods)
 
-    def _initialize_billing_periods(
-        self, billing_periods: List[BillingPeriod]
-    ) -> None:
+    def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
         """
         TODO
         """
@@ -235,6 +232,8 @@ class Home:
 
         # winter months 1; summer months -1; shoulder months 0
         for billing_period in billing_periods:
+            billing_period.set_initial_balance_point(self.balance_point)
+
             if billing_period.analysis_type == AnalysisType.INCLUDE:
                 self.bills_winter.append(billing_period)
             elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
@@ -247,46 +246,46 @@ class Home:
         for billing_period in self.bills_winter:
             self.initialize_ua(billing_period)
 
-    def _initialize_billing_periods_reworked(
-        self, billingperiods: NaturalGasBillingInput
-    ) -> None:
-        """
-        TODO
-        """
-        # assume for now that temps and usages have the same number of elements
+    # def _initialize_billing_periods_reworked(
+    #     self, billingperiods: NaturalGasBillingInput
+    # ) -> None:
+    #     """
+    #     TODO
+    #     """
+    #     # assume for now that temps and usages have the same number of elements
 
-        self.bills_winter = []
-        self.bills_summer = []
-        self.bills_shoulder = []
+    #     self.bills_winter = []
+    #     self.bills_summer = []
+    #     self.bills_shoulder = []
 
-        # ngb_start_date = billingperiods.period_start_date
-        # ngbs = billingperiods.records
+    #     # ngb_start_date = billingperiods.period_start_date
+    #     # ngbs = billingperiods.records
 
-        # TODO: fix these
-        usages: List[float] = []
-        inclusion_codes: List[int] = []
-        temps: List[List[float]] = []
+    #     # TODO: fix these
+    #     usages: List[float] = []
+    #     inclusion_codes: List[int] = []
+    #     temps: List[List[float]] = []
 
-        # winter months 1; summer months -1; shoulder months 0
-        for i, usage in enumerate(usages):
-            billing_period = BillingPeriod(
-                avg_temps=temps[i],
-                usage=usage,
-                balance_point=self.balance_point,
-                inclusion_code=inclusion_codes[i],
-            )
+    #     # winter months 1; summer months -1; shoulder months 0
+    #     for i, usage in enumerate(usages):
+    #         billing_period = BillingPeriod(
+    #             avg_temps=temps[i],
+    #             usage=usage,
+    #             balance_point=self.balance_point,
+    #             inclusion_code=inclusion_codes[i],
+    #         )
 
-            if inclusion_codes[i] == 1:
-                self.bills_winter.append(billing_period)
-            elif inclusion_codes[i] == -1:
-                self.bills_summer.append(billing_period)
-            else:
-                self.bills_shoulder.append(billing_period)
+    #         if inclusion_codes[i] == 1:
+    #             self.bills_winter.append(billing_period)
+    #         elif inclusion_codes[i] == -1:
+    #             self.bills_summer.append(billing_period)
+    #         else:
+    #             self.bills_shoulder.append(billing_period)
 
-        self._calculate_avg_summer_usage()
-        self._calculate_avg_non_heating_usage()
-        for billing_period in self.bills_winter:
-            self.initialize_ua(billing_period)
+    #     self._calculate_avg_summer_usage()
+    #     self._calculate_avg_non_heating_usage()
+    #     for billing_period in self.bills_winter:
+    #         self.initialize_ua(billing_period)
 
     def _calculate_avg_summer_usage(self) -> None:
         """
@@ -466,20 +465,22 @@ class Home:
 
 class BillingPeriod:
     avg_heating_usage: float
+    balance_point: float
     partial_ua: float
     ua: float
+    total_hdd: float
 
     def __init__(
         self,
         avg_temps: List[float],
         usage: float,
-        balance_point: float,
         analysis_type: AnalysisType,
     ) -> None:
         self.avg_temps = avg_temps
         self.usage = usage
-        self.balance_point = balance_point
         self.analysis_type = analysis_type
-
         self.days = len(self.avg_temps)
+
+    def set_initial_balance_point(self, balance_point: float) -> None:
+        self.balance_point = balance_point
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
