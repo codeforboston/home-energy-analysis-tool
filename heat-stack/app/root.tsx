@@ -61,10 +61,10 @@ import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 
 import { WeatherExample } from './components/WeatherExample.tsx'
-import type { Weather } from './WeatherExample.d.ts'
+import type { Weather } from './WeatherExample.d.ts';
 
 import * as pyodideModule from 'pyodide'
-import engine from '../../rules-engine/src/rules_engine/engine.py'
+import engine from '../../rules-engine/src/rules_engine/engine.py';
 
 const getPyodide = async () => {
 	// public folder:
@@ -74,12 +74,13 @@ const getPyodide = async () => {
 }
 
 const runPythonScript = async () => {
-	const pyodide: any = await getPyodide()
+	const pyodide: any = await getPyodide();
 	// console.log(engine);
-	await pyodide.loadPackage('numpy')
-	await pyodide.runPythonAsync(engine)
-	return pyodide
-}
+	await pyodide.loadPackage("numpy")
+	await pyodide.runPythonAsync(engine);
+	return pyodide;
+};
+
 
 export const links: LinksFunction = () => {
 	return [
@@ -158,9 +159,8 @@ export async function loader({ request }: DataFunctionArgs) {
 	const { confettiId, headers: confettiHeaders } = getConfetti(request)
 
 	// Weather station data
-	const w_href: string =
-		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
-	const w_res: Response = await fetch(w_href)
+	const w_href: string = 'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit';
+	const w_res: Response = await fetch(w_href);
 	const weather: Weather = (await w_res.json()) as Weather
 
 	return json(
@@ -235,17 +235,17 @@ function Document({
 	theme?: Theme
 	env?: Record<string, string>
 }) {
-	const [output, setOutput] = useState<string | null>('(loading python...)')
+	const [output, setOutput] = useState<string | null>('(loading python...)');
 
 	useEffect(() => {
 		const run = async () => {
-			const pyodide: any = await runPythonScript()
-			//   console.log(pyodide);
-			const result = await pyodide.runPythonAsync('hdd(57, 60)')
-			setOutput(result)
-		}
-		run()
-	}, [])
+		  const pyodide: any = await runPythonScript();
+		//   console.log(pyodide);
+		  const result = await pyodide.runPythonAsync("hdd(57, 60)");
+		  setOutput(result);
+		};
+		run();
+	  }, []);
 	return (
 		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
 			<head>
@@ -256,21 +256,21 @@ function Document({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-				<div>
-					<div>Output:</div>
-					{output}
-				</div>
-				<WeatherExample />
-				{children}
-				<script
-					nonce={nonce}
-					dangerouslySetInnerHTML={{
-						__html: `window.ENV = ${JSON.stringify(env)}`,
-					}}
-				/>
-				<ScrollRestoration nonce={nonce} />
-				<Scripts nonce={nonce} />
-				<LiveReload nonce={nonce} />
+			<div>
+          <div>Output:</div>
+          {output}
+        </div>
+		<WeatherExample />
+		{children}
+		<script
+			nonce={nonce}
+			dangerouslySetInnerHTML={{
+				__html: `window.ENV = ${JSON.stringify(env)}`,
+			}}
+		/>
+		<ScrollRestoration nonce={nonce} />
+		<Scripts nonce={nonce} />
+		<LiveReload nonce={nonce} />
 			</body>
 		</html>
 	)
