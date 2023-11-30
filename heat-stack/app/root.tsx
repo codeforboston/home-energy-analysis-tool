@@ -1,22 +1,27 @@
 import { cssBundleHref } from '@remix-run/css-bundle'
+import {
+	type DataFunctionArgs,
+	HeadersFunction,
+	json,
+	type LinksFunction,
+} from '@remix-run/node'
+import { Links, Scripts } from '@remix-run/react'
+import { CaseSummary } from './components/CaseSummary.tsx'
+import { href as iconsHref } from './components/ui/icon.tsx'
 import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
-import { Links, Scripts } from '@remix-run/react'
-import { href as iconsHref } from './components/ui/icon.tsx'
-import { DataFunctionArgs, HeadersFunction, json, type LinksFunction } from '@remix-run/node'
 
-import { CaseSummary } from './components/CaseSummary.tsx'
 import './App.css'
+import { getUserId } from './utils/auth.server.ts'
+import { getHints } from './utils/client-hints.tsx'
+import { prisma } from './utils/db.server.ts'
+import { getEnv } from './utils/env.server.ts'
+import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
 import { combineServerTimings, makeTimings, time } from './utils/timing.server.ts'
-import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
-import { getEnv } from './utils/env.server.ts'
 // Hints may not be required. Double check.
-import { getHints } from './utils/client-hints.tsx'
 import { WeatherExample } from './components/WeatherExample.tsx'
 import { Weather } from './WeatherExample.js'
-import { getUserId } from './utils/auth.server.ts'
-import { prisma } from './utils/db.server.ts'
 import { csrf } from './utils/csrf.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
 
