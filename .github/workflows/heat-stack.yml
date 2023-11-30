@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - main
-      # - dev
+      - gha-deployment
+      - dev
   pull_request: {}
 
 env:
@@ -155,46 +156,46 @@ jobs:
   #         path: playwright-report/
   #         retention-days: 30
 
-  # deploy:
-  #   name: 🚀 Deploy
-  #   runs-on: ubuntu-latest
-  #   needs: [lint, typecheck, vitest, playwright]
-  #   # only build/deploy main branch on pushes
-  #   if:
-  #     ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
-  #     github.event_name == 'push' }}
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, vitest] #, playwright]
+    # only build/deploy main branch on pushes
+    if:
+      ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
+      github.event_name == 'push' }}
 
-  #   steps:
-  #     - name: ⬇️ Checkout repo
-  #       uses: actions/checkout@v3
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
 
-  #     - name: 👀 Read app name
-  #       uses: SebRollen/toml-action@v1.0.2
-  #       id: app_name
-  #       with:
-  #         file: 'fly.toml'
-  #         field: 'app'
+      - name: 👀 Read app name
+        uses: SebRollen/toml-action@v1.0.2
+        id: app_name
+        with:
+          file: '${{ env.working-directory }}/fly.toml'
+          field: 'app'
 
-      # # move Dockerfile to root
-      # - name: 🚚 Move Dockerfile
-      #   run: |
-      #     mv ./other/Dockerfile ./Dockerfile
-      #     mv ./other/.dockerignore ./.dockerignore
+      # move Dockerfile to root
+      - name: 🚚 Move Dockerfile
+        run: |
+          mv ./other/Dockerfile ./Dockerfile
+          mv ./other/.dockerignore ./.dockerignore
 
-      # - name: 🎈 Setup Fly
-      #   uses: superfly/flyctl-actions/setup-flyctl@v1.4
+      - name: 🎈 Setup Fly
+        uses: superfly/flyctl-actions/setup-flyctl@v1.4         
 
-      # - name: 🚀 Deploy Staging
-      #   if: ${{ github.ref == 'refs/heads/dev' }}
-      #   run:
-      #     flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
-      #     --app ${{ steps.app_name.outputs.value }}-staging
-      #   env:
-      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: 🚀 Deploy Staging
+        if: ${{ github.ref == 'refs/heads/dev' }}
+        run:
+          flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
+          --app ${{ steps.app_name.outputs.value }}-staging
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      # - name: 🚀 Deploy Production
-      #   if: ${{ github.ref == 'refs/heads/main' }}
-      #   run:
-      #     flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
-      #   env:
-      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: 🚀 Deploy Production
+        if: ${{  github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gha-deployment' }}
+        run:
+          flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
