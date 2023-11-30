@@ -74,8 +74,7 @@ def get_outputs_normalized(
             temperature_input.dates, billing_period.period_end_date
         )
 
-        # analysis_type = date_to_analysis_type(billing_period.period_end_date)
-        analysis_type = AnalysisType.INCLUDE
+        analysis_type = date_to_analysis_type(billing_period.period_end_date)
         if billing_period.inclusion_override:
             analysis_type = billing_period.inclusion_override
 
