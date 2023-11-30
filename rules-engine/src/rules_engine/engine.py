@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bisect
 import statistics as sts
 from datetime import date
 from typing import Any, List, Optional, Tuple
@@ -60,18 +61,27 @@ def get_outputs_normalized(
     initial_balance_point = 60
 
     for billing_period in billing_periods:
-        temperatures = []
-        for i, d in enumerate(temperature_input.dates):
-            # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
-            if billing_period.period_start_date <= d <= billing_period.period_end_date:
-                temperatures.append(temperature_input.temperatures[i])
+        # temperatures = []
+        # for i, d in enumerate(temperature_input.dates):
+        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
+        #     if billing_period.period_start_date <= d <= billing_period.period_end_date:
+        #         temperatures.append(temperature_input.temperatures[i])
 
-        analysis_type = date_to_analysis_type(billing_period.period_end_date)
+        start_idx = bisect.bisect_left(
+            temperature_input.dates, billing_period.period_start_date
+        )
+        end_idx = bisect.bisect_left(
+            temperature_input.dates, billing_period.period_end_date
+        )
+
+        # analysis_type = date_to_analysis_type(billing_period.period_end_date)
+        analysis_type = AnalysisType.INCLUDE
         if billing_period.inclusion_override:
             analysis_type = billing_period.inclusion_override
 
         intermediate_billing_period = BillingPeriod(
-            avg_temps=temperatures,
+            # avg_temps=temperatures,
+            avg_temps=temperature_input.temperatures[start_idx : end_idx + 1],
             usage=billing_period.usage,
             analysis_type=analysis_type,
         )
