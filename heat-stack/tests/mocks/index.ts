@@ -13,7 +13,7 @@ const miscHandlers = [
 export const server = setupServer(
 	...miscHandlers,
 	...resendHandlers,
-	//	...githubHandlers, /* commenting out to enable app/utils/pyodide.test.ts
+	//	...githubHandlers, /* commenting out to enable app/utils/pyodide.test.ts */
 )
 
 server.listen({ onUnhandledRequest: 'warn' })
