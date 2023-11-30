@@ -20,6 +20,7 @@ module.exports = {
 				fixStyle: 'inline-type-imports',
 			},
 		],
+		'@typescript-eslint/no-unused-vars': ['warn'],
 		'import/no-duplicates': ['warn', { 'prefer-inline': true }],
 		'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
 		'import/order': [

@@ -24,14 +24,8 @@ import {
 	useSubmit,
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
-
-import * as pyodideModule from 'pyodide'
-
-import { useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
-
-import engine from '../../rules-engine/src/rules_engine/engine.py'
-
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { object, z } from 'zod'
 import { Confetti } from './components/confetti.tsx'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { ErrorList } from './components/forms.tsx'
@@ -66,10 +60,11 @@ import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 
-// eslint-disable-next-line import/order
 import { WeatherExample } from './components/WeatherExample.tsx'
-// eslint-disable-next-line import/consistent-type-specifier-style
 import type { Weather } from './WeatherExample.d.ts'
+
+import * as pyodideModule from 'pyodide'
+import engine from '../../rules-engine/src/rules_engine/engine.py'
 
 const getPyodide = async () => {
 	// public folder:
