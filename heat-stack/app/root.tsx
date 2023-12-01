@@ -17,6 +17,8 @@ import { WeatherExample } from './components/WeatherExample.tsx'
 import { Weather } from './WeatherExample.js'
 import { getUserId } from './utils/auth.server.ts'
 import { prisma } from './utils/db.server.ts'
+import { csrf } from './utils/csrf.server.ts'
+import { honeypot } from './utils/honeypot.server.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -76,8 +78,8 @@ export async function loader({ request }: DataFunctionArgs) {
 				{ timings, type: 'find user', desc: 'find user in root' },
 		  )
 		: null
-	// const honeyProps = honeypot.getInputProps()
-	// const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+	const honeyProps = honeypot.getInputProps()
+	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
 	// Weather station data
 	const w_href: string =
 		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
@@ -95,13 +97,13 @@ export async function loader({ request }: DataFunctionArgs) {
 				userPrefs: {},
 			},
 			ENV: getEnv(),
-			// honeyProps,
-			// csrfToken,
+			honeyProps,
+			csrfToken,
 		},
 		{
 			headers: combineHeaders(
 				{ 'Server-Timing': timings.toString() },
-				// csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
+				csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
 			),
 		},
 	)
@@ -124,7 +126,6 @@ export default function HeatStack({ env = {} }) {
 						__html: `window.ENV = ${JSON.stringify(env)}`,
 					}}
 				/>
-				<div>left{nonce}right</div>
 				<Scripts nonce={nonce} />
 			</body>
 		</html>
