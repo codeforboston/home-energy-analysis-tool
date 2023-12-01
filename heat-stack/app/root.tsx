@@ -8,10 +8,15 @@ import { DataFunctionArgs, json, type LinksFunction } from '@remix-run/node'
 import { CaseSummary } from './components/CaseSummary.tsx'
 import './App.css'
 import { useNonce } from './utils/nonce-provider.ts'
-import { makeTimings } from './utils/timing.server.ts'
+import { makeTimings, time } from './utils/timing.server.ts'
 import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 // import { csrf } from './utils/csrf.server.ts'
 import { getEnv } from './utils/env.server.ts'
+import { getHints } from './utils/client-hints.tsx'
+import { WeatherExample } from './components/WeatherExample.tsx'
+import { Weather } from './WeatherExample.js'
+import { getUserId } from './utils/auth.server.ts'
+import { prisma } from './utils/db.server.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -43,13 +48,48 @@ export const links: LinksFunction = () => {
 
 export async function loader({ request }: DataFunctionArgs) {
 	const timings = makeTimings('root loader')
+	const userId = await time(() => getUserId(request), {
+		timings,
+		type: 'getUserId',
+		desc: 'getUserId in root',
+	})
+	const user = userId
+		? await time(
+				() =>
+					prisma.user.findUniqueOrThrow({
+						select: {
+							id: true,
+							name: true,
+							username: true,
+							image: { select: { id: true } },
+							roles: {
+								select: {
+									name: true,
+									permissions: {
+										select: { entity: true, action: true, access: true },
+									},
+								},
+							},
+						},
+						where: { id: userId },
+					}),
+				{ timings, type: 'find user', desc: 'find user in root' },
+		  )
+		: null
 	// const honeyProps = honeypot.getInputProps()
 	// const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+	// Weather station data
+	const w_href: string =
+		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
+	const w_res: Response = await fetch(w_href)
+	const weather: Weather = (await w_res.json()) as Weather
 
 	return json(
 		{
+			weather: weather,
+			user: user,
 			requestInfo: {
-				// hints: getHints(request),
+				hints: getHints(request),
 				origin: getDomainUrl(request),
 				path: new URL(request.url).pathname,
 				userPrefs: {},
