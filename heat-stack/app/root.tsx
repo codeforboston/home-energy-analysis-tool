@@ -3,11 +3,15 @@ import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { Links, Scripts } from '@remix-run/react'
 import { href as iconsHref } from './components/ui/icon.tsx'
-import { type LinksFunction } from '@remix-run/node'
+import { DataFunctionArgs, json, type LinksFunction } from '@remix-run/node'
 
 import { CaseSummary } from './components/CaseSummary.tsx'
 import './App.css'
 import { useNonce } from './utils/nonce-provider.ts'
+import { makeTimings } from './utils/timing.server.ts'
+import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
+// import { csrf } from './utils/csrf.server.ts'
+import { getEnv } from './utils/env.server.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -35,6 +39,32 @@ export const links: LinksFunction = () => {
 		{ rel: 'stylesheet', href: tailwindStyleSheetUrl },
 		cssBundleHref ? { rel: 'stylesheet', href: cssBundleHref } : null,
 	].filter(Boolean)
+}
+
+export async function loader({ request }: DataFunctionArgs) {
+	const timings = makeTimings('root loader')
+	// const honeyProps = honeypot.getInputProps()
+	// const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+
+	return json(
+		{
+			requestInfo: {
+				// hints: getHints(request),
+				origin: getDomainUrl(request),
+				path: new URL(request.url).pathname,
+				userPrefs: {},
+			},
+			ENV: getEnv(),
+			// honeyProps,
+			// csrfToken,
+		},
+		{
+			headers: combineHeaders(
+				{ 'Server-Timing': timings.toString() },
+				// csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
+			),
+		},
+	)
 }
 
 export default function HeatStack({ env = {} }) {
