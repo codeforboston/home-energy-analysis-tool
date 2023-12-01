@@ -1,4 +1,6 @@
+import fs from 'node:fs'
 import { createRelease } from '@sentry/remix/scripts/createRelease.js'
+import { glob } from 'glob'
 import 'dotenv/config'
 
 const DEFAULT_URL_PREFIX = '#build/'
@@ -16,4 +18,9 @@ if (
 	console.log(
 		'Missing Sentry environment variables, skipping sourcemap upload.',
 	)
+}
+const files = await glob(['./public/**/*.map', './build/**/*.map'])
+for (const file of files) {
+	// remove file
+	await fs.promises.unlink(file)
 }

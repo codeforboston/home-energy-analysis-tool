@@ -17,8 +17,9 @@ import {
 	type DataFunctionArgs,
 	type SerializeFrom,
 } from '@remix-run/node'
-import { Form, useFetcher } from '@remix-run/react'
+import { Form, useActionData, useNavigation } from '@remix-run/react'
 import { useRef, useState } from 'react'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -29,6 +30,7 @@ import { Label } from '#app/components/ui/label.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, getNoteImgSrc } from '#app/utils/misc.tsx'
 
@@ -78,6 +80,7 @@ export async function action({ request }: DataFunctionArgs) {
 		request,
 		createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	)
+	await validateCSRF(formData, request.headers)
 
 	const submission = await parse(formData, {
 		schema: NoteEditorSchema.superRefine(async (data, ctx) => {
@@ -89,7 +92,7 @@ export async function action({ request }: DataFunctionArgs) {
 			})
 			if (!note) {
 				ctx.addIssue({
-					code: 'custom',
+					code: z.ZodIssueCode.custom,
 					message: 'Note not found',
 				})
 			}
@@ -131,11 +134,11 @@ export async function action({ request }: DataFunctionArgs) {
 	})
 
 	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
+		return json({ submission } as const)
 	}
 
 	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
+		return json({ submission } as const, { status: 400 })
 	}
 
 	const {
@@ -183,13 +186,15 @@ export function NoteEditor({
 		}
 	>
 }) {
-	const noteFetcher = useFetcher<typeof action>()
-	const isPending = noteFetcher.state !== 'idle'
+	const actionData = useActionData<typeof action>()
+
+	const navigation = useNavigation()
+	const isPending = navigation.state !== 'idle'
 
 	const [form, fields] = useForm({
 		id: 'note-editor',
 		constraint: getFieldsetConstraint(NoteEditorSchema),
-		lastSubmission: noteFetcher.data?.submission,
+		lastSubmission: actionData?.submission,
 		onValidate({ formData }) {
 			return parse(formData, { schema: NoteEditorSchema })
 		},
@@ -204,11 +209,12 @@ export function NoteEditor({
 	return (
 		<div className="absolute inset-0">
 			<Form
-				method="post"
+				method="POST"
 				className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"
 				{...form.props}
 				encType="multipart/form-data"
 			>
+				<AuthenticityTokenInput />
 				{/*
 					This hidden submit button is here to ensure that when the user hits
 					"enter" on an input field, the primary form function is submitted
@@ -241,7 +247,7 @@ export function NoteEditor({
 									className="relative border-b-2 border-muted-foreground"
 								>
 									<button
-										className="absolute right-0 top-0 text-destructive"
+										className="absolute right-0 top-0 text-foreground-destructive"
 										{...list.remove(fields.images.name, { index })}
 									>
 										<span aria-hidden>
@@ -256,7 +262,7 @@ export function NoteEditor({
 					</div>
 					<Button
 						className="mt-3"
-						{...list.append(fields.images.name, { defaultValue: {} })}
+						{...list.insert(fields.images.name, { defaultValue: {} })}
 					>
 						<span aria-hidden>
 							<Icon name="plus">Image</Icon>
