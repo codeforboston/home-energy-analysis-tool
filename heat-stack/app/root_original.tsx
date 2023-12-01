@@ -61,10 +61,10 @@ import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 
 import { WeatherExample } from './components/WeatherExample.tsx'
-import type { Weather } from './WeatherExample.d.ts';
+import type { Weather } from './WeatherExample.d.ts'
 
 import * as pyodideModule from 'pyodide'
-import engine from '../../rules-engine/src/rules_engine/engine.py';
+import engine from '../../rules-engine/src/rules_engine/engine.py'
 
 const getPyodide = async () => {
 	// public folder:
@@ -74,20 +74,19 @@ const getPyodide = async () => {
 }
 declare global {
 	interface Window {
-	  pydd?: any;
+		pydd?: any
 	}
-  }
-  
+}
+
 const runPythonScript = async () => {
-	const pyodide: any = await getPyodide();
+	const pyodide: any = await getPyodide()
 	// console.log(engine);
-	await pyodide.loadPackage("numpy")
-	await pyodide.runPythonAsync(engine);
-	window.pydd = pyodide as null;
+	await pyodide.loadPackage('numpy')
+	await pyodide.runPythonAsync(engine)
+	window.pydd = pyodide as null
 
-	return pyodide;
-};
-
+	return pyodide
+}
 
 export const links: LinksFunction = () => {
 	return [
@@ -166,8 +165,9 @@ export async function loader({ request }: DataFunctionArgs) {
 	const { confettiId, headers: confettiHeaders } = getConfetti(request)
 
 	// Weather station data
-	const w_href: string = 'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit';
-	const w_res: Response = await fetch(w_href);
+	const w_href: string =
+		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
+	const w_res: Response = await fetch(w_href)
 	const weather: Weather = (await w_res.json()) as Weather
 
 	return json(
@@ -263,21 +263,21 @@ function Document({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-			<div>
-                <div>Output:</div>
-                {/* {output} */}
-            </div>
-                <WeatherExample />
-                {children}
-                <script
-                    nonce={nonce}
-                    dangerouslySetInnerHTML={{
-                        __html: `window.ENV = ${JSON.stringify(env)}`,
-                    }}
-                />
-                <ScrollRestoration nonce={nonce} />
-                <Scripts nonce={nonce} />
-                <LiveReload nonce={nonce} />
+				<div>
+					<div>Output:</div>
+					{/* {output} */}
+				</div>
+				<WeatherExample />
+				{children}
+				<script
+					nonce={nonce}
+					dangerouslySetInnerHTML={{
+						__html: `window.ENV = ${JSON.stringify(env)}`,
+					}}
+				/>
+				<ScrollRestoration nonce={nonce} />
+				<Scripts nonce={nonce} />
+				<LiveReload nonce={nonce} />
 			</body>
 		</html>
 	)
@@ -403,12 +403,13 @@ function UserDropdown() {
  */
 export function useTheme() {
 	const hints = useHints()
-	const requestInfo = useRequestInfo()
+	// const requestInfo = useRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? hints.theme : optimisticMode
 	}
-	return requestInfo.userPrefs.theme ?? hints.theme
+	// return requestInfo.userPrefs.theme ?? hints.theme
+	return hints.theme
 }
 
 /**
