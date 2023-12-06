@@ -61,26 +61,21 @@ def get_outputs_normalized(
     initial_balance_point = 60
 
     for billing_period in billing_periods:
-        # temperatures = []
-        # for i, d in enumerate(temperature_input.dates):
-        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
-        #     if billing_period.period_start_date <= d <= billing_period.period_end_date:
-        #         temperatures.append(temperature_input.temperatures[i])
 
+        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
         start_idx = bisect.bisect_left(
             temperature_input.dates, billing_period.period_start_date
         )
         end_idx = bisect.bisect_left(
             temperature_input.dates, billing_period.period_end_date
-        )
+        ) + 1
 
         analysis_type = date_to_analysis_type(billing_period.period_end_date)
         if billing_period.inclusion_override:
             analysis_type = billing_period.inclusion_override
 
         intermediate_billing_period = BillingPeriod(
-            # avg_temps=temperatures,
-            avg_temps=temperature_input.temperatures[start_idx : end_idx + 1],
+            avg_temps=temperature_input.temperatures[start_idx : end_idx],
             usage=billing_period.usage,
             analysis_type=analysis_type,
         )
@@ -232,9 +227,6 @@ class Home:
         self._initialize_billing_periods(billing_periods)
 
     def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
-        """
-        TODO
-        """
         self.bills_winter = []
         self.bills_summer = []
         self.bills_shoulder = []
@@ -254,47 +246,6 @@ class Home:
         self._calculate_avg_non_heating_usage()
         for billing_period in self.bills_winter:
             self.initialize_ua(billing_period)
-
-    # def _initialize_billing_periods_reworked(
-    #     self, billingperiods: NaturalGasBillingInput
-    # ) -> None:
-    #     """
-    #     TODO
-    #     """
-    #     # assume for now that temps and usages have the same number of elements
-
-    #     self.bills_winter = []
-    #     self.bills_summer = []
-    #     self.bills_shoulder = []
-
-    #     # ngb_start_date = billingperiods.period_start_date
-    #     # ngbs = billingperiods.records
-
-    #     # TODO: fix these
-    #     usages: List[float] = []
-    #     inclusion_codes: List[int] = []
-    #     temps: List[List[float]] = []
-
-    #     # winter months 1; summer months -1; shoulder months 0
-    #     for i, usage in enumerate(usages):
-    #         billing_period = BillingPeriod(
-    #             avg_temps=temps[i],
-    #             usage=usage,
-    #             balance_point=self.balance_point,
-    #             inclusion_code=inclusion_codes[i],
-    #         )
-
-    #         if inclusion_codes[i] == 1:
-    #             self.bills_winter.append(billing_period)
-    #         elif inclusion_codes[i] == -1:
-    #             self.bills_summer.append(billing_period)
-    #         else:
-    #             self.bills_shoulder.append(billing_period)
-
-    #     self._calculate_avg_summer_usage()
-    #     self._calculate_avg_non_heating_usage()
-    #     for billing_period in self.bills_winter:
-    #         self.initialize_ua(billing_period)
 
     def _calculate_avg_summer_usage(self) -> None:
         """
@@ -320,21 +271,9 @@ class Home:
 
         return 0 * fuel_multiplier
 
-    """
-    your pseudocode looks correct provided there's outer logic that 
-    check whether the home uses the same fuel for DHW as for heating. If not, anhu=0.
-
-    From an OO design viewpoint, I don't see Summer_billingPeriods as a direct property 
-    of the home. Rather, it's a property of the Location (an object defining the weather 
-    station, and the Winter, Summer and Shoulder billing periods. Of course, Location
-      would be a property of the Home.
-    """
-
     def _calculate_avg_non_heating_usage(self) -> None:
         """
-        Calculate avg non heating usage for this Home
-        Args:
-        #use_same_fuel_DHW_heating
+        Calculate avg non heating usage for this home
         """
 
         if self.fuel_type == FuelType.GAS:
