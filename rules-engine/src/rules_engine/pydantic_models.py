@@ -18,9 +18,9 @@ class AnalysisType(Enum):
 class FuelType(Enum):
     """Enum for fuel types. Values are BTU per usage"""
 
-    GAS = 100000 # BTU / therm
-    OIL = 139600 # BTU / gal
-    PROPANE = 91333 # BTU / gal
+    GAS = 100000  # BTU / therm
+    OIL = 139600  # BTU / gal
+    PROPANE = 91333  # BTU / gal
 
 
 def validate_fuel_type(value: Any) -> FuelType:
