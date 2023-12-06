@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import bisect
 import statistics as sts
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
@@ -25,10 +25,23 @@ def get_outputs_oil_propane(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    oil_propane_billing_input: OilPropaneBillingInput,
+    oil_propane_billing_input: OilPropaneBillingInput
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # TODO: normalize oil & propane to billing periods
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+
+    last_date = oil_propane_billing_input.preceding_delivery_date
+    for input_val in oil_propane_billing_input.records:
+        start_date = last_date + timedelta(days=1)
+        inclusion = AnalysisType.INCLUDE if input_val.inclusion_override else AnalysisType.DO_NOT_INCLUDE
+        billing_periods.append(
+            NormalizedBillingPeriodRecordInput(
+                period_start_date=start_date, 
+                period_end_date=input_val.period_end_date, 
+                usage=input_val.gallons, 
+                inclusion_override=inclusion
+            )
+        )
+        last_date = input_val.period_end_date
 
     return get_outputs_normalized(
         summary_input, dhw_input, temperature_input, billing_periods
@@ -41,8 +54,17 @@ def get_outputs_natural_gas(
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # TODO: normalize natural gas to billing periods
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+
+    for input_val in natural_gas_billing_input.records:
+        billing_periods.append(
+            NormalizedBillingPeriodRecordInput(
+                period_start_date=input_val.period_start_date, 
+                period_end_date=input_val.period_end_date, 
+                usage=input_val.usage_therms, 
+                inclusion_override=input_val.inclusion_override
+            )
+        )
 
     return get_outputs_normalized(
         summary_input, dhw_input, temperature_input, billing_periods

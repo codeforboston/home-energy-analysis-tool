@@ -18,9 +18,9 @@ class AnalysisType(Enum):
 class FuelType(Enum):
     """Enum for fuel types. Values are BTU per usage"""
 
-    GAS = 100000
-    OIL = 139600
-    PROPANE = 91333
+    GAS = 100000 # BTU / therm
+    OIL = 139600 # BTU / gal
+    PROPANE = 91333 # BTU / gal
 
 
 def validate_fuel_type(value: Any) -> FuelType:
@@ -57,12 +57,19 @@ class DhwInput(BaseModel):
     stand_by_losses: float = Field(description="DHW!B6")
 
 
-class OilPropaneBillingInput(BaseModel):
+class OilPropaneBillingRecordInput(BaseModel):
     """From Oil-Propane tab"""
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
     inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
+
+
+class OilPropaneBillingInput(BaseModel):
+    """From Oil-Propane tab. Container for holding all rows of the billing input table."""
+
+    records: List[OilPropaneBillingRecordInput]
+    preceding_delivery_date: date = Field(description="Oil-Propane!B6")
 
 
 class NaturalGasBillingRecordInput(BaseModel):
