@@ -24,7 +24,7 @@ permissions:
 jobs:
   lint:
     name: ⬣ ESLint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
@@ -50,7 +50,7 @@ jobs:
 
   typecheck:
     name: ʦ TypeScript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
@@ -73,7 +73,7 @@ jobs:
 
   vitest:
     name: ⚡ Vitest pyodide.test.ts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
@@ -100,7 +100,7 @@ jobs:
   # playwright tests work great but slight jank/inconsistency passing, and not used yet, so disabling for now
   # playwright:
   #   name: 🎭 Playwright
-  #   runs-on: ubuntu-latest
+  #   runs-on: ubuntu-22.04
   #   timeout-minutes: 60
   #   steps:
   #     - name: ⬇️ Checkout repo

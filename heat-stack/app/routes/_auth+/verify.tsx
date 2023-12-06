@@ -1,13 +1,9 @@
 import { conform, useForm, type Submission } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { generateTOTP, verifyTOTP } from '@epic-web/totp'
 import { json, type DataFunctionArgs } from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { Form, useActionData, useSearchParams } from '@remix-run/react'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
@@ -17,9 +13,13 @@ import { handleVerification as handleChangeEmailVerification } from '#app/routes
 import { twoFAVerificationType } from '#app/routes/settings+/profile.two-factor.tsx'
 import { type twoFAVerifyVerificationType } from '#app/routes/settings+/profile.two-factor.verify.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { checkHoneypot } from '#app/utils/honeypot.server.ts'
+import { ensurePrimary } from '#app/utils/litefs.server.ts'
 import { getDomainUrl, useIsPending } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
+import { generateTOTP, verifyTOTP } from '#app/utils/totp.server.ts'
 import {
 	handleVerification as handleLoginTwoFactorVerification,
 	shouldRequestTwoFA,
@@ -42,25 +42,11 @@ const VerifySchema = z.object({
 	[redirectToQueryParam]: z.string().optional(),
 })
 
-export async function loader({ request }: DataFunctionArgs) {
-	const params = new URL(request.url).searchParams
-	if (!params.has(codeQueryParam)) {
-		// we don't want to show an error message on page load if the otp hasn't be
-		// prefilled in yet, so we'll send a response with an empty submission.
-		return json({
-			status: 'idle',
-			submission: {
-				intent: '',
-				payload: Object.fromEntries(params) as Record<string, unknown>,
-				error: {} as Record<string, Array<string>>,
-			},
-		} as const)
-	}
-	return validateRequest(request, params)
-}
-
 export async function action({ request }: DataFunctionArgs) {
-	return validateRequest(request, await request.formData())
+	const formData = await request.formData()
+	checkHoneypot(formData)
+	await validateCSRF(formData, request.headers)
+	return validateRequest(request, formData)
 }
 
 export function getRedirectToUrl({
@@ -162,6 +148,7 @@ export async function isCodeValid({
 		select: { algorithm: true, secret: true, period: true, charSet: true },
 	})
 	if (!verification) return false
+	//@ts-ignore
 	const result = verifyTOTP({
 		otp: code,
 		...verification,
@@ -176,22 +163,21 @@ async function validateRequest(
 	body: URLSearchParams | FormData,
 ) {
 	const submission = await parse(body, {
-		schema: () =>
-			VerifySchema.superRefine(async (data, ctx) => {
-				const codeIsValid = await isCodeValid({
-					code: data[codeQueryParam],
-					type: data[typeQueryParam],
-					target: data[targetQueryParam],
+		schema: VerifySchema.superRefine(async (data, ctx) => {
+			const codeIsValid = await isCodeValid({
+				code: data[codeQueryParam],
+				type: data[typeQueryParam],
+				target: data[targetQueryParam],
+			})
+			if (!codeIsValid) {
+				ctx.addIssue({
+					path: ['code'],
+					code: z.ZodIssueCode.custom,
+					message: `Invalid code`,
 				})
-				if (!codeIsValid) {
-					ctx.addIssue({
-						path: ['code'],
-						code: z.ZodIssueCode.custom,
-						message: `Invalid code`,
-					})
-					return
-				}
-			}),
+				return
+			}
+		}),
 		async: true,
 	})
 
@@ -201,6 +187,10 @@ async function validateRequest(
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
+
+	// this code path could be part of a loader (GET request), so we need to make
+	// sure we're running on primary because we're about to make writes.
+	await ensurePrimary()
 
 	const { value: submissionValue } = submission
 
@@ -235,11 +225,13 @@ async function validateRequest(
 }
 
 export default function VerifyRoute() {
-	const data = useLoaderData<typeof loader>()
 	const [searchParams] = useSearchParams()
 	const isPending = useIsPending()
 	const actionData = useActionData<typeof action>()
-	const type = VerificationTypeSchema.parse(searchParams.get(typeQueryParam))
+	const parsedType = VerificationTypeSchema.safeParse(
+		searchParams.get(typeQueryParam),
+	)
+	const type = parsedType.success ? parsedType.data : null
 
 	const checkEmail = (
 		<>
@@ -267,7 +259,7 @@ export default function VerifyRoute() {
 	const [form, fields] = useForm({
 		id: 'verify-form',
 		constraint: getFieldsetConstraint(VerifySchema),
-		lastSubmission: actionData?.submission ?? data.submission,
+		lastSubmission: actionData?.submission,
 		onValidate({ formData }) {
 			return parse(formData, { schema: VerifySchema })
 		},
@@ -280,8 +272,10 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<div className="container flex flex-col justify-center pb-32 pt-20">
-			<div className="text-center">{headings[type]}</div>
+		<main className="container flex flex-col justify-center pb-32 pt-20">
+			<div className="text-center">
+				{type ? headings[type] : 'Invalid Verification Type'}
+			</div>
 
 			<Spacer size="xs" />
 
@@ -291,6 +285,8 @@ export default function VerifyRoute() {
 				</div>
 				<div className="flex w-full gap-2">
 					<Form method="POST" {...form.props} className="flex-1">
+						<AuthenticityTokenInput />
+						<HoneypotInputs />
 						<Field
 							labelProps={{
 								htmlFor: fields[codeQueryParam].id,
@@ -321,7 +317,7 @@ export default function VerifyRoute() {
 					</Form>
 				</div>
 			</div>
-		</div>
+		</main>
 	)
 }
 
