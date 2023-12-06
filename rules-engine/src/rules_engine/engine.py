@@ -25,20 +25,24 @@ def get_outputs_oil_propane(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    oil_propane_billing_input: OilPropaneBillingInput
+    oil_propane_billing_input: OilPropaneBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
         start_date = last_date + timedelta(days=1)
-        inclusion = AnalysisType.INCLUDE if input_val.inclusion_override else AnalysisType.DO_NOT_INCLUDE
+        inclusion = (
+            AnalysisType.INCLUDE
+            if input_val.inclusion_override
+            else AnalysisType.DO_NOT_INCLUDE
+        )
         billing_periods.append(
             NormalizedBillingPeriodRecordInput(
-                period_start_date=start_date, 
-                period_end_date=input_val.period_end_date, 
-                usage=input_val.gallons, 
-                inclusion_override=inclusion
+                period_start_date=start_date,
+                period_end_date=input_val.period_end_date,
+                usage=input_val.gallons,
+                inclusion_override=inclusion,
             )
         )
         last_date = input_val.period_end_date
@@ -58,10 +62,10 @@ def get_outputs_natural_gas(
     for input_val in natural_gas_billing_input.records:
         billing_periods.append(
             NormalizedBillingPeriodRecordInput(
-                period_start_date=input_val.period_start_date, 
-                period_end_date=input_val.period_end_date, 
-                usage=input_val.usage_therms, 
-                inclusion_override=input_val.inclusion_override
+                period_start_date=input_val.period_start_date,
+                period_end_date=input_val.period_end_date,
+                usage=input_val.usage_therms,
+                inclusion_override=input_val.inclusion_override,
             )
         )
 
@@ -82,21 +86,21 @@ def get_outputs_normalized(
     initial_balance_point = 60
 
     for billing_period in billing_periods:
-
         # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
         start_idx = bisect.bisect_left(
             temperature_input.dates, billing_period.period_start_date
         )
-        end_idx = bisect.bisect_left(
-            temperature_input.dates, billing_period.period_end_date
-        ) + 1
+        end_idx = (
+            bisect.bisect_left(temperature_input.dates, billing_period.period_end_date)
+            + 1
+        )
 
         analysis_type = date_to_analysis_type(billing_period.period_end_date)
         if billing_period.inclusion_override:
             analysis_type = billing_period.inclusion_override
 
         intermediate_billing_period = BillingPeriod(
-            avg_temps=temperature_input.temperatures[start_idx : end_idx],
+            avg_temps=temperature_input.temperatures[start_idx:end_idx],
             usage=billing_period.usage,
             analysis_type=analysis_type,
         )
