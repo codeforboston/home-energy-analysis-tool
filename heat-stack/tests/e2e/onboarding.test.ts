@@ -28,9 +28,7 @@ const test = base.extend<{
 			}
 			return onboardingData
 		})
-		await prisma.user
-			.delete({ where: { username: userData.username } })
-			.catch(() => {})
+		await prisma.user.deleteMany({ where: { username: userData.username } })
 	},
 })
 
@@ -67,6 +65,13 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	const onboardingUrl = extractUrl(email.text)
 	invariant(onboardingUrl, 'Onboarding URL not found')
 	await page.goto(onboardingUrl)
+
+	await expect(page).toHaveURL(/\/verify/)
+
+	await page
+		.getByRole('main')
+		.getByRole('button', { name: /submit/i })
+		.click()
 
 	await expect(page).toHaveURL(`/onboarding`)
 	await page
@@ -166,6 +171,13 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	const resetPasswordUrl = extractUrl(email.text)
 	invariant(resetPasswordUrl, 'Reset password URL not found')
 	await page.goto(resetPasswordUrl)
+
+	await expect(page).toHaveURL(/\/verify/)
+
+	await page
+		.getByRole('main')
+		.getByRole('button', { name: /submit/i })
+		.click()
 
 	await expect(page).toHaveURL(`/reset-password`)
 	const newPassword = faker.internet.password()

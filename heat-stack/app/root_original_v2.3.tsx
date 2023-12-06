@@ -24,11 +24,13 @@ import {
 	useSubmit,
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import { object, z } from 'zod'
-// import { Confetti } from './components/confetti.tsx'
+import { useRef } from 'react'
+import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
+import { HoneypotProvider } from 'remix-utils/honeypot/react'
+import { z } from 'zod'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { ErrorList } from './components/forms.tsx'
+import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { EpicToaster } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
@@ -42,51 +44,19 @@ import {
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
-import { authenticator, getUserId } from './utils/auth.server.ts'
+import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints, useHints } from './utils/client-hints.tsx'
-// import { getConfetti } from './utils/confetti.server.ts'
+import { csrf } from './utils/csrf.server.ts'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
-import {
-	combineHeaders,
-	getDomainUrl,
-	getUserImgSrc,
-	invariantResponse,
-} from './utils/misc.tsx'
+import { honeypot } from './utils/honeypot.server.ts'
+import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
 import { useRequestInfo } from './utils/request-info.ts'
 import { type Theme, setTheme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
-
-import { WeatherExample } from './components/WeatherExample.tsx'
-import type { Weather } from './WeatherExample.d.ts'
-
-import * as pyodideModule from 'pyodide'
-import engine from '../../rules-engine/src/rules_engine/engine.py'
-
-const getPyodide = async () => {
-	// public folder:
-	return await pyodideModule.loadPyodide({
-		indexURL: 'pyodide-env/',
-	})
-}
-declare global {
-	interface Window {
-		pydd?: any
-	}
-}
-
-const runPythonScript = async () => {
-	const pyodide: any = await getPyodide()
-	// console.log(engine);
-	await pyodide.loadPackage('numpy')
-	await pyodide.runPythonAsync(engine)
-	window.pydd = pyodide as null
-
-	return pyodide
-}
 
 export const links: LinksFunction = () => {
 	return [
@@ -123,7 +93,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-// We can only have one `loader()`. More requires special gymnastics.
 export async function loader({ request }: DataFunctionArgs) {
 	const timings = makeTimings('root loader')
 	const userId = await time(() => getUserId(request), {
@@ -159,20 +128,14 @@ export async function loader({ request }: DataFunctionArgs) {
 		console.info('something weird happened')
 		// something weird happened... The user is authenticated but we can't find
 		// them in the database. Maybe they were deleted? Let's log them out.
-		await authenticator.logout(request, { redirectTo: '/' })
+		await logout({ request, redirectTo: '/' })
 	}
 	const { toast, headers: toastHeaders } = await getToast(request)
-	// const { confettiId, headers: confettiHeaders } = getConfetti(request)
-
-	// Weather station data
-	const w_href: string =
-		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
-	const w_res: Response = await fetch(w_href)
-	const weather: Weather = (await w_res.json()) as Weather
+	const honeyProps = honeypot.getInputProps()
+	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
 
 	return json(
 		{
-			weather: weather,
 			user,
 			requestInfo: {
 				hints: getHints(request),
@@ -184,13 +147,14 @@ export async function loader({ request }: DataFunctionArgs) {
 			},
 			ENV: getEnv(),
 			toast,
-			// confettiId,
+			honeyProps,
+			csrfToken,
 		},
 		{
 			headers: combineHeaders(
 				{ 'Server-Timing': timings.toString() },
 				toastHeaders,
-				// confettiHeaders,
+				csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
 			),
 		},
 	)
@@ -209,16 +173,11 @@ const ThemeFormSchema = z.object({
 
 export async function action({ request }: DataFunctionArgs) {
 	const formData = await request.formData()
-	invariantResponse(
-		formData.get('intent') === 'update-theme',
-		'Invalid intent',
-		{ status: 400 },
-	)
 	const submission = parse(formData, {
 		schema: ThemeFormSchema,
 	})
 	if (submission.intent !== 'submit') {
-		return json({ status: 'success', submission } as const)
+		return json({ status: 'idle', submission } as const)
 	}
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
@@ -242,17 +201,6 @@ function Document({
 	theme?: Theme
 	env?: Record<string, string>
 }) {
-	// const [output, setOutput] = useState<string | null>('(loading python...)');
-
-	// useEffect(() => {
-	// 	const run = async () => {
-	// 	  const pyodide: any = await runPythonScript();
-	// 	//   console.log(pyodide);
-	// 	  const result = await pyodide.runPythonAsync("hdd(57, 60)");
-	// 	  setOutput(result);
-	// 	};
-	// 	run();
-	//   }, []);
 	return (
 		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
 			<head>
@@ -263,11 +211,6 @@ function Document({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-				<div>
-					<div>Output:</div>
-					{/* {output} */}
-				</div>
-				<WeatherExample />
 				{children}
 				<script
 					nonce={nonce}
@@ -290,29 +233,31 @@ function App() {
 	const theme = useTheme()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find(m => m.id === 'routes/users+/index')
+	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 
 	return (
 		<Document nonce={nonce} theme={theme} env={data.ENV}>
 			<div className="flex h-screen flex-col justify-between">
 				<header className="container py-6">
-					<nav className="flex items-center justify-between">
-						<Link to="/">
-							<div className="font-light">epic</div>
-							<div className="font-bold">notes</div>
-						</Link>
-						{isOnSearchPage ? null : (
-							<div className="ml-auto max-w-sm flex-1 pr-10">
-								<SearchBar status="idle" />
+					<nav>
+						<div className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+							<Link to="/">
+								<div className="font-light">epic</div>
+								<div className="font-bold">notes</div>
+							</Link>
+							<div className="ml-auto hidden max-w-sm flex-1 sm:block">
+								{searchBar}
 							</div>
-						)}
-						<div className="flex items-center gap-10">
-							{user ? (
-								<UserDropdown />
-							) : (
-								<Button asChild variant="default" size="sm">
-									<Link to="/login">Log In</Link>
-								</Button>
-							)}
+							<div className="flex items-center gap-10">
+								{user ? (
+									<UserDropdown />
+								) : (
+									<Button asChild variant="default" size="sm">
+										<Link to="/login">Log In</Link>
+									</Button>
+								)}
+							</div>
+							<div className="block w-full sm:hidden">{searchBar}</div>
 						</div>
 					</nav>
 				</header>
@@ -329,12 +274,24 @@ function App() {
 					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 				</div>
 			</div>
-			{/* <Confetti id={data.confettiId} /> */}
 			<EpicToaster toast={data.toast} />
+			<EpicProgress />
 		</Document>
 	)
 }
-export default withSentry(App)
+
+function AppWithProviders() {
+	const data = useLoaderData<typeof loader>()
+	return (
+		<AuthenticityTokenProvider token={data.csrfToken}>
+			<HoneypotProvider {...data.honeyProps}>
+				<App />
+			</HoneypotProvider>
+		</AuthenticityTokenProvider>
+	)
+}
+
+export default withSentry(AppWithProviders)
 
 function UserDropdown() {
 	const user = useUser()
@@ -418,10 +375,7 @@ export function useTheme() {
  */
 export function useOptimisticThemeMode() {
 	const fetchers = useFetchers()
-
-	const themeFetcher = fetchers.find(
-		f => f.formData?.get('intent') === 'update-theme',
-	)
+	const themeFetcher = fetchers.find(f => f.formAction === '/')
 
 	if (themeFetcher && themeFetcher.formData) {
 		const submission = parse(themeFetcher.formData, {
@@ -437,9 +391,6 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 	const [form] = useForm({
 		id: 'theme-switch',
 		lastSubmission: fetcher.data?.submission,
-		onValidate({ formData }) {
-			return parse(formData, { schema: ThemeFormSchema })
-		},
 	})
 
 	const optimisticMode = useOptimisticThemeMode()
@@ -469,8 +420,6 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 			<input type="hidden" name="theme" value={nextMode} />
 			<div className="flex gap-2">
 				<button
-					name="intent"
-					value="update-theme"
 					type="submit"
 					className="flex h-8 w-8 cursor-pointer items-center justify-center"
 				>

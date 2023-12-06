@@ -1,8 +1,8 @@
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { Form, Link, useActionData } from '@remix-run/react'
-import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -10,26 +10,15 @@ import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { getPasswordHash, requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
-import { PasswordSchema } from '#app/utils/user-validation.ts'
+import { PasswordAndConfirmPasswordSchema } from '#app/utils/user-validation.ts'
+import { type BreadcrumbHandle } from './profile.tsx'
 
-export const handle = {
+export const handle: BreadcrumbHandle & SEOHandle = {
 	breadcrumb: <Icon name="dots-horizontal">Password</Icon>,
+	getSitemapEntries: () => null,
 }
 
-const CreatePasswordForm = z
-	.object({
-		newPassword: PasswordSchema,
-		confirmNewPassword: PasswordSchema,
-	})
-	.superRefine(({ confirmNewPassword, newPassword }, ctx) => {
-		if (confirmNewPassword !== newPassword) {
-			ctx.addIssue({
-				path: ['confirmNewPassword'],
-				code: 'custom',
-				message: 'The passwords must match',
-			})
-		}
-	})
+const CreatePasswordForm = PasswordAndConfirmPasswordSchema
 
 async function requireNoPassword(userId: string) {
 	const password = await prisma.password.findUnique({
@@ -66,7 +55,7 @@ export async function action({ request }: DataFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	const { newPassword } = submission.value
+	const { password } = submission.value
 
 	await prisma.user.update({
 		select: { username: true },
@@ -74,7 +63,7 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			password: {
 				create: {
-					hash: await getPasswordHash(newPassword),
+					hash: await getPasswordHash(password),
 				},
 			},
 		},
@@ -101,15 +90,15 @@ export default function CreatePasswordRoute() {
 		<Form method="POST" {...form.props} className="mx-auto max-w-md">
 			<Field
 				labelProps={{ children: 'New Password' }}
-				inputProps={conform.input(fields.newPassword, { type: 'password' })}
-				errors={fields.newPassword.errors}
+				inputProps={conform.input(fields.password, { type: 'password' })}
+				errors={fields.password.errors}
 			/>
 			<Field
 				labelProps={{ children: 'Confirm New Password' }}
-				inputProps={conform.input(fields.confirmNewPassword, {
+				inputProps={conform.input(fields.confirmPassword, {
 					type: 'password',
 				})}
-				errors={fields.confirmNewPassword.errors}
+				errors={fields.confirmPassword.errors}
 			/>
 			<ErrorList id={form.errorId} errors={form.errors} />
 			<div className="grid w-full grid-cols-2 gap-6">

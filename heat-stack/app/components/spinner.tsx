@@ -1,3 +1,4 @@
+/* deprecated by epic stack 2.3, delete me */
 export function Spinner({ showSpinner }: { showSpinner: boolean }) {
 	return (
 		<div

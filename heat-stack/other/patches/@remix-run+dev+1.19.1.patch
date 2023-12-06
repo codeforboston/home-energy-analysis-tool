@@ -1,0 +1,27 @@
+diff --git a/node_modules/@remix-run/dev/dist/compiler/utils/loaders.js b/node_modules/@remix-run/dev/dist/compiler/utils/loaders.js
+index 7bb79b6..033429e 100644
+--- a/node_modules/@remix-run/dev/dist/compiler/utils/loaders.js
++++ b/node_modules/@remix-run/dev/dist/compiler/utils/loaders.js
+@@ -66,6 +66,7 @@ const loaders = {
+   ".otf": "file",
+   ".png": "file",
+   ".psd": "file",
++  ".py": "text",
+   ".sql": "text",
+   ".svg": "file",
+   ".ts": "ts",
+diff --git a/node_modules/@remix-run/dev/dist/modules.d.ts b/node_modules/@remix-run/dev/dist/modules.d.ts
+index 25fd1f6..2193142 100644
+--- a/node_modules/@remix-run/dev/dist/modules.d.ts
++++ b/node_modules/@remix-run/dev/dist/modules.d.ts
+@@ -115,6 +115,10 @@ declare module "*.psd" {
+     let asset: string;
+     export default asset;
+ }
++declare module "*.py" {
++    let asset: string;
++    export default asset;
++}
+ declare module "*.sql" {
+     let asset: string;
+     export default asset;
