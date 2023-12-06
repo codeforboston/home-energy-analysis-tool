@@ -3,15 +3,15 @@ import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { Links, Scripts } from '@remix-run/react'
 import { href as iconsHref } from './components/ui/icon.tsx'
-import { DataFunctionArgs, json, type LinksFunction } from '@remix-run/node'
+import { DataFunctionArgs, HeadersFunction, json, type LinksFunction } from '@remix-run/node'
 
 import { CaseSummary } from './components/CaseSummary.tsx'
 import './App.css'
 import { useNonce } from './utils/nonce-provider.ts'
-import { makeTimings, time } from './utils/timing.server.ts'
+import { combineServerTimings, makeTimings, time } from './utils/timing.server.ts'
 import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
-// import { csrf } from './utils/csrf.server.ts'
 import { getEnv } from './utils/env.server.ts'
+// Hints may not be required. Double check.
 import { getHints } from './utils/client-hints.tsx'
 import { WeatherExample } from './components/WeatherExample.tsx'
 import { Weather } from './WeatherExample.js'
@@ -91,6 +91,7 @@ export async function loader({ request }: DataFunctionArgs) {
 			weather: weather,
 			user: user,
 			requestInfo: {
+				/* hints may not be absolutely required, double check */
 				hints: getHints(request),
 				origin: getDomainUrl(request),
 				path: new URL(request.url).pathname,
@@ -107,6 +108,16 @@ export async function loader({ request }: DataFunctionArgs) {
 			),
 		},
 	)
+}
+
+/** 
+ * Step 4 of making Server Timings 
+ * https://github.com/epicweb-dev/epic-stack/blob/main/docs/server-timing.md 
+ */
+export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
+	return {
+		'Server-Timing': combineServerTimings(parentHeaders, loaderHeaders),
+	}
 }
 
 export default function HeatStack({ env = {} }) {

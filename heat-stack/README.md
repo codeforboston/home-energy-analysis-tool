@@ -17,6 +17,7 @@ npm install
 npm run dev
 ```
 
+
 ### Set up in a new GitHub CodingSpace:
 
 ```
@@ -29,6 +30,9 @@ npm run dev
 ```
 
 If you have the node version manager (`nvm`), then `nvm use 18` avoids engine error with node v19+ or newer which is default. nvm is preinstalled in coding spaces.
+
+
+In Coding Spaces VSCode always go to hamburger menu -> File-> untick AutoSave. For a pic, see https://stackoverflow.com/a/76659316/14144258
 
 ### Under special circumstances:
 
