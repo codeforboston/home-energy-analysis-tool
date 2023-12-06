@@ -50,7 +50,6 @@ def get_outputs_oil_propane(
 
 def get_outputs_natural_gas(
     summary_input: SummaryInput,
-    dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
@@ -67,7 +66,7 @@ def get_outputs_natural_gas(
         )
 
     return get_outputs_normalized(
-        summary_input, dhw_input, temperature_input, billing_periods
+        summary_input, None, temperature_input, billing_periods
     )
 
 
@@ -110,7 +109,34 @@ def get_outputs_normalized(
         has_boiler_for_dhw=dhw_input is not None,
         same_fuel_dhw_heating=dhw_input is not None,
     )
-    # home.calculate()
+    home.calculate()
+
+    # TODO: rename functions to "get_..." and don't use "_output" suffix
+    # average_indoor_temperature_output = average_indoor_temp(
+    #     tstat_set=summary_input.thermostat_set_point,
+    #     tstat_setback=summary_input.setback_temperature,
+    #     setback_daily_hrs=summary_input.setback_hours_per_day
+    # )
+    # average_heat_load_output = average_heat_load(
+    #     design_set_point=..., # TODO: where does this come from?
+    #     avg_indoor_temp=average_indoor_temperature_output,
+    #     balance_point=home.balance_point,
+    #     design_temp=home.,
+    #     ua,
+    # )
+    # maximum_heat_load_output = max_heat_load(...)
+
+    # summary_output = SummaryOutput(
+    #     estimated_balance_point=,
+    #     other_fuel_usage=home.avg_non_heating_usage,
+    #     average_indoor_temperature=average_indoor_temperature_output,
+    #     difference_between_ti_and_tbp=,
+    #     design_temperature=,
+    #     whole_home_heat_loss_rate=home.avg_ua,
+    #     standard_deviation_of_heat_loss_rate=home.stdev_pct,
+    #     average_heat_load=,
+    #     maximum_heat_load=,
+    # )
     # return (home.summaryOutput, home.balancePointGraph)
 
     raise NotImplementedError
