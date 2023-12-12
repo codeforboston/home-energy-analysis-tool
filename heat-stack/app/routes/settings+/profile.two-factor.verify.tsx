@@ -1,6 +1,6 @@
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { getTOTPAuthUri } from '@epic-web/totp'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import {
 	Form,
@@ -9,24 +9,33 @@ import {
 	useNavigation,
 } from '@remix-run/react'
 import * as QRCode from 'qrcode'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
-import { Field } from '#app/components/forms.tsx'
+import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { isCodeValid } from '#app/routes/_auth+/verify.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { getDomainUrl, useIsPending } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
+import { getTOTPAuthUri } from '#app/utils/totp.server.ts'
+import { type BreadcrumbHandle } from './profile.tsx'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 
-export const handle = {
+export const handle: BreadcrumbHandle & SEOHandle = {
 	breadcrumb: <Icon name="check">Verify</Icon>,
+	getSitemapEntries: () => null,
 }
 
+const CancelSchema = z.object({ intent: z.literal('cancel') })
 const VerifySchema = z.object({
+	intent: z.literal('verify'),
 	code: z.string().min(6).max(6),
 })
+
+const ActionSchema = z.union([CancelSchema, VerifySchema])
 
 export const twoFAVerifyVerificationType = '2fa-verify'
 
@@ -64,16 +73,12 @@ export async function loader({ request }: DataFunctionArgs) {
 export async function action({ request }: DataFunctionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
+	await validateCSRF(formData, request.headers)
 
-	if (formData.get('intent') === 'cancel') {
-		await prisma.verification.deleteMany({
-			where: { type: twoFAVerifyVerificationType, target: userId },
-		})
-		return redirect('/settings/profile/two-factor')
-	}
 	const submission = await parse(formData, {
 		schema: () =>
-			VerifySchema.superRefine(async (data, ctx) => {
+			ActionSchema.superRefine(async (data, ctx) => {
+				if (data.intent === 'cancel') return null
 				const codeIsValid = await isCodeValid({
 					code: data.code,
 					type: twoFAVerifyVerificationType,
@@ -85,7 +90,7 @@ export async function action({ request }: DataFunctionArgs) {
 						code: z.ZodIssueCode.custom,
 						message: `Invalid code`,
 					})
-					return
+					return z.NEVER
 				}
 			}),
 		async: true,
@@ -98,17 +103,27 @@ export async function action({ request }: DataFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	await prisma.verification.update({
-		where: {
-			target_type: { type: twoFAVerifyVerificationType, target: userId },
-		},
-		data: { type: twoFAVerificationType },
-	})
-	return redirectWithToast('/settings/profile/two-factor', {
-		type: 'success',
-		title: 'Enabled',
-		description: 'Two-factor authentication has been enabled.',
-	})
+	switch (submission.value.intent) {
+		case 'cancel': {
+			await prisma.verification.deleteMany({
+				where: { type: twoFAVerifyVerificationType, target: userId },
+			})
+			return redirect('/settings/profile/two-factor')
+		}
+		case 'verify': {
+			await prisma.verification.update({
+				where: {
+					target_type: { type: twoFAVerifyVerificationType, target: userId },
+				},
+				data: { type: twoFAVerificationType },
+			})
+			return redirectWithToast('/settings/profile/two-factor', {
+				type: 'success',
+				title: 'Enabled',
+				description: 'Two-factor authentication has been enabled.',
+			})
+		}
+	}
 }
 
 export default function TwoFactorRoute() {
@@ -118,12 +133,18 @@ export default function TwoFactorRoute() {
 
 	const isPending = useIsPending()
 	const pendingIntent = isPending ? navigation.formData?.get('intent') : null
+	const lastSubmissionIntent = actionData?.submission.value?.intent
 
 	const [form, fields] = useForm({
 		id: 'verify-form',
-		constraint: getFieldsetConstraint(VerifySchema),
+		constraint: getFieldsetConstraint(ActionSchema),
 		lastSubmission: actionData?.submission,
 		onValidate({ formData }) {
+			// otherwise, the best error zod gives us is "Invalid input" which is not
+			// enough
+			if (formData.get('intent') === 'cancel') {
+				return parse(formData, { schema: CancelSchema })
+			}
 			return parse(formData, { schema: VerifySchema })
 		},
 	})
@@ -154,6 +175,7 @@ export default function TwoFactorRoute() {
 				</p>
 				<div className="flex w-full max-w-xs flex-col justify-center gap-4">
 					<Form method="POST" {...form.props} className="flex-1">
+						<AuthenticityTokenInput />
 						<Field
 							labelProps={{
 								htmlFor: fields.code.id,
@@ -162,25 +184,37 @@ export default function TwoFactorRoute() {
 							inputProps={{ ...conform.input(fields.code), autoFocus: true }}
 							errors={fields.code.errors}
 						/>
+
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList id={form.errorId} errors={form.errors} />
+						</div>
+
 						<div className="flex justify-between gap-4">
 							<StatusButton
 								className="w-full"
 								status={
 									pendingIntent === 'verify'
 										? 'pending'
-										: actionData?.status ?? 'idle'
+										: lastSubmissionIntent === 'verify'
+										  ? actionData?.status ?? 'idle'
+										  : 'idle'
 								}
 								type="submit"
 								name="intent"
 								value="verify"
-								disabled={isPending}
 							>
 								Submit
 							</StatusButton>
 							<StatusButton
 								className="w-full"
 								variant="secondary"
-								status={pendingIntent === 'cancel' ? 'pending' : 'idle'}
+								status={
+									pendingIntent === 'cancel'
+										? 'pending'
+										: lastSubmissionIntent === 'cancel'
+										  ? actionData?.status ?? 'idle'
+										  : 'idle'
+								}
 								type="submit"
 								name="intent"
 								value="cancel"

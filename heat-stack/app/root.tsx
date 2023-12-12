@@ -1,22 +1,29 @@
 import { cssBundleHref } from '@remix-run/css-bundle'
+import {
+	type DataFunctionArgs,
+	HeadersFunction,
+	json,
+	type LinksFunction,
+} from '@remix-run/node'
+import { Links, Scripts } from '@remix-run/react'
+import { CaseSummary } from './components/CaseSummary.tsx'
+import { href as iconsHref } from './components/ui/icon.tsx'
 import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
-import { Links, Scripts } from '@remix-run/react'
-import { href as iconsHref } from './components/ui/icon.tsx'
-import { DataFunctionArgs, json, type LinksFunction } from '@remix-run/node'
 
-import { CaseSummary } from './components/CaseSummary.tsx'
 import './App.css'
-import { useNonce } from './utils/nonce-provider.ts'
-import { makeTimings, time } from './utils/timing.server.ts'
-import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
-// import { csrf } from './utils/csrf.server.ts'
-import { getEnv } from './utils/env.server.ts'
+import { getUserId } from './utils/auth.server.ts'
 import { getHints } from './utils/client-hints.tsx'
+import { prisma } from './utils/db.server.ts'
+import { getEnv } from './utils/env.server.ts'
+import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
+import { useNonce } from './utils/nonce-provider.ts'
+import { combineServerTimings, makeTimings, time } from './utils/timing.server.ts'
+// Hints may not be required. Double check.
 import { WeatherExample } from './components/WeatherExample.tsx'
 import { Weather } from './WeatherExample.js'
-import { getUserId } from './utils/auth.server.ts'
-import { prisma } from './utils/db.server.ts'
+import { csrf } from './utils/csrf.server.ts'
+import { honeypot } from './utils/honeypot.server.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -76,8 +83,8 @@ export async function loader({ request }: DataFunctionArgs) {
 				{ timings, type: 'find user', desc: 'find user in root' },
 		  )
 		: null
-	// const honeyProps = honeypot.getInputProps()
-	// const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+	const honeyProps = honeypot.getInputProps()
+	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
 	// Weather station data
 	const w_href: string =
 		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
@@ -89,22 +96,33 @@ export async function loader({ request }: DataFunctionArgs) {
 			weather: weather,
 			user: user,
 			requestInfo: {
+				/* hints may not be absolutely required, double check */
 				hints: getHints(request),
 				origin: getDomainUrl(request),
 				path: new URL(request.url).pathname,
 				userPrefs: {},
 			},
 			ENV: getEnv(),
-			// honeyProps,
-			// csrfToken,
+			honeyProps,
+			csrfToken,
 		},
 		{
 			headers: combineHeaders(
 				{ 'Server-Timing': timings.toString() },
-				// csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
+				csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
 			),
 		},
 	)
+}
+
+/** 
+ * Step 4 of making Server Timings 
+ * https://github.com/epicweb-dev/epic-stack/blob/main/docs/server-timing.md 
+ */
+export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
+	return {
+		'Server-Timing': combineServerTimings(parentHeaders, loaderHeaders),
+	}
 }
 
 export default function HeatStack({ env = {} }) {
@@ -124,7 +142,6 @@ export default function HeatStack({ env = {} }) {
 						__html: `window.ENV = ${JSON.stringify(env)}`,
 					}}
 				/>
-				<div>left{nonce}right</div>
 				<Scripts nonce={nonce} />
 			</body>
 		</html>

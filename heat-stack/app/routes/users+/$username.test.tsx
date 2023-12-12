@@ -2,14 +2,14 @@
  * @vitest-environment jsdom
  */
 import { faker } from '@faker-js/faker'
-import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRemixStub } from '@remix-run/testing'
 import { render, screen } from '@testing-library/react'
 import setCookieParser from 'set-cookie-parser'
 import { test } from 'vitest'
 import { loader as rootLoader } from '#app/root.tsx'
 import { getSessionExpirationDate, sessionKey } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { sessionStorage } from '#app/utils/session.server.ts'
+import { authSessionStorage } from '#app/utils/session.server.ts'
 import { createUser, getUserImages } from '#tests/db-utils.ts'
 import { default as UsernameRoute, loader } from './$username.tsx'
 
@@ -53,9 +53,9 @@ test('The user profile when logged in as self', async () => {
 		},
 	})
 
-	const cookieSession = await sessionStorage.getSession()
-	cookieSession.set(sessionKey, session.id)
-	const setCookieHeader = await sessionStorage.commitSession(cookieSession)
+	const authSession = await authSessionStorage.getSession()
+	authSession.set(sessionKey, session.id)
+	const setCookieHeader = await authSessionStorage.commitSession(authSession)
 	const parsedCookie = setCookieParser.parseString(setCookieHeader)
 	const cookieHeader = new URLSearchParams({
 		[parsedCookie.name]: parsedCookie.value,

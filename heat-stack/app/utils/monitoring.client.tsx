@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 export function init() {
 	Sentry.init({
 		dsn: ENV.SENTRY_DSN,
+		environment: ENV.MODE,
 		integrations: [
 			new Sentry.BrowserTracing({
 				routingInstrumentation: Sentry.remixRouterInstrumentation(
@@ -15,6 +16,7 @@ export function init() {
 			}),
 			// Replay is only available in the client
 			new Sentry.Replay(),
+			new Sentry.BrowserProfilingIntegration(),
 		],
 
 		// Set tracesSampleRate to 1.0 to capture 100%
