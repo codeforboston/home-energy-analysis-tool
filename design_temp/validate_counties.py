@@ -54,7 +54,6 @@ def fetch_census_counties():
     census_url = CENSUS_DOCS_BASE_URL + CENSUS_COUNTY_PATH
 
     response = requests.get(census_url)
-    ret = {}
     reader = csv.DictReader(f=io.StringIO(response.text),delimiter=CENSUS_DELIMETER)
 
     for row in reader:
@@ -80,12 +79,12 @@ def fetch_census_states():
     return _states
 
 
-states = fetch_census_states()
-counties = fetch_census_counties()
+fetch_census_states()
+fetch_census_counties()
 
 dtbc = load_design_temp_data()
 
-with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline="\n") as oFile:
+with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline=NEW_LINE) as oFile:
     oFile.write(NEW_HEADERS)
     for s, cbs in _counties.items():
         d_row = dtbc.get(s)
