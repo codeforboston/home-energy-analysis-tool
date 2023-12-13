@@ -2,8 +2,8 @@
 Data models for input and output data in the rules engine.
 """
 
-from datetime import date
 from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 from typing import Annotated, Any, List, Optional
 
