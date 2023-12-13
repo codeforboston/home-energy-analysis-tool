@@ -68,7 +68,7 @@ def test_bp_ua_estimates():
         thermostat_set_point=thermostat_set_point,
         setback_temperature=setback_temperature,
         setback_hours_per_day=setback_hours_per_day,
-        design_temperature=design_temperature
+        design_temperature=design_temperature,
     )
 
     home = engine.Home(
@@ -113,7 +113,7 @@ def test_bp_ua_with_outlier():
         thermostat_set_point=thermostat_set_point,
         setback_temperature=setback_temperature,
         setback_hours_per_day=setback_hours_per_day,
-        design_temperature=design_temperature
+        design_temperature=design_temperature,
     )
 
     home = engine.Home(
