@@ -119,19 +119,20 @@ def get_outputs_normalized(
     average_indoor_temperature = get_average_indoor_temperature(
         thermostat_set_point=summary_input.thermostat_set_point,
         setback_temperature=summary_input.setback_temperature,
-        setback_hours_per_day=summary_input.setback_hours_per_day
+        setback_hours_per_day=summary_input.setback_hours_per_day,
     )
     average_heat_load = get_average_heat_load(
-        design_set_point=Constants.DESIGN_SET_POINT, 
+        design_set_point=Constants.DESIGN_SET_POINT,
         avg_indoor_temp=average_indoor_temperature,
         balance_point=home.balance_point,
         design_temp=summary_input.design_temperature,
         ua=home.avg_ua,
     )
-    maximum_heat_load= get_maximum_heat_load(
-        design_set_point=Constants.DESIGN_SET_POINT,  
-        design_temp=summary_input.design_temperature, 
-        ua=home.avg_ua)
+    maximum_heat_load = get_maximum_heat_load(
+        design_set_point=Constants.DESIGN_SET_POINT,
+        design_temp=summary_input.design_temperature,
+        ua=home.avg_ua,
+    )
 
     summary_output = SummaryOutput(
         estimated_balance_point=home.balance_point,
@@ -144,8 +145,7 @@ def get_outputs_normalized(
         average_heat_load=average_heat_load,
         maximum_heat_load=maximum_heat_load,
     )
-    return (summary_output) # TODO: add BalancePointGraph
-
+    return summary_output  # TODO: add BalancePointGraph
 
 
 def date_to_analysis_type(d: date) -> AnalysisType:
@@ -196,7 +196,9 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
 
 
 def get_average_indoor_temperature(
-    thermostat_set_point: float, setback_temperature: float, setback_hours_per_day: float
+    thermostat_set_point: float,
+    setback_temperature: float,
+    setback_hours_per_day: float,
 ) -> float:
     """
     Calculates the average indoor temperature.
@@ -211,7 +213,8 @@ def get_average_indoor_temperature(
     # again, not sure if we should check for valid values here or whether we can
     # assume those kinds of checks will be handled at the point of user entry
     return (
-        (24 - setback_hours_per_day) * thermostat_set_point + setback_hours_per_day * setback_temperature
+        (24 - setback_hours_per_day) * thermostat_set_point
+        + setback_hours_per_day * setback_temperature
     ) / 24
 
 
@@ -239,7 +242,9 @@ def get_average_heat_load(
     return (design_set_point - (avg_indoor_temp - balance_point) - design_temp) * ua
 
 
-def get_maximum_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
+def get_maximum_heat_load(
+    design_set_point: float, design_temp: float, ua: float
+) -> float:
     """
     Calculate the max heat load.
 

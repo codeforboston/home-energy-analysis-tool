@@ -134,6 +134,7 @@ class BalancePointGraph(BaseModel):
 
     records: List[BalancePointGraphRow]
 
+
 @dataclass
 class Constants:
     BALANCE_POINT_SENSITIVITY: float = 0.5
