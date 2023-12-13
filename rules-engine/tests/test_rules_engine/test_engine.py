@@ -37,14 +37,14 @@ def test_period_hdd(temps, expected_result):
     assert engine.period_hdd(temps, 60) == expected_result
 
 
-def test_average_indoor_temp():
+def test_get_average_indoor_temperature():
     set_temp = 68
     setback = 62
     setback_hrs = 8
 
     # when there is no setback, just put 0 for the setback parameters
-    assert engine.average_indoor_temp(set_temp, 0, 0) == set_temp
-    assert engine.average_indoor_temp(set_temp, setback, setback_hrs) == 66
+    assert engine.get_average_indoor_temperature(set_temp, 0, 0) == set_temp
+    assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
 def test_bp_ua_estimates():
@@ -60,6 +60,7 @@ def test_bp_ua_estimates():
     setback_temperature = 60
     setback_hours_per_day = 8
     fuel_type = FuelType.GAS
+    design_temperature = 60
     summary_input = SummaryInput(
         living_area=living_area,
         fuel_type=fuel_type,
@@ -67,6 +68,7 @@ def test_bp_ua_estimates():
         thermostat_set_point=thermostat_set_point,
         setback_temperature=setback_temperature,
         setback_hours_per_day=setback_hours_per_day,
+        design_temperature=design_temperature
     )
 
     home = engine.Home(
@@ -103,6 +105,7 @@ def test_bp_ua_with_outlier():
     setback_temperature = 60
     setback_hours_per_day = 8
     fuel_type = FuelType.GAS
+    design_temperature = 60
     summary_input = SummaryInput(
         living_area=living_area,
         fuel_type=fuel_type,
@@ -110,6 +113,7 @@ def test_bp_ua_with_outlier():
         thermostat_set_point=thermostat_set_point,
         setback_temperature=setback_temperature,
         setback_hours_per_day=setback_hours_per_day,
+        design_temperature=design_temperature
     )
 
     home = engine.Home(
