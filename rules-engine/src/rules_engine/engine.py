@@ -145,8 +145,8 @@ def get_outputs_normalized(
         average_heat_load=average_heat_load,
         maximum_heat_load=maximum_heat_load,
     )
-    return summary_output  # TODO: add BalancePointGraph
-
+    #return summary_output  # TODO: add BalancePointGraph
+    raise NotImplementedError
 
 def date_to_analysis_type(d: date) -> AnalysisType:
     months = {
@@ -204,10 +204,10 @@ def get_average_indoor_temperature(
     Calculates the average indoor temperature.
 
     Args:
-        tstat_set: the temp in F at which the home is normally set
-        tstat_setback: temp in F at which the home is set during off
+        thermostat_set_point: the temp in F at which the home is normally set
+        setback_temperature: temp in F at which the home is set during off
         hours
-        setback_daily_hrs: average # of hours per day the home is at
+        setback_hours_per_day: average # of hours per day the home is at
         setback temp
     """
     # again, not sure if we should check for valid values here or whether we can
