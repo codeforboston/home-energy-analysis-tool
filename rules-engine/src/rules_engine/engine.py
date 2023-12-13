@@ -10,6 +10,7 @@ import numpy as np
 from rules_engine.pydantic_models import (
     AnalysisType,
     BalancePointGraph,
+    Constants,
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
@@ -115,35 +116,36 @@ def get_outputs_normalized(
     )
     home.calculate()
 
-    # TODO: rename functions to "get_..." and don't use "_output" suffix
-    # average_indoor_temperature_output = average_indoor_temp(
-    #     tstat_set=summary_input.thermostat_set_point,
-    #     tstat_setback=summary_input.setback_temperature,
-    #     setback_daily_hrs=summary_input.setback_hours_per_day
-    # )
-    # average_heat_load_output = average_heat_load(
-    #     design_set_point=..., # TODO: where does this come from?
-    #     avg_indoor_temp=average_indoor_temperature_output,
-    #     balance_point=home.balance_point,
-    #     design_temp=home.,
-    #     ua,
-    # )
-    # maximum_heat_load_output = max_heat_load(...)
+    average_indoor_temperature = get_average_indoor_temperature(
+        thermostat_set_point=summary_input.thermostat_set_point,
+        setback_temperature=summary_input.setback_temperature,
+        setback_hours_per_day=summary_input.setback_hours_per_day
+    )
+    average_heat_load = get_average_heat_load(
+        design_set_point=Constants.DESIGN_SET_POINT, 
+        avg_indoor_temp=average_indoor_temperature,
+        balance_point=home.balance_point,
+        design_temp=summary_input.design_temperature,
+        ua=home.avg_ua,
+    )
+    maximum_heat_load= get_maximum_heat_load(
+        design_set_point=Constants.DESIGN_SET_POINT,  
+        design_temp=summary_input.design_temperature, 
+        ua=home.avg_ua)
 
-    # summary_output = SummaryOutput(
-    #     estimated_balance_point=,
-    #     other_fuel_usage=home.avg_non_heating_usage,
-    #     average_indoor_temperature=average_indoor_temperature_output,
-    #     difference_between_ti_and_tbp=,
-    #     design_temperature=,
-    #     whole_home_heat_loss_rate=home.avg_ua,
-    #     standard_deviation_of_heat_loss_rate=home.stdev_pct,
-    #     average_heat_load=,
-    #     maximum_heat_load=,
-    # )
-    # return (home.summaryOutput, home.balancePointGraph)
+    summary_output = SummaryOutput(
+        estimated_balance_point=home.balance_point,
+        other_fuel_usage=home.avg_non_heating_usage,
+        average_indoor_temperature=average_indoor_temperature,
+        difference_between_ti_and_tbp=average_indoor_temperature - home.balance_point,
+        design_temperature=summary_input.design_temperature,
+        whole_home_heat_loss_rate=home.avg_ua,
+        standard_deviation_of_heat_loss_rate=home.stdev_pct,
+        average_heat_load=average_heat_load,
+        maximum_heat_load=maximum_heat_load,
+    )
+    return (summary_output) # TODO: add BalancePointGraph
 
-    raise NotImplementedError
 
 
 def date_to_analysis_type(d: date) -> AnalysisType:
@@ -193,8 +195,8 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     return sum([hdd(temp, balance_point) for temp in avg_temps])
 
 
-def average_indoor_temp(
-    tstat_set: float, tstat_setback: float, setback_daily_hrs: float
+def get_average_indoor_temperature(
+    thermostat_set_point: float, setback_temperature: float, setback_hours_per_day: float
 ) -> float:
     """
     Calculates the average indoor temperature.
@@ -209,11 +211,11 @@ def average_indoor_temp(
     # again, not sure if we should check for valid values here or whether we can
     # assume those kinds of checks will be handled at the point of user entry
     return (
-        (24 - setback_daily_hrs) * tstat_set + setback_daily_hrs * tstat_setback
+        (24 - setback_hours_per_day) * thermostat_set_point + setback_hours_per_day * setback_temperature
     ) / 24
 
 
-def average_heat_load(
+def get_average_heat_load(
     design_set_point: float,
     avg_indoor_temp: float,
     balance_point: float,
@@ -237,7 +239,7 @@ def average_heat_load(
     return (design_set_point - (avg_indoor_temp - balance_point) - design_temp) * ua
 
 
-def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
+def get_maximum_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
     """
     Calculate the max heat load.
 

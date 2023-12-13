@@ -3,6 +3,7 @@ Data models for input and output data in the rules engine.
 """
 
 from datetime import date
+from dataclasses import dataclass
 from enum import Enum
 from typing import Annotated, Any, List, Optional
 
@@ -47,6 +48,7 @@ class SummaryInput(BaseModel):
     thermostat_set_point: float = Field(description="Summary!B17")
     setback_temperature: Optional[float] = Field(description="Summary!B18")
     setback_hours_per_day: Optional[float] = Field(description="Summary!B19")
+    design_temperature: float = Field(description="TDesign")
 
 
 class DhwInput(BaseModel):
@@ -132,6 +134,7 @@ class BalancePointGraph(BaseModel):
 
     records: List[BalancePointGraphRow]
 
-
+@dataclass
 class Constants:
-    balance_point_sensitivity: float = 0.5
+    BALANCE_POINT_SENSITIVITY: float = 0.5
+    DESIGN_SET_POINT: float = 70
