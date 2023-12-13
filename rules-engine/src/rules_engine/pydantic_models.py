@@ -46,8 +46,8 @@ class SummaryInput(BaseModel):
     )
     heating_system_efficiency: float = Field(description="Summary!B12")
     thermostat_set_point: float = Field(description="Summary!B17")
-    setback_temperature: Optional[float] = Field(description="Summary!B18")
-    setback_hours_per_day: Optional[float] = Field(description="Summary!B19")
+    setback_temperature: float = Field(description="Summary!B18")
+    setback_hours_per_day: float = Field(description="Summary!B19")
     design_temperature: float = Field(description="TDesign")
 
 
