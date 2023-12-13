@@ -32,23 +32,20 @@ class DTBC(BaseModel):
 
 _counties = {}
 _states={}
+_dtbc={}
 def load_design_temp_data():
-    result = {}
-
+    
     with open(DESIGN_TEMP_DIR / "design_temp_by_county.csv") as f:
         reader = csv.DictReader(f)
         for row in reader:
             item = DTBC(
                 state=row["state"], county=row["county"],temp=row["design_temp"]
             )
-            if row["state"] in result:
-                result[row["state"]].append(item) 
+            if row["state"] in _dtbc:
+                _dtbc[row["state"]].append(item) 
             else:
-                result[row["state"]] = [item]
+                _dtbc[row["state"]] = [item]
             
-            
-
-    return result
 
 def fetch_census_counties():
     census_url = CENSUS_DOCS_BASE_URL + CENSUS_COUNTY_PATH
@@ -76,21 +73,23 @@ def fetch_census_states():
             state_id=row["STATE"], state_abbr=row["STUSAB"], state_name=row["STATE_NAME"]
         )
         _states[row["STATE"]] = item
-    return _states
+    
 
 
-fetch_census_states()
-fetch_census_counties()
+if __name__ == "__main__":
 
-dtbc = load_design_temp_data()
+    fetch_census_states()
+    fetch_census_counties()
 
-with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline=NEW_LINE) as oFile:
-    oFile.write(NEW_HEADERS)
-    for s, cbs in _counties.items():
-        d_row = dtbc.get(s)
-        if d_row:
-            for d in d_row:
-                for c in cbs:
-                    if d.county in c.county_name:
-                        ostr=f"\n{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county},{d.temp}"
-                        oFile.write(ostr)
+    load_design_temp_data()
+
+    with open(DESIGN_TEMP_DIR / "merged_structure_temps.csv", "w", newline=NEW_LINE) as oFile:
+        oFile.write(NEW_HEADERS)
+        for s, cbs in _counties.items():
+            d_row = _dtbc.get(s)
+            if d_row:
+                for d in d_row:
+                    for c in cbs:
+                        if d.county in c.county_name:
+                            ostr=f"\n{c.state_id},{s},{c.state_abbr},{c.county_fp},{c.county_ns},{d.county},{d.temp}"
+                            oFile.write(ostr)
