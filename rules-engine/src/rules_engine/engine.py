@@ -5,11 +5,10 @@ import statistics as sts
 from datetime import date, timedelta
 from typing import Any, List, Optional, Tuple
 
-import numpy as np
-
 from rules_engine.pydantic_models import (
     AnalysisType,
     BalancePointGraph,
+    BalancePointGraphRow,
     Constants,
     DhwInput,
     FuelType,
@@ -81,31 +80,10 @@ def get_outputs_normalized(
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
-    # in the corresponding billing period
-    intermediate_billing_periods = []
     initial_balance_point = 60
-
-    for billing_period in billing_periods:
-        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
-        start_idx = bisect.bisect_left(
-            temperature_input.dates, billing_period.period_start_date
-        )
-        end_idx = (
-            bisect.bisect_left(temperature_input.dates, billing_period.period_end_date)
-            + 1
-        )
-
-        analysis_type = date_to_analysis_type(billing_period.period_end_date)
-        if billing_period.inclusion_override:
-            analysis_type = billing_period.inclusion_override
-
-        intermediate_billing_period = BillingPeriod(
-            avg_temps=temperature_input.temperatures[start_idx:end_idx],
-            usage=billing_period.usage,
-            analysis_type=analysis_type,
-        )
-        intermediate_billing_periods.append(intermediate_billing_period)
+    intermediate_billing_periods = convert_to_intermediate_billing_periods(
+        temperature_input=temperature_input, billing_periods=billing_periods
+    )
 
     home = Home(
         summary_input=summary_input,
@@ -145,8 +123,42 @@ def get_outputs_normalized(
         average_heat_load=average_heat_load,
         maximum_heat_load=maximum_heat_load,
     )
-    # return summary_output  # TODO: add BalancePointGraph
-    raise NotImplementedError
+
+    # TODO: fill out balance point graph
+    balance_point_graph = BalancePointGraph(records=[])
+    return (summary_output, balance_point_graph)
+
+
+def convert_to_intermediate_billing_periods(
+    temperature_input: TemperatureInput,
+    billing_periods: List[NormalizedBillingPeriodRecordInput],
+) -> List[BillingPeriod]:
+    # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
+    # in the corresponding billing period
+    intermediate_billing_periods = []
+
+    for billing_period in billing_periods:
+        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
+        start_idx = bisect.bisect_left(
+            temperature_input.dates, billing_period.period_start_date
+        )
+        end_idx = (
+            bisect.bisect_left(temperature_input.dates, billing_period.period_end_date)
+            + 1
+        )
+
+        analysis_type = date_to_analysis_type(billing_period.period_end_date)
+        if billing_period.inclusion_override:
+            analysis_type = billing_period.inclusion_override
+
+        intermediate_billing_period = BillingPeriod(
+            avg_temps=temperature_input.temperatures[start_idx:end_idx],
+            usage=billing_period.usage,
+            analysis_type=analysis_type,
+        )
+        intermediate_billing_periods.append(intermediate_billing_period)
+
+    return intermediate_billing_periods
 
 
 def date_to_analysis_type(d: date) -> AnalysisType:
@@ -164,9 +176,7 @@ def date_to_analysis_type(d: date) -> AnalysisType:
         11: AnalysisType.DO_NOT_INCLUDE,
         12: AnalysisType.INCLUDE,
     }
-
-    # TODO: finish implementation and unit test
-    raise NotImplementedError
+    return months[d.month]
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -213,7 +223,7 @@ def get_average_indoor_temperature(
     """
     if setback_temperature is None:
         setback_temperature = thermostat_set_point
-    
+
     if setback_hours_per_day is None:
         setback_hours_per_day = 0
 
@@ -370,9 +380,9 @@ class Home:
         self._refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
-            biggest_outlier_idx = np.argmax(
-                [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
-            )
+            outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
+            biggest_outlier = max(outliers)
+            biggest_outlier_idx = outliers.index(biggest_outlier)
             outlier = self.bills_winter.pop(
                 biggest_outlier_idx
             )  # removes the biggest outlier
@@ -420,6 +430,9 @@ class Home:
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
+                # TODO: For balance point graph, store the old balance
+                # point in a list to keep track of all intermediate balance
+                # point temperatures?
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
