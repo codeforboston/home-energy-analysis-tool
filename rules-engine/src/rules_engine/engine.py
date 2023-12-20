@@ -145,8 +145,9 @@ def get_outputs_normalized(
         average_heat_load=average_heat_load,
         maximum_heat_load=maximum_heat_load,
     )
-    #return summary_output  # TODO: add BalancePointGraph
+    # return summary_output  # TODO: add BalancePointGraph
     raise NotImplementedError
+
 
 def date_to_analysis_type(d: date) -> AnalysisType:
     months = {
@@ -197,8 +198,8 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
 
 def get_average_indoor_temperature(
     thermostat_set_point: float,
-    setback_temperature: float,
-    setback_hours_per_day: float,
+    setback_temperature: Optional[float],
+    setback_hours_per_day: Optional[float],
 ) -> float:
     """
     Calculates the average indoor temperature.
@@ -210,6 +211,12 @@ def get_average_indoor_temperature(
         setback_hours_per_day: average # of hours per day the home is at
         setback temp
     """
+    if setback_temperature is None:
+        setback_temperature = thermostat_set_point
+    
+    if setback_hours_per_day is None:
+        setback_hours_per_day = 0
+
     # again, not sure if we should check for valid values here or whether we can
     # assume those kinds of checks will be handled at the point of user entry
     return (
