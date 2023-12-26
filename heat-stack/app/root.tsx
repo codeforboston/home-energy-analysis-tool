@@ -5,7 +5,7 @@ import {
 	json,
 	type LinksFunction,
 } from '@remix-run/node'
-import { Links, Scripts } from '@remix-run/react'
+import { Links, Scripts, Outlet } from '@remix-run/react'
 import { CaseSummary } from './components/CaseSummary.tsx'
 import { href as iconsHref } from './components/ui/icon.tsx'
 import fontStyleSheetUrl from './styles/font.css'
@@ -125,8 +125,11 @@ export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
 	}
 }
 
-export default function HeatStack({ env = {} }) {
-	const nonce = useNonce()
+export default function HeatStack({ children, env = {}, nonce }: {
+	children: React.ReactNode
+	nonce: string
+	env?: Record<string, string>
+}) {
 	return (
 		<html lang="en" className={`${'light'} h-full overflow-x-hidden`}>
 			<head>
@@ -135,7 +138,14 @@ export default function HeatStack({ env = {} }) {
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
+				
+				<h1>Title</h1>
+				
+				<Outlet />
 				<CaseSummary />
+
+				<div>Footer</div>
+				
 				<script
 					nonce={nonce}
 					dangerouslySetInnerHTML={{
@@ -147,3 +157,5 @@ export default function HeatStack({ env = {} }) {
 		</html>
 	)
 }
+
+// <CaseSummary />
