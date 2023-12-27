@@ -6,7 +6,6 @@ import {
 	type LinksFunction,
 } from '@remix-run/node'
 import { Links, Scripts, Outlet } from '@remix-run/react'
-import { CaseSummary } from './components/CaseSummary.tsx'
 import { href as iconsHref } from './components/ui/icon.tsx'
 import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
@@ -18,7 +17,11 @@ import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
-import { combineServerTimings, makeTimings, time } from './utils/timing.server.ts'
+import {
+	combineServerTimings,
+	makeTimings,
+	time,
+} from './utils/timing.server.ts'
 // Hints may not be required. Double check.
 import { WeatherExample } from './components/WeatherExample.tsx'
 import { Weather } from './WeatherExample.js'
@@ -115,9 +118,9 @@ export async function loader({ request }: DataFunctionArgs) {
 	)
 }
 
-/** 
- * Step 4 of making Server Timings 
- * https://github.com/epicweb-dev/epic-stack/blob/main/docs/server-timing.md 
+/**
+ * Step 4 of making Server Timings
+ * https://github.com/epicweb-dev/epic-stack/blob/main/docs/server-timing.md
  */
 export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
 	return {
@@ -125,7 +128,11 @@ export const headers: HeadersFunction = ({ loaderHeaders, parentHeaders }) => {
 	}
 }
 
-export default function HeatStack({ children, env = {}, nonce }: {
+export default function HeatStack({
+	children,
+	env = {},
+	nonce,
+}: {
 	children: React.ReactNode
 	nonce: string
 	env?: Record<string, string>
@@ -138,14 +145,11 @@ export default function HeatStack({ children, env = {}, nonce }: {
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-				
-				<h1>Title</h1>
-				
+				<div>Site header</div>
+				<br />
 				<Outlet />
-				<CaseSummary />
-
-				<div>Footer</div>
-				
+				<br />
+				<div>Site footer</div>
 				<script
 					nonce={nonce}
 					dangerouslySetInnerHTML={{
@@ -157,5 +161,3 @@ export default function HeatStack({ children, env = {}, nonce }: {
 		</html>
 	)
 }
-
-// <CaseSummary />

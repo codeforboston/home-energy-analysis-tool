@@ -1,6 +1,6 @@
 import { Form } from '@remix-run/react'
-import { Input } from '../input.tsx'
-import { Label } from '../label.tsx'
+import { Input } from '../../input.tsx'
+import { Label } from '../../label.tsx'
 
 export function HomeInformation() {
 	const name = 'Pietro Schirano'
