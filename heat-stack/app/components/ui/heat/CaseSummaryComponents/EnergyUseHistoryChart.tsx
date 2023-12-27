@@ -1,4 +1,4 @@
-import { Checkbox } from '../../../components/ui/checkbox.tsx'
+import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
 	Table,
@@ -7,7 +7,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../../components/ui/table.tsx'
+} from '../../../../components/ui/table.tsx'
 
 const months = [
 	{

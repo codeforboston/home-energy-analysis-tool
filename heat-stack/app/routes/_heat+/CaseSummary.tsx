@@ -1,7 +1,7 @@
-import { CurrentHeatingSystem } from '../../components/ui/CaseSummaryComponents/CurrentHeatingSystem.tsx'
-import { EnergyUseHistory } from '../../components/ui/CaseSummaryComponents/EnergyUseHistory.tsx'
-import { Graphs } from '../../components/ui/CaseSummaryComponents/Graphs.tsx'
-import { HomeInformation } from '../../components/ui/CaseSummaryComponents/HomeInformation.tsx'
+import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
+import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
+import { Graphs } from '../../components/ui/heat/CaseSummaryComponents/Graphs.tsx'
+import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 export default function CaseSummary() {
 	return (
