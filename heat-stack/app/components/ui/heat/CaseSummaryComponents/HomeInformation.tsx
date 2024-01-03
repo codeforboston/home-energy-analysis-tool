@@ -1,29 +1,32 @@
 import { Form } from '@remix-run/react'
-import { type HomeModel } from '#models/Home.tsx'
-import { type LocationModel } from '#models/Location.tsx'
+
+import { Home } from '#models/Home.tsx'
+import { Location } from '#models/Location.tsx'
+
 import { Input } from '../../input.tsx'
 import { Label } from '../../label.tsx'
 
 export function HomeInformation() {
-	let home: HomeModel = {
-		first_name: 'Pietro',
-		last_name: 'Schirano',
-		livingArea: '3,000',
-		designTemperature: '63',
-		designTemperatureOverride: '65',
-		fuelType: 'Natural Gas',
-		heatingSystemEfficiency: '75',
-		setPoint: '70',
-		setbackTemperature: '65',
-		setbackTime: '7',
-	}
-	let location: LocationModel = {
-		street: '567 Pine Avenue Apt 21',
-		city: 'Rivertown',
-		state: 'MA',
-		zip: '02856',
-		country: 'United States of America',
-	}
+	let home = new Home(
+		'Pietro',
+		'Schirano',
+		'3,000',
+		'63',
+		'65',
+		'Natural Gas',
+		'75',
+		'70',
+		'65',
+		'7',
+	)
+
+	let location = new Location(
+		'567 Pine Avenue Apt 21',
+		'Rivertown',
+		'MA',
+		'02856',
+		'United States of America',
+	)
 
 	return (
 		<div className="section-title">
