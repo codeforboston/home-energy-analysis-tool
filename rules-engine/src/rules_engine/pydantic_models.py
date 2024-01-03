@@ -2,6 +2,7 @@
 Data models for input and output data in the rules engine.
 """
 
+from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 from typing import Annotated, Any, List, Optional
@@ -18,9 +19,9 @@ class AnalysisType(Enum):
 class FuelType(Enum):
     """Enum for fuel types. Values are BTU per usage"""
 
-    GAS = 100000
-    OIL = 139600
-    PROPANE = 91333
+    GAS = 100000  # BTU / therm
+    OIL = 139600  # BTU / gal
+    PROPANE = 91333  # BTU / gal
 
 
 def validate_fuel_type(value: Any) -> FuelType:
@@ -47,6 +48,7 @@ class SummaryInput(BaseModel):
     thermostat_set_point: float = Field(description="Summary!B17")
     setback_temperature: Optional[float] = Field(description="Summary!B18")
     setback_hours_per_day: Optional[float] = Field(description="Summary!B19")
+    design_temperature: float = Field(description="TDesign")
 
 
 class DhwInput(BaseModel):
@@ -57,12 +59,19 @@ class DhwInput(BaseModel):
     stand_by_losses: float = Field(description="DHW!B6")
 
 
-class OilPropaneBillingInput(BaseModel):
+class OilPropaneBillingRecordInput(BaseModel):
     """From Oil-Propane tab"""
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
     inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
+
+
+class OilPropaneBillingInput(BaseModel):
+    """From Oil-Propane tab. Container for holding all rows of the billing input table."""
+
+    records: List[OilPropaneBillingRecordInput]
+    preceding_delivery_date: date = Field(description="Oil-Propane!B6")
 
 
 class NaturalGasBillingRecordInput(BaseModel):
@@ -78,6 +87,13 @@ class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
     records: List[NaturalGasBillingRecordInput]
+
+
+class NormalizedBillingPeriodRecordInput(BaseModel):
+    period_start_date: date
+    period_end_date: date
+    usage: float
+    inclusion_override: Optional[AnalysisType]
 
 
 class TemperatureInput(BaseModel):
@@ -106,11 +122,13 @@ class SummaryOutput(BaseModel):
 class BalancePointGraphRow(BaseModel):
     """From Summary page"""
 
-    balance_pt: float = Field(description="Summary!G33:35")
-    ua: float = Field(description="Summary!H33:35")
-    change_in_ua: float = Field(description="Summary!I33:35")
-    pct_change: float = Field(description="Summary!J33:35")
-    std_dev: float = Field(description="Summary!K33:35")
+    balance_point: float = Field(description="Summary!G33:35")  # degree F
+    heat_loss_rate: float = Field(description="Summary!H33:35")  # BTU / (hr-deg. F)
+    change_in_heat_loss_rate: float = Field(
+        description="Summary!I33:35"
+    )  # BTU / (hr-deg. F)
+    percent_change_in_heat_loss_rate: float = Field(description="Summary!J33:35")
+    standard_deviation: float = Field(description="Summary!K33:35")
 
 
 class BalancePointGraph(BaseModel):
@@ -119,5 +137,7 @@ class BalancePointGraph(BaseModel):
     records: List[BalancePointGraphRow]
 
 
+@dataclass
 class Constants:
-    balance_point_sensitivity: float = 0.5
+    BALANCE_POINT_SENSITIVITY: float = 0.5
+    DESIGN_SET_POINT: float = 70

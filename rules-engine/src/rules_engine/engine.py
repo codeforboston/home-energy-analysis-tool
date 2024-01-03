@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import bisect
 import statistics as sts
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, List, Optional, Tuple
-
-import numpy as np
 
 from rules_engine.pydantic_models import (
     AnalysisType,
     BalancePointGraph,
+    BalancePointGraphRow,
+    Constants,
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
+    NormalizedBillingPeriodRecordInput,
     OilPropaneBillingInput,
     SummaryInput,
     SummaryOutput,
@@ -25,8 +27,25 @@ def get_outputs_oil_propane(
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # TODO: normalize oil & propane to billing periods
-    billing_periods = NotImplementedError()
+    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+
+    last_date = oil_propane_billing_input.preceding_delivery_date
+    for input_val in oil_propane_billing_input.records:
+        start_date = last_date + timedelta(days=1)
+        inclusion = (
+            AnalysisType.INCLUDE
+            if input_val.inclusion_override
+            else AnalysisType.DO_NOT_INCLUDE
+        )
+        billing_periods.append(
+            NormalizedBillingPeriodRecordInput(
+                period_start_date=start_date,
+                period_end_date=input_val.period_end_date,
+                usage=input_val.gallons,
+                inclusion_override=inclusion,
+            )
+        )
+        last_date = input_val.period_end_date
 
     return get_outputs_normalized(
         summary_input, dhw_input, temperature_input, billing_periods
@@ -35,15 +54,23 @@ def get_outputs_oil_propane(
 
 def get_outputs_natural_gas(
     summary_input: SummaryInput,
-    dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # TODO: normalize natural gas to billing periods
-    billing_periods = NotImplementedError()
+    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+
+    for input_val in natural_gas_billing_input.records:
+        billing_periods.append(
+            NormalizedBillingPeriodRecordInput(
+                period_start_date=input_val.period_start_date,
+                period_end_date=input_val.period_end_date,
+                usage=input_val.usage_therms,
+                inclusion_override=input_val.inclusion_override,
+            )
+        )
 
     return get_outputs_normalized(
-        summary_input, dhw_input, temperature_input, billing_periods
+        summary_input, None, temperature_input, billing_periods
     )
 
 
@@ -51,24 +78,87 @@ def get_outputs_normalized(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: Any,
+    billing_periods: List[NormalizedBillingPeriodRecordInput],
 ) -> Tuple[SummaryOutput, BalancePointGraph]:
-    # smush together temp and billing periods
+    initial_balance_point = 60
+    intermediate_billing_periods = convert_to_intermediate_billing_periods(
+        temperature_input=temperature_input, billing_periods=billing_periods
+    )
 
-    # home = Home(summary_input, temperature_input, dhw_input, billing_periods)
-    # home.calculate()
+    home = Home(
+        summary_input=summary_input,
+        billing_periods=intermediate_billing_periods,
+        initial_balance_point=initial_balance_point,
+        has_boiler_for_dhw=dhw_input is not None,
+        same_fuel_dhw_heating=dhw_input is not None,
+    )
+    home.calculate()
 
-    # summary_input: SummaryInput,     summary_input
-    # temps: List[List[float]],        temperature_input
-    # usages: List[float],             billing_periods
-    # inclusion_codes: List[int],       billing_periods*
-    # initial_balance_point: float = 60,  n/a
-    # has_boiler_for_dhw: bool = False,    dhw_input
-    # same_fuel_dhw_heating: bool = False, dhw_input
+    average_indoor_temperature = get_average_indoor_temperature(
+        thermostat_set_point=summary_input.thermostat_set_point,
+        setback_temperature=summary_input.setback_temperature,
+        setback_hours_per_day=summary_input.setback_hours_per_day,
+    )
+    average_heat_load = get_average_heat_load(
+        design_set_point=Constants.DESIGN_SET_POINT,
+        avg_indoor_temp=average_indoor_temperature,
+        balance_point=home.balance_point,
+        design_temp=summary_input.design_temperature,
+        ua=home.avg_ua,
+    )
+    maximum_heat_load = get_maximum_heat_load(
+        design_set_point=Constants.DESIGN_SET_POINT,
+        design_temp=summary_input.design_temperature,
+        ua=home.avg_ua,
+    )
 
-    # return (home.summaryOutput, home.balancePointGraph)
+    summary_output = SummaryOutput(
+        estimated_balance_point=home.balance_point,
+        other_fuel_usage=home.avg_non_heating_usage,
+        average_indoor_temperature=average_indoor_temperature,
+        difference_between_ti_and_tbp=average_indoor_temperature - home.balance_point,
+        design_temperature=summary_input.design_temperature,
+        whole_home_heat_loss_rate=home.avg_ua,
+        standard_deviation_of_heat_loss_rate=home.stdev_pct,
+        average_heat_load=average_heat_load,
+        maximum_heat_load=maximum_heat_load,
+    )
 
-    raise NotImplementedError
+    # TODO: fill out balance point graph
+    balance_point_graph = BalancePointGraph(records=[])
+    return (summary_output, balance_point_graph)
+
+
+def convert_to_intermediate_billing_periods(
+    temperature_input: TemperatureInput,
+    billing_periods: List[NormalizedBillingPeriodRecordInput],
+) -> List[BillingPeriod]:
+    # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
+    # in the corresponding billing period
+    intermediate_billing_periods = []
+
+    for billing_period in billing_periods:
+        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
+        start_idx = bisect.bisect_left(
+            temperature_input.dates, billing_period.period_start_date
+        )
+        end_idx = (
+            bisect.bisect_left(temperature_input.dates, billing_period.period_end_date)
+            + 1
+        )
+
+        analysis_type = date_to_analysis_type(billing_period.period_end_date)
+        if billing_period.inclusion_override:
+            analysis_type = billing_period.inclusion_override
+
+        intermediate_billing_period = BillingPeriod(
+            avg_temps=temperature_input.temperatures[start_idx:end_idx],
+            usage=billing_period.usage,
+            analysis_type=analysis_type,
+        )
+        intermediate_billing_periods.append(intermediate_billing_period)
+
+    return intermediate_billing_periods
 
 
 def date_to_analysis_type(d: date) -> AnalysisType:
@@ -86,9 +176,7 @@ def date_to_analysis_type(d: date) -> AnalysisType:
         11: AnalysisType.DO_NOT_INCLUDE,
         12: AnalysisType.INCLUDE,
     }
-
-    # TODO: finish implementation and unit test
-    raise NotImplementedError
+    return months[d.month]
 
 
 def hdd(avg_temp: float, balance_point: float) -> float:
@@ -118,27 +206,36 @@ def period_hdd(avg_temps: List[float], balance_point: float) -> float:
     return sum([hdd(temp, balance_point) for temp in avg_temps])
 
 
-def average_indoor_temp(
-    tstat_set: float, tstat_setback: float, setback_daily_hrs: float
+def get_average_indoor_temperature(
+    thermostat_set_point: float,
+    setback_temperature: Optional[float],
+    setback_hours_per_day: Optional[float],
 ) -> float:
     """
     Calculates the average indoor temperature.
 
     Args:
-        tstat_set: the temp in F at which the home is normally set
-        tstat_setback: temp in F at which the home is set during off
+        thermostat_set_point: the temp in F at which the home is normally set
+        setback_temperature: temp in F at which the home is set during off
         hours
-        setback_daily_hrs: average # of hours per day the home is at
+        setback_hours_per_day: average # of hours per day the home is at
         setback temp
     """
+    if setback_temperature is None:
+        setback_temperature = thermostat_set_point
+
+    if setback_hours_per_day is None:
+        setback_hours_per_day = 0
+
     # again, not sure if we should check for valid values here or whether we can
     # assume those kinds of checks will be handled at the point of user entry
     return (
-        (24 - setback_daily_hrs) * tstat_set + setback_daily_hrs * tstat_setback
+        (24 - setback_hours_per_day) * thermostat_set_point
+        + setback_hours_per_day * setback_temperature
     ) / 24
 
 
-def average_heat_load(
+def get_average_heat_load(
     design_set_point: float,
     avg_indoor_temp: float,
     balance_point: float,
@@ -162,7 +259,9 @@ def average_heat_load(
     return (design_set_point - (avg_indoor_temp - balance_point) - design_temp) * ua
 
 
-def max_heat_load(design_set_point: float, design_temp: float, ua: float) -> float:
+def get_maximum_heat_load(
+    design_set_point: float, design_temp: float, ua: float
+) -> float:
     """
     Calculate the max heat load.
 
@@ -190,9 +289,7 @@ class Home:
     def __init__(
         self,
         summary_input: SummaryInput,
-        temps: List[List[float]],
-        usages: List[float],
-        inclusion_codes: List[int],
+        billing_periods: List[BillingPeriod],
         initial_balance_point: float = 60,
         has_boiler_for_dhw: bool = False,
         same_fuel_dhw_heating: bool = False,
@@ -203,72 +300,20 @@ class Home:
         self.balance_point = initial_balance_point
         self.has_boiler_for_dhw = has_boiler_for_dhw
         self.same_fuel_dhw_heating = same_fuel_dhw_heating
-        self._initialize_billing_periods(temps, usages, inclusion_codes)
+        self._initialize_billing_periods(billing_periods)
 
-    def _initialize_billing_periods(
-        self, temps: List[List[float]], usages: List[float], inclusion_codes: List[int]
-    ) -> None:
-        """
-        TODO
-        """
-        # assume for now that temps and usages have the same number of elements
-
+    def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
         self.bills_winter = []
         self.bills_summer = []
         self.bills_shoulder = []
 
         # winter months 1; summer months -1; shoulder months 0
-        for i, usage in enumerate(usages):
-            billing_period = BillingPeriod(
-                avg_temps=temps[i],
-                usage=usage,
-                balance_point=self.balance_point,
-                inclusion_code=inclusion_codes[i],
-            )
-            if inclusion_codes[i] == 1:
+        for billing_period in billing_periods:
+            billing_period.set_initial_balance_point(self.balance_point)
+
+            if billing_period.analysis_type == AnalysisType.INCLUDE:
                 self.bills_winter.append(billing_period)
-            elif inclusion_codes[i] == -1:
-                self.bills_summer.append(billing_period)
-            else:
-                self.bills_shoulder.append(billing_period)
-
-        self._calculate_avg_summer_usage()
-        self._calculate_avg_non_heating_usage()
-        for billing_period in self.bills_winter:
-            self.initialize_ua(billing_period)
-
-    def _initialize_billing_periods_reworked(
-        self, billingperiods: NaturalGasBillingInput
-    ) -> None:
-        """
-        TODO
-        """
-        # assume for now that temps and usages have the same number of elements
-
-        self.bills_winter = []
-        self.bills_summer = []
-        self.bills_shoulder = []
-
-        # ngb_start_date = billingperiods.period_start_date
-        # ngbs = billingperiods.records
-
-        # TODO: fix these
-        usages: List[float] = []
-        inclusion_codes: List[int] = []
-        temps: List[List[float]] = []
-
-        # winter months 1; summer months -1; shoulder months 0
-        for i, usage in enumerate(usages):
-            billing_period = BillingPeriod(
-                avg_temps=temps[i],
-                usage=usage,
-                balance_point=self.balance_point,
-                inclusion_code=inclusion_codes[i],
-            )
-
-            if inclusion_codes[i] == 1:
-                self.bills_winter.append(billing_period)
-            elif inclusion_codes[i] == -1:
+            elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
                 self.bills_summer.append(billing_period)
             else:
                 self.bills_shoulder.append(billing_period)
@@ -302,21 +347,9 @@ class Home:
 
         return 0 * fuel_multiplier
 
-    """
-    your pseudocode looks correct provided there's outer logic that 
-    check whether the home uses the same fuel for DHW as for heating. If not, anhu=0.
-
-    From an OO design viewpoint, I don't see Summer_billingPeriods as a direct property 
-    of the home. Rather, it's a property of the Location (an object defining the weather 
-    station, and the Winter, Summer and Shoulder billing periods. Of course, Location
-      would be a property of the Home.
-    """
-
     def _calculate_avg_non_heating_usage(self) -> None:
         """
-        Calculate avg non heating usage for this Home
-        Args:
-        #use_same_fuel_DHW_heating
+        Calculate avg non heating usage for this home
         """
 
         if self.fuel_type == FuelType.GAS:
@@ -347,9 +380,9 @@ class Home:
         self._refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
-            biggest_outlier_idx = np.argmax(
-                [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
-            )
+            outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
+            biggest_outlier = max(outliers)
+            biggest_outlier_idx = outliers.index(biggest_outlier)
             outlier = self.bills_winter.pop(
                 biggest_outlier_idx
             )  # removes the biggest outlier
@@ -397,6 +430,9 @@ class Home:
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
+                # TODO: For balance point graph, store the old balance
+                # point in a list to keep track of all intermediate balance
+                # point temperatures?
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
@@ -456,20 +492,22 @@ class Home:
 
 class BillingPeriod:
     avg_heating_usage: float
+    balance_point: float
     partial_ua: float
     ua: float
+    total_hdd: float
 
     def __init__(
         self,
         avg_temps: List[float],
         usage: float,
-        balance_point: float,
-        inclusion_code: int,
+        analysis_type: AnalysisType,
     ) -> None:
         self.avg_temps = avg_temps
         self.usage = usage
-        self.balance_point = balance_point
-        self.inclusion_code = inclusion_code
-
+        self.analysis_type = analysis_type
         self.days = len(self.avg_temps)
+
+    def set_initial_balance_point(self, balance_point: float) -> None:
+        self.balance_point = balance_point
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)

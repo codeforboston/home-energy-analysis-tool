@@ -103,7 +103,7 @@ def data(request):
 
 
 def test_average_indoor_temp(data: Example) -> None:
-    avg_indoor_temp = engine.average_indoor_temp(
+    avg_indoor_temp = engine.get_average_indoor_temperature(
         data.summary.thermostat_set_point,
         data.summary.setback_temperature or 0,
         data.summary.setback_hours_per_day or 0,
