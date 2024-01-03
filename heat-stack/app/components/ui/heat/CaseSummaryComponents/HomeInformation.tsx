@@ -1,17 +1,30 @@
 import { Form } from '@remix-run/react'
+import { type HomeModel } from '#models/Home.tsx'
+import { type LocationModel } from '#models/Location.tsx'
 import { Input } from '../../input.tsx'
 import { Label } from '../../label.tsx'
 
 export function HomeInformation() {
-	const name = 'Pietro Schirano'
-	const street = '567 Pine Avenue Apt 21'
-	const city = 'Rivertown'
-	const state = 'MA'
-	const zip = '02856'
-	const country = 'United States of America'
-	const livingArea = '3,000'
-	const designTemperature = '63'
-	const designTemperatureOverride = '65'
+	let home: HomeModel = {
+		first_name: 'Pietro',
+		last_name: 'Schirano',
+		livingArea: '3,000',
+		designTemperature: '63',
+		designTemperatureOverride: '65',
+		fuelType: 'Natural Gas',
+		heatingSystemEfficiency: '75',
+		setPoint: '70',
+		setbackTemperature: '65',
+		setbackTime: '7',
+	}
+	let location: LocationModel = {
+		street: '567 Pine Avenue Apt 21',
+		city: 'Rivertown',
+		state: 'MA',
+		zip: '02856',
+		country: 'United States of America',
+	}
+
 	return (
 		<div className="section-title">
 			Home Information
@@ -21,22 +34,25 @@ export function HomeInformation() {
 					<div className="item-title">
 						Resident / Client
 						<br />
-						<div className="item-big">{name}</div> <br />
-						Address
-						<div className="item-big">{street}</div>
 						<div className="item-big">
-							{city}, {state}, {zip}
+							{home.first_name} {home.last_name}
+						</div>{' '}
+						<br />
+						Address
+						<div className="item-big">{location.street}</div>
+						<div className="item-big">
+							{location.city}, {location.state}, {location.zip}
 						</div>
-						<div className="item-big">{country}</div> <br />
+						<div className="item-big">{location.country}</div> <br />
 						Living Area (sf)
-						<div className="item-big">{livingArea}</div>
+						<div className="item-big">{home.livingArea}</div>
 					</div>
 				</div>
 
 				<div className="basis-1/2">
 					<div className="item-title">
 						Design Temperature (°F) <br />
-						<div className="item-big">{designTemperature}</div> <br />
+						<div className="item-big">{home.designTemperature}</div> <br />
 						<Form
 							method="GET"
 							action="/users"
@@ -51,7 +67,7 @@ export function HomeInformation() {
 									type="text"
 									name="override"
 									id="override"
-									defaultValue={designTemperatureOverride}
+									defaultValue={home.designTemperatureOverride}
 									className="w-full"
 								/>
 							</div>
