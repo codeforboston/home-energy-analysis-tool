@@ -22,7 +22,7 @@ export function EnergyUseHistory() {
 			<div className="item-group-title">
 				Data Source
 				<br />
-				<div className="item">(removed)</div> <br />
+				<div className="item">(not in schema)</div> <br />
 			</div>
 			<div className="item-group-title">Analysis</div>
 			<div className="flex flex-row">
@@ -46,7 +46,7 @@ export function EnergyUseHistory() {
 						<div className="item">{heatingLoadAnalysis.balancePoint}</div>{' '}
 						<br />
 						No. of Periods Included <br />
-						<div className="item">(removed)</div> <br />
+						<div className="item">(to be calculated)</div> <br />
 					</div>
 				</div>
 				<div className="basis-1/3">
