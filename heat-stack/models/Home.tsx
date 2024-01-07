@@ -1,5 +1,3 @@
-// https://www.tutorialsteacher.com/typescript/typescript-class
-
 export class Home {
 	first_name!: string
 	last_name!: string
