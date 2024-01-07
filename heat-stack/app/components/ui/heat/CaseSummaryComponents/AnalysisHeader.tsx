@@ -20,36 +20,40 @@ export function AnalysisHeader() {
 			<div className="flex flex-row">
 				<div className="basis-1/3">
 					<div className="item-title-small">
-						Average Indoor Temperature (°F) <br />
+						Average Indoor Temperature <br />
 						<div className="item">
-							{heatingLoadAnalysis.averageIndoorTemperature}
+							{heatingLoadAnalysis.averageIndoorTemperature} °F
 						</div>{' '}
 						<br />
-						Daily Other Usage <br />
-						<div className="item">
-							{heatingLoadAnalysis.dailyOtherUsage}
-						</div>{' '}
-						<br />
-					</div>
-				</div>
-				<div className="basis-1/3">
-					<div className="item-title-small">
-						Balance Point (°F) <br />
+						Balance Point Temperature (°F) <br />
 						<div className="item">{heatingLoadAnalysis.balancePoint}</div>{' '}
 						<br />
-						No. of Periods Included <br />
-						<div className="item">(to be calculated)</div> <br />
 					</div>
 				</div>
 				<div className="basis-1/3">
 					<div className="item-title-small">
-						Standard Deviation of UA (%) <br />
+						Number of Periods Included <br />
+						<div className="item">(to be calculated)</div>
+						<br />
+						Daily non-heating Usage <br />
 						<div className="item">
-							{heatingLoadAnalysis.standardDevationUA}
+							{heatingLoadAnalysis.dailyOtherUsage} therms
+						</div>{' '}
+					</div>
+				</div>
+				<div className="basis-1/3">
+					<div className="item-title-small">
+						Standard Deviation of UA <br />
+						<div className="item">
+							{heatingLoadAnalysis.standardDevationUA} %
 						</div>{' '}
 						<br />
-						Whole-home UA (BTU/h-°F) <br />
-						<div className="item">{heatingLoadAnalysis.wholeHomeUA}</div> <br />
+						Whole-home UA
+						<br />
+						<div className="item">
+							{heatingLoadAnalysis.wholeHomeUA} BTU/h-°F
+						</div>{' '}
+						<br />
 					</div>
 				</div>
 			</div>
