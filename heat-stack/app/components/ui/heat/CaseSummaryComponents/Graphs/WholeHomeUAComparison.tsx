@@ -112,7 +112,7 @@ const data = [
 export function WholeHomeUAComparison() {
 	return (
 		<div>
-			<div className="item-title">Whole Home UA Comparison</div>
+			<div className="item-title">Whole Home Heat Loss Comparison</div>
 
 			<ResponsiveContainer width="100%" height={400}>
 				<ComposedChart

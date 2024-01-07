@@ -20,7 +20,7 @@ const data = [
 export function HeatLoad() {
 	return (
 		<div>
-			<div className="item-title">Heat Load</div>
+			<div className="item-title">Heating System Demand</div>
 
 			<ResponsiveContainer width="100%" height={400}>
 				<ScatterChart
