@@ -1,4 +1,5 @@
 import { HeatingLoadAnalysis } from '#models/HeatingLoadAnalysis.tsx'
+import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
 export function EnergyUseHistory() {
@@ -18,50 +19,7 @@ export function EnergyUseHistory() {
 	return (
 		<div className="section-title">
 			Energy Use History
-			<hr />
-			<div className="item-group-title">
-				Data Source
-				<br />
-				<div className="item">(not in schema)</div> <br />
-			</div>
-			<div className="item-group-title">Analysis</div>
-			<div className="flex flex-row">
-				<div className="basis-1/3">
-					<div className="item-title-small">
-						Average Indoor Temperature (°F) <br />
-						<div className="item">
-							{heatingLoadAnalysis.averageIndoorTemperature}
-						</div>{' '}
-						<br />
-						Daily Other Usage <br />
-						<div className="item">
-							{heatingLoadAnalysis.dailyOtherUsage}
-						</div>{' '}
-						<br />
-					</div>
-				</div>
-				<div className="basis-1/3">
-					<div className="item-title-small">
-						Balance Point (°F) <br />
-						<div className="item">{heatingLoadAnalysis.balancePoint}</div>{' '}
-						<br />
-						No. of Periods Included <br />
-						<div className="item">(to be calculated)</div> <br />
-					</div>
-				</div>
-				<div className="basis-1/3">
-					<div className="item-title-small">
-						Standard Deviation of UA (%) <br />
-						<div className="item">
-							{heatingLoadAnalysis.standardDevationUA}
-						</div>{' '}
-						<br />
-						Whole-home UA (BTU/h-°F) <br />
-						<div className="item">{heatingLoadAnalysis.wholeHomeUA}</div> <br />
-					</div>
-				</div>
-			</div>
-			<div className="item-title-small">Usage Details</div>
+			<AnalysisHeader />
 			<EnergyUseHistoryChart />
 		</div>
 	)
