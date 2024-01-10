@@ -9,6 +9,8 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
+// use EnergyUsePeriod objects
+
 const months = [
 	{
 		includeData: true,

@@ -1,4 +1,3 @@
-import { HeatingLoadAnalysis } from '#models/HeatingLoadAnalysis.tsx'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
