@@ -123,10 +123,12 @@ class BalancePointGraphRow(BaseModel):
     """From Summary page"""
 
     balance_point: float = Field(description="Summary!G33:35")  # degree F
-    heat_loss_rate: float = Field(description="Summary!H33:35")  # BTU / (hr-deg. F)
+    heat_loss_rate: float = Field(
+        description="Summary!H33:35"
+    )  # BTU / (hr-deg. F) (UA)
     change_in_heat_loss_rate: float = Field(
         description="Summary!I33:35"
-    )  # BTU / (hr-deg. F)
+    )  # BTU / (hr-deg. F) (change in UA)
     percent_change_in_heat_loss_rate: float = Field(description="Summary!J33:35")
     standard_deviation: float = Field(description="Summary!K33:35")
 

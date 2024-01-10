@@ -153,31 +153,30 @@ def test_bp_ua_with_outlier():
 
 
 def test_convert_to_intermediate_billing_periods():
-
     temperature_dict = {
-        'dates':[
-            '2022-12-01', 
-            '2022-12-02', 
-            '2022-12-03', 
-            '2022-12-04', 
-            '2023-01-01', 
-            '2023-01-02', 
-            '2023-01-03', 
-            '2023-01-04',
-            '2023-02-01',
-            '2023-02-02',
-            '2023-02-03',
-            '2023-02-04', 
-            '2023-03-01',
-            '2023-03-02',
-            '2023-03-03',
-            '2023-03-04', 
-            '2023-04-01',
-            '2023-04-02',
-            '2023-04-03',
-            '2023-04-04', 
+        "dates": [
+            "2022-12-01",
+            "2022-12-02",
+            "2022-12-03",
+            "2022-12-04",
+            "2023-01-01",
+            "2023-01-02",
+            "2023-01-03",
+            "2023-01-04",
+            "2023-02-01",
+            "2023-02-02",
+            "2023-02-03",
+            "2023-02-04",
+            "2023-03-01",
+            "2023-03-02",
+            "2023-03-03",
+            "2023-03-04",
+            "2023-04-01",
+            "2023-04-02",
+            "2023-04-03",
+            "2023-04-04",
         ],
-        'temperatures':[
+        "temperatures": [
             41.7,
             41.6,
             32,
@@ -199,45 +198,46 @@ def test_convert_to_intermediate_billing_periods():
             70,
             69,
         ],
-
     }
 
     temperature_input = TemperatureInput(**temperature_dict)
 
     billing_periods_dict = [
         {
-            'period_start_date':'2022-12-01',
-            'period_end_date':'2022-12-04',
-            'usage':60,
-            'inclusion_override':None,
+            "period_start_date": "2022-12-01",
+            "period_end_date": "2022-12-04",
+            "usage": 60,
+            "inclusion_override": None,
         },
         {
-            'period_start_date':'2023-01-01',
-            'period_end_date':'2023-01-04',
-            'usage':50,
-            'inclusion_override':None,
+            "period_start_date": "2023-01-01",
+            "period_end_date": "2023-01-04",
+            "usage": 50,
+            "inclusion_override": None,
         },
         {
-            'period_start_date':'2023-02-01',
-            'period_end_date':'2023-02-04',
-            'usage':45,
-            'inclusion_override':None,
+            "period_start_date": "2023-02-01",
+            "period_end_date": "2023-02-04",
+            "usage": 45,
+            "inclusion_override": None,
         },
         {
-            'period_start_date':'2023-03-01',
-            'period_end_date':'2023-03-04',
-            'usage':30,
-            'inclusion_override':None,
+            "period_start_date": "2023-03-01",
+            "period_end_date": "2023-03-04",
+            "usage": 30,
+            "inclusion_override": None,
         },
         {
-            'period_start_date':'2023-04-01',
-            'period_end_date':'2023-04-04',
-            'usage':0.96,
-            'inclusion_override':None,
+            "period_start_date": "2023-04-01",
+            "period_end_date": "2023-04-04",
+            "usage": 0.96,
+            "inclusion_override": None,
         },
     ]
 
-    billing_periods = [NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict]
+    billing_periods = [
+        NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict
+    ]
 
     results = engine.convert_to_intermediate_billing_periods(
         temperature_input, billing_periods
