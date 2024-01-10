@@ -10,7 +10,7 @@ export function HomeInformation() {
 		<div>
 			<h2 className='text-5xl font-extrabold tracking-wide'>Home Information</h2>
 
-			<Form action='/homes'>
+			<Form method="post" action='/homes'>
 
 				<div className='mt-10'>
 					<h6 className='text-zinc-950 text-2xl font-semibold'>Resident/Client</h6>
@@ -34,7 +34,7 @@ export function HomeInformation() {
 
 					<div className='mt-4 flex space-x-4'>
 						<div>
-							<Label htmlFor="address">Street adress</Label>
+							<Label htmlFor="address">Street address</Label>
 							<Input name="address" id="address" type="text" placeholder="76 Framingham Ave." />
 							<Input name="addressTwo" id="adressTwo" type="text" placeholder="Apt 256" />
 
