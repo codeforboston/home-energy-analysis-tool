@@ -10,7 +10,8 @@ export default function Home() {
 				Some paths with placeholder pages are:
 				<li>/heatloadanalysis - see an example heat load analysis</li>
 				<li>/cases - see a list of cases</li>
-				<li>input screens: /inputs1, /inputs2, /inputs3</li>
+				<li>/single - view as a single page app</li>
+				<li>/inputs1, /inputs2, /inputs3 - individual input screens </li>
 				<li>/epicstack - information about the Epic Stack</li>
 			</ul>
 		</div>
