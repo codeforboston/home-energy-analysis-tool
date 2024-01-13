@@ -1,9 +1,18 @@
+import { type Home } from '#model/Homes.tsx'
+
 export function CurrentHeatingSystem() {
-	const fuelType = 'Natural Gas'
-	const heatingSystemEfficiency = '75'
-	const setPoint = '70'
-	const setbackTemperature = '65'
-	const setbackTime = '7'
+	const someHome: Home = {
+		livingArea: 0,
+		fuelType: 'Natural Gas',
+		// designTemperatureOverride: number,
+		heatingSystemEfficiency: 75,
+		thermostatSetPoint: 70,
+		setbackTemperature: 65,
+		setBackHoursPerDay: 7,
+		// numberOfOccupants: number
+		// estimatedWaterHeatingEfficiency: number
+		// standByLosses: number
+	}
 
 	return (
 		<div className="section-title">
@@ -14,10 +23,13 @@ export function CurrentHeatingSystem() {
 					<div className="item-title">
 						Fuel Type
 						<br />
-						<div className="item-big">{fuelType}</div> <br />
+						<div className="item-big">{someHome.fuelType}</div> <br />
 						Heating System Efficiency (%)
 						<br />
-						<div className="item-big">{heatingSystemEfficiency}</div> <br />
+						<div className="item-big">
+							{someHome.heatingSystemEfficiency}
+						</div>{' '}
+						<br />
 					</div>
 				</div>
 
@@ -25,12 +37,12 @@ export function CurrentHeatingSystem() {
 					<div className="item-group-title">Thermostat Settings</div>
 					<div className="item-title">
 						Set Point (°F) <br />
-						<div className="item">{setPoint}</div> <br />
+						<div className="item">{someHome.setbackTemperature}</div> <br />
 						Setback Temperature (°F)
 						<br />
-						<div className="item">{setbackTemperature}</div> <br />
+						<div className="item">{someHome.setbackTemperature}</div> <br />
 						Setback Time (h)
-						<div className="item">{setbackTime}</div>
+						<div className="item">{someHome.setBackHoursPerDay}</div>
 					</div>
 				</div>
 			</div>
