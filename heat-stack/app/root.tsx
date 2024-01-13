@@ -145,11 +145,15 @@ export default function HeatStack({
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
-				<div>Site header</div>
-				<br />
-				<Outlet />
-				<br />
-				<div>Site footer</div>
+				<div className="container items-center justify-between gap-4 md:h-24 md:flex-row">
+					<div>Site header</div>
+					<hr />
+					<br />
+					<Outlet />
+					<br />
+					<hr />
+					<div>Site footer</div>
+				</div>
 				<script
 					nonce={nonce}
 					dangerouslySetInnerHTML={{
