@@ -4,14 +4,14 @@ export function CurrentHeatingSystem() {
 	const someHome: Home = {
 		livingArea: 0,
 		fuelType: 'Natural Gas',
-		// designTemperatureOverride: number,
+		designTemperatureOverride: 0,
 		heatingSystemEfficiency: 75,
 		thermostatSetPoint: 70,
 		setbackTemperature: 65,
 		setBackHoursPerDay: 7,
-		// numberOfOccupants: number
-		// estimatedWaterHeatingEfficiency: number
-		// standByLosses: number
+		numberOfOccupants: 0,
+		estimatedWaterHeatingEfficiency: 0,
+		standByLosses: 0,
 	}
 
 	return (

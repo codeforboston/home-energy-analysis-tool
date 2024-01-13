@@ -1,9 +1,4 @@
-export class OilPropaneBill {
-	provider!: number
-	precedingDeliverDate!: Date
-
-	constructor(provider: number, precedingDeliverDate: Date) {
-		this.provider = provider
-		this.precedingDeliverDate = precedingDeliverDate
-	}
+export interface OilPropaneBill {
+	provider: number
+	precedingDeliverDate: Date
 }
