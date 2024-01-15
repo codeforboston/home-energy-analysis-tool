@@ -4,11 +4,10 @@ import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
 export function Graphs() {
 	const fuelType = 'Natural Gas'
+	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	return (
 		<div>
-			<h2 className="text-5xl font-extrabold tracking-wide">
-				Heat Load Analysis
-			</h2>
+			<h2 className={`${titleClassTailwind}`}>Heat Load Analysis</h2>
 			Fuel Type
 			{fuelType}
 			<AnalysisHeader />
