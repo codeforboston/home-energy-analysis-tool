@@ -6,12 +6,13 @@ import { Label } from '#/app/components/ui/label.tsx'
 export function HomeInformation() {
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const subTitleClassTailwind = 'text-2xl font-semibold text-zinc-950'
+	const componentMargin = 'mt-10'
 	return (
 		<div>
 			<h2 className={`${titleClassTailwind}`}>Home Information</h2>
 
 			<Form method="post" action="/homes">
-				<div className="mt-10">
+				<div className={`${componentMargin}`}>
 					<h6 className={`${subTitleClassTailwind}`}>Resident/Client</h6>
 
 					<div className="mt-4 flex space-x-4">
