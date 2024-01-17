@@ -1,39 +1,83 @@
+import { Form } from '@remix-run/react'
+// removed temporarily for single-page app format
+// import { Button } from '#/app/components/ui/button.tsx'
+import { Input } from '#/app/components/ui/input.tsx'
+import { Label } from '#/app/components/ui/label.tsx'
+
 export function CurrentHeatingSystem() {
-	const fuelType = 'Natural Gas'
-	const heatingSystemEfficiency = '75'
-	const setPoint = '70'
-	const setbackTemperature = '65'
-	const setbackTime = '7'
-
+	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
+	const subTitleClassTailwind = 'text-2xl font-semibold text-zinc-950'
+	const componentMargin = 'mt-10'
 	return (
-		<div className="section-title">
-			Current Heating System
-			<hr />
-			<div className="flex flex-row">
-				<div className="basis-1/2">
-					<div className="item-title">
-						Fuel Type
-						<br />
-						<div className="item-big">{fuelType}</div> <br />
-						Heating System Efficiency (%)
-						<br />
-						<div className="item-big">{heatingSystemEfficiency}</div> <br />
+		<div>
+			<h2 className={`${titleClassTailwind} ${componentMargin}`}>
+				Existing Heating System
+			</h2>
+
+			<Form method="post" action="/current">
+				<div className={`${componentMargin}`}>
+					<Label htmlFor="fuelType">Fuel Type</Label>
+					<Input name="fuelType" id="fuelType" type="text" />
+				</div>
+
+				<div className="mt-4 flex space-x-4">
+					<div>
+						<Label htmlFor="heatingSystemEfficiency">
+							Heating system efficiency %
+						</Label>
+						<Input
+							name="heatingSystemEfficiency"
+							id="heatingSystemEfficiency"
+							type="text"
+						/>
+					</div>
+
+					<div>
+						<Label htmlFor="designTemperatureOverride">
+							Design temperature override (°F)
+						</Label>
+						<Input
+							name="designTemperatureOverride"
+							id="designTemperatureOverride"
+							type="text"
+						/>
 					</div>
 				</div>
 
-				<div className="basis-1/2">
-					<div className="item-group-title">Thermostat Settings</div>
-					<div className="item-title">
-						Set Point (°F) <br />
-						<div className="item">{setPoint}</div> <br />
-						Setback Temperature (°F)
-						<br />
-						<div className="item">{setbackTemperature}</div> <br />
-						Setback Time (h)
-						<div className="item">{setbackTime}</div>
+				<div className="mt-9">
+					<h6 className={`${subTitleClassTailwind}`}>Thermostat Settings</h6>
+
+					<div className="mt-4 flex space-x-4">
+						<div className="basis-1/3">
+							<Label htmlFor="setPoint">Set Point (°F) </Label>
+							<Input
+								name="setPointTemperature"
+								id="setPointTemperature"
+								type="text"
+							/>
+						</div>
+
+						<div className="basis-1/3">
+							<Label htmlFor="setPoint">Setback Temperature (°F)</Label>
+							<Input
+								name="setBackTemperature"
+								id="setBackTemperature"
+								type="text"
+							/>
+						</div>
+
+						<div className="basis-1/3">
+							<Label htmlFor="setPoint">Setback hours per day</Label>
+							<Input name="setBackTime" id="setBackTime" type="text" />
+						</div>
 					</div>
 				</div>
-			</div>
+			</Form>
+
+			{/* removed temporarily for single page app format */}
+			{/* <div>
+				<Button type="submit">Next ={'>'}</Button>
+			</div> */}
 		</div>
 	)
 }

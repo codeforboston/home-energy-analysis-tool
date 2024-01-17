@@ -5,11 +5,13 @@ export default function Home() {
 				This is the Heat Home page - the first page a user will see when
 				starting the app
 			</h1>
-
-			<h1>Some paths with placeholder pages are:</h1>
+			<br />
 			<ul>
-				<li>/casesummary - see an example case summary</li>
+				Some paths with placeholder pages are:
+				<li>/heatloadanalysis - see an example heat load analysis</li>
 				<li>/cases - see a list of cases</li>
+				<li>/single - view as a single page app</li>
+				<li>/inputs1, /inputs2, /inputs3 - individual input screens </li>
 				<li>/epicstack - information about the Epic Stack</li>
 			</ul>
 		</div>
