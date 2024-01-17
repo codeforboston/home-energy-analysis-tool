@@ -1,4 +1,4 @@
 export interface OilPropaneBill {
-	provider: number
-	precedingDeliverDate: Date
+	provider: string
+	precedingDeliveryDate: Date
 }

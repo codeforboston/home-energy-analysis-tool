@@ -1,11 +1,11 @@
 export interface Home {
 	livingArea: number
-	fuelType: string // number?
+	fuelType: 'Natural Gas' | 'Oil'
 	designTemperatureOverride: number
 	heatingSystemEfficiency: number
 	thermostatSetPoint: number
 	setbackTemperature: number
-	setBackHoursPerDay: number
+	setbackHoursPerDay: number
 	numberOfOccupants: number
 	estimatedWaterHeatingEfficiency: number
 	standByLosses: number

@@ -1,9 +1,9 @@
 export interface HeatLoadAnalysis {
-	rules_engine_version: string
+	rulesEngineVersion: string
 	estimatedBalancePoint: number
 	otherFuelUsage: number
 	averageIndoorTemperature: number
-	differenceBetweenBAndTBP: number
+	differenceBetweenTiAndTbp: number
 	designTemperature: number
 	wholeHomeHeatLossRate: number
 	standardDeviationHeatLossRate: number
