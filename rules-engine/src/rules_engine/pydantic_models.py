@@ -113,8 +113,10 @@ class SummaryOutput(BaseModel):
     design_temperature: float = Field(description="Summary!B26")
     whole_home_heat_loss_rate: float = Field(
         description="Summary!B27"
-    )  # UA = heat loss rate
-    standard_deviation_of_heat_loss_rate: float = Field(description="Summary!B28")
+    )  # Whole Home UA. UA = heat loss rate
+    standard_deviation_of_heat_loss_rate: float = Field(
+        description="Summary!B28"
+    )  # Standard deviation of UA
     average_heat_load: float = Field(description="Summary!B29")
     maximum_heat_load: float = Field(description="Summary!B30")
 

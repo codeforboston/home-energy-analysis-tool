@@ -17,6 +17,146 @@ from rules_engine.pydantic_models import (
 )
 
 
+@pytest.fixture()
+def sample_billing_periods() -> list[engine.BillingPeriod]:
+    billing_periods = [
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+    ]
+    return billing_periods
+
+
+@pytest.fixture()
+def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
+    billing_periods = [
+        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+    ]
+
+    return billing_periods
+
+
+@pytest.fixture()
+def sample_summary_inputs() -> SummaryInput:
+    heat_sys_efficiency = 0.88
+
+    living_area = 1000
+    thermostat_set_point = 68
+    setback_temperature = 60
+    setback_hours_per_day = 8
+    fuel_type = FuelType.GAS
+    design_temperature = 60
+    summary_input = SummaryInput(
+        living_area=living_area,
+        fuel_type=fuel_type,
+        heating_system_efficiency=heat_sys_efficiency,
+        thermostat_set_point=thermostat_set_point,
+        setback_temperature=setback_temperature,
+        setback_hours_per_day=setback_hours_per_day,
+        design_temperature=design_temperature,
+    )
+    return summary_input
+
+
+@pytest.fixture()
+def sample_temp_inputs() -> TemperatureInput:
+    temperature_dict = {
+        "dates": [
+            "2022-12-01",
+            "2022-12-02",
+            "2022-12-03",
+            "2022-12-04",
+            "2023-01-01",
+            "2023-01-02",
+            "2023-01-03",
+            "2023-01-04",
+            "2023-02-01",
+            "2023-02-02",
+            "2023-02-03",
+            "2023-02-04",
+            "2023-03-01",
+            "2023-03-02",
+            "2023-03-03",
+            "2023-03-04",
+            "2023-04-01",
+            "2023-04-02",
+            "2023-04-03",
+            "2023-04-04",
+        ],
+        "temperatures": [
+            41.7,
+            41.6,
+            32,
+            25.4,
+            28,
+            29,
+            30,
+            29,
+            32,
+            35,
+            35,
+            38,
+            41,
+            43,
+            42,
+            42,
+            72,
+            71,
+            70,
+            69,
+        ],
+    }
+
+    return TemperatureInput(**temperature_dict)
+
+
+@pytest.fixture()
+def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordInput]:
+    billing_periods_dict = [
+        {
+            "period_start_date": "2022-12-01",
+            "period_end_date": "2022-12-04",
+            "usage": 60,
+            "inclusion_override": None,
+        },
+        {
+            "period_start_date": "2023-01-01",
+            "period_end_date": "2023-01-04",
+            "usage": 50,
+            "inclusion_override": None,
+        },
+        {
+            "period_start_date": "2023-02-01",
+            "period_end_date": "2023-02-04",
+            "usage": 45,
+            "inclusion_override": None,
+        },
+        {
+            "period_start_date": "2023-03-01",
+            "period_end_date": "2023-03-04",
+            "usage": 30,
+            "inclusion_override": None,
+        },
+        {
+            "period_start_date": "2023-04-01",
+            "period_end_date": "2023-04-04",
+            "usage": 0.96,
+            "inclusion_override": None,
+        },
+    ]
+
+    billing_periods = [
+        NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict
+    ]
+
+    return billing_periods
+
+
 @pytest.mark.parametrize(
     "avg_temp, balance_point, expected_result",
     [
@@ -65,33 +205,10 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates():
-    billing_periods = [
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
-    ]
-    heat_sys_efficiency = 0.88
-    living_area = 1000
-    thermostat_set_point = 68
-    setback_temperature = 60
-    setback_hours_per_day = 8
-    fuel_type = FuelType.GAS
-    design_temperature = 60
-    summary_input = SummaryInput(
-        living_area=living_area,
-        fuel_type=fuel_type,
-        heating_system_efficiency=heat_sys_efficiency,
-        thermostat_set_point=thermostat_set_point,
-        setback_temperature=setback_temperature,
-        setback_hours_per_day=setback_hours_per_day,
-        design_temperature=design_temperature,
-    )
-
+def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     home = engine.Home(
-        summary_input,
-        billing_periods,
+        sample_summary_inputs,
+        sample_billing_periods,
         initial_balance_point=58,
     )
 
@@ -107,36 +224,10 @@ def test_bp_ua_estimates():
     assert home.stdev_pct == approx(0.0474, abs=0.01)
 
 
-def test_bp_ua_with_outlier():
-    billing_periods = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
-    ]
-
-    heat_sys_efficiency = 0.88
-
-    living_area = 1000
-    thermostat_set_point = 68
-    setback_temperature = 60
-    setback_hours_per_day = 8
-    fuel_type = FuelType.GAS
-    design_temperature = 60
-    summary_input = SummaryInput(
-        living_area=living_area,
-        fuel_type=fuel_type,
-        heating_system_efficiency=heat_sys_efficiency,
-        thermostat_set_point=thermostat_set_point,
-        setback_temperature=setback_temperature,
-        setback_hours_per_day=setback_hours_per_day,
-        design_temperature=design_temperature,
-    )
-
+def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
     home = engine.Home(
-        summary_input,
-        billing_periods,
+        sample_summary_inputs,
+        sample_billing_periods_with_outlier,
         initial_balance_point=58,
     )
 
@@ -152,95 +243,11 @@ def test_bp_ua_with_outlier():
     assert home.stdev_pct == approx(0.0474, abs=0.01)
 
 
-def test_convert_to_intermediate_billing_periods():
-    temperature_dict = {
-        "dates": [
-            "2022-12-01",
-            "2022-12-02",
-            "2022-12-03",
-            "2022-12-04",
-            "2023-01-01",
-            "2023-01-02",
-            "2023-01-03",
-            "2023-01-04",
-            "2023-02-01",
-            "2023-02-02",
-            "2023-02-03",
-            "2023-02-04",
-            "2023-03-01",
-            "2023-03-02",
-            "2023-03-03",
-            "2023-03-04",
-            "2023-04-01",
-            "2023-04-02",
-            "2023-04-03",
-            "2023-04-04",
-        ],
-        "temperatures": [
-            41.7,
-            41.6,
-            32,
-            25.4,
-            28,
-            29,
-            30,
-            29,
-            32,
-            35,
-            35,
-            38,
-            41,
-            43,
-            42,
-            42,
-            72,
-            71,
-            70,
-            69,
-        ],
-    }
-
-    temperature_input = TemperatureInput(**temperature_dict)
-
-    billing_periods_dict = [
-        {
-            "period_start_date": "2022-12-01",
-            "period_end_date": "2022-12-04",
-            "usage": 60,
-            "inclusion_override": None,
-        },
-        {
-            "period_start_date": "2023-01-01",
-            "period_end_date": "2023-01-04",
-            "usage": 50,
-            "inclusion_override": None,
-        },
-        {
-            "period_start_date": "2023-02-01",
-            "period_end_date": "2023-02-04",
-            "usage": 45,
-            "inclusion_override": None,
-        },
-        {
-            "period_start_date": "2023-03-01",
-            "period_end_date": "2023-03-04",
-            "usage": 30,
-            "inclusion_override": None,
-        },
-        {
-            "period_start_date": "2023-04-01",
-            "period_end_date": "2023-04-04",
-            "usage": 0.96,
-            "inclusion_override": None,
-        },
-    ]
-
-    billing_periods = [
-        NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict
-    ]
-
+def test_convert_to_intermediate_billing_periods(
+    sample_temp_inputs, sample_normalized_billing_periods
+):
     results = engine.convert_to_intermediate_billing_periods(
-        temperature_input, billing_periods
+        sample_temp_inputs, sample_normalized_billing_periods
     )
 
     expected_results = [
@@ -258,3 +265,19 @@ def test_convert_to_intermediate_billing_periods():
         assert result.avg_temps == expected_result.avg_temps
         assert result.usage == expected_result.usage
         assert result.analysis_type == expected_result.analysis_type
+
+
+def test_get_outputs_normalized(
+    sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
+):
+    summary_output, balance_point_graph = engine.get_outputs_normalized(
+        sample_summary_inputs,
+        None,
+        sample_temp_inputs,
+        sample_normalized_billing_periods,
+    )
+
+    assert summary_output.estimated_balance_point == 60
+    # assert summary_output.home.avg_ua == approx(1515.1, abs=1)
+    # assert home.stdev_pct == approx(0.0474, abs=0.01)
+    pass

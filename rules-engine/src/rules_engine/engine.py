@@ -124,8 +124,7 @@ def get_outputs_normalized(
         maximum_heat_load=maximum_heat_load,
     )
 
-    # TODO: fill out balance point graph
-    balance_point_graph = BalancePointGraph(records=[])
+    balance_point_graph = home.balance_point_graph
     return (summary_output, balance_point_graph)
 
 
