@@ -2,5 +2,5 @@ export interface OilPropaneBillRecords {
 	periodStartDate: Date
 	periodEndDate: Date
 	gallons: number
-	inclusionOverride: number
+	inclusionOverride: 'Include' | 'Do not include' | 'Include in other analysis'
 }

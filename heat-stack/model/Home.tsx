@@ -1,6 +1,6 @@
 export interface Home {
 	livingArea: number
-	fuelType: 'Natural Gas' | 'Oil'
+	fuelType: 'Natural Gas' | 'Oil' | 'Propane'
 	designTemperatureOverride: number
 	heatingSystemEfficiency: number
 	thermostatSetPoint: number
