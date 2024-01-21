@@ -151,6 +151,8 @@ def convert_to_intermediate_billing_periods(
             analysis_type = billing_period.inclusion_override
 
         intermediate_billing_period = BillingPeriod(
+            start_date=billing_period.period_start_date,
+            end_date=billing_period.period_end_date,
             avg_temps=temperature_input.temperatures[start_idx:end_idx],
             usage=billing_period.usage,
             analysis_type=analysis_type,
@@ -518,6 +520,9 @@ class Home:
             # BTUs/hour
         )
 
+    def get_all_billing_periods(self) -> List[BillingPeriod]:
+        return self.bills_winter + self.bills_shoulder + self.bills_summer
+
 
 class BillingPeriod:
     avg_heating_usage: float
@@ -528,10 +533,14 @@ class BillingPeriod:
 
     def __init__(
         self,
+        start_date: date,
+        end_date: date,
         avg_temps: List[float],
         usage: float,
         analysis_type: AnalysisType,
     ) -> None:
+        self.start_date = start_date
+        self.end_date = end_date
         self.avg_temps = avg_temps
         self.usage = usage
         self.analysis_type = analysis_type
