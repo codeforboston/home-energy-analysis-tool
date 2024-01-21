@@ -1,9 +1,13 @@
 import { Form } from '@remix-run/react'
-// import { Button } from '#/app/components/ui/button.tsx'
+import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 
-export function HomeInformation() {
+interface IncrementProps { increment: Function, session: unknown }
+
+export function HomeInformation(props: IncrementProps) {
+	const session = props.session;
+
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const subTitleClassTailwind = 'text-2xl font-semibold text-zinc-950'
 	const componentMargin = 'mt-10'
@@ -11,7 +15,7 @@ export function HomeInformation() {
 		<div>
 			<h2 className={`${titleClassTailwind}`}>Home Information</h2>
 
-			<Form method="post" action="/homes">
+			<Form method="post" action="/single">
 				<div className={`${componentMargin}`}>
 					<h6 className={`${subTitleClassTailwind}`}>Resident/Client</h6>
 
@@ -71,11 +75,14 @@ export function HomeInformation() {
 					</div>
 				</div>
 
+				<button style={{border: "1px solid black", padding: "3px", background: "tomato"}} onClick={props.increment}>Increment by 5</button>
+
 				{/* removed temporarily for single page app format */}
-				{/* <div>
-					<Button type="submit">Next ={'>'}</Button>
-				</div> */}
+				 <div>
+					<Button type="submit">Add 3</Button>
+				</div>
 			</Form>
+
 		</div>
 	)
 }

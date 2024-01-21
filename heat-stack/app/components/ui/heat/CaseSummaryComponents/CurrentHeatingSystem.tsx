@@ -4,7 +4,11 @@ import { Form } from '@remix-run/react'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 
-export function CurrentHeatingSystem() {
+interface MyNumProps { my_num: number, session: unknown }
+
+export function CurrentHeatingSystem( props: MyNumProps ) {
+	const session = props.session;
+
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const subTitleClassTailwind = 'text-2xl font-semibold text-zinc-950'
 	const componentMargin = 'mt-10'
@@ -13,6 +17,8 @@ export function CurrentHeatingSystem() {
 			<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 				Existing Heating System
 			</h2>
+
+			<div>Hooks: { props.my_num }, Cookies: { JSON.stringify(props) }</div>
 
 			<Form method="post" action="/current">
 				<div className={`${componentMargin}`}>
