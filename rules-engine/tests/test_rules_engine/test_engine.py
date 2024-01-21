@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 from pytest import approx
@@ -20,10 +20,34 @@ from rules_engine.pydantic_models import (
 @pytest.fixture()
 def sample_billing_periods() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            datetime(2023, 1, 1),
+            datetime(2023, 1, 4),
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 8),
+            datetime(2023, 1, 11),
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 15),
+            datetime(2023, 1, 18),
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 5, 1),
+            datetime(2023, 5, 4),
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.DO_NOT_INCLUDE,
+        ),
     ]
     return billing_periods
 
@@ -31,11 +55,41 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 @pytest.fixture()
 def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            datetime(2023, 1, 1),
+            datetime(2023, 1, 4),
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 8),
+            datetime(2023, 1, 11),
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 15),
+            datetime(2023, 1, 18),
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 22),
+            datetime(2023, 1, 25),
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 5, 1),
+            datetime(2023, 5, 4),
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.DO_NOT_INCLUDE,
+        ),
     ]
 
     return billing_periods
@@ -243,6 +297,74 @@ def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_o
     assert home.stdev_pct == approx(0.0474, abs=0.01)
 
 
+def test_analysis_type_outputs(sample_summary_inputs):
+    # these would already be constructed in convert_to_intermediate_billing_periods before Home is built
+    analysis_type_sample_billing_periods = [
+        engine.BillingPeriod(
+            datetime(2023, 1, 1),
+            datetime(2023, 1, 4),
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 8),
+            datetime(2023, 1, 11),
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 9, 1),
+            datetime(2023, 9, 4),
+            [60, 55, 49, 40],
+            5,
+            AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 9, 9),
+            datetime(2023, 9, 12),
+            [60, 54, 55, 52],
+            21,
+            AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 5, 1),
+            datetime(2023, 5, 4),
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.DO_NOT_INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 5, 9),
+            datetime(2023, 5, 12),
+            [80, 65, 70, 75],
+            0.95,
+            AnalysisType.DO_NOT_INCLUDE,
+        ),
+    ]
+
+    home = engine.Home(
+        sample_summary_inputs,
+        analysis_type_sample_billing_periods,
+        initial_balance_point=58,
+    )
+
+    home.calculate()
+
+    results = home.get_all_billing_periods()
+    # expecting results back in same order as input as they are presorted to INCLUDE, INCLUDE_IN_OTHER, DO_NOT_INCLUDE
+    expected_results = analysis_type_sample_billing_periods
+
+    for i in range(len(expected_results)):
+        result = results[i]
+        expected_result = expected_results[i]
+
+        assert result.start_date == expected_result.start_date
+        assert result.end_date == expected_result.end_date
+        assert result.analysis_type == expected_result.analysis_type
+
+
 def test_convert_to_intermediate_billing_periods(
     sample_temp_inputs, sample_normalized_billing_periods
 ):
@@ -251,11 +373,41 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            datetime(2023, 1, 1),
+            datetime(2023, 1, 4),
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 8),
+            datetime(2023, 1, 11),
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 15),
+            datetime(2023, 1, 18),
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 1, 22),
+            datetime(2023, 1, 25),
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.INCLUDE,
+        ),
+        engine.BillingPeriod(
+            datetime(2023, 5, 1),
+            datetime(2023, 5, 4),
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.DO_NOT_INCLUDE,
+        ),
     ]
 
     for i in range(len(expected_results)):

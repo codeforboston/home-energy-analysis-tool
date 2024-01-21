@@ -112,7 +112,7 @@ def test_average_indoor_temp(data: Example) -> None:
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
 
 
-def test_get_outputs_natural_gas(data: Example):
+def test_get_outputs_natural_gas(data: Example) -> None:
     summary_output, balance_point_graph = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
