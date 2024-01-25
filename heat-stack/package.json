@@ -28,7 +28,9 @@
     "test:e2e:run": "cross-env CI=true playwright test",
     "test:e2e:install": "npx playwright install --with-deps chromium",
     "typecheck": "tsc",
-    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
+    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "eslintIgnore": [
     "/node_modules",
@@ -38,7 +40,6 @@
     "/server-build"
   ],
   "dependencies": {
-
     "@conform-to/react": "^0.9.1",
     "@conform-to/zod": "^0.9.1",
     "@epic-web/cachified": "^4.0.0",
@@ -86,8 +87,8 @@
     "intl-parse-accept-language": "^1.0.0",
     "isbot": "^3.7.1",
     "litefs-js": "^1.1.2",
-    "lucide-react": "^0.292.0",
     "lru-cache": "^10.1.0",
+    "lucide-react": "^0.292.0",
     "morgan": "^1.10.0",
     "prisma": "^5.6.0",
     "pyodide": "0.24.1",
@@ -117,6 +118,14 @@
     "@remix-run/serve": "^2.3.1",
     "@remix-run/testing": "^2.3.1",
     "@sly-cli/sly": "^1.4.10",
+    "@storybook/addon-essentials": "^7.6.10",
+    "@storybook/addon-interactions": "^7.6.10",
+    "@storybook/addon-links": "^7.6.10",
+    "@storybook/addon-onboarding": "^1.0.11",
+    "@storybook/blocks": "^7.6.10",
+    "@storybook/react": "^7.6.10",
+    "@storybook/react-vite": "^7.6.10",
+    "@storybook/test": "^7.6.10",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
@@ -143,6 +152,7 @@
     "esbuild": "^0.19.8",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-storybook": "^0.6.15",
     "fs-extra": "^11.2.0",
     "jsdom": "^22.1.0",
     "msw": "2.0.9",
@@ -153,6 +163,7 @@
     "prettier-plugin-sql": "^0.17.0",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "remix-flat-routes": "^0.6.2",
+    "storybook": "^7.6.10",
     "tsx": "^4.6.0",
     "typescript": "^5.3.2",
     "vite": "^5.0.4",

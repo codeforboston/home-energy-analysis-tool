@@ -4,11 +4,7 @@ const appFiles = ['app/**']
 
 /** @type {import('@types/eslint').Linter.BaseConfig} */
 module.exports = {
-	extends: [
-		'@remix-run/eslint-config',
-		'@remix-run/eslint-config/node',
-		'prettier',
-	],
+	extends: ['@remix-run/eslint-config', '@remix-run/eslint-config/node', 'prettier', 'plugin:storybook/recommended'],
 	rules: {
 		// playwright requires destructuring in fixtures even if you don't use anything 🤷‍♂️
 		'no-empty-pattern': 'off',
