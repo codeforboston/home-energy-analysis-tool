@@ -70,3 +70,27 @@ jobs:
       - name: Build wheel
         run: |
           make build
+      - name: store wheel
+        uses: actions/upload-artifact@v3
+        with: python-package-distributions
+        path: dist/
+  publish-to-test:
+    name: Publish to testpypi
+    needs:
+    - build
+    runs-on: ubuntu-latest
+    environment:
+      url: https://test.pypi.org/p/rules-engine 
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download dist
+      uses: actions/download-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
+      - name: publish to testpypi
+        uses: pypa/gh-actions-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy
