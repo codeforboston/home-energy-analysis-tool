@@ -91,7 +91,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: python-package-distributions
-          path: dist/rules_engine-0.0.1-py3-none-any.whl
+          path: ${{ env.working-directory }}/dist/
       - name: publish to testpypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
