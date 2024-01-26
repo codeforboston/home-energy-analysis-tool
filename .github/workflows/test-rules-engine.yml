@@ -88,11 +88,10 @@ jobs:
 
     steps:
       - name: Download dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
-          path: ${{ env.working-directory }}/dist/
       - name: publish to testpypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy
+          repository-url: https://test.pypi.org/legacy/
