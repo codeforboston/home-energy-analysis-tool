@@ -4,16 +4,17 @@ import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 
 export function HomeInformation() {
-	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
-	const subTitleClassTailwind = 'text-2xl font-semibold text-zinc-950'
+	const titleClass = 'text-5xl font-extrabold tracking-wide'
+	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
+	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 	return (
 		<div>
-			<h2 className={`${titleClassTailwind}`}>Home Information</h2>
+			<h2 className={`${titleClass}`}>Home Information</h2>
 
 			<Form method="post" action="/homes">
 				<div className={`${componentMargin}`}>
-					<h6 className={`${subTitleClassTailwind}`}>Resident/Client</h6>
+					<h6 className={`${subtitleClass}`}>Resident/Client</h6>
 
 					<div className="mt-4 flex space-x-4">
 						<div>
@@ -28,7 +29,7 @@ export function HomeInformation() {
 				</div>
 
 				<div className="mt-9">
-					<h6 className={`${subTitleClassTailwind}`}>Address</h6>
+					<h6 className={`${subtitleClass}`}>Address</h6>
 
 					<div className="mt-4 flex space-x-4">
 						<div>
@@ -36,7 +37,7 @@ export function HomeInformation() {
 							<Input name="address" id="address" type="text" />
 							<Input name="addressTwo" id="adressTwo" type="text" />
 
-							<div className="mt-4 flex">
+							<div className="mt-4 flex space-x-4">
 								<div>
 									<Label htmlFor="city">City/Town</Label>
 									<Input name="city" id="city" type="text" />
@@ -56,15 +57,15 @@ export function HomeInformation() {
 
 				<div className="mt-9">
 					<h6>
-						<Label className={`${subTitleClassTailwind}`} htmlFor="livingArea">
+						<Label className={`${subtitleClass}`} htmlFor="livingArea">
 							Living Area (sf)
 						</Label>
 					</h6>
 
-					<div className="mt-4">
+					<div className="mt-4 flex space-x-2">
 						<div>
 							<Input name="livingArea" id="livingArea" type="number" />
-							<p className="mt-2 text-sm text-slate-500">
+							<p className={`${descriptiveClass}`}>
 								The home's above-grade, conditioned space
 							</p>
 						</div>
@@ -73,8 +74,8 @@ export function HomeInformation() {
 
 				{/* removed temporarily for single page app format */}
 				{/* <div>
-					<Button type="submit">Next ={'>'}</Button>
-				</div> */}
+          <Button type="submit">Next ={'>'}</Button>
+        </div> */}
 			</Form>
 		</div>
 	)
