@@ -1,9 +1,18 @@
+import { HeatLoadAnalysis } from '#model/HeatLoadAnalysis.tsx'
+
 export function AnalysisHeader() {
-	const averageIndoorTemperature = '63.5'
-	const dailyOtherUsage = '1.07'
-	const balancePoint = '60.5'
-	const standardDevationUA = '5.52'
-	const wholeHomeUA = '1,112'
+	const heatLoadAnalysis: HeatLoadAnalysis = {
+		rulesEngineVersion: 'Beta 1',
+		estimatedBalancePoint: 60.5,
+		otherFuelUsage: 1.07,
+		averageIndoorTemperature: 68,
+		differenceBetweenTiAndTbp: 0,
+		designTemperature: 0,
+		wholeHomeHeatLossRate: 1112,
+		standardDeviationHeatLossRate: 5.52,
+		averageHeatLoad: 0,
+		maximumHeatLoad: 0,
+	}
 
 	return (
 		<div className="section-title">
@@ -12,9 +21,15 @@ export function AnalysisHeader() {
 				<div className="basis-1/3">
 					<div className="item-title-small">
 						Average Indoor Temperature <br />
-						<div className="item">{averageIndoorTemperature} °F</div> <br />
+						<div className="item">
+							{heatLoadAnalysis.averageIndoorTemperature} °F
+						</div>{' '}
+						<br />
 						Balance Point Temperature (°F) <br />
-						<div className="item">{balancePoint}</div> <br />
+						<div className="item">
+							{heatLoadAnalysis.estimatedBalancePoint}
+						</div>{' '}
+						<br />
 					</div>
 				</div>
 				<div className="basis-1/3">
@@ -23,16 +38,24 @@ export function AnalysisHeader() {
 						<div className="item">(to be calculated)</div>
 						<br />
 						Daily non-heating Usage <br />
-						<div className="item">{dailyOtherUsage} therms</div>{' '}
+						<div className="item">
+							{heatLoadAnalysis.otherFuelUsage} therms
+						</div>{' '}
 					</div>
 				</div>
 				<div className="basis-1/3">
 					<div className="item-title-small">
 						Standard Deviation of UA <br />
-						<div className="item">{standardDevationUA} %</div> <br />
+						<div className="item">
+							{heatLoadAnalysis.standardDeviationHeatLossRate} %
+						</div>{' '}
+						<br />
 						Whole-home UA
 						<br />
-						<div className="item">{wholeHomeUA} BTU/h-°F</div> <br />
+						<div className="item">
+							{heatLoadAnalysis.wholeHomeHeatLossRate} BTU/h-°F
+						</div>{' '}
+						<br />
 					</div>
 				</div>
 			</div>
