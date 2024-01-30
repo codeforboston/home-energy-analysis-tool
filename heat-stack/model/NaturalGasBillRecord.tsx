@@ -1,4 +1,4 @@
-export interface NaturalGasBillRecords {
+export interface NaturalGasBillRecord {
 	periodStartDate: Date
 	periodEndDate: Date
 	usageTherms: number

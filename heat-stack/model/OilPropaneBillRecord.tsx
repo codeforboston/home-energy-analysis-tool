@@ -1,4 +1,4 @@
-export interface OilPropaneBillRecords {
+export interface OilPropaneBillRecord {
 	periodStartDate: Date
 	periodEndDate: Date
 	gallons: number
