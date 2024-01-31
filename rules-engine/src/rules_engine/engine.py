@@ -313,9 +313,9 @@ class Home:
             if billing_period.analysis_type == AnalysisType.INCLUDE:
                 self.bills_winter.append(billing_period)
             elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
-                self.bills_summer.append(billing_period)
-            else:
                 self.bills_shoulder.append(billing_period)
+            else:
+                self.bills_summer.append(billing_period)
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
