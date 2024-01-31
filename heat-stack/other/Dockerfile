@@ -9,6 +9,15 @@ ENV NODE_ENV production
 # Install openssl for Prisma
 RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
 
+FROM base AS rules-eng
+
+SHELL ["/bin/bash","-c"]
+
+RUN apt install -y python3 python3-venv && \
+python3 -m venv .venv && \
+source .venv/bin/activate && \
+pip download --no-deps -d .venv/tmp -i https://test.pypi.org/simple/ rules-engine
+
 # Install all node_modules, including dev dependencies
 FROM base as deps
 
@@ -65,6 +74,7 @@ COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 COPY --from=build /myapp/server-build /myapp/server-build
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
+COPY --from=rules-eng /.venv/tmp/ /myapp/public/pyodide-env/
 COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/prisma /myapp/prisma
 COPY --from=build /myapp/app/components/ui/icons /myapp/app/components/ui/icons
