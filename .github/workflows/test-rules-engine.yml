@@ -70,9 +70,6 @@ jobs:
       - name: Build wheel
         run: |
           make build
-      - name: list dist
-        run: |
-          ls -al dist
       - name: store wheel
         uses: actions/upload-artifact@v4
         with: 
