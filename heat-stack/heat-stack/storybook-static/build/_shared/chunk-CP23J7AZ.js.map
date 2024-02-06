@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../app/components/floating-toolbar.tsx"],
+  "sourcesContent": ["// REMIX HMR BEGIN\nimport * as __hmr__ from \"remix:hmr\";\nif (import.meta) {\nimport.meta.hot = __hmr__.createHotContext(\n//@ts-expect-error\n\"app/components/floating-toolbar.tsx\"\n);\nimport.meta.hot.lastModified = \"1706218436648.8835\";\n}\n// REMIX HMR END\n\nexport const floatingToolbarClassName =\n\t'absolute bottom-3 left-3 right-3 flex items-center gap-2 rounded-lg bg-muted/80 p-4 pl-5 shadow-xl shadow-accent backdrop-blur-sm md:gap-4 md:pl-7 justify-end'\n"],
+  "mappings": ";;;;;AAEA,IAAI,aAAa;AACjB,cAAY,MAAc;AAAA;AAAA,IAE1B;AAAA,EACA;AACA,cAAY,IAAI,eAAe;AAC/B;AAGO,IAAM,2BACZ;",
+  "names": []
+}
