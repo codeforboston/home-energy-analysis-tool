@@ -1,3 +1,4 @@
+import { type NaturalGasBillRecord } from '#types/index.js'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {

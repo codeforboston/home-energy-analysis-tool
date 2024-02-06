@@ -1,3 +1,5 @@
+import { type HeatLoadAnalysis } from '#types/index.js'
+
 export function AnalysisHeader() {
 	const heatLoadAnalysis: HeatLoadAnalysis = {
 		rulesEngineVersion: 'Beta 1',
