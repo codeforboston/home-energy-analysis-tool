@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["empty-module:#app/utils/toast.server.ts"],
-  "sourcesContent": ["module.exports = {};"],
-  "mappings": ";;;;;AAAA;AAAA;AAAA,WAAO,UAAU,CAAC;AAAA;AAAA;",
-  "names": []
-}

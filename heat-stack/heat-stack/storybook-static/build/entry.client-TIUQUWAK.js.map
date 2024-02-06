@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../app/entry.client.tsx"],
-  "sourcesContent": ["// REMIX HMR BEGIN\nimport * as __hmr__ from \"remix:hmr\";\nif (import.meta) {\nimport.meta.hot = __hmr__.createHotContext(\n//@ts-expect-error\n\"app/entry.client.tsx\"\n);\nimport.meta.hot.lastModified = \"1706218436648.8835\";\n}\n// REMIX HMR END\n\nimport { RemixBrowser } from '@remix-run/react'\nimport { startTransition } from 'react'\nimport { hydrateRoot } from 'react-dom/client'\n\nif (ENV.MODE === 'production' && ENV.SENTRY_DSN) {\n\timport('./utils/monitoring.client.tsx').then(({ init }) => init())\n}\n\nstartTransition(() => {\n\thydrateRoot(document, <RemixBrowser />)\n})\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;AAYA,IAAAA,gBAAgC;AAChC,oBAA4B;AAOL;AAlBvB,IAAI,aAAa;AACjB,cAAY,MAAc;AAAA;AAAA,IAE1B;AAAA,EACA;AACA,cAAY,IAAI,eAAe;AAC/B;AAOA,IAAI,IAAI,SAAS,gBAAgB,IAAI,YAAY;AAChD,SAAO,8CAA+B,EAAE,KAAK,CAAC,EAAE,KAAK,MAAM,KAAK,CAAC;AAClE;AAAA,IAEA,+BAAgB,MAAM;AACrB,iCAAY,UAAU,mDAAC,kBAAD;AAAA;AAAA;AAAA;AAAA,SAAc,CAAE;AACvC,CAAC;",
-  "names": ["import_react"]
-}

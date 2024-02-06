@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../app/routes/users+/$username_+/notes.new.tsx"],
-  "sourcesContent": ["// REMIX HMR BEGIN\nimport * as __hmr__ from \"remix:hmr\";\nif (import.meta) {\nimport.meta.hot = __hmr__.createHotContext(\n//@ts-expect-error\n\"app/routes/users+/$username_+/notes.new.tsx\"\n);\nimport.meta.hot.lastModified = \"1706218436656.8838\";\n}\n// REMIX HMR END\n\nimport { json } from '@remix-run/node'\nimport { type DataFunctionArgs } from '@remix-run/server-runtime'\nimport { requireUserId } from '#app/utils/auth.server.ts'\nimport { NoteEditor, action } from './__note-editor.tsx'\n\nexport async function loader({ request }: DataFunctionArgs) {\n\tawait requireUserId(request)\n\treturn json({})\n}\n\nexport { action }\nexport default NoteEditor\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAWA,kBAAqB;AAErB,yBAA8B;AAX9B,IAAI,aAAa;AACjB,cAAY,MAAc;AAAA;AAAA,IAE1B;AAAA,EACA;AACA,cAAY,IAAI,eAAe;AAC/B;AAcA,IAAO,oBAAQ;",
-  "names": []
-}

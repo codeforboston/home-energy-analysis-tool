@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../app/utils/user.ts"],
-  "sourcesContent": ["// REMIX HMR BEGIN\nimport * as __hmr__ from \"remix:hmr\";\nif (import.meta) {\nimport.meta.hot = __hmr__.createHotContext(\n//@ts-expect-error\n\"app/utils/user.ts\"\n);\nimport.meta.hot.lastModified = \"1706218436656.8838\";\n}\n// REMIX HMR END\n\nimport { type SerializeFrom } from '@remix-run/node'\nimport { useRouteLoaderData } from '@remix-run/react'\nimport { type loader as rootLoader } from '#app/root.tsx'\n\nfunction isUser(user: any): user is SerializeFrom<typeof rootLoader>['user'] {\n\treturn user && typeof user === 'object' && typeof user.id === 'string'\n}\n\nexport function useOptionalUser() {\n\tconst data = useRouteLoaderData<typeof rootLoader>('root')\n\tif (!data || !isUser(data.user)) {\n\t\treturn undefined\n\t}\n\treturn data.user\n}\n\nexport function useUser() {\n\tconst maybeUser = useOptionalUser()\n\tif (!maybeUser) {\n\t\tthrow new Error(\n\t\t\t'No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.',\n\t\t)\n\t}\n\treturn maybeUser\n}\n"],
-  "mappings": ";;;;;;;;AAEA,IAAI,aAAa;AACjB,cAAY,MAAc;AAAA;AAAA,IAE1B;AAAA,EACA;AACA,cAAY,IAAI,eAAe;AAC/B;AAOA,SAAS,OAAO,MAA6D;AAC5E,SAAO,QAAQ,OAAO,SAAS,YAAY,OAAO,KAAK,OAAO;AAC/D;AAEO,SAAS,kBAAkB;AACjC,QAAM,OAAO,mBAAsC,MAAM;AACzD,MAAI,CAAC,QAAQ,CAAC,OAAO,KAAK,IAAI,GAAG;AAChC,WAAO;AAAA,EACR;AACA,SAAO,KAAK;AACb;AAEO,SAAS,UAAU;AACzB,QAAM,YAAY,gBAAgB;AAClC,MAAI,CAAC,WAAW;AACf,UAAM,IAAI;AAAA,MACT;AAAA,IACD;AAAA,EACD;AACA,SAAO;AACR;",
-  "names": []
-}
