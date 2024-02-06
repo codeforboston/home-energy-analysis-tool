@@ -1,4 +1,3 @@
-import { type NaturalGasBillRecord } from '#model/NaturalGasBillRecord.tsx'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {

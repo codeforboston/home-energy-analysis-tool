@@ -1,5 +1,3 @@
-import { HeatLoadAnalysis } from '#model/HeatLoadAnalysis.tsx'
-
 export function AnalysisHeader() {
 	const heatLoadAnalysis: HeatLoadAnalysis = {
 		rulesEngineVersion: 'Beta 1',
