@@ -109,14 +109,16 @@ def test_average_indoor_temp(data: Example) -> None:
         data.summary.setback_temperature or 0,
         data.summary.setback_hours_per_day or 0,
     )
-    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.05)
+    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
 
 
 def test_get_outputs_natural_gas(data: Example):
     summary_output, balance_point_graph = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert data.summary.estimated_balance_point == approx(summary_output.estimated_balance_point, rel=0.05)
+    assert data.summary.estimated_balance_point == approx(
+        summary_output.estimated_balance_point, rel=0.05
+    )
 
 
 # def test_ua(data: Example) -> None:
