@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 import pytest
 from pytest import approx
@@ -65,7 +66,7 @@ def sample_summary_inputs() -> SummaryInput:
 
 @pytest.fixture()
 def sample_temp_inputs() -> TemperatureInput:
-    temperature_dict = {
+    temperature_dict: Any = {
         "dates": [
             "2022-12-01",
             "2022-12-02",
@@ -117,7 +118,7 @@ def sample_temp_inputs() -> TemperatureInput:
 
 @pytest.fixture()
 def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordInput]:
-    billing_periods_dict = [
+    billing_periods_dict: Any = [
         {
             "period_start_date": "2022-12-01",
             "period_end_date": "2022-12-04",
@@ -217,11 +218,11 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
     assert home.balance_point == 60
-    assert ua_1 == approx(1450.5, abs=1)
-    assert ua_2 == approx(1615.3, abs=1)
-    assert ua_3 == approx(1479.6, abs=1)
-    assert home.avg_ua == approx(1515.1, abs=1)
-    assert home.stdev_pct == approx(0.0474, abs=0.01)
+    assert ua_1 == approx(1478.50, abs=0.01)
+    assert ua_2 == approx(1650.00, abs=0.01)
+    assert ua_3 == approx(1527.78, abs=0.01)
+    assert home.avg_ua == approx(1552.09, abs=0.01)
+    assert home.stdev_pct == approx(0.0465, abs=0.01)
 
 
 def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
@@ -233,14 +234,15 @@ def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_o
 
     home.calculate()
 
-    ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
+    # expect that ua_1 is considered an outlier and not used in bills_winter
+    ua_2, ua_3, ua_4 = [bill.ua for bill in home.bills_winter]
 
-    assert home.balance_point == 60
-    assert ua_1 == approx(1450.5, abs=1)
-    assert ua_2 == approx(1615.3, abs=1)
-    assert ua_3 == approx(1479.6, abs=1)
-    assert home.avg_ua == approx(1515.1, abs=1)
-    assert home.stdev_pct == approx(0.0474, abs=0.01)
+    assert home.balance_point == 60.5
+    assert ua_2 == approx(1455.03, abs=0.01)
+    assert ua_3 == approx(1617.65, abs=0.01)
+    assert ua_4 == approx(1486.49, abs=0.01)
+    assert home.avg_ua == approx(1519.72, abs=1)
+    assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
 def test_convert_to_intermediate_billing_periods(
@@ -277,7 +279,8 @@ def test_get_outputs_normalized(
         sample_normalized_billing_periods,
     )
 
-    assert summary_output.estimated_balance_point == 60
-    # assert summary_output.home.avg_ua == approx(1515.1, abs=1)
-    # assert home.stdev_pct == approx(0.0474, abs=0.01)
-    pass
+    assert summary_output.estimated_balance_point == 60.5
+    assert summary_output.whole_home_heat_loss_rate == approx(1519.72, abs=1)
+    assert summary_output.standard_deviation_of_heat_loss_rate == approx(
+        0.0463, abs=0.01
+    )
