@@ -112,67 +112,16 @@ def test_average_indoor_temp(data: Example) -> None:
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
 
 
-def test_get_outputs_natural_gas(data: Example):
+def test_get_outputs_natural_gas(data: Example) -> None:
     summary_output, balance_point_graph = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
+    
     assert data.summary.estimated_balance_point == approx(
-        summary_output.estimated_balance_point, rel=0.05
+        summary_output.estimated_balance_point, abs=0.1
     )
+    assert summary_output.whole_home_heat_loss_rate == approx(data.summary.whole_home_heat_loss_rate, abs=0.01)
+    assert summary_output.standard_deviation_of_heat_loss_rate == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
 
 
-# def test_ua(data: Example) -> None:
-#     """
-#     Test how the rules engine calculates UA from energy bills.
 
-#     Pulls in data and pre-calculated results from example spreadsheets
-#     and compares them to the UA calculated from that data by the
-#     engine.
-#     """
-#     # TODO: Handle oil and propane fuel types too
-#     usage_data = None
-#     if data.summary.fuel_type is engine.FuelType.GAS:
-#         usage_data = data.natural_gas_usage
-#     else:
-#         raise NotImplementedError("Fuel type {}".format(data.summary.fuel_type))
-
-#     # build Home instance - input summary information and bills
-#     home = engine.Home(
-#         data.summary,
-#         data.summary.fuel_type,
-#         data.summary.heating_system_efficiency,
-#         thermostat_set_point=data.summary.thermostat_set_point,
-#     )
-#     temps = []
-#     usages = []
-#     inclusion_codes = []
-#     for usage in usage_data.records:
-#         temps_for_period = []
-#         for i in range(usage.days_in_bill):
-#             date_in_period = usage.start_date + timedelta(days=i)
-#             matching_records = [
-#                 d for d in data.temperature_data if d.date == date_in_period
-#             ]
-#             assert len(matching_records) == 1
-#             temps_for_period.append(matching_records[0].temperature)
-#         assert date_in_period == usage.end_date
-
-#         inclusion_code = usage.inclusion_code
-#         if usage.inclusion_override is not None:
-#             inclusion_code = usage.inclusion_override
-
-#         temps.append(temps_for_period)
-#         usages.append(usage.usage)
-#         inclusion_codes.append(inclusion_code)
-
-#     home.initialize_billing_periods(temps, usages, inclusion_codes)
-
-#     # now check outputs
-#     home.calculate_balance_point_and_ua(
-#         initial_balance_point_sensitivity=data.summary.balance_point_sensitivity
-#     )
-
-#     assert home.balance_point == approx(data.summary.estimated_balance_point, abs=0.01)
-#     assert home.avg_ua == approx(data.summary.whole_home_heat_loss_rate, abs=1)
-#     assert home.stdev_pct == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
-#     # TODO: check average heat load and max heat load
