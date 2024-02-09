@@ -7,6 +7,7 @@
     "#*": "./*"
   },
   "scripts": {
+    "postinstall": "patch-package --patch-dir ./other/patches",
     "build": "run-s build:*",
     "build:icons": "tsx ./other/build-icons.ts",
     "build:remix": "remix build --sourcemap",
