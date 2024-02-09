@@ -10,7 +10,7 @@ cp .env.example .env
 
 # make sure you're using node version 18
 npm install -g nvm
-nvm use 18
+nvm use 20
 
 # install and patch the environment
 npm install
@@ -24,7 +24,7 @@ npm run dev
 # create an environment file
 cp .env.example .env
 
-nvm use 18
+nvm use 20
 npm install
 npm run dev
 ```
