@@ -80,7 +80,7 @@ To re-create the patch for py file support in `/patch`, use these [instructions]
 </div>
 
 ```sh
-npx create-remix@latest --install --template epicweb-dev/epic-stack
+npx create-epic-app@latest
 ```
 
 [![The Epic Stack](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/246885449-1b00286c-aa3d-44b2-9ef2-04f694eb3592.png)](https://www.epicweb.dev/epic-stack)
@@ -91,9 +91,9 @@ npx create-remix@latest --install --template epicweb-dev/epic-stack
 
 ## Watch Kent's Introduction to The Epic Stack
 
-[![screenshot of a YouTube video](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/242088051-6beafa78-41c6-47e1-b999-08d3d3e5cb57.png)](https://www.youtube.com/watch?v=yMK5SVRASxM)
+[![Epic Stack Talk slide showing Flynn Rider with knives, the text "I've been around and I've got opinions" and Kent speaking in the corner](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/277818553-47158e68-4efc-43ae-a477-9d1670d4217d.png)](https://www.epicweb.dev/talks/the-epic-stack)
 
-["The Epic Stack" by Kent C. Dodds at #RemixConf 2023 💿](https://www.youtube.com/watch?v=yMK5SVRASxM)
+["The Epic Stack" by Kent C. Dodds](https://www.epicweb.dev/talks/the-epic-stack)
 
 ## Docs
 
