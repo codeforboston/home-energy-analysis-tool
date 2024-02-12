@@ -1,3 +1,4 @@
 public/pyodide-env/
 public/build
 build/index.js
+public/heat-stack/storybook-static
