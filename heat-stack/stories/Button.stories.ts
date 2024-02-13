@@ -26,29 +26,37 @@ type Story = StoryObj<typeof meta>;
 //variants seem like they'd make for a decent starting point for stories
 // for args, I think variant and size should work
 
-export const Primary: Story = {
-  args: {
-    primary: true,
-    label: 'Button',
-  },
-};
+// export const Primary: Story = {
+//   args: {
+//     primary: true,
+//     label: 'Button',
+//   },
+// };
 
-export const Secondary: Story = {
-  args: {
-    label: 'Button',
-  },
-};
+// export const Secondary: Story = {
+//   args: {
+//     label: 'Button',
+//   },
+// };
 
-export const Large: Story = {
-  args: {
-    size: 'large',
-    label: 'Button',
-  },
-};
+// export const Large: Story = {
+//   args: {
+//     size: 'large',
+//     label: 'Button',
+//   },
+// };
 
-export const Small: Story = {
+// export const Small: Story = {
+//   args: {
+//     size: 'small',
+//     label: 'Button',
+//   },
+// };
+
+export const Default: Story = {
   args: {
-    size: 'small',
+    variant: 'default',
+    size: 'default',
     label: 'Button',
-  },
+  }
 };

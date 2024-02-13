@@ -13,7 +13,7 @@ interface ButtonProps {
   /**
    * How large should the button be?
    */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'default' | 'wide' | 'sm' | 'lg' | 'pill' | 'icon';
   /**
    * Button contents
    */
@@ -21,6 +21,7 @@ interface ButtonProps {
   /**
    * Optional click handler
    */
+  variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   onClick?: () => void;
 }
 
@@ -29,7 +30,7 @@ interface ButtonProps {
  */
 export const Button = ({
   primary = false,
-  size = 'medium',
+  size = 'default',
   backgroundColor,
   label,
   ...props
