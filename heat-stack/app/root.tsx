@@ -223,19 +223,21 @@ function App() {
 		<Document nonce={nonce} env={data.ENV}>
 			<div className="flex h-screen flex-col justify-between">
 				<header className="container py-6">
-					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-						<Logo />
-						<div className="flex items-center gap-10">
-							{user ? (
-								<UserDropdown />
-							) : (
-								<Button asChild variant="default" size="lg">
-									<Link to="/login">Log In</Link>
-								</Button>
-							)}
-						</div>
-						<div className="block w-full sm:hidden">{searchBar}</div>
-					</nav>
+					{
+						<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+							<TopLinks />
+							<div className="flex items-center gap-10">
+								{user ? (
+									<UserDropdown />
+								) : (
+									<Button asChild variant="default" size="lg">
+										{/* <Link to="/login">Log In</Link> */}
+									</Button>
+								)}
+							</div>
+							<div className="block w-full sm:hidden">{searchBar}</div>
+						</nav>
+					}
 				</header>
 
 				<div className="flex-1">
@@ -249,7 +251,7 @@ function App() {
 				</div>
 
 				<div className="container flex justify-between pb-5">
-					<Logo />
+					<TopLinks />
 				</div>
 			</div>
 			<EpicProgress />
@@ -257,7 +259,7 @@ function App() {
 	)
 }
 
-function Logo() {
+function TopLinks() {
 	return (
 		<>
 			<Link to="/single" className="group grid leading-snug">
@@ -267,7 +269,7 @@ function Logo() {
 			</Link>
 			<Link to="/" className="group grid leading-snug">
 				<span className="font-light transition group-hover:-translate-x-1">
-					root
+					developers
 				</span>
 			</Link>
 		</>
