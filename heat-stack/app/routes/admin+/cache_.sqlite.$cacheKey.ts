@@ -1,11 +1,11 @@
-import { json, type DataFunctionArgs } from '@remix-run/node'
+import { invariantResponse } from '@epic-web/invariant'
+import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { getAllInstances, getInstanceInfo } from 'litefs-js'
 import { ensureInstance } from 'litefs-js/remix.js'
 import { cache } from '#app/utils/cache.server.ts'
-import { invariantResponse } from '#app/utils/misc.tsx'
-import { requireUserWithRole } from '#app/utils/permissions.ts'
+import { requireUserWithRole } from '#app/utils/permissions.server.ts'
 
-export async function loader({ request, params }: DataFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
 	await requireUserWithRole(request, 'admin')
 	const searchParams = new URL(request.url).searchParams
 	const currentInstanceInfo = await getInstanceInfo()

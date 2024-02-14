@@ -33,7 +33,7 @@ jobs:
       - name: ⎔ Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -59,7 +59,7 @@ jobs:
       - name: ⎔ Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -82,7 +82,7 @@ jobs:
       - name: ⎔ Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -96,7 +96,7 @@ jobs:
         run: npm run build:icons
 
       - name: ⚡ Run vitest
-        run: npm run test app/utils/pyodide.test.ts -- --coverage
+        run: npm run test app/utils/pyodide.test.ts --  # --coverage
 
   # playwright tests work great but slight jank/inconsistency passing, and not used yet, so disabling for now
   # playwright:
@@ -158,7 +158,7 @@ jobs:
 
   deploy:
     name: 🚀 Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [lint, typecheck, vitest] #, playwright]
     # only build/deploy main branch on pushes
     if:

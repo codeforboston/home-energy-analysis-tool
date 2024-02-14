@@ -1,7 +1,7 @@
 # This file is moved to the root directory before building the image
 
 # base node image
-FROM node:18-bookworm-slim as base
+FROM node:20-bookworm-slim as base
 
 # set for base and all layer that inherit from it
 ENV NODE_ENV production
@@ -15,7 +15,6 @@ FROM base as deps
 WORKDIR /myapp
 
 ADD package.json package-lock.json .npmrc ./
-ADD ./other/patches ./other/patches
 RUN npm install --include=dev
 
 # Setup production node_modules

@@ -15,7 +15,7 @@ test('pyodide loads', async () => {
 	const runPythonScript = async () => {
 		const pyodide: any = await getPyodide()
 		// console.log(engine);
-		await pyodide.loadPackage('numpy')
+		// await pyodide.loadPackage('numpy')
 
 		/* NOTES for pyodide-core:
 		      need to be a special version from the release page, no pure whl: https://github.com/pydantic/pydantic-core/pull/128

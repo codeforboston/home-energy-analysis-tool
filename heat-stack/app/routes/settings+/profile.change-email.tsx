@@ -1,10 +1,15 @@
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { invariant } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import * as E from '@react-email/components'
-import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
+import {
+	json,
+	redirect,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+} from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -15,10 +20,9 @@ import {
 	type VerifyFunctionArgs,
 } from '#app/routes/_auth+/verify.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendEmail } from '#app/utils/email.server.ts'
-import { invariant, useIsPending } from '#app/utils/misc.tsx'
+import { useIsPending } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { EmailSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
@@ -36,17 +40,26 @@ export async function handleVerification({
 	submission,
 }: VerifyFunctionArgs) {
 	await requireRecentVerification(request)
-	invariant(submission.value, 'submission.value should be defined by now')
+	invariant(
+		submission.status === 'success',
+		'Submission should be successful by now',
+	)
 
 	const verifySession = await verifySessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
 	const newEmail = verifySession.get(newEmailAddressSessionKey)
 	if (!newEmail) {
-		submission.error[''] = [
-			'You must submit the code on the same device that requested the email change.',
-		]
-		return json({ status: 'error', submission } as const, { status: 400 })
+		return json(
+			{
+				result: submission.reply({
+					formErrors: [
+						'You must submit the code on the same device that requested the email change.',
+					],
+				}),
+			},
+			{ status: 400 },
+		)
 	}
 	const preUpdateUser = await prisma.user.findFirstOrThrow({
 		select: { email: true },
@@ -83,7 +96,7 @@ const ChangeEmailSchema = z.object({
 	email: EmailSchema,
 })
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
 	await requireRecentVerification(request)
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({
@@ -97,11 +110,10 @@ export async function loader({ request }: DataFunctionArgs) {
 	return json({ user })
 }
 
-export async function action({ request }: DataFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
-	await validateCSRF(formData, request.headers)
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: ChangeEmailSchema.superRefine(async (data, ctx) => {
 			const existingUser = await prisma.user.findUnique({
 				where: { email: data.email },
@@ -117,11 +129,11 @@ export async function action({ request }: DataFunctionArgs) {
 		async: true,
 	})
 
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
+	if (submission.status !== 'success') {
+		return json(
+			{ result: submission.reply() },
+			{ status: submission.status === 'error' ? 400 : 200 },
+		)
 	}
 	const { otp, redirectTo, verifyUrl } = await prepareVerification({
 		period: 10 * 60,
@@ -145,8 +157,14 @@ export async function action({ request }: DataFunctionArgs) {
 			},
 		})
 	} else {
-		submission.error[''] = [response.error.message]
-		return json({ status: 'error', submission } as const, { status: 500 })
+		return json(
+			{
+				result: submission.reply({ formErrors: [response.error.message] }),
+			},
+			{
+				status: 500,
+			},
+		)
 	}
 }
 
@@ -211,10 +229,10 @@ export default function ChangeEmailIndex() {
 
 	const [form, fields] = useForm({
 		id: 'change-email-form',
-		constraint: getFieldsetConstraint(ChangeEmailSchema),
-		lastSubmission: actionData?.submission,
+		constraint: getZodConstraint(ChangeEmailSchema),
+		lastResult: actionData?.result,
 		onValidate({ formData }) {
-			return parse(formData, { schema: ChangeEmailSchema })
+			return parseWithZod(formData, { schema: ChangeEmailSchema })
 		},
 	})
 
@@ -227,17 +245,19 @@ export default function ChangeEmailIndex() {
 				An email notice will also be sent to your old address {data.user.email}.
 			</p>
 			<div className="mx-auto mt-5 max-w-sm">
-				<Form method="POST" {...form.props}>
-					<AuthenticityTokenInput />
+				<Form method="POST" {...getFormProps(form)}>
 					<Field
 						labelProps={{ children: 'New Email' }}
-						inputProps={conform.input(fields.email)}
+						inputProps={{
+							...getInputProps(fields.email, { type: 'email' }),
+							autoComplete: 'email',
+						}}
 						errors={fields.email.errors}
 					/>
 					<ErrorList id={form.errorId} errors={form.errors} />
 					<div>
 						<StatusButton
-							status={isPending ? 'pending' : actionData?.status ?? 'idle'}
+							status={isPending ? 'pending' : form.status ?? 'idle'}
 						>
 							Send Confirmation
 						</StatusButton>
