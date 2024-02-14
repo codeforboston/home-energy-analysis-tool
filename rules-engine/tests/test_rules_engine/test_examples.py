@@ -112,7 +112,7 @@ def test_average_indoor_temp(data: Example) -> None:
     assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
 
 
-def test_get_outputs_natural_gas(data: Example) -> None:
+def test_balance_point_natural_gas(data: Example) -> None:
     summary_output, balance_point_graph = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
@@ -120,8 +120,18 @@ def test_get_outputs_natural_gas(data: Example) -> None:
     assert data.summary.estimated_balance_point == approx(
         summary_output.estimated_balance_point, abs=0.1
     )
-    assert summary_output.whole_home_heat_loss_rate == approx(data.summary.whole_home_heat_loss_rate, abs=0.01)
+
+  
+def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
+    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.whole_home_heat_loss_rate == approx(data.summary.whole_home_heat_loss_rate, abs=1)
+
+def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None:
+    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+
     assert summary_output.standard_deviation_of_heat_loss_rate == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
-
-
 

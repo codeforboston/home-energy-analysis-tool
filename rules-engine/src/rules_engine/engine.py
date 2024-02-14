@@ -363,7 +363,7 @@ class Home:
 
     def _calculate_balance_point_and_ua(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -392,6 +392,8 @@ class Home:
 
         self._refine_balance_point(initial_balance_point_sensitivity)
 
+        print(self.stdev_pct, stdev_pct_max)
+        
         while self.stdev_pct > stdev_pct_max:
             outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
             biggest_outlier = max(outliers)
@@ -470,12 +472,14 @@ class Home:
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
 
+                print(self.balance_point, self.stdev_pct)
+
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
     def calculate(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
