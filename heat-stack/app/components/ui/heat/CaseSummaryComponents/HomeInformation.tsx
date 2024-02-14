@@ -1,7 +1,45 @@
 import { Form } from '@remix-run/react'
-// import { Button } from '#/app/components/ui/button.tsx'
+import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+
+/** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
+// import { redirect } from '@remix-run/react'
+import { json, ActionFunctionArgs } from '@remix-run/node'
+import { invariantResponse } from '@epic-web/invariant'
+import { parseWithZod } from '@conform-to/zod'
+import { z } from 'zod'
+
+const nameMaxLength = 1
+const addressMaxLength = 1
+
+/** Modeled off the conform example at
+ *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
+const HomeInformationSchema = z.object({
+	name: z.string().max(nameMaxLength),
+	address: z.string().max(addressMaxLength),
+	livingSpace: z.number().min(1),
+})
+
+export async function action({ request, params }: ActionFunctionArgs) {
+	invariantResponse(params.homeId, 'homeId param is required')
+
+	const formData = await request.formData()
+	const submission = parseWithZod(formData, {
+		schema: HomeInformationSchema,
+	})
+
+	if (!submission.value) {
+		return json({ status: 'error', submission } as const, {
+			status: 400,
+		})
+	}
+	const { name, address, livingSpace } = submission.value
+
+	// await updateNote({ id: params.noteId, title, content })
+
+	// return redirect(`/inputs1`)
+}
 
 export function HomeInformation() {
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
@@ -12,7 +50,7 @@ export function HomeInformation() {
 		<div>
 			<h2 className={`${titleClass}`}>Home Information</h2>
 
-			<Form method="post" action="/homes">
+			<Form method="post" action="/inputs1">
 				<div className={`${componentMargin}`}>
 					<h6 className={`${subtitleClass}`}>Resident/Client</h6>
 
@@ -76,6 +114,7 @@ export function HomeInformation() {
 				{/* <div>
           <Button type="submit">Next ={'>'}</Button>
         </div> */}
+		<Button type="submit">Submit</Button>
 			</Form>
 		</div>
 	)
