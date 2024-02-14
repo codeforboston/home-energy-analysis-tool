@@ -25,6 +25,7 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
 # Filter out example 2 for now, since it's for oil fuel type
 INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
+#INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
 
 
 class Summary(SummaryInput, SummaryOutput):

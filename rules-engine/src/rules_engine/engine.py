@@ -4,6 +4,7 @@ import bisect
 import statistics as sts
 from datetime import date, timedelta
 from typing import Any, List, Optional, Tuple
+from pprint import pprint
 
 from rules_engine.pydantic_models import (
     AnalysisType,
@@ -124,7 +125,9 @@ def get_outputs_normalized(
         maximum_heat_load=maximum_heat_load,
     )
 
+
     balance_point_graph = home.balance_point_graph
+    pprint(balance_point_graph.records)
     return (summary_output, balance_point_graph)
 
 
@@ -440,37 +443,38 @@ class Home:
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
+            change_in_heat_loss_rate = avg_ua_i - self.avg_ua
+            percent_change_in_heat_loss_rate = (
+                100 * change_in_heat_loss_rate / avg_ua_i
+            )
+
+            balance_point_graph_row = BalancePointGraphRow(
+                balance_point=bp_i,
+                heat_loss_rate=avg_ua_i,
+                change_in_heat_loss_rate=change_in_heat_loss_rate,
+                percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
+                standard_deviation=stdev_pct_i,
+            )
+            self.balance_point_graph.records.append(balance_point_graph_row)
+
+
+
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
-                # TODO: For balance point graph, store the old balance
-                # point in a list to keep track of all intermediate balance
-                # point temperatures?
 
-                change_in_heat_loss_rate = avg_ua_i - self.avg_ua
-                percent_change_in_heat_loss_rate = (
-                    100 * change_in_heat_loss_rate / avg_ua_i
-                )
+
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
                     stdev_pct_i,
                 )
 
-                balance_point_graph_row = BalancePointGraphRow(
-                    balance_point=self.balance_point,
-                    heat_loss_rate=self.avg_ua,
-                    change_in_heat_loss_rate=change_in_heat_loss_rate,
-                    percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
-                    standard_deviation=self.stdev_pct,
-                )
-                self.balance_point_graph.records.append(balance_point_graph_row)
 
                 for n, bill in enumerate(self.bills_winter):
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
 
-                print(self.balance_point, self.stdev_pct)
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
