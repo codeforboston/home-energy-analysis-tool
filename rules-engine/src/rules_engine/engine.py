@@ -391,8 +391,6 @@ class Home:
         self.balance_point_graph.records.append(balance_point_graph_row)
 
         self._refine_balance_point(initial_balance_point_sensitivity)
-
-        print(self.stdev_pct, stdev_pct_max)
         
         while self.stdev_pct > stdev_pct_max:
             outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
