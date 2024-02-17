@@ -22,6 +22,7 @@ from rules_engine.pydantic_models import (
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
+
 # Filter out example 2 for now, since it's for oil fuel type
 INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
 
@@ -108,7 +109,16 @@ def test_average_indoor_temp(data: Example) -> None:
         data.summary.setback_temperature or 0,
         data.summary.setback_hours_per_day or 0,
     )
-    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
+    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
+
+
+def test_get_outputs_natural_gas(data: Example) -> None:
+    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert data.summary.estimated_balance_point == approx(
+        summary_output.estimated_balance_point, rel=0.05
+    )
 
 
 # def test_ua(data: Example) -> None:

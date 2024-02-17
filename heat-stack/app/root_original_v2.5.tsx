@@ -1,9 +1,11 @@
-import { useForm } from '@conform-to/react'
-import { parse } from '@conform-to/zod'
+import { useForm, getFormProps } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import {
 	json,
-	type DataFunctionArgs,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
 	type HeadersFunction,
 	type LinksFunction,
 	type MetaFunction,
@@ -25,14 +27,12 @@ import {
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
 import { useRef } from 'react'
-import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
-import { ErrorList } from './components/forms.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
-import { EpicToaster } from './components/toaster.tsx'
+import { useToast } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
 import {
 	DropdownMenu,
@@ -42,11 +42,10 @@ import {
 	DropdownMenuTrigger,
 } from './components/ui/dropdown-menu.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
-import fontStyleSheetUrl from './styles/font.css'
+import { EpicToaster } from './components/ui/sonner.tsx'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints, useHints } from './utils/client-hints.tsx'
-import { csrf } from './utils/csrf.server.ts'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
@@ -63,7 +62,6 @@ export const links: LinksFunction = () => {
 		// Preload svg sprite as a resource to avoid render blocking
 		{ rel: 'preload', href: iconsHref, as: 'image' },
 		// Preload CSS as a resource to avoid render blocking
-		{ rel: 'preload', href: fontStyleSheetUrl, as: 'style' },
 		{ rel: 'preload', href: tailwindStyleSheetUrl, as: 'style' },
 		cssBundleHref ? { rel: 'preload', href: cssBundleHref, as: 'style' } : null,
 		{ rel: 'mask-icon', href: '/favicons/mask-icon.svg' },
@@ -80,7 +78,6 @@ export const links: LinksFunction = () => {
 		} as const, // necessary to make typescript happy
 		//These should match the css preloads above to avoid css as render blocking resource
 		{ rel: 'icon', type: 'image/svg+xml', href: '/favicons/favicon.svg' },
-		{ rel: 'stylesheet', href: fontStyleSheetUrl },
 		{ rel: 'stylesheet', href: tailwindStyleSheetUrl },
 		cssBundleHref ? { rel: 'stylesheet', href: cssBundleHref } : null,
 	].filter(Boolean)
@@ -93,7 +90,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const timings = makeTimings('root loader')
 	const userId = await time(() => getUserId(request), {
 		timings,
@@ -122,7 +119,7 @@ export async function loader({ request }: DataFunctionArgs) {
 						where: { id: userId },
 					}),
 				{ timings, type: 'find user', desc: 'find user in root' },
-		  )
+			)
 		: null
 	if (userId && !user) {
 		console.info('something weird happened')
@@ -132,7 +129,6 @@ export async function loader({ request }: DataFunctionArgs) {
 	}
 	const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = honeypot.getInputProps()
-	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
 
 	return json(
 		{
@@ -148,13 +144,11 @@ export async function loader({ request }: DataFunctionArgs) {
 			ENV: getEnv(),
 			toast,
 			honeyProps,
-			csrfToken,
 		},
 		{
 			headers: combineHeaders(
 				{ 'Server-Timing': timings.toString() },
 				toastHeaders,
-				csrfCookieHeader ? { 'set-cookie': csrfCookieHeader } : null,
 			),
 		},
 	)
@@ -171,23 +165,20 @@ const ThemeFormSchema = z.object({
 	theme: z.enum(['system', 'light', 'dark']),
 })
 
-export async function action({ request }: DataFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	const submission = parse(formData, {
+	const submission = parseWithZod(formData, {
 		schema: ThemeFormSchema,
 	})
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
-	}
+
+	invariantResponse(submission.status === 'success', 'Invalid theme received')
+
 	const { theme } = submission.value
 
 	const responseInit = {
 		headers: { 'set-cookie': setTheme(theme) },
 	}
-	return json({ success: true, submission }, responseInit)
+	return json({ result: submission.reply() }, responseInit)
 }
 
 function Document({
@@ -234,31 +225,27 @@ function App() {
 	const matches = useMatches()
 	const isOnSearchPage = matches.find(m => m.id === 'routes/users+/index')
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
+	useToast(data.toast)
 
 	return (
 		<Document nonce={nonce} theme={theme} env={data.ENV}>
 			<div className="flex h-screen flex-col justify-between">
 				<header className="container py-6">
-					<nav>
-						<div className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-							<Link to="/">
-								<div className="font-light">epic</div>
-								<div className="font-bold">notes</div>
-							</Link>
-							<div className="ml-auto hidden max-w-sm flex-1 sm:block">
-								{searchBar}
-							</div>
-							<div className="flex items-center gap-10">
-								{user ? (
-									<UserDropdown />
-								) : (
-									<Button asChild variant="default" size="sm">
-										<Link to="/login">Log In</Link>
-									</Button>
-								)}
-							</div>
-							<div className="block w-full sm:hidden">{searchBar}</div>
+					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+						<Logo />
+						<div className="ml-auto hidden max-w-sm flex-1 sm:block">
+							{searchBar}
 						</div>
+						<div className="flex items-center gap-10">
+							{user ? (
+								<UserDropdown />
+							) : (
+								<Button asChild variant="default" size="lg">
+									<Link to="/login">Log In</Link>
+								</Button>
+							)}
+						</div>
+						<div className="block w-full sm:hidden">{searchBar}</div>
 					</nav>
 				</header>
 
@@ -267,27 +254,35 @@ function App() {
 				</div>
 
 				<div className="container flex justify-between pb-5">
-					<Link to="/">
-						<div className="font-light">epic</div>
-						<div className="font-bold">notes</div>
-					</Link>
+					<Logo />
 					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 				</div>
 			</div>
-			<EpicToaster toast={data.toast} />
+			<EpicToaster closeButton position="top-center" theme={theme} />
 			<EpicProgress />
 		</Document>
+	)
+}
+
+function Logo() {
+	return (
+		<Link to="/" className="group grid leading-snug">
+			<span className="font-light transition group-hover:-translate-x-1">
+				epic
+			</span>
+			<span className="font-bold transition group-hover:translate-x-1">
+				notes
+			</span>
+		</Link>
 	)
 }
 
 function AppWithProviders() {
 	const data = useLoaderData<typeof loader>()
 	return (
-		<AuthenticityTokenProvider token={data.csrfToken}>
-			<HoneypotProvider {...data.honeyProps}>
-				<App />
-			</HoneypotProvider>
-		</AuthenticityTokenProvider>
+		<HoneypotProvider {...data.honeyProps}>
+			<App />
+		</HoneypotProvider>
 	)
 }
 
@@ -360,13 +355,12 @@ function UserDropdown() {
  */
 export function useTheme() {
 	const hints = useHints()
-	// const requestInfo = useRequestInfo()
+	const requestInfo = useRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? hints.theme : optimisticMode
 	}
-	// return requestInfo.userPrefs.theme ?? hints.theme
-	return hints.theme
+	return requestInfo.userPrefs.theme ?? hints.theme
 }
 
 /**
@@ -378,10 +372,13 @@ export function useOptimisticThemeMode() {
 	const themeFetcher = fetchers.find(f => f.formAction === '/')
 
 	if (themeFetcher && themeFetcher.formData) {
-		const submission = parse(themeFetcher.formData, {
+		const submission = parseWithZod(themeFetcher.formData, {
 			schema: ThemeFormSchema,
 		})
-		return submission.value?.theme
+
+		if (submission.status === 'success') {
+			return submission.value.theme
+		}
 	}
 }
 
@@ -390,7 +387,7 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 
 	const [form] = useForm({
 		id: 'theme-switch',
-		lastSubmission: fetcher.data?.submission,
+		lastResult: fetcher.data?.result,
 	})
 
 	const optimisticMode = useOptimisticThemeMode()
@@ -416,7 +413,7 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 	}
 
 	return (
-		<fetcher.Form method="POST" {...form.props}>
+		<fetcher.Form method="POST" {...getFormProps(form)}>
 			<input type="hidden" name="theme" value={nextMode} />
 			<div className="flex gap-2">
 				<button
@@ -426,7 +423,6 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 					{modeLabel[mode]}
 				</button>
 			</div>
-			<ErrorList errors={form.errors} id={form.errorId} />
 		</fetcher.Form>
 	)
 }

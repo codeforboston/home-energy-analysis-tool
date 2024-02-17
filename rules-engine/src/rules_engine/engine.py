@@ -124,8 +124,7 @@ def get_outputs_normalized(
         maximum_heat_load=maximum_heat_load,
     )
 
-    # TODO: fill out balance point graph
-    balance_point_graph = BalancePointGraph(records=[])
+    balance_point_graph = home.balance_point_graph
     return (summary_output, balance_point_graph)
 
 
@@ -314,9 +313,9 @@ class Home:
             if billing_period.analysis_type == AnalysisType.INCLUDE:
                 self.bills_winter.append(billing_period)
             elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
-                self.bills_summer.append(billing_period)
-            else:
                 self.bills_shoulder.append(billing_period)
+            else:
+                self.bills_summer.append(billing_period)
 
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
@@ -374,9 +373,23 @@ class Home:
         the home, removing UA outliers based on a normalized standard
         deviation threshold.
         """
-        self.uas = [bp.ua for bp in self.bills_winter]
+
+        self.balance_point_graph = BalancePointGraph(records=[])
+
+        self.uas = [billing_period.ua for billing_period in self.bills_winter]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
+
+        balance_point_graph_row = BalancePointGraphRow(
+            balance_point=self.balance_point,
+            heat_loss_rate=self.avg_ua,
+            change_in_heat_loss_rate=0,
+            percent_change_in_heat_loss_rate=0,
+            standard_deviation=self.stdev_pct,
+        )
+
+        self.balance_point_graph.records.append(balance_point_graph_row)
+
         self._refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
@@ -386,7 +399,7 @@ class Home:
             outlier = self.bills_winter.pop(
                 biggest_outlier_idx
             )  # removes the biggest outlier
-            uas_i = [bp.ua for bp in self.bills_winter]
+            uas_i = [billing_period.ua for billing_period in self.bills_winter]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
@@ -433,11 +446,25 @@ class Home:
                 # TODO: For balance point graph, store the old balance
                 # point in a list to keep track of all intermediate balance
                 # point temperatures?
+
+                change_in_heat_loss_rate = avg_ua_i - self.avg_ua
+                percent_change_in_heat_loss_rate = (
+                    100 * change_in_heat_loss_rate / avg_ua_i
+                )
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
                     stdev_pct_i,
                 )
+
+                balance_point_graph_row = BalancePointGraphRow(
+                    balance_point=self.balance_point,
+                    heat_loss_rate=self.avg_ua,
+                    change_in_heat_loss_rate=change_in_heat_loss_rate,
+                    percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
+                    standard_deviation=self.stdev_pct,
+                )
+                self.balance_point_graph.records.append(balance_point_graph_row)
 
                 for n, bill in enumerate(self.bills_winter):
                     bill.total_hdd = period_hdds_i[n]
@@ -483,10 +510,12 @@ class Home:
         """
         return (
             billing_period.days
-            * billing_period.avg_heating_usage
-            * self.fuel_type.value
-            * self.heat_sys_efficiency
+            * billing_period.avg_heating_usage  # gallons or therms
+            * self.fuel_type.value  # therm or gallon to BTU
+            * self.heat_sys_efficiency  # unitless
             / 24
+            # days * gallons/day * (BTU/gallon)/1 day (24 hours)
+            # BTUs/hour
         )
 
 
