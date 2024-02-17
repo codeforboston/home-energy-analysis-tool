@@ -1,9 +1,13 @@
 # This file is moved to the root directory before building the image
 
-/node_modules
+**/node_modules
+**/.github*
+**/.vscode
 *.log
 .DS_Store
 .env
 /.cache
 /public/build
 /build
+**/Dockerfile
+**/.dockerignore
