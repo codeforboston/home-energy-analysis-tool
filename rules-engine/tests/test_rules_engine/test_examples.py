@@ -25,7 +25,7 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
 # Filter out example 2 for now, since it's for oil fuel type
 INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
-#INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
+# INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -114,25 +114,63 @@ def test_average_indoor_temp(data: Example) -> None:
 
 
 def test_balance_point_natural_gas(data: Example) -> None:
-    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+    summary_output = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    
     assert data.summary.estimated_balance_point == approx(
         summary_output.estimated_balance_point, abs=0.1
     )
 
-  
+
 def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
-    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+    summary_output = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert summary_output.whole_home_heat_loss_rate == approx(data.summary.whole_home_heat_loss_rate, abs=1)
+    assert summary_output.whole_home_heat_loss_rate == approx(
+        data.summary.whole_home_heat_loss_rate, abs=1
+    )
+
 
 def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None:
-    summary_output, balance_point_graph = engine.get_outputs_natural_gas(
+    summary_output = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
+    assert summary_output.standard_deviation_of_heat_loss_rate == approx(
+        data.summary.standard_deviation_of_heat_loss_rate, abs=0.01
+    )
 
-    assert summary_output.standard_deviation_of_heat_loss_rate == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
 
+def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.difference_between_ti_and_tbp == approx(
+        data.summary.difference_between_ti_and_tbp, abs=0.1
+    )
+
+
+def test_average_heat_load_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.average_heat_load == approx(
+        data.summary.average_heat_load, abs=1
+    )
+
+
+def test_design_temperaure_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.design_temperature == approx(
+        data.summary.design_temperature, abs=0.1
+    )
+
+
+def test_maximum_heat_load_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.maximum_heat_load == approx(
+        data.summary.maximum_heat_load, abs=1
+    )

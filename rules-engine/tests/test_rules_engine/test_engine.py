@@ -224,6 +224,7 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     assert home.avg_ua == approx(1519.72, abs=1)
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
+
 def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
     home = engine.Home(
         sample_summary_inputs,
@@ -271,7 +272,7 @@ def test_convert_to_intermediate_billing_periods(
 def test_get_outputs_normalized(
     sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
 ):
-    summary_output, balance_point_graph = engine.get_outputs_normalized(
+    summary_output = engine.get_outputs_normalized(
         sample_summary_inputs,
         None,
         sample_temp_inputs,

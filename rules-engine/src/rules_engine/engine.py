@@ -3,8 +3,8 @@ from __future__ import annotations
 import bisect
 import statistics as sts
 from datetime import date, timedelta
-from typing import Any, List, Optional, Tuple
 from pprint import pprint
+from typing import Any, List, Optional, Tuple
 
 from rules_engine.pydantic_models import (
     AnalysisType,
@@ -27,7 +27,7 @@ def get_outputs_oil_propane(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
@@ -57,7 +57,7 @@ def get_outputs_natural_gas(
     summary_input: SummaryInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     for input_val in natural_gas_billing_input.records:
@@ -80,7 +80,7 @@ def get_outputs_normalized(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input, billing_periods=billing_periods
@@ -125,10 +125,9 @@ def get_outputs_normalized(
         maximum_heat_load=maximum_heat_load,
     )
 
-
     balance_point_graph = home.balance_point_graph
     pprint(balance_point_graph.records)
-    return (summary_output, balance_point_graph)
+    return summary_output
 
 
 def convert_to_intermediate_billing_periods(
@@ -394,7 +393,7 @@ class Home:
         self.balance_point_graph.records.append(balance_point_graph_row)
 
         self._refine_balance_point(initial_balance_point_sensitivity)
-        
+
         while self.stdev_pct > stdev_pct_max:
             outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
             biggest_outlier = max(outliers)
@@ -444,9 +443,7 @@ class Home:
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
             change_in_heat_loss_rate = avg_ua_i - self.avg_ua
-            percent_change_in_heat_loss_rate = (
-                100 * change_in_heat_loss_rate / avg_ua_i
-            )
+            percent_change_in_heat_loss_rate = 100 * change_in_heat_loss_rate / avg_ua_i
 
             balance_point_graph_row = BalancePointGraphRow(
                 balance_point=bp_i,
@@ -457,24 +454,18 @@ class Home:
             )
             self.balance_point_graph.records.append(balance_point_graph_row)
 
-
-
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
-
-
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
                     stdev_pct_i,
                 )
 
-
                 for n, bill in enumerate(self.bills_winter):
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
-
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
