@@ -126,9 +126,8 @@ def get_outputs_normalized(
     )
 
     balance_point_graph = home.balance_point_graph
-    pprint(balance_point_graph.records)
-    return summary_output
 
+    return summary_output
 
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
@@ -462,6 +461,15 @@ class Home:
                     avg_ua_i,
                     stdev_pct_i,
                 )
+
+                balance_point_graph_row = BalancePointGraphRow(
+                    balance_point=self.balance_point,
+                    heat_loss_rate=self.avg_ua,
+                    change_in_heat_loss_rate=change_in_heat_loss_rate,
+                    percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
+                    standard_deviation=self.stdev_pct,
+                )
+                self.balance_point_graph.records.append(balance_point_graph_row)
 
                 for n, bill in enumerate(self.bills_winter):
                     bill.total_hdd = period_hdds_i[n]

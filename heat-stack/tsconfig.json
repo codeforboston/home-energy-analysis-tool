@@ -5,10 +5,10 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolveJsonModule": true,
+    "module": "ES2022",
     "target": "ES2022",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "strict": true,
     "noImplicitAny": true,
     "allowJs": true,
@@ -17,11 +17,11 @@
       "#*": ["./*"],
       "@/icon-name": [
         "./app/components/ui/icons/name.d.ts",
-        "./types/icon-name.d.ts"
-      ]
+        "./types/icon-name.d.ts",
+      ],
     },
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
-  }
+    "noEmit": true,
+  },
 }

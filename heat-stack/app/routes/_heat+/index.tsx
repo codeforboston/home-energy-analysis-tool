@@ -1,3 +1,6 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+
 export default function Home() {
 	return (
 		<div>
@@ -5,12 +8,45 @@ export default function Home() {
 				This is the Heat Home page - the first page a user will see when
 				starting the app
 			</h1>
-
-			<h1>Some paths with placeholder pages are:</h1>
+			<br />
 			<ul>
-				<li>/casesummary - see an example case summary</li>
-				<li>/cases - see a list of cases</li>
-				<li>/epicstack - information about the Epic Stack</li>
+				Some paths with placeholder pages are:
+				<li>
+					<u>
+						<Link to="single">/single</Link>
+					</u>
+					- view all screens on a single page
+				</li>
+				<li>
+					<u>
+						<Link to="inputs1">/inputs1</Link>
+					</u>
+					- view input screen 1 - Home Information
+				</li>
+				<li>
+					<u>
+						<Link to="inputs2">/inputs2</Link>
+					</u>
+					- view input screen 2 - Existing Heating System
+				</li>
+				<li>
+					<u>
+						<Link to="inputs3">/inputs3</Link>
+					</u>
+					- view screen 3 - Summary of Heating Use
+				</li>
+				<li>
+					<u>
+						<Link to="heatloadanalysis">/heatloadanalysis</Link>
+					</u>
+					- view heat load analysis only
+				</li>
+				<li>
+					<u>
+						<Link to="cases">/cases</Link>
+					</u>
+					- view a list of cases
+				</li>
 			</ul>
 		</div>
 	)
