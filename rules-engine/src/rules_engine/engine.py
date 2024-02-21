@@ -3,6 +3,7 @@ from __future__ import annotations
 import bisect
 import statistics as sts
 from datetime import date, timedelta
+from pprint import pprint
 from typing import Any, List, Optional, Tuple
 
 from rules_engine.pydantic_models import (
@@ -26,7 +27,7 @@ def get_outputs_oil_propane(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
@@ -56,7 +57,7 @@ def get_outputs_natural_gas(
     summary_input: SummaryInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     for input_val in natural_gas_billing_input.records:
@@ -79,7 +80,7 @@ def get_outputs_normalized(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input, billing_periods=billing_periods
@@ -125,7 +126,8 @@ def get_outputs_normalized(
     )
 
     balance_point_graph = home.balance_point_graph
-    return (summary_output, balance_point_graph)
+
+    return summary_output
 
 
 def convert_to_intermediate_billing_periods(
@@ -363,7 +365,7 @@ class Home:
 
     def _calculate_balance_point_and_ua(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -440,17 +442,21 @@ class Home:
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
+            change_in_heat_loss_rate = avg_ua_i - self.avg_ua
+            percent_change_in_heat_loss_rate = 100 * change_in_heat_loss_rate / avg_ua_i
+
+            balance_point_graph_row = BalancePointGraphRow(
+                balance_point=bp_i,
+                heat_loss_rate=avg_ua_i,
+                change_in_heat_loss_rate=change_in_heat_loss_rate,
+                percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
+                standard_deviation=stdev_pct_i,
+            )
+            self.balance_point_graph.records.append(balance_point_graph_row)
+
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
-                # TODO: For balance point graph, store the old balance
-                # point in a list to keep track of all intermediate balance
-                # point temperatures?
-
-                change_in_heat_loss_rate = avg_ua_i - self.avg_ua
-                percent_change_in_heat_loss_rate = (
-                    100 * change_in_heat_loss_rate / avg_ua_i
-                )
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
@@ -475,7 +481,7 @@ class Home:
 
     def calculate(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
