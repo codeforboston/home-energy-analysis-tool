@@ -129,6 +129,7 @@ def get_outputs_normalized(
 
     return summary_output
 
+
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
