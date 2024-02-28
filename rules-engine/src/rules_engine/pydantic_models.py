@@ -113,8 +113,10 @@ class SummaryOutput(BaseModel):
     design_temperature: float = Field(description="Summary!B26")
     whole_home_heat_loss_rate: float = Field(
         description="Summary!B27"
-    )  # UA = heat loss rate
-    standard_deviation_of_heat_loss_rate: float = Field(description="Summary!B28")
+    )  # Whole Home UA. UA = heat loss rate
+    standard_deviation_of_heat_loss_rate: float = Field(
+        description="Summary!B28"
+    )  # Standard deviation of UA
     average_heat_load: float = Field(description="Summary!B29")
     maximum_heat_load: float = Field(description="Summary!B30")
 
@@ -123,10 +125,12 @@ class BalancePointGraphRow(BaseModel):
     """From Summary page"""
 
     balance_point: float = Field(description="Summary!G33:35")  # degree F
-    heat_loss_rate: float = Field(description="Summary!H33:35")  # BTU / (hr-deg. F)
+    heat_loss_rate: float = Field(
+        description="Summary!H33:35"
+    )  # BTU / (hr-deg. F) (UA)
     change_in_heat_loss_rate: float = Field(
         description="Summary!I33:35"
-    )  # BTU / (hr-deg. F)
+    )  # BTU / (hr-deg. F) (change in UA)
     percent_change_in_heat_loss_rate: float = Field(description="Summary!J33:35")
     standard_deviation: float = Field(description="Summary!K33:35")
 

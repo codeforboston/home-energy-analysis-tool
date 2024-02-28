@@ -22,8 +22,10 @@ from rules_engine.pydantic_models import (
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
+
 # Filter out example 2 for now, since it's for oil fuel type
 INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
+# INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -108,61 +110,67 @@ def test_average_indoor_temp(data: Example) -> None:
         data.summary.setback_temperature or 0,
         data.summary.setback_hours_per_day or 0,
     )
-    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.1)
+    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
 
 
-# def test_ua(data: Example) -> None:
-#     """
-#     Test how the rules engine calculates UA from energy bills.
+def test_balance_point_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert data.summary.estimated_balance_point == approx(
+        summary_output.estimated_balance_point, abs=0.1
+    )
 
-#     Pulls in data and pre-calculated results from example spreadsheets
-#     and compares them to the UA calculated from that data by the
-#     engine.
-#     """
-#     # TODO: Handle oil and propane fuel types too
-#     usage_data = None
-#     if data.summary.fuel_type is engine.FuelType.GAS:
-#         usage_data = data.natural_gas_usage
-#     else:
-#         raise NotImplementedError("Fuel type {}".format(data.summary.fuel_type))
 
-#     # build Home instance - input summary information and bills
-#     home = engine.Home(
-#         data.summary,
-#         data.summary.fuel_type,
-#         data.summary.heating_system_efficiency,
-#         thermostat_set_point=data.summary.thermostat_set_point,
-#     )
-#     temps = []
-#     usages = []
-#     inclusion_codes = []
-#     for usage in usage_data.records:
-#         temps_for_period = []
-#         for i in range(usage.days_in_bill):
-#             date_in_period = usage.start_date + timedelta(days=i)
-#             matching_records = [
-#                 d for d in data.temperature_data if d.date == date_in_period
-#             ]
-#             assert len(matching_records) == 1
-#             temps_for_period.append(matching_records[0].temperature)
-#         assert date_in_period == usage.end_date
+def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.whole_home_heat_loss_rate == approx(
+        data.summary.whole_home_heat_loss_rate, abs=1
+    )
 
-#         inclusion_code = usage.inclusion_code
-#         if usage.inclusion_override is not None:
-#             inclusion_code = usage.inclusion_override
 
-#         temps.append(temps_for_period)
-#         usages.append(usage.usage)
-#         inclusion_codes.append(inclusion_code)
+def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.standard_deviation_of_heat_loss_rate == approx(
+        data.summary.standard_deviation_of_heat_loss_rate, abs=0.01
+    )
 
-#     home.initialize_billing_periods(temps, usages, inclusion_codes)
 
-#     # now check outputs
-#     home.calculate_balance_point_and_ua(
-#         initial_balance_point_sensitivity=data.summary.balance_point_sensitivity
-#     )
+def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.difference_between_ti_and_tbp == approx(
+        data.summary.difference_between_ti_and_tbp, abs=0.1
+    )
 
-#     assert home.balance_point == approx(data.summary.estimated_balance_point, abs=0.01)
-#     assert home.avg_ua == approx(data.summary.whole_home_heat_loss_rate, abs=1)
-#     assert home.stdev_pct == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
-#     # TODO: check average heat load and max heat load
+
+def test_average_heat_load_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.average_heat_load == approx(
+        data.summary.average_heat_load, abs=1
+    )
+
+
+def test_design_temperaure_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.design_temperature == approx(
+        data.summary.design_temperature, abs=0.1
+    )
+
+
+def test_maximum_heat_load_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.maximum_heat_load == approx(
+        data.summary.maximum_heat_load, abs=1
+    )
