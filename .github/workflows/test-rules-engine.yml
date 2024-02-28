@@ -70,3 +70,26 @@ jobs:
       - name: Build wheel
         run: |
           make build
+      - name: store wheel
+        uses: actions/upload-artifact@v4
+        with: 
+          name: python-package-distributions
+          path: ${{ env.working-directory }}/dist/
+  publish-to-test:
+    name: Publish to testpypi
+    needs:
+    - build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: publish to testpypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
