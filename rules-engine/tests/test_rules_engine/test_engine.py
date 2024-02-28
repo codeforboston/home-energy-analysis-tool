@@ -15,7 +15,6 @@ from rules_engine.pydantic_models import (
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
-    DhwInput,
 )
 
 
@@ -288,16 +287,61 @@ def test_get_outputs_normalized(
         0.0463, abs=0.01
     )
 
+
 @pytest.mark.parametrize(
     "sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage",
     [
-        (DhwInput(number_of_occupants=2, estimated_water_heating_efficiency=None, stand_by_losses=None), 0.80, 0.17),
-        (DhwInput(number_of_occupants=2, estimated_water_heating_efficiency=0.8, stand_by_losses=None), 0.85, 0.17),
-        (DhwInput(number_of_occupants=4, estimated_water_heating_efficiency=0.8, stand_by_losses=None), 0.84, 0.35),
-        (DhwInput(number_of_occupants=5, estimated_water_heating_efficiency=0.8, stand_by_losses=None), 0.83, 0.43),
-        (DhwInput(number_of_occupants=5, estimated_water_heating_efficiency=0.8, stand_by_losses=0.10), 0.82, 0.46),
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=None,
+                stand_by_losses=None,
+            ),
+            0.80,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.85,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=4,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.84,
+            0.35,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.83,
+            0.43,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=0.10,
+            ),
+            0.82,
+            0.46,
+        ),
     ],
 )
-def test_calculate_dhw_usage(sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage):
-    fuel_oil_usage = engine.calculate_dhw_usage(sample_dhw_inputs, summary_input_heating_system_efficiency)
+def test_calculate_dhw_usage(
+    sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage
+):
+    fuel_oil_usage = engine.calculate_dhw_usage(
+        sample_dhw_inputs, summary_input_heating_system_efficiency
+    )
     assert fuel_oil_usage == approx(expected_fuel_oil_usage, abs=0.01)
