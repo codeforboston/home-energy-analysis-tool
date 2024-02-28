@@ -89,9 +89,8 @@ def get_outputs_normalized(
     home = Home(
         summary_input=summary_input,
         billing_periods=intermediate_billing_periods,
+        dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
-        has_boiler_for_dhw=dhw_input is not None,
-        same_fuel_dhw_heating=dhw_input is not None,
     )
     home.calculate()
 
@@ -291,16 +290,14 @@ class Home:
         self,
         summary_input: SummaryInput,
         billing_periods: List[BillingPeriod],
+        dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-        has_boiler_for_dhw: bool = False,
-        same_fuel_dhw_heating: bool = False,
     ):
         self.fuel_type = summary_input.fuel_type
         self.heat_sys_efficiency = summary_input.heating_system_efficiency
         self.thermostat_set_point = summary_input.thermostat_set_point
         self.balance_point = initial_balance_point
-        self.has_boiler_for_dhw = has_boiler_for_dhw
-        self.same_fuel_dhw_heating = same_fuel_dhw_heating
+        self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
 
     def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
@@ -335,18 +332,33 @@ class Home:
         else:
             self.avg_summer_usage = 0
 
-    def _calculate_boiler_usage(self, fuel_multiplier: float) -> float:
+    def _calculate_boiler_usage(
+        self, dhw_input: DhwInput, heating_system_efficiency: float
+    ) -> float:
         """
         Calculate boiler usage with oil or propane
-        Args:
-            fuel_multiplier: a constant that's determined by the fuel
-            type
         """
+        if dhw_input.estimated_water_heating_efficiency is not None:
+            heating_system_efficiency = dhw_input.estimated_water_heating_efficiency
 
-        # self.num_occupants: the number of occupants in Home
-        # self.water_heat_efficiency: a number indicating how efficient the heating system is
+        stand_by_losses = Constants.DEFAULT_STAND_BY_LOSSES
+        if dhw_input.stand_by_losses is not None:
+            stand_by_losses = dhw_input.stand_by_losses
 
-        return 0 * fuel_multiplier
+        daily_fuel_oil_use_for_dhw = (
+            dhw_input.number_of_occupants
+            * Constants.DAILY_DHW_CONSUMPTION_PER_OCCUPANT
+            * Constants.WATER_WEIGHT
+            * (
+                Constants.LEAVING_WATER_TEMPERATURE
+                - Constants.ENTERING_WATER_TEMPERATURE
+            )
+            * Constants.SPECIFIC_HEAT_OF_WATER
+            / Constants.FUEL_OIL_BTU_PER_GAL
+            / (heating_system_efficiency * (1 - stand_by_losses))
+        )
+
+        return daily_fuel_oil_use_for_dhw
 
     def _calculate_avg_non_heating_usage(self) -> None:
         """
@@ -355,11 +367,9 @@ class Home:
 
         if self.fuel_type == FuelType.GAS:
             self.avg_non_heating_usage = self.avg_summer_usage
-        elif self.has_boiler_for_dhw and self.same_fuel_dhw_heating:
-            fuel_multiplier = 1  # default multiplier, for oil, placeholder number
-            if self.fuel_type == FuelType.PROPANE:
-                fuel_multiplier = 2  # a placeholder number
-            self.avg_non_heating_usage = self._calculate_boiler_usage(fuel_multiplier)
+        elif self.dhw_input is not None and self.fuel_type == FuelType.OIL:
+            # TODO: support non-heating usage for Propane in addition to fuel oil
+            self.avg_non_heating_usage = self._calculate_boiler_usage(self.dhw_input)
         else:
             self.avg_non_heating_usage = 0
 
