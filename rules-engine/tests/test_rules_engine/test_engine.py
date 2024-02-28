@@ -210,6 +210,7 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     home = engine.Home(
         sample_summary_inputs,
         sample_billing_periods,
+        dhw_input=None,
         initial_balance_point=58,
     )
 
@@ -217,18 +218,19 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
 
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
-    assert home.balance_point == 60
-    assert ua_1 == approx(1478.50, abs=0.01)
-    assert ua_2 == approx(1650.00, abs=0.01)
-    assert ua_3 == approx(1527.78, abs=0.01)
-    assert home.avg_ua == approx(1552.09, abs=0.01)
-    assert home.stdev_pct == approx(0.0465, abs=0.01)
+    assert home.balance_point == 60.5
+    assert ua_1 == approx(1455.03, abs=0.01)
+    assert ua_2 == approx(1617.65, abs=0.01)
+    assert ua_3 == approx(1486.49, abs=0.01)
+    assert home.avg_ua == approx(1519.72, abs=1)
+    assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
 def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
     home = engine.Home(
         sample_summary_inputs,
         sample_billing_periods_with_outlier,
+        dhw_input=None,
         initial_balance_point=58,
     )
 
@@ -272,7 +274,7 @@ def test_convert_to_intermediate_billing_periods(
 def test_get_outputs_normalized(
     sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
 ):
-    summary_output, balance_point_graph = engine.get_outputs_normalized(
+    summary_output = engine.get_outputs_normalized(
         sample_summary_inputs,
         None,
         sample_temp_inputs,
@@ -284,3 +286,62 @@ def test_get_outputs_normalized(
     assert summary_output.standard_deviation_of_heat_loss_rate == approx(
         0.0463, abs=0.01
     )
+
+
+@pytest.mark.parametrize(
+    "sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage",
+    [
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=None,
+                stand_by_losses=None,
+            ),
+            0.80,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.85,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=4,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.84,
+            0.35,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.83,
+            0.43,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=0.10,
+            ),
+            0.82,
+            0.46,
+        ),
+    ],
+)
+def test_calculate_dhw_usage(
+    sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage
+):
+    fuel_oil_usage = engine.calculate_dhw_usage(
+        sample_dhw_inputs, summary_input_heating_system_efficiency
+    )
+    assert fuel_oil_usage == approx(expected_fuel_oil_usage, abs=0.01)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import bisect
 import statistics as sts
 from datetime import date, timedelta
+from pprint import pprint
 from typing import Any, List, Optional, Tuple
 
 from rules_engine.pydantic_models import (
@@ -26,7 +27,7 @@ def get_outputs_oil_propane(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
@@ -56,7 +57,7 @@ def get_outputs_natural_gas(
     summary_input: SummaryInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     for input_val in natural_gas_billing_input.records:
@@ -79,7 +80,7 @@ def get_outputs_normalized(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
-) -> Tuple[SummaryOutput, BalancePointGraph]:
+) -> SummaryOutput:
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input, billing_periods=billing_periods
@@ -88,9 +89,8 @@ def get_outputs_normalized(
     home = Home(
         summary_input=summary_input,
         billing_periods=intermediate_billing_periods,
+        dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
-        has_boiler_for_dhw=dhw_input is not None,
-        same_fuel_dhw_heating=dhw_input is not None,
     )
     home.calculate()
 
@@ -125,7 +125,8 @@ def get_outputs_normalized(
     )
 
     balance_point_graph = home.balance_point_graph
-    return (summary_output, balance_point_graph)
+
+    return summary_output
 
 
 def convert_to_intermediate_billing_periods(
@@ -275,6 +276,30 @@ def get_maximum_heat_load(
     return (design_set_point - design_temp) * ua
 
 
+def calculate_dhw_usage(dhw_input: DhwInput, heating_system_efficiency: float) -> float:
+    """
+    Calculate non-heating usage with oil or propane
+    """
+    if dhw_input.estimated_water_heating_efficiency is not None:
+        heating_system_efficiency = dhw_input.estimated_water_heating_efficiency
+
+    stand_by_losses = Constants.DEFAULT_STAND_BY_LOSSES
+    if dhw_input.stand_by_losses is not None:
+        stand_by_losses = dhw_input.stand_by_losses
+
+    daily_fuel_oil_use_for_dhw = (
+        dhw_input.number_of_occupants
+        * Constants.DAILY_DHW_CONSUMPTION_PER_OCCUPANT
+        * Constants.WATER_WEIGHT
+        * (Constants.LEAVING_WATER_TEMPERATURE - Constants.ENTERING_WATER_TEMPERATURE)
+        * Constants.SPECIFIC_HEAT_OF_WATER
+        / Constants.FUEL_OIL_BTU_PER_GAL
+        / (heating_system_efficiency * (1 - stand_by_losses))
+    )
+
+    return daily_fuel_oil_use_for_dhw
+
+
 class Home:
     """
     Defines attributes and methods for calculating home heat metrics.
@@ -289,16 +314,14 @@ class Home:
         self,
         summary_input: SummaryInput,
         billing_periods: List[BillingPeriod],
+        dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-        has_boiler_for_dhw: bool = False,
-        same_fuel_dhw_heating: bool = False,
     ):
         self.fuel_type = summary_input.fuel_type
         self.heat_sys_efficiency = summary_input.heating_system_efficiency
         self.thermostat_set_point = summary_input.thermostat_set_point
         self.balance_point = initial_balance_point
-        self.has_boiler_for_dhw = has_boiler_for_dhw
-        self.same_fuel_dhw_heating = same_fuel_dhw_heating
+        self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
 
     def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
@@ -333,19 +356,6 @@ class Home:
         else:
             self.avg_summer_usage = 0
 
-    def _calculate_boiler_usage(self, fuel_multiplier: float) -> float:
-        """
-        Calculate boiler usage with oil or propane
-        Args:
-            fuel_multiplier: a constant that's determined by the fuel
-            type
-        """
-
-        # self.num_occupants: the number of occupants in Home
-        # self.water_heat_efficiency: a number indicating how efficient the heating system is
-
-        return 0 * fuel_multiplier
-
     def _calculate_avg_non_heating_usage(self) -> None:
         """
         Calculate avg non heating usage for this home
@@ -353,17 +363,17 @@ class Home:
 
         if self.fuel_type == FuelType.GAS:
             self.avg_non_heating_usage = self.avg_summer_usage
-        elif self.has_boiler_for_dhw and self.same_fuel_dhw_heating:
-            fuel_multiplier = 1  # default multiplier, for oil, placeholder number
-            if self.fuel_type == FuelType.PROPANE:
-                fuel_multiplier = 2  # a placeholder number
-            self.avg_non_heating_usage = self._calculate_boiler_usage(fuel_multiplier)
+        elif self.dhw_input is not None and self.fuel_type == FuelType.OIL:
+            # TODO: support non-heating usage for Propane in addition to fuel oil
+            self.avg_non_heating_usage = calculate_dhw_usage(
+                self.dhw_input, self.heat_sys_efficiency
+            )
         else:
             self.avg_non_heating_usage = 0
 
     def _calculate_balance_point_and_ua(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -440,17 +450,21 @@ class Home:
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
+            change_in_heat_loss_rate = avg_ua_i - self.avg_ua
+            percent_change_in_heat_loss_rate = 100 * change_in_heat_loss_rate / avg_ua_i
+
+            balance_point_graph_row = BalancePointGraphRow(
+                balance_point=bp_i,
+                heat_loss_rate=avg_ua_i,
+                change_in_heat_loss_rate=change_in_heat_loss_rate,
+                percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
+                standard_deviation=stdev_pct_i,
+            )
+            self.balance_point_graph.records.append(balance_point_graph_row)
+
             if stdev_pct_i >= self.stdev_pct:
                 directions_to_check.pop(0)
             else:
-                # TODO: For balance point graph, store the old balance
-                # point in a list to keep track of all intermediate balance
-                # point temperatures?
-
-                change_in_heat_loss_rate = avg_ua_i - self.avg_ua
-                percent_change_in_heat_loss_rate = (
-                    100 * change_in_heat_loss_rate / avg_ua_i
-                )
                 self.balance_point, self.avg_ua, self.stdev_pct = (
                     bp_i,
                     avg_ua_i,
@@ -475,7 +489,7 @@ class Home:
 
     def calculate(
         self,
-        initial_balance_point_sensitivity: float = 2,
+        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
