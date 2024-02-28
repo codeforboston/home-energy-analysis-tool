@@ -15,6 +15,7 @@ from rules_engine.pydantic_models import (
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
+    DhwInput,
 )
 
 
