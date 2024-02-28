@@ -275,9 +275,8 @@ def get_maximum_heat_load(
     """
     return (design_set_point - design_temp) * ua
 
-def calculate_dhw_usage(
-    dhw_input: DhwInput, heating_system_efficiency: float
-) -> float:
+
+def calculate_dhw_usage(dhw_input: DhwInput, heating_system_efficiency: float) -> float:
     """
     Calculate non-heating usage with oil or propane
     """
@@ -292,10 +291,7 @@ def calculate_dhw_usage(
         dhw_input.number_of_occupants
         * Constants.DAILY_DHW_CONSUMPTION_PER_OCCUPANT
         * Constants.WATER_WEIGHT
-        * (
-            Constants.LEAVING_WATER_TEMPERATURE
-            - Constants.ENTERING_WATER_TEMPERATURE
-        )
+        * (Constants.LEAVING_WATER_TEMPERATURE - Constants.ENTERING_WATER_TEMPERATURE)
         * Constants.SPECIFIC_HEAT_OF_WATER
         / Constants.FUEL_OIL_BTU_PER_GAL
         / (heating_system_efficiency * (1 - stand_by_losses))
@@ -369,7 +365,9 @@ class Home:
             self.avg_non_heating_usage = self.avg_summer_usage
         elif self.dhw_input is not None and self.fuel_type == FuelType.OIL:
             # TODO: support non-heating usage for Propane in addition to fuel oil
-            self.avg_non_heating_usage = self._calculate_dhw_usage(self.dhw_input)
+            self.avg_non_heating_usage = calculate_dhw_usage(
+                self.dhw_input, self.heat_sys_efficiency
+            )
         else:
             self.avg_non_heating_usage = 0
 
