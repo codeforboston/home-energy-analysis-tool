@@ -55,8 +55,8 @@ class DhwInput(BaseModel):
     """From DHW (Domestic Hot Water) Tab"""
 
     number_of_occupants: int = Field(description="DHW!B4")
-    estimated_water_heating_efficiency: float = Field(description="DHW!B5")
-    stand_by_losses: float = Field(description="DHW!B6")
+    estimated_water_heating_efficiency: Optional[float] = Field(description="DHW!B5")
+    stand_by_losses: Optional[float] = Field(description="DHW!B6")
 
 
 class OilPropaneBillingRecordInput(BaseModel):
@@ -144,4 +144,11 @@ class BalancePointGraph(BaseModel):
 @dataclass
 class Constants:
     BALANCE_POINT_SENSITIVITY: float = 0.5
-    DESIGN_SET_POINT: float = 70
+    DESIGN_SET_POINT: float = 70  # deg. F
+    DAILY_DHW_CONSUMPTION_PER_OCCUPANT: float = 15.78  # Gal/day/person
+    WATER_WEIGHT: float = 8.33  # lbs/gal
+    ENTERING_WATER_TEMPERATURE: float = 55  # deg. F
+    LEAVING_WATER_TEMPERATURE: float = 125  # deg. F
+    SPECIFIC_HEAT_OF_WATER: float = 1.00  # BTU/lbs-deg. F
+    DEFAULT_STAND_BY_LOSSES: float = 0.05  #
+    FUEL_OIL_BTU_PER_GAL: float = 139000
