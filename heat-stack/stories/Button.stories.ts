@@ -60,3 +60,11 @@ export const Default: Story = {
     label: 'Button',
   }
 };
+
+export const Secondary: Story = {
+  args: {
+    variant: 'secondary',
+    size: 'default',
+    label: 'Secondary Button',
+  }
+};
