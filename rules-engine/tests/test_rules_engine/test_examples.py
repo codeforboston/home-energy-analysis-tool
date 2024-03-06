@@ -1,3 +1,12 @@
+"""
+End-to-end unit tests based on a series of examples provided by
+the HeatSmart alliance
+
+The rules engine replicates an Excel workbook that helps users estimate
+the size of a heat pump for their house; these tests replicate workbook 
+examples to verify that the rules engine yields the same results as the 
+workbook does.
+"""
 import csv
 import json
 import os
@@ -14,18 +23,20 @@ from rules_engine import engine
 from rules_engine.pydantic_models import (
     NaturalGasBillingInput,
     NaturalGasBillingRecordInput,
+    OilPropaneBillingInput,
+    OilPropaneBillingRecordInput,
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
 )
 
-# Test inputs are provided as separate directory within the "cases/examples" directory
-# Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
+# Test inputs are provided as separate directory within the 
+#"cases/examples" directory
+# Each subdirectory contains a JSON file (named summary.json) which
+# specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# Filter out example 2 for now, since it's for oil fuel type
-INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
-# INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
+INPUT_DATA = next(os.walk(ROOT_DIR))[1]
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -34,8 +45,9 @@ class Summary(SummaryInput, SummaryOutput):
 
 class Example(BaseModel):
     summary: Summary
-    natural_gas_usage: NaturalGasBillingInput
     temperature_data: TemperatureInput
+    natural_gas_usage: Optional[NaturalGasBillingInput] = None
+    oil_propane_usage: Optional[OilPropaneBillingInput] = None
 
 
 def load_summary(folder: str) -> Summary:
@@ -45,6 +57,12 @@ def load_summary(folder: str) -> Summary:
 
 
 def load_natural_gas(folder: str) -> NaturalGasBillingInput:
+    """
+    Returns a NaturalGasBillingInput data structure given a directory
+    enclosing a .csv file of natural gas billing information.
+
+    folder - name of the directory with the .csv file inside
+    """
     records = []
 
     with open(ROOT_DIR / folder / "natural-gas.csv") as f:
@@ -70,8 +88,45 @@ def load_natural_gas(folder: str) -> NaturalGasBillingInput:
     return NaturalGasBillingInput(records=records)
 
 
+def load_oil_propane(folder: str) -> OilPropaneBillingInput:
+    """
+    Returns a OilPropaneBillingInput data structure given a directory
+    enclosing a .csv file of natural gas billing information.
+
+
+    folder - name of the directory with the .csv file inside
+    """
+    records = []
+
+    with open(ROOT_DIR / folder / "oil-propane.csv") as f:
+        reader = iter(csv.DictReader(f))
+        row: Any
+
+        first_row = next(reader)
+        preceding_delivery_date = datetime.strptime(
+            first_row["date"], "%m/%d/%Y"
+        ).date()
+
+        for row in reader:
+            inclusion_override = row["inclusion_override"]
+            if inclusion_override == "":
+                inclusion_override = None
+            else:
+                inclusion_override = int(inclusion_override)
+
+            period_end_date=datetime.strptime(
+                row["date"], "%m/%d/%Y"
+            ).date()
+            gallons=row["gallons"]
+
+            item = OilPropaneBillingRecordInput(period_end_date=period_end_date, gallons=gallons, inclusion_override=inclusion_override)
+            records.append(item)
+    return OilPropaneBillingInput(records=records, preceding_delivery_date=preceding_delivery_date)
+
+
 def load_temperature_data(weather_station: str) -> TemperatureInput:
     with open(ROOT_DIR / "temperature-data.csv", encoding="utf-8-sig") as f:
+
         reader = csv.DictReader(f)
         dates = []
         temperatures = []
@@ -88,18 +143,21 @@ def load_temperature_data(weather_station: str) -> TemperatureInput:
 def data(request):
     summary = load_summary(request.param)
 
+    natural_gas_usage = None
+    oil_propane_usage = None
     if summary.fuel_type == engine.FuelType.GAS:
         natural_gas_usage = load_natural_gas(request.param)
     else:
-        natural_gas_usage = None
+        oil_propane_usage = load_oil_propane(request.param)
 
     weather_station_short_name = summary.local_weather_station[:4]
     temperature_data = load_temperature_data(weather_station_short_name)
 
     example = Example(
         summary=summary,
-        natural_gas_usage=natural_gas_usage,
         temperature_data=temperature_data,
+        natural_gas_usage=natural_gas_usage,
+        oil_propane_usage=oil_propane_usage,
     )
     yield example
 
@@ -158,7 +216,7 @@ def test_average_heat_load_natural_gas(data: Example) -> None:
     )
 
 
-def test_design_temperaure_natural_gas(data: Example) -> None:
+def test_design_temperature_natural_gas(data: Example) -> None:
     summary_output = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
@@ -173,4 +231,12 @@ def test_maximum_heat_load_natural_gas(data: Example) -> None:
     )
     assert summary_output.maximum_heat_load == approx(
         data.summary.maximum_heat_load, abs=1
+    )
+
+def test_other_fuel_usage_natural_gas(data: Example) -> None:
+    summary_output = engine.get_outputs_natural_gas(
+        data.summary, data.temperature_data, data.natural_gas_usage
+    )
+    assert summary_output.other_fuel_usage == approx(
+        data.summary.other_fuel_usage, abs=0.01
     )
