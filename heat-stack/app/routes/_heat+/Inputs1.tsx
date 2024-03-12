@@ -1,15 +1,16 @@
+import { useForm } from '@conform-to/react'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
-import { Form } from '@remix-run/react'
 
 /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
 import { json, ActionFunctionArgs } from '@remix-run/node'
-import { invariantResponse } from '@epic-web/invariant'
 import { parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
+import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 
-const nameMaxLength = 1
-const addressMaxLength = 1
+const nameMaxLength = 50
+const addressMaxLength = 100
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -45,10 +46,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	}
 
 	// TODO NEXT WEEK
-	// Add error components that will show the validation errors. See
-	// https://github.com/epicweb-dev/web-forms/blob/main/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx
-	// ErrorList, useForm, etc
-	// Once we get it working, break out into 2 teams, each working on the other 2 parts of the form
+	// Server side error checking/handling
+	// Save to cookie and redirect to next form
+	// Build form #2 and #3
 
 	const { name, address, livingSpace } = submission.value
 
@@ -58,10 +58,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function Inputs1() {
+	const lastResult = useActionData<typeof action>()
+	const [form, fields] = useForm({
+		lastResult,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: HomeInformationSchema })
+		},
+		defaultValue: {
+			
+		},
+		shouldValidate: 'onBlur',
+	})
+
 	return (
 		
-		<Form method="post" action="/inputs1">
-			<HomeInformation />
+		<Form id={form.id} method="post" onSubmit={form.onSubmit} action="/inputs1">
+			<HomeInformation fields={fields} />
 		</Form>
 	)
 }

@@ -1,7 +1,9 @@
 import { Form } from '@remix-run/react'
+import { ErrorList } from "./ErrorList.tsx"
 import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+import { FieldMetadata, useForm } from '@conform-to/react'
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
@@ -40,8 +42,22 @@ import { Label } from '#/app/components/ui/label.tsx'
 
 // 	// return redirect(`/inputs1`)
 // }
+type HomeInformationProps = {fields: {
+    name: FieldMetadata<string, {
+        name: string;
+        address: string;
+        livingSpace: number;
+    }, string[]>;
+    address: FieldMetadata<string, {
+        name: string;
+        address: string;
+        livingSpace: number;
+    }, string[]>;
+    livingSpace: FieldMetadata<any>;
+}};
 
-export function HomeInformation() {
+export function HomeInformation(props: HomeInformationProps) {
+
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
@@ -57,7 +73,13 @@ export function HomeInformation() {
 					<div className="mt-4 flex space-x-4">
 						<div>
 							<Label htmlFor="name">Name</Label>
-							<Input name="name" id="name" type="text" />
+							<Input name={props.fields.name.name} id="name" type="text" />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.name.errorId}
+								errors={props.fields.name.errors}
+							/>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -68,7 +90,13 @@ export function HomeInformation() {
 					<div className="mt-4 flex space-x-4">
 						<div>
 							<Label htmlFor="address">Address</Label>
-							<Input name="address" id="address" type="text" />
+							<Input name={props.fields.address.name} id="address" type="text" />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.address.errorId}
+								errors={props.fields.address.errors}
+							/>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -82,7 +110,13 @@ export function HomeInformation() {
 
 					<div className="mt-4 flex space-x-2">
 						<div>
-							<Input name="livingArea" id="livingArea" type="number" />
+							<Input name={props.fields.livingSpace.name} id="livingArea" type="number" />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.livingSpace.errorId}
+								errors={props.fields.livingSpace.errors}
+							/>
+							</div>
 							<p className={`${descriptiveClass}`}>
 								The home's above-grade, conditioned space
 							</p>
