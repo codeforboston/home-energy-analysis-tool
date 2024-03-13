@@ -1,4 +1,4 @@
-import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
+import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -16,7 +16,7 @@ const UserSearchResultSchema = z.object({
 
 const UserSearchResultsSchema = z.array(UserSearchResultSchema)
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
 	if (searchTerm === '') {
 		return redirect('/users')
@@ -62,7 +62,7 @@ export default function UsersRoute() {
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
 			<h1 className="text-h1">Epic Notes Users</h1>
-			<div className="w-full max-w-[700px] ">
+			<div className="w-full max-w-[700px]">
 				<SearchBar status={data.status} autoFocus autoSubmit />
 			</div>
 			<main>

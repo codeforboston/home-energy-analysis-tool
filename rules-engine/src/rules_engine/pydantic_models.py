@@ -55,8 +55,8 @@ class DhwInput(BaseModel):
     """From DHW (Domestic Hot Water) Tab"""
 
     number_of_occupants: int = Field(description="DHW!B4")
-    estimated_water_heating_efficiency: float = Field(description="DHW!B5")
-    stand_by_losses: float = Field(description="DHW!B6")
+    estimated_water_heating_efficiency: Optional[float] = Field(description="DHW!B5")
+    stand_by_losses: Optional[float] = Field(description="DHW!B6")
 
 
 class OilPropaneBillingRecordInput(BaseModel):
@@ -113,8 +113,10 @@ class SummaryOutput(BaseModel):
     design_temperature: float = Field(description="Summary!B26")
     whole_home_heat_loss_rate: float = Field(
         description="Summary!B27"
-    )  # UA = heat loss rate
-    standard_deviation_of_heat_loss_rate: float = Field(description="Summary!B28")
+    )  # Whole Home UA. UA = heat loss rate
+    standard_deviation_of_heat_loss_rate: float = Field(
+        description="Summary!B28"
+    )  # Standard deviation of UA
     average_heat_load: float = Field(description="Summary!B29")
     maximum_heat_load: float = Field(description="Summary!B30")
 
@@ -123,10 +125,12 @@ class BalancePointGraphRow(BaseModel):
     """From Summary page"""
 
     balance_point: float = Field(description="Summary!G33:35")  # degree F
-    heat_loss_rate: float = Field(description="Summary!H33:35")  # BTU / (hr-deg. F)
+    heat_loss_rate: float = Field(
+        description="Summary!H33:35"
+    )  # BTU / (hr-deg. F) (UA)
     change_in_heat_loss_rate: float = Field(
         description="Summary!I33:35"
-    )  # BTU / (hr-deg. F)
+    )  # BTU / (hr-deg. F) (change in UA)
     percent_change_in_heat_loss_rate: float = Field(description="Summary!J33:35")
     standard_deviation: float = Field(description="Summary!K33:35")
 
@@ -140,4 +144,11 @@ class BalancePointGraph(BaseModel):
 @dataclass
 class Constants:
     BALANCE_POINT_SENSITIVITY: float = 0.5
-    DESIGN_SET_POINT: float = 70
+    DESIGN_SET_POINT: float = 70  # deg. F
+    DAILY_DHW_CONSUMPTION_PER_OCCUPANT: float = 15.78  # Gal/day/person
+    WATER_WEIGHT: float = 8.33  # lbs/gal
+    ENTERING_WATER_TEMPERATURE: float = 55  # deg. F
+    LEAVING_WATER_TEMPERATURE: float = 125  # deg. F
+    SPECIFIC_HEAT_OF_WATER: float = 1.00  # BTU/lbs-deg. F
+    DEFAULT_STAND_BY_LOSSES: float = 0.05  #
+    FUEL_OIL_BTU_PER_GAL: float = 139000

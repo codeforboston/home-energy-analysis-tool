@@ -1,12 +1,14 @@
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	json,
 	redirect,
 	unstable_createMemoryUploadHandler,
 	unstable_parseMultipartFormData,
-	type DataFunctionArgs,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
 } from '@remix-run/node'
 import {
 	Form,
@@ -15,18 +17,15 @@ import {
 	useNavigation,
 } from '@remix-run/react'
 import { useState } from 'react'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
 import { ErrorList } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	getUserImgSrc,
-	invariantResponse,
 	useDoubleCheck,
 	useIsPending,
 } from '#app/utils/misc.tsx'
@@ -51,9 +50,12 @@ const NewImageSchema = z.object({
 		.refine(file => file.size <= MAX_SIZE, 'Image size must be less than 3MB'),
 })
 
-const PhotoFormSchema = z.union([DeleteImageSchema, NewImageSchema])
+const PhotoFormSchema = z.discriminatedUnion('intent', [
+	DeleteImageSchema,
+	NewImageSchema,
+])
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -68,15 +70,14 @@ export async function loader({ request }: DataFunctionArgs) {
 	return json({ user })
 }
 
-export async function action({ request }: DataFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await unstable_parseMultipartFormData(
 		request,
 		unstable_createMemoryUploadHandler({ maxPartSize: MAX_SIZE }),
 	)
-	await validateCSRF(formData, request.headers)
 
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: PhotoFormSchema.transform(async data => {
 			if (data.intent === 'delete') return { intent: 'delete' }
 			if (data.photoFile.size <= 0) return z.NEVER
@@ -91,11 +92,11 @@ export async function action({ request }: DataFunctionArgs) {
 		async: true,
 	})
 
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
+	if (submission.status !== 'success') {
+		return json(
+			{ result: submission.reply() },
+			{ status: submission.status === 'error' ? 400 : 200 },
+		)
 	}
 
 	const { image, intent } = submission.value
@@ -126,22 +127,17 @@ export default function PhotoRoute() {
 
 	const [form, fields] = useForm({
 		id: 'profile-photo',
-		constraint: getFieldsetConstraint(PhotoFormSchema),
-		lastSubmission: actionData?.submission,
+		constraint: getZodConstraint(PhotoFormSchema),
+		lastResult: actionData?.result,
 		onValidate({ formData }) {
-			// otherwise, the best error zod gives us is "Invalid input" which is not
-			// enough
-			if (formData.get('intent') === 'delete') {
-				return parse(formData, { schema: DeleteImageSchema })
-			}
-			return parse(formData, { schema: NewImageSchema })
+			return parseWithZod(formData, { schema: PhotoFormSchema })
 		},
 		shouldRevalidate: 'onBlur',
 	})
 
 	const isPending = useIsPending()
 	const pendingIntent = isPending ? navigation.formData?.get('intent') : null
-	const lastSubmissionIntent = actionData?.submission.value?.intent
+	const lastSubmissionIntent = fields.intent.value
 
 	const [newImageSrc, setNewImageSrc] = useState<string | null>(null)
 
@@ -152,9 +148,8 @@ export default function PhotoRoute() {
 				encType="multipart/form-data"
 				className="flex flex-col items-center justify-center gap-10"
 				onReset={() => setNewImageSrc(null)}
-				{...form.props}
+				{...getFormProps(form)}
 			>
-				<AuthenticityTokenInput />
 				<img
 					src={
 						newImageSrc ?? (data.user ? getUserImgSrc(data.user.image?.id) : '')
@@ -171,7 +166,7 @@ export default function PhotoRoute() {
 						an image has been selected). Progressive enhancement FTW!
 					*/}
 					<input
-						{...conform.input(fields.photoFile, { type: 'file' })}
+						{...getInputProps(fields.photoFile, { type: 'file' })}
 						accept="image/*"
 						className="peer sr-only"
 						required
@@ -189,7 +184,7 @@ export default function PhotoRoute() {
 					/>
 					<Button
 						asChild
-						className="cursor-pointer peer-valid:hidden peer-focus-within:ring-4 peer-focus-visible:ring-4"
+						className="cursor-pointer peer-valid:hidden peer-focus-within:ring-2 peer-focus-visible:ring-2"
 					>
 						<label htmlFor={fields.photoFile.id}>
 							<Icon name="pencil-1">Change</Icon>
@@ -204,16 +199,16 @@ export default function PhotoRoute() {
 							pendingIntent === 'submit'
 								? 'pending'
 								: lastSubmissionIntent === 'submit'
-								  ? actionData?.status ?? 'idle'
-								  : 'idle'
+									? form.status ?? 'idle'
+									: 'idle'
 						}
 					>
 						Save Photo
 					</StatusButton>
 					<Button
-						type="reset"
 						variant="destructive"
 						className="peer-invalid:hidden"
+						{...form.reset.getButtonProps()}
 					>
 						<Icon name="trash">Reset</Icon>
 					</Button>
@@ -230,8 +225,8 @@ export default function PhotoRoute() {
 								pendingIntent === 'delete'
 									? 'pending'
 									: lastSubmissionIntent === 'delete'
-									  ? actionData?.status ?? 'idle'
-									  : 'idle'
+										? form.status ?? 'idle'
+										: 'idle'
 							}
 						>
 							<Icon name="trash">

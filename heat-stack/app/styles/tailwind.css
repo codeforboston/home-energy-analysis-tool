@@ -4,7 +4,7 @@
 
 @layer base {
 	:root {
-		--font-sans: Nunito Sans, Nunito Sans Fallback;
+		/* --font-sans: here if you have one */
 		/* --font-mono: here if you got it... */
 
 		/* prefixed with foreground because it should look good on the background */
@@ -76,14 +76,5 @@
 		--destructive-foreground: 0 85.7% 97.3%;
 
 		--ring: 217.2 32.6% 60%;
-	}
-}
-
-@layer base {
-	* {
-		@apply border-border;
-	}
-	body {
-		@apply bg-background text-foreground;
 	}
 }

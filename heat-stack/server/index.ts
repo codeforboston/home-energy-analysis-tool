@@ -61,11 +61,11 @@ app.use((req, res, next) => {
 
 // no ending slashes for SEO reasons
 // https://github.com/epicweb-dev/epic-stack/discussions/108
-app.use((req, res, next) => {
+app.get('*', (req, res, next) => {
 	if (req.path.endsWith('/') && req.path.length > 1) {
 		const query = req.url.slice(req.path.length)
 		const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
-		res.redirect(301, safepath + query)
+		res.redirect(302, safepath + query)
 	} else {
 		next()
 	}
@@ -83,12 +83,6 @@ app.use(Sentry.Handlers.tracingHandler())
 app.use(
 	'/build',
 	express.static('public/build', { immutable: true, maxAge: '1y' }),
-)
-
-// Aggressively cache fonts for a year
-app.use(
-	'/fonts',
-	express.static('public/fonts', { immutable: true, maxAge: '1y' }),
 )
 
 // Everything else (like favicon.ico) is cached for an hour. You may want to be
@@ -231,8 +225,8 @@ const server = app.listen(portToUse, () => {
 		desiredPort === portToUse
 			? desiredPort
 			: addy && typeof addy === 'object'
-			? addy.port
-			: 0
+				? addy.port
+				: 0
 
 	if (portUsed !== desiredPort) {
 		console.warn(
