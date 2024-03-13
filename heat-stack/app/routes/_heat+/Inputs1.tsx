@@ -6,8 +6,9 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import { json, ActionFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, redirect, useActionData } from '@remix-run/react'
 import { z } from 'zod'
+import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
@@ -21,6 +22,7 @@ const HomeInformationSchema = z.object({
 })
 
 export async function action({ request, params }: ActionFunctionArgs) {
+	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 
 	const formData = await request.formData()
@@ -29,8 +31,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	})
 
 	if(submission.status !== "success") {
-		return json(
-			submission.reply(), {status: submission.status === "error" ? 400 : 200}
+		return submission.reply()
 			// submission.reply({
 			// 	// You can also pass additional error to the `reply` method
 			// 	formErrors: ['Submission failed'],
@@ -42,13 +43,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			// 	hideFields: ['password'],
 			// }),
 			// {status: submission.status === "error" ? 400 : 200}
-		);
 	}
 
 	// TODO NEXT WEEK
-	// Server side error checking/handling
-	// Save to cookie and redirect to next form
-	// Build form #2 and #3
+	// - [x] Server side error checking/handling
+	// - [ ] Save to cookie and redirect to next form
+	// - [ ] Build form #2 and #3
+	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
 	const { name, address, livingSpace } = submission.value
 
@@ -74,6 +75,7 @@ export default function Inputs1() {
 		
 		<Form id={form.id} method="post" onSubmit={form.onSubmit} action="/inputs1">
 			<HomeInformation fields={fields} />
+			<ErrorList id={form.errorId} errors={form.errors} />
 		</Form>
 	)
 }
