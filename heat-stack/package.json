@@ -30,7 +30,7 @@
     "typecheck": "tsc",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o public/storybook-static"
+    "build-storybook": "storybook build -o heat-stack/public/storybook-static"
   },
   "eslintIgnore": [
     "/node_modules",
