@@ -11,7 +11,21 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 
 class AnalysisType(Enum):
-    DO_NOT_INCLUDE = 0
+    """Enum for analysis type. 
+
+    'Inclusion' in calculations is now determined by 
+    the inclusion_calculated and inclusion_override variables
+
+    Use HDDs to determine if shoulder months
+    are heating or non-heating or not allowed,
+    or included or excluded
+    """
+
+    # ALLOWED_HEATING_USAGE = 1 # winter months - allowed in heating usage calculations
+    # ALLOWED_NON_HEATING_USAGE = -1 # summer months - allowed in non-heating usage calculations
+    # NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds 
+
+    DO_NOT_INCLUDE = 0 
     INCLUDE = 1
     INCLUDE_IN_OTHER_ANALYSIS = -1
 
@@ -93,7 +107,12 @@ class NormalizedBillingPeriodRecordInput(BaseModel):
     period_start_date: date
     period_end_date: date
     usage: float
-    inclusion_override: Optional[AnalysisType]
+    inclusion_override: Optional[AnalysisType] 
+
+    #change the logic here
+    # analysis_type: Optional[AnalysisType]
+    # inclusion_calculated: bool 
+    # inclusion_override: False # by default do not override the rules-engine's choices
 
 
 class TemperatureInput(BaseModel):
