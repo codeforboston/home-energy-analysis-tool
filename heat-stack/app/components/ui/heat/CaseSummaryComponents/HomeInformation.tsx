@@ -128,7 +128,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				{/* <div>
 				<Button type="submit">Next ={'>'}</Button>
 			</div> */}
-			<Button type="submit">Submit</Button>
+
 			{/* </Form> */}
 		</div>
 	)
