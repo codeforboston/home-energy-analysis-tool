@@ -53,7 +53,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	// TODO NEXT WEEK
 	// - [x] Server side error checking/handling
 	// - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
-	// - [ ] Build form #2 and #3
+	// - [ ] (We're here) Build form #2
+	// - [ ] Build form #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
 	const { name, address, livingSpace } = submission.value
