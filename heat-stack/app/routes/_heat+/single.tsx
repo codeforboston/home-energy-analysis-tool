@@ -1,19 +1,19 @@
 /** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
-import { z } from 'zod'
 import { useForm } from '@conform-to/react'
-import { json, ActionFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
+import { json, ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData } from '@remix-run/react'
+import { z } from 'zod'
 
 // Ours
-import { Button } from '#/app/components/ui/button.tsx'
+import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { Button } from '#/app/components/ui/button.tsx'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
@@ -24,6 +24,15 @@ const HomeInformationSchema = z.object({
 	name: z.string().min(1).max(nameMaxLength),
 	address: z.string().min(1).max(addressMaxLength),
 	livingSpace: z.number().min(1),
+})
+
+const EnergyUseSchema = z.object({
+	fuelType: z.string().min(1).max(nameMaxLength),
+	efficiency: z.string().min(1).max(addressMaxLength),
+	override: z.number().min(1),
+	setpoint: z.string().min(1).max(nameMaxLength),
+	setbackTemp: z.string().min(1).max(addressMaxLength),
+	setbackHours: z.number().min(1),
 })
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -81,7 +90,7 @@ export default function Inputs() {
 		<>
 			<Form id={form.id} method="post" onSubmit={form.onSubmit} action="/single">
 				<HomeInformation fields={fields} />
-				<CurrentHeatingSystem />
+				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseHistory />
 				<ErrorList id={form.errorId} errors={form.errors} />
 				<Button type="submit">Submit</Button>
