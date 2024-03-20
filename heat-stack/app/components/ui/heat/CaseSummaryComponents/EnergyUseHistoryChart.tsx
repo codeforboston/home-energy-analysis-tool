@@ -1,3 +1,4 @@
+import { type NaturalGasBillRecord } from '#types/index.js'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
@@ -9,23 +10,39 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
-const months = [
-	{
-		includeData: true,
-		startDate: '02/02/2018',
-		endDate: '02/28/2018',
-		daysInBill: '27',
-		usage: 'Yes',
-		fUA: '10',
-	},
-	{
-		includeData: true,
-		startDate: '03/01/2018',
-		endDate: '03/31/2018',
-		daysInBill: '31',
-		usage: 'Modest',
-		fUA: '30',
-	},
+const naturalGasBillRecord01: NaturalGasBillRecord = {
+	periodStartDate: new Date('12/08/2017'),
+	periodEndDate: new Date('01/07/2018'),
+	usageTherms: 197,
+	inclusionOverride: 'Include',
+}
+
+const naturalGasBillRecord02: NaturalGasBillRecord = {
+	periodStartDate: new Date('01/08/2018'),
+	periodEndDate: new Date('02/07/2018'),
+	usageTherms: 205,
+	inclusionOverride: 'Include',
+}
+
+const naturalGasBillRecord03: NaturalGasBillRecord = {
+	periodStartDate: new Date('02/08/2018'),
+	periodEndDate: new Date('03/07/2018'),
+	usageTherms: 220,
+	inclusionOverride: 'Include',
+}
+
+const naturalGasBillRecord04: NaturalGasBillRecord = {
+	periodStartDate: new Date('03/08/2018'),
+	periodEndDate: new Date('04/07/2018'),
+	usageTherms: 196,
+	inclusionOverride: 'Include',
+}
+
+const naturalGasBill = [
+	naturalGasBillRecord01,
+	naturalGasBillRecord02,
+	naturalGasBillRecord03,
+	naturalGasBillRecord04,
 ]
 
 export function EnergyUseHistoryChart() {
@@ -39,23 +56,31 @@ export function EnergyUseHistoryChart() {
 					<TableHead>End Date</TableHead>
 					<TableHead>Days in Bill</TableHead>
 					<TableHead>Usage (therms)</TableHead>
-					<TableHead>60.5 °F UA (BTU/h-F)</TableHead>
+					<TableHead>Whole-home UA</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{months.map((month, index) => (
-					<TableRow key={index}>
-						<TableCell className="font-medium">{index + 1}</TableCell>
-						<TableCell>
-							<Checkbox checked={month.includeData} />
-						</TableCell>
-						<TableCell>{month.startDate}</TableCell>
-						<TableCell>{month.endDate}</TableCell>
-						<TableCell>{month.daysInBill}</TableCell>
-						<TableCell>{month.usage}</TableCell>
-						<TableCell>{month.fUA}</TableCell>
-					</TableRow>
-				))}
+				{naturalGasBill.map((period, index) => {
+					const timeInPeriod =
+						period.periodEndDate.getTime() - period.periodStartDate.getTime()
+					const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
+
+					return (
+						<TableRow key={index}>
+							<TableCell className="font-medium">{index + 1}</TableCell>
+							<TableCell>
+								<Checkbox checked={period.inclusionOverride == 'Include'} />
+							</TableCell>
+							<TableCell>
+								{period.periodStartDate.toLocaleDateString()}
+							</TableCell>
+							<TableCell>{period.periodEndDate.toLocaleDateString()}</TableCell>
+							<TableCell>{daysInPeriod}</TableCell>
+							<TableCell>{period.usageTherms}</TableCell>
+							<TableCell>0</TableCell>
+						</TableRow>
+					)
+				})}
 			</TableBody>
 		</Table>
 	)
