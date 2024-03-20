@@ -9,6 +9,7 @@ import { z } from 'zod'
 
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { HomeSchema } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -20,19 +21,27 @@ const addressMaxLength = 100
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
-const HomeInformationSchema = z.object({
+const HomeInformationSchema = {
 	name: z.string().min(1).max(nameMaxLength),
 	address: z.string().min(1).max(addressMaxLength),
 	livingSpace: z.number().min(1),
-})
+}
+// type Home = z.infer<typeof HomeSchema>
 
-const EnergyUseSchema = z.object({
-	fuelType: z.string().min(1).max(nameMaxLength),
+// TODO Next: Ask an LLM how we get fuelType out of HomeSchema from zod
+
+const EnergyUseSchema = {
+	fuelType: 'foo',
 	efficiency: z.string().min(1).max(addressMaxLength),
 	override: z.number().min(1),
 	setpoint: z.string().min(1).max(nameMaxLength),
 	setbackTemp: z.string().min(1).max(addressMaxLength),
 	setbackHours: z.number().min(1),
+}
+
+const Schema = z.object({
+	...HomeSchema,
+	...EnergyUseSchema
 })
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -41,7 +50,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, {
-		schema: HomeInformationSchema,
+		schema: Schema,
 	})
 
 	if(submission.status !== "success") {
@@ -62,6 +71,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	// TODO NEXT WEEK
 	// - [x] Server side error checking/handling
 	// - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
+	// - [ ] - Get zod and Typescript to play nice
 	// - [ ] (We're here) Build form #2
 	// - [ ] Build form #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
@@ -78,7 +88,7 @@ export default function Inputs() {
 	const [form, fields] = useForm({
 		lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: HomeInformationSchema })
+			return parseWithZod(formData, { schema: Schema })
 		},
 		defaultValue: {
 			

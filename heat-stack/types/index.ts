@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface Case {
 	firstName: string
 	lastName: string
@@ -15,6 +17,19 @@ export interface HeatLoadAnalysis {
 	averageHeatLoad: number
 	maximumHeatLoad: number
 }
+
+export const HomeSchema = z.object({
+ livingArea: z.number(),
+ fuelType: z.enum(['Natural Gas','Oil','Propane']),
+ designTemperatureOverride: z.number(),
+ heatingSystemEfficiency: z.number(),
+ thermostatSetPoint: z.number(),
+ setbackTemperature: z.number(),
+ setbackHoursPerDay: z.number(),
+ numberOfOccupants: z.number(),
+ estimatedWaterHeatingEfficiency: z.number(),
+ standByLosses: z.number(),
+});
 
 export interface Home {
 	livingArea: number
