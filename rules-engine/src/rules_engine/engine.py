@@ -34,9 +34,9 @@ def get_outputs_oil_propane(
     for input_val in oil_propane_billing_input.records:
         start_date = last_date + timedelta(days=1)
         inclusion = (
-            AnalysisType.INCLUDE
+            AnalysisType.ALLOWED_HEATING_USAGE
             if input_val.inclusion_override
-            else AnalysisType.DO_NOT_INCLUDE
+            else AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
         )
         billing_periods.append(
             NormalizedBillingPeriodRecordInput(
@@ -163,18 +163,18 @@ def convert_to_intermediate_billing_periods(
 
 def date_to_analysis_type(d: date) -> AnalysisType:
     months = {
-        1: AnalysisType.INCLUDE,
-        2: AnalysisType.INCLUDE,
-        3: AnalysisType.INCLUDE,
-        4: AnalysisType.DO_NOT_INCLUDE,
-        5: AnalysisType.DO_NOT_INCLUDE,
-        6: AnalysisType.DO_NOT_INCLUDE,
-        7: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
-        8: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
-        9: AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
-        10: AnalysisType.DO_NOT_INCLUDE,
-        11: AnalysisType.DO_NOT_INCLUDE,
-        12: AnalysisType.INCLUDE,
+        1: AnalysisType.ALLOWED_HEATING_USAGE,
+        2: AnalysisType.ALLOWED_HEATING_USAGE,
+        3: AnalysisType.ALLOWED_HEATING_USAGE,
+        4: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        5: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        6: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        7: AnalysisType.ALLOWED_NON_HEATING_USAGE,
+        8: AnalysisType.ALLOWED_NON_HEATING_USAGE,
+        9: AnalysisType.ALLOWED_NON_HEATING_USAGE,
+        10: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        11: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        12: AnalysisType.ALLOWED_HEATING_USAGE,
     }
     return months[d.month]
 
@@ -329,13 +329,54 @@ class Home:
         self.bills_summer = []
         self.bills_shoulder = []
 
+        # 'Inclusion' in calculations is now determined by two variables:
+        # billing_period.inclusion_calculated: bool 
+        # billing_period.inclusion_override: bool (False by default)
+        # 
+        # Our logic around the AnalysisType can now disallow
+        # a billing_period from being included or overridden
+        # by marking it as NOT_ALLOWED_IN_CALCULATIONS
+        # 
+        # Options for billing_period.analysis_type:
+        # ALLOWED_HEATING_USAGE = 1 # winter months - allowed in heating usage calculations
+        # ALLOWED_NON_HEATING_USAGE = -1 # summer months - allowed in non-heating usage calculations
+        # NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds 
+        # 
+        # Use HDDs to determine if shoulder months
+        # are heating or non-heating or not allowed,
+        # or included or excluded
+        # 
+        # Rough calculations from Steve, this will be ammended:
+        # IF hdds is within 70% or higher of max, allowed
+        # less than 25% of max, not allowed
+        # 
+        
+        # IF winter months
+        #       analysis_type = ALLOWED_HEATING_USAGE
+        #       inclusion_calculated = True
+        # ELSE IF summer months
+        #       analysis_type = ALLOWED_NON_HEATING_USAGE
+        #       inclusion_calculated = True
+        # ELSE IF shoulder months
+        #       IF hdds < 25% || hdds > 70%  
+        #           analysis_type = NOT_ALLOWED_IN_CALCULATIONS
+        #           inclusion_calculated = False
+        #       IF 25% < hdds < 50%
+        #           analysis_type = ALLOWED_NON_HEATING_USAGE
+        #           inclusion_calculated = False
+        #       IF 50% < hdds < 70%
+        #           analysis_type = ALLOWED_HEATING_USAGE
+        #           inclusion_calculated = False
+
+
+
         # winter months 1; summer months -1; shoulder months 0
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
 
-            if billing_period.analysis_type == AnalysisType.INCLUDE:
+            if billing_period.analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
                 self.bills_winter.append(billing_period)
-            elif billing_period.analysis_type == AnalysisType.DO_NOT_INCLUDE:
+            elif billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
                 self.bills_shoulder.append(billing_period)
             else:
                 self.bills_summer.append(billing_period)
@@ -549,6 +590,7 @@ class BillingPeriod:
         self.avg_temps = avg_temps
         self.usage = usage
         self.analysis_type = analysis_type
+        
         self.days = len(self.avg_temps)
 
     def set_initial_balance_point(self, balance_point: float) -> None:
