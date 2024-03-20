@@ -21,10 +21,10 @@ from rules_engine.pydantic_models import (
 @pytest.fixture()
 def sample_billing_periods() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
     ]
     return billing_periods
 
@@ -32,11 +32,11 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 @pytest.fixture()
 def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
     ]
 
     return billing_periods
@@ -184,14 +184,14 @@ def test_period_hdd(temps, expected_result):
 
 def test_date_to_analysis_type():
     test_date = date.fromisoformat("2019-01-04")
-    assert engine.date_to_analysis_type(test_date) == AnalysisType.INCLUDE
+    assert engine.date_to_analysis_type(test_date) == AnalysisType.ALLOWED_HEATING_USAGE
 
     dates = ["2019-01-04", "2019-07-04", "2019-12-04"]
     types = [engine.date_to_analysis_type(date.fromisoformat(d)) for d in dates]
     expected_types = [
-        AnalysisType.INCLUDE,
-        AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
-        AnalysisType.INCLUDE,
+        AnalysisType.ALLOWED_HEATING_USAGE,
+        AnalysisType.ALLOWED_NON_HEATING_USAGE,
+        AnalysisType.ALLOWED_HEATING_USAGE,
     ]
     assert types == expected_types
 
@@ -255,11 +255,11 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
     ]
 
     for i in range(len(expected_results)):
