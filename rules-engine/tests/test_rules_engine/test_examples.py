@@ -141,6 +141,11 @@ def load_temperature_data(weather_station: str) -> TemperatureInput:
 
 @pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
+    """
+    WARNING: THIS DOCSTRING SAYS WHAT THE FUNCTION *SHOULD* DO RATHER THAN WHAT IT DOES.
+    Provides input data for each of the tests by loading a fuel usage CSV and a JSON file containing the test inputs and expected outputs.
+    Returns the test input data.
+    """
     summary = load_summary(request.param)
 
     natural_gas_usage = None
@@ -159,84 +164,84 @@ def data(request):
         natural_gas_usage=natural_gas_usage,
         oil_propane_usage=oil_propane_usage,
     )
-    yield example
+
+    # TODO: Don't exercise the rules engine in this pytest fixture
+    # The calls to engine.get_outputs_natural_gas and engine.get_outputs_oil_propane should be
+    # called from the tests themselves rather than here.
+
+    if summary.fuel_type == engine.FuelType.GAS:
+        summary_output = engine.get_outputs_natural_gas(
+            example.summary, example.temperature_data, example.natural_gas_usage
+        )
+    else:
+        summary_output = engine.get_outputs_oil_propane(
+            example.summary, None, example.temperature_data, example.oil_propane_usage
+        )
+    
+    yield example, summary_output
 
 
-def test_average_indoor_temp(data: Example) -> None:
+def test_average_indoor_temp(data: tuple[Example, SummaryOutput]) -> None:
+    example, _ = data
     avg_indoor_temp = engine.get_average_indoor_temperature(
-        data.summary.thermostat_set_point,
-        data.summary.setback_temperature or 0,
-        data.summary.setback_hours_per_day or 0,
+        example.summary.thermostat_set_point,
+        example.summary.setback_temperature or 0,
+        example.summary.setback_hours_per_day or 0,
     )
-    assert data.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
+    assert example.summary.average_indoor_temperature == approx(avg_indoor_temp, rel=0.01)
 
 
-def test_balance_point_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
-    assert data.summary.estimated_balance_point == approx(
+def test_balance_point(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
+    assert example.summary.estimated_balance_point == approx(
         summary_output.estimated_balance_point, abs=0.1
     )
 
 
-def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_whole_home_heat_loss_rate(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.whole_home_heat_loss_rate == approx(
-        data.summary.whole_home_heat_loss_rate, abs=1
+        example.summary.whole_home_heat_loss_rate, abs=1
     )
 
 
-def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_standard_deviation_of_heat_loss_rate(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.standard_deviation_of_heat_loss_rate == approx(
-        data.summary.standard_deviation_of_heat_loss_rate, abs=0.01
+        example.summary.standard_deviation_of_heat_loss_rate, abs=0.01
     )
 
 
-def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_difference_between_ti_and_tbp(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.difference_between_ti_and_tbp == approx(
-        data.summary.difference_between_ti_and_tbp, abs=0.1
+        example.summary.difference_between_ti_and_tbp, abs=0.1
     )
 
 
-def test_average_heat_load_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_average_heat_load(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.average_heat_load == approx(
-        data.summary.average_heat_load, abs=1
+        example.summary.average_heat_load, abs=1
     )
 
 
-def test_design_temperature_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_design_temperature(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.design_temperature == approx(
-        data.summary.design_temperature, abs=0.1
+        example.summary.design_temperature, abs=0.1
     )
 
 
-def test_maximum_heat_load_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+def test_maximum_heat_load(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.maximum_heat_load == approx(
-        data.summary.maximum_heat_load, abs=1
+        example.summary.maximum_heat_load, abs=1
     )
 
-def test_other_fuel_usage_natural_gas(data: Example) -> None:
-    summary_output = engine.get_outputs_natural_gas(
-        data.summary, data.temperature_data, data.natural_gas_usage
-    )
+
+def test_other_fuel_usage(data: tuple[Example, SummaryOutput]) -> None:
+    example, summary_output = data
     assert summary_output.other_fuel_usage == approx(
-        data.summary.other_fuel_usage, abs=0.01
+        example.summary.other_fuel_usage, abs=0.01
     )
