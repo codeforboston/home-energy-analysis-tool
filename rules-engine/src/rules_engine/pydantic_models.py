@@ -107,7 +107,7 @@ class SummaryOutput(BaseModel):
     estimated_balance_point: float = Field(
         description="Summary!B20"
     )  # This is hand-calculated in the spreadsheet
-    other_fuel_usage: float = Field(description="Summary!B15")
+    other_fuel_usage: Optional[float] = Field(description="Summary!B15")
     average_indoor_temperature: float = Field(description="Summary!B24")
     difference_between_ti_and_tbp: float = Field(description="Summary!B25")
     design_temperature: float = Field(description="Summary!B26")
