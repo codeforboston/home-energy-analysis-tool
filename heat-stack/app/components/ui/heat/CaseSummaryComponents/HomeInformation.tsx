@@ -42,19 +42,7 @@ import { FieldMetadata, useForm } from '@conform-to/react'
 
 // 	// return redirect(`/inputs1`)
 // }
-type HomeInformationProps = {fields: {
-    name: FieldMetadata<string, {
-        name: string;
-        address: string;
-        livingSpace: number;
-    }, string[]>;
-    address: FieldMetadata<string, {
-        name: string;
-        address: string;
-        livingSpace: number;
-    }, string[]>;
-    livingSpace: FieldMetadata<any>;
-}};
+type HomeInformationProps = {fields: any};
 
 export function HomeInformation(props: HomeInformationProps) {
 

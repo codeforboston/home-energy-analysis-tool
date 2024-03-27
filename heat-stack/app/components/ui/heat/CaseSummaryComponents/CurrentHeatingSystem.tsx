@@ -4,7 +4,9 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 
-export function CurrentHeatingSystem() {
+type CurrentHeatingSystemProps = {fields: any};
+
+export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'

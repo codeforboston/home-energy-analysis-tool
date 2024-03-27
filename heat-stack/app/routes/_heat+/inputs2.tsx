@@ -2,7 +2,7 @@ import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryCompon
 export default function Inputs2() {
 	return (
 		<div>
-			<CurrentHeatingSystem />
+			<CurrentHeatingSystem fields={{}}/>
 		</div>
 	)
 }
