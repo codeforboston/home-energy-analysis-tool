@@ -9,7 +9,7 @@ import { z } from 'zod'
 
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { HomeSchema } from '../../../types/index.ts'
+import { Home, Location, Case } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -21,28 +21,32 @@ const addressMaxLength = 100
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
-const HomeInformationSchema = {
-	name: z.string().min(1).max(nameMaxLength),
-	address: z.string().min(1).max(addressMaxLength),
-	livingSpace: z.number().min(1),
-}
-// type Home = z.infer<typeof HomeSchema>
 
-// TODO Next: Ask an LLM how we get fuelType out of HomeSchema from zod
+// const HomeInformationSchema = {
+// 	name: z.string().min(1).max(nameMaxLength),
+// 	address: z.string().min(1).max(addressMaxLength),
+// 	livingSpace: z.number().min(1),
+// }
+// // type Home = z.infer<typeof HomeSchema>
 
-const EnergyUseSchema = {
-	fuelType: 'foo',
-	efficiency: z.string().min(1).max(addressMaxLength),
-	override: z.number().min(1),
-	setpoint: z.string().min(1).max(nameMaxLength),
-	setbackTemp: z.string().min(1).max(addressMaxLength),
-	setbackHours: z.number().min(1),
-}
+// // TODO Next: Ask an LLM how we get fuelType out of HomeSchema from zod
 
-const Schema = z.object({
-	...HomeSchema,
-	...EnergyUseSchema
+const HomeFormSchema = Home.pick({ livingArea: true })
+	.and(Location.pick({ address: true }))
+	.and(Case.pick({ name: true }))
+
+const CurrentHeatingSystemSchema = Home.pick({
+	fuelType: true,
+	heatingSystemEfficiency: true,
+	thermostatSetPoint: true,
+	setbackTemperature: true,
+	setbackHoursPerDay: true,
+	designTemperatureOverride: true,
 })
+
+const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema)
+
+// const EnergyUseSchema = '';
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
@@ -53,19 +57,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		schema: Schema,
 	})
 
-	if(submission.status !== "success") {
+	if (submission.status !== 'success') {
 		return submission.reply()
-			// submission.reply({
-			// 	// You can also pass additional error to the `reply` method
-			// 	formErrors: ['Submission failed'],
-			// 	fieldErrors: {
-			// 		address: ['Address is invalid'],
-			// 	},
-	
-			// 	// or avoid sending the the field value back to client by specifying the field names
-			// 	hideFields: ['password'],
-			// }),
-			// {status: submission.status === "error" ? 400 : 200}
+		// submission.reply({
+		// 	// You can also pass additional error to the `reply` method
+		// 	formErrors: ['Submission failed'],
+		// 	fieldErrors: {
+		// 		address: ['Address is invalid'],
+		// 	},
+
+		// 	// or avoid sending the the field value back to client by specifying the field names
+		// 	hideFields: ['password'],
+		// }),
+		// {status: submission.status === "error" ? 400 : 200}
 	}
 
 	// TODO NEXT WEEK
@@ -76,7 +80,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	// - [ ] Build form #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
-	const { name, address, livingSpace } = submission.value
+	const { name, address, livingArea, fuelType,
+		heatingSystemEfficiency,
+		thermostatSetPoint,
+		setbackTemperature,
+		setbackHoursPerDay,
+		designTemperatureOverride } = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
 
@@ -90,15 +99,18 @@ export default function Inputs() {
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
-		defaultValue: {
-			
-		},
+		defaultValue: {},
 		shouldValidate: 'onBlur',
 	})
 
 	return (
 		<>
-			<Form id={form.id} method="post" onSubmit={form.onSubmit} action="/single">
+			<Form
+				id={form.id}
+				method="post"
+				onSubmit={form.onSubmit}
+				action="/single"
+			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseHistory />

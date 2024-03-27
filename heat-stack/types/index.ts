@@ -1,77 +1,68 @@
 import { z } from 'zod';
 
-export interface Case {
-	firstName: string
-	lastName: string
-}
+// JS team wants to discuss this name
+export const Case = z.object({
+	name: z.string()
+})
 
-export interface HeatLoadAnalysis {
-	rulesEngineVersion: string
-	estimatedBalancePoint: number
-	otherFuelUsage: number
-	averageIndoorTemperature: number
-	differenceBetweenTiAndTbp: number
-	designTemperature: number
-	wholeHomeHeatLossRate: number
-	standardDeviationHeatLossRate: number
-	averageHeatLoad: number
-	maximumHeatLoad: number
-}
-
-export const HomeSchema = z.object({
- livingArea: z.number(),
- fuelType: z.enum(['Natural Gas','Oil','Propane']),
- designTemperatureOverride: z.number(),
- heatingSystemEfficiency: z.number(),
- thermostatSetPoint: z.number(),
- setbackTemperature: z.number(),
- setbackHoursPerDay: z.number(),
- numberOfOccupants: z.number(),
- estimatedWaterHeatingEfficiency: z.number(),
- standByLosses: z.number(),
+export const HeatLoadAnalysis = z.object({
+	rulesEngineVersion: z.string(),
+	estimatedBalancePoint: z.number(),
+	otherFuelUsage: z.number(),
+	averageIndoorTemperature: z.number(),
+	differenceBetweenTiAndTbp: z.number(),
+	/**
+	 * designTemperature in Fahrenheit
+	 */
+	designTemperature: z.number().max(-10).min(50),
+	wholeHomeHeatLossRate: z.number(),
+	standardDeviationHeatLossRate: z.number(),
+	averageHeatLoad: z.number(),
+	maximumHeatLoad: z.number(),
 });
 
-export interface Home {
-	livingArea: number
-	fuelType: 'Natural Gas' | 'Oil' | 'Propane'
-	designTemperatureOverride: number
-	heatingSystemEfficiency: number
-	thermostatSetPoint: number
-	setbackTemperature: number
-	setbackHoursPerDay: number
-	numberOfOccupants: number
-	estimatedWaterHeatingEfficiency: number
-	standByLosses: number
-}
+export const Home = z.object({
+	/**
+	 * unit: square feet
+	 */
+	livingArea: z.number().min(500).max(10000),
+	fuelType: z.enum(['Natural Gas','Oil','Propane']),
+	designTemperatureOverride: z.number(),
+	/**
+	 * unit: percentage in decimal numbers, but not 0 to 1
+	 */
+	heatingSystemEfficiency: z.number().min(60).max(100),
+	thermostatSetPoint: z.number(),
+	setbackTemperature: z.number(),
+	setbackHoursPerDay: z.number(),
+	numberOfOccupants: z.number(),
+	estimatedWaterHeatingEfficiency: z.number(),
+	standByLosses: z.number(),
+});
 
-export interface Location {
-	address: string
-	addressLine2: string
-	city: string
-	state: string
-	zip: string
-	country: string
-}
+export const Location = z.object({
+	address: z.string(),
+});
 
-export interface NaturalGasBill {
-	provider: string
-}
+export const NaturalGasBill = z.object({
+	provider: z.string(),
+});
 
-export interface NaturalGasBillRecord {
-	periodStartDate: Date
-	periodEndDate: Date
-	usageTherms: number
-	inclusionOverride: 'Include' | 'Do not include' | 'Include in other analysis'
-}
+export const NaturalGasBillRecord = z.object({
+	periodStartDate: z.date(),
+	periodEndDate: z.date(),
+	usageTherms: z.number(),
+	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
+});
 
-export interface OilPropaneBill {
-	provider: string
-	precedingDeliveryDate: Date
-}
+export const OilPropaneBill = z.object({
+	provider: z.string(),
+	precedingDeliveryDate: z.date(),
+});
 
-export interface OilPropaneBillRecord {
-	periodStartDate: Date
-	periodEndDate: Date
-	gallons: number
-	inclusionOverride: 'Include' | 'Do not include' | 'Include in other analysis'
-}
+export const OilPropaneBillRecord = z.object({
+	periodStartDate: z.date(),
+	periodEndDate: z.date(),
+	gallons: z.number(),
+	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
+});
