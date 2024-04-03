@@ -7,6 +7,14 @@ import { json, ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 
+// TODO NEXT WEEK
+// - [x] Server side error checking/handling
+// - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
+// - [x] - Get zod and Typescript to play nice
+// - [x] (We're here) Build form #2
+// - [ ] Build form #3
+// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
+
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { Home, Location, Case } from '../../../types/index.ts'
@@ -38,10 +46,10 @@ const HomeFormSchema = Home.pick({ livingArea: true })
 const CurrentHeatingSystemSchema = Home.pick({
 	fuelType: true,
 	heatingSystemEfficiency: true,
+	designTemperatureOverride: true,
 	thermostatSetPoint: true,
 	setbackTemperature: true,
 	setbackHoursPerDay: true,
-	designTemperatureOverride: true,
 })
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema)
@@ -71,14 +79,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		// }),
 		// {status: submission.status === "error" ? 400 : 200}
 	}
-
-	// TODO NEXT WEEK
-	// - [x] Server side error checking/handling
-	// - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
-	// - [ ] - Get zod and Typescript to play nice
-	// - [ ] (We're here) Build form #2
-	// - [ ] Build form #3
-	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
 	const { name, address, livingArea, fuelType,
 		heatingSystemEfficiency,

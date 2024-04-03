@@ -1,10 +1,11 @@
 import { Form } from '@remix-run/react'
 import { Button } from '#/app/components/ui/button.tsx'
+import { ErrorList } from './ErrorList.tsx'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 
-type CurrentHeatingSystemProps = {fields: any};
+type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
@@ -18,107 +19,154 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				Existing Heating System
 			</h2>
 
-			<Form method="post" action="/current">
-				<h6 className={`${subtitleClass}`}>Fuel Type</h6>
+			{/* <Form method="post" action="/current"> */}
+			<div>
+				{' '}
+				<Label htmlFor="fuelType" className={`${subtitleClass}`}>
+					Fuel Type
+				</Label>
 				<div className="flex space-x-4">
 					<div className="basis-1/4">
-						<Input name="fuelType" id="fuelType" type="text" />
+						<Input
+							name={props.fields.fuelType.name}
+							id="fuelType"
+							type="text"
+						/>
 					</div>
 				</div>
+				<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<ErrorList
+						id={props.fields.fuelType.errorId}
+						errors={props.fields.fuelType.errors}
+					/>
+				</div>
+			</div>
 
-				<h6 className={`${subtitleClass}`}>Heating system efficiency %</h6>
-				<div className="flex space-x-4">
-					<div className={`basis-1/3`}>
+			<Label htmlFor="heatingSystemEfficiency" className={`${subtitleClass}`}>
+				Heating system efficiency %
+			</Label>
+			<div className="flex space-x-4">
+				<div className={`basis-1/3`}>
+					<Input
+						name={props.fields.heatingSystemEfficiency.name}
+						id="heatingSystemEfficiency"
+						type="text"
+						placeholder="(Percent)"
+					/>
+					<div className={`${descriptiveClass}`}>
+						Typical natural gas efficiency is 80%-95%
+					</div>
+					<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<ErrorList
+							id={props.fields.heatingSystemEfficiency.errorId}
+							errors={props.fields.heatingSystemEfficiency.errors}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<Label htmlFor="designTemperatureOverride" className={`${subtitleClass}`}>
+				Design temperature override (°F)
+			</Label>
+			<div className="flex space-x-4">
+				<div className={`basis-1/3`}>
+					<Input
+						name={props.fields.designTemperatureOverride.name}
+						id="designTemperatureOverride"
+						type="text"
+						placeholder="(Optional)"
+					/>
+					<div>
+						<div className={`${descriptiveClass}`}>
+							65°F is the 99% ASHRAE heating design temperature at this location
+						</div>
+					</div>
+					<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<ErrorList
+							id={props.fields.designTemperatureOverride.errorId}
+							errors={props.fields.designTemperatureOverride.errors}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<h6 className={`${subtitleClass}`}>Thermostat Settings</h6>
+				<div className="mt-4 flex space-x-4">
+					<div className="basis-1/3">
+						<Label htmlFor="thermostatSetPoint">
+							<b>Set Point (°F)</b>{' '}
+						</Label>
 						<Input
-							name="heatingSystemEfficiency"
-							id="heatingSystemEfficiency"
+							name={props.fields.thermostatSetPoint.name}
+							id="thermostatSetPoint"
 							type="text"
-							placeholder="(Percent)"
+							placeholder="(Fahrenheit)"
+						/>
+						<div className={`${descriptiveClass}`}>
+							Usual thermostat setting for heating
+						</div>
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.thermostatSetPoint.errorId}
+								errors={props.fields.thermostatSetPoint.errors}
+							/>
+						</div>
+					</div>
+					<div className="basis-1/3">
+						<Label htmlFor="setbackTemperature">
+							<b>Setback Temperature (°F)</b>
+						</Label>
+						<Input
+							name={props.fields.setbackTemperature.name}
+							id="setbackTemperature"
+							type="text"
+							placeholder="(Optional)"
+						/>
+						<div className={`${descriptiveClass}`}>
+							Enter if thermostat is programmed to a lower or higher temperature
+							during working or sleep hours
+						</div>
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.setbackTemperature.errorId}
+								errors={props.fields.setbackTemperature.errors}
+							/>
+						</div>
+					</div>
+					<div className="basis-1/3">
+						<Label htmlFor="setbackHoursPerDay">
+							<b>Setback hours per day</b>
+						</Label>
+						<Input
+							name={props.fields.setbackHoursPerDay.name}
+							id="setbackHoursPerDay"
+							type="text"
+							placeholder="(Optional)"
 						/>
 						<div className={`${descriptiveClass}`}>
 							Typical natural gas efficiency is 80%-95%
 						</div>
-					</div>
-				</div>
-
-				<h6 className={`${subtitleClass}`}>Design temperature override (°F)</h6>
-				<div className="flex space-x-4">
-					<div className={`basis-1/3`}>
-						<Input
-							name="designTemperatureOverride"
-							id="designTemperatureOverride"
-							type="text"
-							placeholder="(Optional)"
-						/>
-						<div>
-							<div className={`${descriptiveClass}`}>
-								65°F is the 99% ASHRAE heating design temperature at this
-								location
-							</div>
+						<div className={`${descriptiveClass}`}>
+							Average hours per day that a lower or higher temperature setting
+							is in effect
+						</div>
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.setbackHoursPerDay.errorId}
+								errors={props.fields.setbackHoursPerDay.errors}
+							/>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				<div>
-					<h6 className={`${subtitleClass}`}>Thermostat Settings</h6>
-					<div className="mt-4 flex space-x-4">
-						<div className="basis-1/3">
-							<Label htmlFor="setPoint">
-								<b>Set Point (°F)</b>{' '}
-							</Label>
-							<Input
-								name="setPointTemperature"
-								id="setPointTemperature"
-								type="text"
-								placeholder="(Fahrenheit)"
-							/>
-							<div className={`${descriptiveClass}`}>
-								Usual thermostat setting for heating
-							</div>
-						</div>
-						<div className="basis-1/3">
-							<Label htmlFor="setPoint">
-								<b>Setback Temperature (°F)</b>
-							</Label>
-							<Input
-								name="setBackTemperature"
-								id="setBackTemperature"
-								type="text"
-								placeholder="(Optional)"
-							/>
-							<div className={`${descriptiveClass}`}>
-								Enter if thermostat is programmed to a lower or higher
-								temperature during working or sleep hours
-							</div>
-						</div>
-						<div className="basis-1/3">
-							<Label htmlFor="setPoint">
-								<b>Setback hours per day</b>
-							</Label>
-							<Input
-								name="setBackTime"
-								id="setBackTime"
-								type="text"
-								placeholder="(Optional)"
-							/>
-							<div className={`${descriptiveClass}`}>
-								Typical natural gas efficiency is 80%-95%
-							</div>
-							<div className={`${descriptiveClass}`}>
-								Average hours per day that a lower or higher temperature setting
-								is in effect
-							</div>
-						</div>
-					</div>
-				</div>
-
-				
-			</Form>
+			{/* </Form> */}
 
 			{/* removed temporarily for single page app format */}
 			{/* <div>
-        <Button type="submit">Next ={'>'}</Button>
-      </div> */}
+				<Button type="submit">Next ={'>'}</Button>
+			</div> */}
 		</div>
 	)
 }

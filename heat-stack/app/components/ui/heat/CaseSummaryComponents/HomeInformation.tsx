@@ -42,7 +42,7 @@ import { FieldMetadata, useForm } from '@conform-to/react'
 
 // 	// return redirect(`/inputs1`)
 // }
-type HomeInformationProps = {fields: any};
+type HomeInformationProps = {fields: Conform};
 
 export function HomeInformation(props: HomeInformationProps) {
 
