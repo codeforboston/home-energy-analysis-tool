@@ -12,7 +12,15 @@ import { z } from 'zod'
 // - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
 // - [x] - Get zod and Typescript to play nice
 // - [x] (We're here) Build form #2
-// - [ ] Build form #3
+// - [ ] Build upload form
+//   - https://www.epicweb.dev/workshops/professional-web-forms/file-upload/intro-to-file-upload
+//   - https://github.com/epicweb-dev/web-forms/tree/main/exercises/04.file-upload
+//   - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L58
+//   - createMemoryUploadHandler
+//   - parseMultipartFormData
+//   - avoid dealing with the server for now
+//   - pass the data to the rules engine/pyodide either in the component or the action (probably the action for validation, etc.)
+// - [ ] (On hold) Build table form
 // - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
 // Ours
