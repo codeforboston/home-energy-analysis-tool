@@ -20,7 +20,7 @@ import { z } from 'zod'
 //   - parseMultipartFormData
 //   - avoid dealing with the server for now
 //   - pass the data to the rules engine/pyodide either in the component or the action (probably the action for validation, etc.)
-// - [ ] (On hold) Build table form
+// - [ ] (On hold for data format from rules engine) Build table form
 // - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
 // Ours
@@ -58,6 +58,7 @@ const CurrentHeatingSystemSchema = Home.pick({
 	thermostatSetPoint: true,
 	setbackTemperature: true,
 	setbackHoursPerDay: true,
+
 })
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema)
