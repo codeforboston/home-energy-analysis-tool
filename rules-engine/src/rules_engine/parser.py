@@ -3,15 +3,16 @@ Return lists of gas billing data parsed from Eversource and
 National Grid CSVs.
 """
 import csv
-from datetime import datetime, timedelta
 import io
+from datetime import datetime, timedelta
+
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
 class _GasBillRowEversource:
     """
     Holds data for one row of an Eversource gas bill CSV.
-    
+
     The names of the fields correspond to the first row of the Eversource bill.
 
     Example:
@@ -19,6 +20,7 @@ class _GasBillRowEversource:
         1/18/2022,184.00,32,5.75,$327.58,30.0
         ...
     """
+
     def __init__(self, row):
         self.read_date = row["Read Date"]
         self.usage = row["Usage"]
@@ -28,10 +30,10 @@ class _GasBillRowEversource:
 class _GasBillRowNationalGrid:
     """
     Holds data for one row of an National Grid gas bill CSV.
-    
-    The names of the fields correspond to the row of the National Grid 
+
+    The names of the fields correspond to the row of the National Grid
     bill right before the billing data.
-    
+
     Example:
         Name,FIRST LAST,,,,,
         Address,"100 PLACE AVE, BOSTON MA 02130",,,,,
@@ -42,6 +44,7 @@ class _GasBillRowNationalGrid:
         Natural gas billing,12/29/2012,1/24/2013,149,therms,$206.91 ,
         ...
     """
+
     def __init__(self, row):
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
@@ -50,7 +53,7 @@ class _GasBillRowNationalGrid:
 
 def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
-    Return a list of gas bill data parsed from an Eversource CSV 
+    Return a list of gas bill data parsed from an Eversource CSV
     received as a string.
 
     Example:
@@ -62,16 +65,18 @@ def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     reader = csv.DictReader(f)
     records = []
     for row in reader:
-        data = _GasBillRowEversource(row)
-        period_end_date = datetime.strptime(data.read_date, "%m/%d/%Y").date()
+        parsed_row = _GasBillRowEversource(row)
+        period_end_date = datetime.strptime(parsed_row.read_date, "%m/%d/%Y").date()
         # Calculate period_start_date using the end date and number of days in the bill
         # Care should be taken here to avoid off-by-one errors
-        period_start_date = period_end_date - timedelta(days=(int(data.number_of_days) - 1))
+        period_start_date = period_end_date - timedelta(
+            days=(int(parsed_row.number_of_days) - 1)
+        )
 
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
             period_end_date=period_end_date,
-            usage_therms=data.usage,
+            usage_therms=parsed_row.usage,
             inclusion_override=None,
         )
         records.append(record)
@@ -81,7 +86,7 @@ def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
 
 def parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
     """
-    Return a list of gas bill data parsed from an National Grid CSV 
+    Return a list of gas bill data parsed from an National Grid CSV
     received as a string.
 
     Example:
@@ -102,17 +107,17 @@ def parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
 
     records = []
     for row in reader:
-        data = _GasBillRowNationalGrid(row)
-        
-        period_start_date = datetime.strptime(data.start_date, "%m/%d/%Y").date()
-        period_end_date = datetime.strptime(data.end_date, "%m/%d/%Y").date()
+        parsed_row = _GasBillRowNationalGrid(row)
+
+        period_start_date = datetime.strptime(parsed_row.start_date, "%m/%d/%Y").date()
+        period_end_date = datetime.strptime(parsed_row.end_date, "%m/%d/%Y").date()
 
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
             period_end_date=period_end_date,
-            usage_therms=data.usage,
+            usage_therms=parsed_row.usage,
             inclusion_override=None,
         )
         records.append(record)
-    
+
     return NaturalGasBillingInput(records=records)
