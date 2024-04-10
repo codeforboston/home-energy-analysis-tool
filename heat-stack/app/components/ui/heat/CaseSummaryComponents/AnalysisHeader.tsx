@@ -1,5 +1,7 @@
-import { type HeatLoadAnalysis } from '#types/index.js'
+import { type z } from 'zod'
+import { type HeatLoadAnalysis as HeatLoadAnalysisZod} from '#types/index'
 
+type HeatLoadAnalysis = z.infer<typeof HeatLoadAnalysisZod>
 export function AnalysisHeader() {
 	const heatLoadAnalysis: HeatLoadAnalysis = {
 		rulesEngineVersion: 'Beta 1',

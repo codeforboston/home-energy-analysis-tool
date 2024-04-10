@@ -1,4 +1,5 @@
-import { type NaturalGasBillRecord } from '#types/index.js'
+import { type z } from 'zod'
+import {  type NaturalGasBillRecord as NaturalGasBillRecordZod } from '#types/index'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
@@ -10,6 +11,7 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
+type NaturalGasBillRecord = z.infer<typeof NaturalGasBillRecordZod>
 const naturalGasBillRecord01: NaturalGasBillRecord = {
 	periodStartDate: new Date('12/08/2017'),
 	periodEndDate: new Date('01/07/2018'),
