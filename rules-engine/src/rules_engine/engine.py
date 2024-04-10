@@ -14,8 +14,10 @@ from rules_engine.pydantic_models import (
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
+    NormalizedBillingPeriodRecord,
     NormalizedBillingPeriodRecordInput,
     OilPropaneBillingInput,
+    RulesEngineResult,
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
@@ -27,7 +29,7 @@ def get_outputs_oil_propane(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
-) -> SummaryOutput:
+) -> RulesEngineResult:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
@@ -57,7 +59,7 @@ def get_outputs_natural_gas(
     summary_input: SummaryInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
-) -> SummaryOutput:
+) -> RulesEngineResult:
     billing_periods: List[NormalizedBillingPeriodRecordInput] = []
 
     for input_val in natural_gas_billing_input.records:
@@ -80,7 +82,7 @@ def get_outputs_normalized(
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordInput],
-) -> SummaryOutput:
+) -> RulesEngineResult:
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input, billing_periods=billing_periods
@@ -126,7 +128,28 @@ def get_outputs_normalized(
 
     balance_point_graph = home.balance_point_graph
 
-    return summary_output
+    billing_records = []
+    for billing_period in intermediate_billing_periods:
+        # TODO: fix inclusion override to come from inputs
+        default_inclusion_by_calculation = True
+        if billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
+            default_inclusion_by_calculation = False
+    
+        billing_record = NormalizedBillingPeriodRecord(
+            input=billing_period.input,
+            analysis_type=billing_period.analysis_type,
+            default_inclusion_by_calculation=default_inclusion_by_calculation,
+            inclusion_override=False,
+            eliminated_as_outlier=billing_period.eliminated_as_outlier,
+        )
+        billing_records.append(billing_record)
+
+    result = RulesEngineResult(
+        summary_output=summary_output,
+        balance_point_graph=balance_point_graph,
+        billing_records=billing_records
+    )
+    return result
 
 
 def convert_to_intermediate_billing_periods(
@@ -152,6 +175,7 @@ def convert_to_intermediate_billing_periods(
             analysis_type = billing_period.inclusion_override
 
         intermediate_billing_period = BillingPeriod(
+            input=billing_period,
             avg_temps=temperature_input.temperatures[start_idx:end_idx],
             usage=billing_period.usage,
             analysis_type=analysis_type,
@@ -330,7 +354,7 @@ class Home:
         self.bills_shoulder = []
 
         # 'Inclusion' in calculations is now determined by two variables:
-        # billing_period.inclusion_calculated: bool 
+        # billing_period.default_inclusion_by_calculation: bool 
         # billing_period.inclusion_override: bool (False by default)
         # 
         # Our logic around the AnalysisType can now disallow
@@ -351,22 +375,24 @@ class Home:
         # less than 25% of max, not allowed
         # 
         
+
+        
         # IF winter months
         #       analysis_type = ALLOWED_HEATING_USAGE
-        #       inclusion_calculated = True
+        #       default_inclusion_by_calculation = True
         # ELSE IF summer months
         #       analysis_type = ALLOWED_NON_HEATING_USAGE
-        #       inclusion_calculated = True
+        #       default_inclusion_by_calculation = True
         # ELSE IF shoulder months
         #       IF hdds < 25% || hdds > 70%  
         #           analysis_type = NOT_ALLOWED_IN_CALCULATIONS
-        #           inclusion_calculated = False
+        #           default_inclusion_by_calculation = False
         #       IF 25% < hdds < 50%
         #           analysis_type = ALLOWED_NON_HEATING_USAGE
-        #           inclusion_calculated = False
+        #           default_inclusion_by_calculation = False
         #       IF 50% < hdds < 70%
         #           analysis_type = ALLOWED_HEATING_USAGE
-        #           inclusion_calculated = False
+        #           default_inclusion_by_calculation = False
 
 
 
@@ -450,15 +476,19 @@ class Home:
             outlier = self.bills_winter.pop(
                 biggest_outlier_idx
             )  # removes the biggest outlier
+            outlier.eliminated_as_outlier = True
             uas_i = [billing_period.ua for billing_period in self.bills_winter]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
+                # the outlier has been removed
                 self.stdev_pct - stdev_pct_i < max_stdev_pct_diff
             ):  # if it's a small enough change
+                # add the outlier back in
                 self.bills_winter.append(
                     outlier
                 )  # then it's not worth removing it, and we exit
+                outlier.eliminated_as_outlier = False
                 break  # may want some kind of warning to be raised as well
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
@@ -575,21 +605,26 @@ class Home:
 
 
 class BillingPeriod:
+    input: NormalizedBillingPeriodRecordInput
     avg_heating_usage: float
     balance_point: float
     partial_ua: float
     ua: float
     total_hdd: float
+    eliminated_as_outlier: bool
 
     def __init__(
         self,
+        input: NormalizedBillingPeriodRecordInput,
         avg_temps: List[float],
         usage: float,
         analysis_type: AnalysisType,
     ) -> None:
+        self.input = input
         self.avg_temps = avg_temps
         self.usage = usage
         self.analysis_type = analysis_type
+        self.eliminated_as_outlier = False
         
         self.days = len(self.avg_temps)
 
