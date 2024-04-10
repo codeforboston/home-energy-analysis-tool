@@ -119,6 +119,7 @@ export default function Inputs() {
 				method="post"
 				onSubmit={form.onSubmit}
 				action="/single"
+				encType="multipart/form-data"
 			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />

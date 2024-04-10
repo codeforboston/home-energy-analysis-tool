@@ -20,6 +20,27 @@ export function EnergyUseHistory() {
 		<div>
 			<h2 className={`${titleClass}`}>Energy Use History</h2>
 			<div>
+				<input
+					id="energy_use_upload"
+					aria-label="Upload your energy billing company's bill."
+					onChange={event => {
+						const file = event.target.files?.[0]
+						if (file) {
+							const reader = new FileReader()
+							reader.onloadend = () => {
+							 	//setPreviewImage(reader.result as string)
+							}
+							reader.readAsDataURL(file)
+							} 
+							else {
+							setPreviewImage(null)
+						}
+						console.log('Boom!')
+					}}
+					name="energy_use_upload"
+					type="file"
+					accept="text/csv"
+				/>
 				<Button type="submit">Upload</Button>
 			</div>
 			<AnalysisHeader />
@@ -27,3 +48,17 @@ export function EnergyUseHistory() {
 		</div>
 	)
 }
+
+
+
+// const file = event.target.files?.[0]
+
+// if (file) {
+// 	const reader = new FileReader()
+// 	reader.onloadend = () => {
+// 		setPreviewImage(reader.result as string)
+// 	}
+// 	reader.readAsDataURL(file)
+// } else {
+// 	setPreviewImage(null)
+// }
