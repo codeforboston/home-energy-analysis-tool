@@ -13,7 +13,7 @@ from pydantic import BaseModel, BeforeValidator, Field
 class AnalysisType(Enum):
     """Enum for analysis type. 
     'Inclusion' in calculations is now determined by 
-    the inclusion_calculated and inclusion_override variables
+    the default_inclusion_by_calculation and inclusion_override variables
     Use HDDs to determine if shoulder months
     are heating or non-heating or not allowed,
     or included or excluded
@@ -102,7 +102,15 @@ class NormalizedBillingPeriodRecordInput(BaseModel):
     period_start_date: date
     period_end_date: date
     usage: float
-    inclusion_override: Optional[AnalysisType]
+    analysis_type_override: Optional[AnalysisType] # for testing only
+
+
+class NormalizedBillingPeriodRecord:
+    input: NormalizedBillingPeriodRecordInput
+    analysis_type: AnalysisType
+    default_inclusion_by_calculation: bool
+    inclusion_override: bool
+    eliminated_as_outlier: bool
 
 
 class TemperatureInput(BaseModel):
@@ -148,6 +156,12 @@ class BalancePointGraph(BaseModel):
     """From Summary page"""
 
     records: List[BalancePointGraphRow]
+
+
+class RulesEngineResult:
+    summary_output: SummaryOutput
+    balance_point_graph: BalancePointGraph
+    billing_records: List[NormalizedBillingPeriodRecord]
 
 
 @dataclass
