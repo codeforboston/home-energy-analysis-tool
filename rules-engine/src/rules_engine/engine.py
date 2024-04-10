@@ -329,6 +329,53 @@ class Home:
         self.bills_summer = []
         self.bills_shoulder = []
 
+
+        # #####
+        # Logic Change:
+        # 'Inclusion' in calculations is now determined by two variables:
+        # billing_period.inclusion_calculated: bool 
+        # billing_period.inclusion_override: bool (False by default)
+        # 
+        # Our logic around the AnalysisType can now disallow
+        # a billing_period from being included or overridden
+        # by marking it as NOT_ALLOWED_IN_CALCULATIONS
+        # 
+        # Options for billing_period.analysis_type:
+        # ALLOWED_HEATING_USAGE = 1 # winter months - allowed in heating usage calculations
+        # ALLOWED_NON_HEATING_USAGE = -1 # summer months - allowed in non-heating usage calculations
+        # NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds 
+        # 
+        # Use HDDs to determine if shoulder months
+        # are heating or non-heating or not allowed,
+        # or included or excluded
+        # 
+        # Rough calculations from Steve, this will be ammended:
+        # IF hdds is within 70% or higher of max, allowed
+        # less than 25% of max, not allowed
+        # 
+        # 
+        # IF winter months
+        #       analysis_type = ALLOWED_HEATING_USAGE
+        #       inclusion_calculated = True
+        # ELSE IF summer months
+        #       analysis_type = ALLOWED_NON_HEATING_USAGE
+        #       inclusion_calculated = True
+        # ELSE IF shoulder months
+        #       IF hdds < 25% || hdds > 70%  
+        #           analysis_type = NOT_ALLOWED_IN_CALCULATIONS
+        #           inclusion_calculated = False
+        #       IF 25% < hdds < 50%
+        #           analysis_type = ALLOWED_NON_HEATING_USAGE
+        #           inclusion_calculated = False
+        #       IF 50% < hdds < 70%
+        #           analysis_type = ALLOWED_HEATING_USAGE
+        #           inclusion_calculated = False
+        # 
+        # 
+        # #####
+
+
+
         # winter months 1; summer months -1; shoulder months 0
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
@@ -545,10 +592,14 @@ class BillingPeriod:
         avg_temps: List[float],
         usage: float,
         analysis_type: AnalysisType,
+        # inclusion_calculated: bool 
+        # inclusion_override: bool
     ) -> None:
         self.avg_temps = avg_temps
         self.usage = usage
         self.analysis_type = analysis_type
+        # self.inclusion_calculated: inclusion_calculated 
+        # self.inclusion_override: inclusion_override
         self.days = len(self.avg_temps)
 
     def set_initial_balance_point(self, balance_point: float) -> None:
