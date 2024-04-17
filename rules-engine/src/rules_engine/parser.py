@@ -5,8 +5,14 @@ National Grid CSVs.
 import csv
 import io
 from datetime import datetime, timedelta
+from enum import Enum
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
+
+
+class NaturalGasCompany(Enum):
+    EVERSOURCE = 1
+    NATIONAL_GRID = 2
 
 
 class _GasBillRowEversource:
@@ -49,6 +55,19 @@ class _GasBillRowNationalGrid:
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
         self.usage = row["USAGE"]
+
+
+def parse_gas_bill(data: str, company: NaturalGasCompany) -> NaturalGasBillingInput:
+    """
+    Parse a natural gas bill from a given natural gas company.
+    """
+    match company:
+        case NaturalGasCompany.EVERSOURCE:
+            return parse_gas_bill_eversource(data)
+        case NaturalGasCompany.NATIONAL_GRID:
+            return parse_gas_bill_national_grid(data)
+        case _:
+            raise ValueError("Wrong CSV format selected: select another format.")
 
 
 def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:

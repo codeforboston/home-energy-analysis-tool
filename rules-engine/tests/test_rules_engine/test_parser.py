@@ -6,13 +6,24 @@ from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
+# TODO: Make sure that the tests pass because they're all broken because
+# of refactoring elsewhere in the codebase.
 
-def test_parse_gas_bill_eversource():
+
+def _read_gas_bill_eversource():
+    """Read a test natural gas bill from a test Eversource CSV"""
     with open(ROOT_DIR / "feldman" / "natural-gas-eversource.csv") as f:
-        s = f.read()
+        return f.read()
 
-    result = parser.parse_gas_bill_eversource(s)
 
+def _read_gas_bill_national_grid():
+    """Read a test natural gas bill from a test National Grid CSV"""
+    with open(ROOT_DIR / "quateman" / "natural-gas-national-grid.csv") as f:
+        return f.read()
+
+
+def _validate_eversource(result):
+    """Validate the result of reading an Eversource CSV."""
     assert len(result.records) == 36
     for row in result.records:
         assert isinstance(row, NaturalGasBillingRecordInput)
@@ -28,12 +39,8 @@ def test_parse_gas_bill_eversource():
     assert second_row.inclusion_override == None
 
 
-def test_parse_gas_bill_national_grid():
-    with open(ROOT_DIR / "quateman" / "natural-gas-national-grid.csv") as f:
-        s = f.read()
-
-    result = parser.parse_gas_bill_national_grid(s)
-
+def _validate_national_grid(result):
+    """Validate the result of reading a National Grid CSV."""
     assert len(result.records) == 25
     for row in result.records:
         assert isinstance(row, NaturalGasBillingRecordInput)
@@ -47,3 +54,33 @@ def test_parse_gas_bill_national_grid():
     assert isinstance(second_row.usage_therms, float)
     assert second_row.usage_therms == 36
     assert second_row.inclusion_override == None
+
+
+def test_parse_gas_bill():
+    """
+    Tests the logic of parse_gas_bill.
+    """
+    _validate_eversource(
+        parser.parse_gas_bill(
+            _read_gas_bill_eversource(), parser.NaturalGasCompany.EVERSOURCE
+        )
+    )
+    _validate_national_grid(
+        parser.parse_gas_bill(
+            _read_gas_bill_national_grid(), parser.NaturalGasCompany.NATIONAL_GRID
+        )
+    )
+    # TODO: Does not verify that the method crashes when given the wrong
+    # enum.
+
+
+def test_parse_gas_bill_eversource():
+    """Tests parsing a natural gas bill from Eversource."""
+    _validate_eversource(parser.parse_gas_bill_eversource(_read_gas_bill_eversource()))
+
+
+def test_parse_gas_bill_national_grid():
+    """Tests parsing a natural gas bill from National Grid."""
+    _validate_national_grid(
+        parser.parse_gas_bill_national_grid(_read_gas_bill_national_grid())
+    )
