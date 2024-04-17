@@ -24,7 +24,9 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
         engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
+        engine.BillingPeriod(
+            [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+        ),
     ]
     return billing_periods
 
@@ -32,11 +34,15 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 @pytest.fixture()
 def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod(
+            [41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE
+        ),
         engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
+        engine.BillingPeriod(
+            [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+        ),
     ]
 
     return billing_periods
@@ -255,11 +261,15 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
+        engine.BillingPeriod(
+            [41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE
+        ),
         engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
         engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS),
+        engine.BillingPeriod(
+            [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+        ),
     ]
 
     for i in range(len(expected_results)):

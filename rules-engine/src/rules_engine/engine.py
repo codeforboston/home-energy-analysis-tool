@@ -134,7 +134,7 @@ def get_outputs_normalized(
         default_inclusion_by_calculation = True
         if billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
             default_inclusion_by_calculation = False
-    
+
         billing_record = NormalizedBillingPeriodRecord(
             input=billing_period.input,
             analysis_type=billing_period.analysis_type,
@@ -147,7 +147,7 @@ def get_outputs_normalized(
     result = RulesEngineResult(
         summary_output=summary_output,
         balance_point_graph=balance_point_graph,
-        billing_records=billing_records
+        billing_records=billing_records,
     )
     return result
 
@@ -354,29 +354,27 @@ class Home:
         self.bills_shoulder = []
 
         # 'Inclusion' in calculations is now determined by two variables:
-        # billing_period.default_inclusion_by_calculation: bool 
+        # billing_period.default_inclusion_by_calculation: bool
         # billing_period.inclusion_override: bool (False by default)
-        # 
+        #
         # Our logic around the AnalysisType can now disallow
         # a billing_period from being included or overridden
         # by marking it as NOT_ALLOWED_IN_CALCULATIONS
-        # 
+        #
         # Options for billing_period.analysis_type:
         # ALLOWED_HEATING_USAGE = 1 # winter months - allowed in heating usage calculations
         # ALLOWED_NON_HEATING_USAGE = -1 # summer months - allowed in non-heating usage calculations
-        # NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds 
-        # 
+        # NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds
+        #
         # Use HDDs to determine if shoulder months
         # are heating or non-heating or not allowed,
         # or included or excluded
-        # 
+        #
         # Rough calculations from Steve, this will be ammended:
         # IF hdds is within 70% or higher of max, allowed
         # less than 25% of max, not allowed
-        # 
-        
+        #
 
-        
         # IF winter months
         #       analysis_type = ALLOWED_HEATING_USAGE
         #       default_inclusion_by_calculation = True
@@ -384,7 +382,7 @@ class Home:
         #       analysis_type = ALLOWED_NON_HEATING_USAGE
         #       default_inclusion_by_calculation = True
         # ELSE IF shoulder months
-        #       IF hdds < 25% || hdds > 70%  
+        #       IF hdds < 25% || hdds > 70%
         #           analysis_type = NOT_ALLOWED_IN_CALCULATIONS
         #           default_inclusion_by_calculation = False
         #       IF 25% < hdds < 50%
@@ -394,15 +392,15 @@ class Home:
         #           analysis_type = ALLOWED_HEATING_USAGE
         #           default_inclusion_by_calculation = False
 
-
-
         # winter months 1; summer months -1; shoulder months 0
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
 
             if billing_period.analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
                 self.bills_winter.append(billing_period)
-            elif billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
+            elif (
+                billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+            ):
                 self.bills_shoulder.append(billing_period)
             else:
                 self.bills_summer.append(billing_period)
@@ -482,7 +480,8 @@ class Home:
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
                 # the outlier has been removed
-                self.stdev_pct - stdev_pct_i < max_stdev_pct_diff
+                self.stdev_pct - stdev_pct_i
+                < max_stdev_pct_diff
             ):  # if it's a small enough change
                 # add the outlier back in
                 self.bills_winter.append(
@@ -625,7 +624,7 @@ class BillingPeriod:
         self.usage = usage
         self.analysis_type = analysis_type
         self.eliminated_as_outlier = False
-        
+
         self.days = len(self.avg_temps)
 
     def set_initial_balance_point(self, balance_point: float) -> None:

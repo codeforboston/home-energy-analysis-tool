@@ -11,22 +11,31 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 
 class AnalysisType(Enum):
-    """Enum for analysis type. 
-    'Inclusion' in calculations is now determined by 
+    """
+    Enum for analysis type.
+
+    'Inclusion' in calculations is now determined by
     the default_inclusion_by_calculation and inclusion_override variables
     Use HDDs to determine if shoulder months
     are heating or non-heating or not allowed,
     or included or excluded
     """
 
-    ALLOWED_HEATING_USAGE = 1 # winter months - allowed in heating usage calculations
-    ALLOWED_NON_HEATING_USAGE = -1 # summer months - allowed in non-heating usage calculations
-    NOT_ALLOWED_IN_CALCULATIONS = 0 # shoulder months that fall outside reasonable bounds 
-
+    ALLOWED_HEATING_USAGE = 1  # winter months - allowed in heating usage calculations
+    ALLOWED_NON_HEATING_USAGE = (
+        -1
+    )  # summer months - allowed in non-heating usage calculations
+    NOT_ALLOWED_IN_CALCULATIONS = (
+        0  # shoulder months that fall outside reasonable bounds
+    )
 
 
 class FuelType(Enum):
-    """Enum for fuel types. Values are BTU per usage"""
+    """
+    Enum for fuel types.
+
+    Values are BTU per usage
+    """
 
     GAS = 100000  # BTU / therm
     OIL = 139600  # BTU / gal
@@ -102,7 +111,7 @@ class NormalizedBillingPeriodRecordInput(BaseModel):
     period_start_date: date
     period_end_date: date
     usage: float
-    analysis_type_override: Optional[AnalysisType] # for testing only
+    analysis_type_override: Optional[AnalysisType]  # for testing only
 
 
 class NormalizedBillingPeriodRecord:
