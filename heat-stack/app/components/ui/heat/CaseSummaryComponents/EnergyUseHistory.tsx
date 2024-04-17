@@ -7,6 +7,7 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
+import { Upload } from 'lucide-react'
 
 
 // type EnergyUseProps = {fields: any};
@@ -26,14 +27,13 @@ export function EnergyUseHistory() {
 					onChange={event => {
 						const file = event.target.files?.[0]
 						if (file) {
-							const reader = new FileReader()
-							reader.onloadend = () => {
-							 	//setPreviewImage(reader.result as string)
-							}
-							reader.readAsDataURL(file)
-							} 
-							else {
-							setPreviewImage(null)
+							// const reader = new FileReader()
+							// reader.onloadend = async (event) => {
+							// 	console.log('reader.result', reader.result)
+							// }
+							// reader.readAsText(file)	
+						} else {
+							// setPreviewImage(null)
 						}
 						console.log('Boom!')
 					}}
@@ -41,7 +41,7 @@ export function EnergyUseHistory() {
 					type="file"
 					accept="text/csv"
 				/>
-				<Button type="submit">Upload</Button>
+				<Button type="submit"> <Upload className="h-4 w-4 mr-2" /> Upload</Button>
 			</div>
 			<AnalysisHeader />
 			<EnergyUseHistoryChart />
