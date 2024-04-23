@@ -135,8 +135,9 @@ def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate == approx(
-        data.summary.standard_deviation_of_heat_loss_rate, abs=0.01
+    assert (
+        rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
+        == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
     )
 
 
