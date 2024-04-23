@@ -114,7 +114,7 @@ class NormalizedBillingPeriodRecordInput(BaseModel):
     analysis_type_override: Optional[AnalysisType]  # for testing only
 
 
-class NormalizedBillingPeriodRecord:
+class NormalizedBillingPeriodRecord(BaseModel):
     input: NormalizedBillingPeriodRecordInput
     analysis_type: AnalysisType
     default_inclusion_by_calculation: bool
@@ -167,7 +167,7 @@ class BalancePointGraph(BaseModel):
     records: List[BalancePointGraphRow]
 
 
-class RulesEngineResult:
+class RulesEngineResult(BaseModel):
     summary_output: SummaryOutput
     balance_point_graph: BalancePointGraph
     billing_records: List[NormalizedBillingPeriodRecord]

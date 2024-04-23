@@ -45,7 +45,7 @@ def get_outputs_oil_propane(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
-                inclusion_override=inclusion,
+                analysis_type_override=inclusion,
             )
         )
         last_date = input_val.period_end_date
@@ -68,7 +68,7 @@ def get_outputs_natural_gas(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
-                inclusion_override=input_val.inclusion_override,
+                analysis_type_override=input_val.inclusion_override,
             )
         )
 
@@ -171,8 +171,8 @@ def convert_to_intermediate_billing_periods(
         )
 
         analysis_type = date_to_analysis_type(billing_period.period_end_date)
-        if billing_period.inclusion_override:
-            analysis_type = billing_period.inclusion_override
+        if billing_period.analysis_type_override:
+            analysis_type = billing_period.analysis_type_override
 
         intermediate_billing_period = BillingPeriod(
             input=billing_period,
