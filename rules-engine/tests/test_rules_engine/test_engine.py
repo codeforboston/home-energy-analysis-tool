@@ -17,17 +17,41 @@ from rules_engine.pydantic_models import (
     TemperatureInput,
 )
 
+dummy_billing_period_record = NormalizedBillingPeriodRecordInput(
+    period_start_date=date(2024, 1, 1),
+    period_end_date=date(2024, 2, 1),
+    usage=1.0,
+    analysis_type_override=None,
+)
+
 
 @pytest.fixture()
 def sample_billing_periods() -> list[engine.BillingPeriod]:
     billing_periods = [
-        
-        # Not sure if this is the right thing to do here, but I (ErikS) added None as first argument to fix positional argument type errors
-
-        engine.BillingPeriod(None, [28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS)
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
     return billing_periods
 
@@ -35,14 +59,36 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 @pytest.fixture()
 def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
     billing_periods = [
-
-        # Not sure if this is the right thing to do here, but I (ErikS) added None as first argument to fix positional argument type errors
-
-        engine.BillingPeriod(None, [41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS)
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
 
     return billing_periods
@@ -261,14 +307,36 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-
-        # Not sure if this is the right thing to do here, but I (ErikS) added None as first argument to fix positional argument type errors
-
-        engine.BillingPeriod(None, [41.7, 41.6, 32, 25.4], 60, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [28, 29, 30, 29], 50, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [32, 35, 35, 38], 45, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [41, 43, 42, 42], 30, AnalysisType.ALLOWED_HEATING_USAGE),
-        engine.BillingPeriod(None, [72, 71, 70, 69], 0.96, AnalysisType.NOT_ALLOWED_IN_CALCULATIONS)
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
 
     for i in range(len(expected_results)):
@@ -291,9 +359,12 @@ def test_get_outputs_normalized(
     )
 
     assert rules_engine_result.summary_output.estimated_balance_point == 60.5
-    assert rules_engine_result.summary_output.whole_home_heat_loss_rate == approx(1519.72, abs=1)
-    assert rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate == approx(
-        0.0463, abs=0.01
+    assert rules_engine_result.summary_output.whole_home_heat_loss_rate == approx(
+        1519.72, abs=1
+    )
+    assert (
+        rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
+        == approx(0.0463, abs=0.01)
     )
 
 
