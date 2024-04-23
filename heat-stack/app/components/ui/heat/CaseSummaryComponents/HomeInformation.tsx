@@ -99,11 +99,11 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="mt-4 flex space-x-2">
 						<div>
-							<Input name={props.fields.livingSpace.name} id="livingArea" type="number" />
+							<Input name={props.fields.livingArea.name} id="livingArea" type="number" />
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
-								id={props.fields.livingSpace.errorId}
-								errors={props.fields.livingSpace.errors}
+								id={props.fields.livingArea.errorId}
+								errors={props.fields.livingArea.errors}
 							/>
 							</div>
 							<p className={`${descriptiveClass}`}>
