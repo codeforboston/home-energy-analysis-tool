@@ -15,7 +15,7 @@ from rules_engine.pydantic_models import (
     FuelType,
     NaturalGasBillingInput,
     NormalizedBillingPeriodRecord,
-    NormalizedBillingPeriodRecordInput,
+    NormalizedBillingPeriodRecordBase,
     OilPropaneBillingInput,
     RulesEngineResult,
     SummaryInput,
@@ -30,7 +30,7 @@ def get_outputs_oil_propane(
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
 ) -> RulesEngineResult:
-    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+    billing_periods: List[NormalizedBillingPeriodRecordBase] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
@@ -41,11 +41,12 @@ def get_outputs_oil_propane(
             else AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
         )
         billing_periods.append(
-            NormalizedBillingPeriodRecordInput(
+            NormalizedBillingPeriodRecordBase(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
                 analysis_type_override=inclusion,
+                inclusion_override=True,
             )
         )
         last_date = input_val.period_end_date
@@ -60,15 +61,16 @@ def get_outputs_natural_gas(
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
-    billing_periods: List[NormalizedBillingPeriodRecordInput] = []
+    billing_periods: List[NormalizedBillingPeriodRecordBase] = []
 
     for input_val in natural_gas_billing_input.records:
         billing_periods.append(
-            NormalizedBillingPeriodRecordInput(
+            NormalizedBillingPeriodRecordBase(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
                 analysis_type_override=input_val.inclusion_override,
+                inclusion_override=True,
             )
         )
 
@@ -81,7 +83,7 @@ def get_outputs_normalized(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: List[NormalizedBillingPeriodRecordInput],
+    billing_periods: List[NormalizedBillingPeriodRecordBase],
 ) -> RulesEngineResult:
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
@@ -136,10 +138,13 @@ def get_outputs_normalized(
             default_inclusion_by_calculation = False
 
         billing_record = NormalizedBillingPeriodRecord(
-            input=billing_period.input,
+            period_start_date=billing_period.input.period_start_date,
+            period_end_date=billing_period.input.period_end_date,
+            usage=billing_period.input.usage,
+            analysis_type_override=billing_period.input.analysis_type_override,
+            inclusion_override=False,
             analysis_type=billing_period.analysis_type,
             default_inclusion_by_calculation=default_inclusion_by_calculation,
-            inclusion_override=False,
             eliminated_as_outlier=billing_period.eliminated_as_outlier,
         )
         billing_records.append(billing_record)
@@ -154,7 +159,7 @@ def get_outputs_normalized(
 
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
-    billing_periods: List[NormalizedBillingPeriodRecordInput],
+    billing_periods: List[NormalizedBillingPeriodRecordBase],
 ) -> List[BillingPeriod]:
     # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
     # in the corresponding billing period
@@ -604,7 +609,7 @@ class Home:
 
 
 class BillingPeriod:
-    input: NormalizedBillingPeriodRecordInput
+    input: NormalizedBillingPeriodRecordBase
     avg_heating_usage: float
     balance_point: float
     partial_ua: float
@@ -614,7 +619,7 @@ class BillingPeriod:
 
     def __init__(
         self,
-        input: NormalizedBillingPeriodRecordInput,
+        input: NormalizedBillingPeriodRecordBase,
         avg_temps: List[float],
         usage: float,
         analysis_type: AnalysisType,
