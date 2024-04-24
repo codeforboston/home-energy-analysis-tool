@@ -11,17 +11,18 @@ from rules_engine.pydantic_models import (
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
-    NormalizedBillingPeriodRecordInput,
+    NormalizedBillingPeriodRecordBase,
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
 )
 
-dummy_billing_period_record = NormalizedBillingPeriodRecordInput(
+dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
     period_start_date=date(2024, 1, 1),
     period_end_date=date(2024, 2, 1),
     usage=1.0,
     analysis_type_override=None,
+    inclusion_override=True,
 )
 
 
@@ -169,42 +170,47 @@ def sample_temp_inputs() -> TemperatureInput:
 
 
 @pytest.fixture()
-def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordInput]:
+def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBase]:
     billing_periods_dict: Any = [
         {
             "period_start_date": "2022-12-01",
             "period_end_date": "2022-12-04",
             "usage": 60,
             "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-01-01",
             "period_end_date": "2023-01-04",
             "usage": 50,
             "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-02-01",
             "period_end_date": "2023-02-04",
             "usage": 45,
             "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-03-01",
             "period_end_date": "2023-03-04",
             "usage": 30,
             "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-04-01",
             "period_end_date": "2023-04-04",
             "usage": 0.96,
             "analysis_type_override": None,
+            "inclusion_override": True,
         },
     ]
 
     billing_periods = [
-        NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict
+        NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
     ]
 
     return billing_periods
