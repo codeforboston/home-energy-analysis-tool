@@ -7,7 +7,7 @@ from datetime import date
 from enum import Enum
 from typing import Annotated, Any, List, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 
 class AnalysisType(Enum):
@@ -94,7 +94,7 @@ class OilPropaneBillingInput(BaseModel):
 
 class NaturalGasBillingRecordInput(BaseModel):
     """From Natural Gas tab. A single row of the Billing input table."""
-
+    
     period_start_date: date = Field(description="Natural Gas!A")
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
@@ -107,19 +107,38 @@ class NaturalGasBillingInput(BaseModel):
     records: List[NaturalGasBillingRecordInput]
 
 
-class NormalizedBillingPeriodRecordInput(BaseModel):
-    period_start_date: date
-    period_end_date: date
-    usage: float
-    analysis_type_override: Optional[AnalysisType]  # for testing only
+class NormalizedBillingPeriodRecordBase(BaseModel):
+    """
+    Base class for a normalized billing period record.
 
+    Holds data as fields.
 
-class NormalizedBillingPeriodRecord(BaseModel):
-    input: NormalizedBillingPeriodRecordInput
-    analysis_type: AnalysisType
-    default_inclusion_by_calculation: bool
+    analysis_type_override - for testing only, preserving compatibility
+    with the original heat calc spreadsheet, which allows users to override
+    the analysis type whereas the rules engine does not
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    period_start_date: date = Field(frozen=True)
+    period_end_date: date = Field(frozen=True)
+    usage: float = Field(frozen=True)
+    analysis_type_override: Optional[AnalysisType] = Field(frozen=True)
     inclusion_override: bool
-    eliminated_as_outlier: bool
+
+
+class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
+    """
+    Derived class for holding a normalized billing period record.
+
+    Holds data.
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    analysis_type: AnalysisType = Field(frozen=True)
+    default_inclusion_by_calculation: bool = Field(frozen=True)
+    eliminated_as_outlier: bool = Field(frozen=True)
 
 
 class TemperatureInput(BaseModel):
