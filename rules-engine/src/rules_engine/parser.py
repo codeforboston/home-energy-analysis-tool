@@ -10,9 +10,9 @@ from enum import Enum
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
-class NaturalGasCompany(Enum):
-    EVERSOURCE = 1
-    NATIONAL_GRID = 2
+class NaturalGasCompany(str, Enum):
+    EVERSOURCE = "eversource"
+    NATIONAL_GRID = "national_grid"
 
 
 class _GasBillRowEversource:
