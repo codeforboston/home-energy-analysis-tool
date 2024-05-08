@@ -593,7 +593,7 @@ class Home:
 
 class BillingPeriod:
     """
-    An internal class storing data whence heating usage per billing 
+    An internal class storing data whence heating usage per billing
     period is calculated.
     """
 
