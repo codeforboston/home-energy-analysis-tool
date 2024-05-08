@@ -139,6 +139,7 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     analysis_type: AnalysisType = Field(frozen=True)
     default_inclusion_by_calculation: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
+    whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
 
 class TemperatureInput(BaseModel):

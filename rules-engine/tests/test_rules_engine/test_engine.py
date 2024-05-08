@@ -207,6 +207,13 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
             "analysis_type_override": None,
             "inclusion_override": True,
         },
+        {
+            "period_start_date": "2023-05-01",
+            "period_end_date": "2023-05-04",
+            "usage": 0.96,
+            "analysis_type_override": None,
+            "inclusion_override": True,
+        },
     ]
 
     billing_periods = [
@@ -372,6 +379,9 @@ def test_get_outputs_normalized(
         rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
         == approx(0.0463, abs=0.01)
     )
+    assert rules_engine_result.billing_records[0].usage == 60
+    assert rules_engine_result.billing_records[0].whole_home_heat_loss_rate != None
+    assert rules_engine_result.billing_records[5].whole_home_heat_loss_rate == None
 
 
 @pytest.mark.parametrize(
