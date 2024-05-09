@@ -25,19 +25,10 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
 # Filter out example 2 for now, since it's for oil fuel type
 # INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
-# Filter out all but the first example, breslow, as that is the only one that has UA values added to the CSV so far, for 68 degree balance point example
+
+# UNDO: Filter out all but the first example, breslow, as that is the only one that has UA values added to the CSV so far, for 68 degree balance point example
 INPUT_DATA = filter(lambda d: d == "breslow", next(os.walk(ROOT_DIR))[1])
 # INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
-
-# Approach number 1:
-# Extend NG Billing Record Input to capture whole home heat loss input from example data
-# class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
-#    whole_home_heat_loss_rate: float
-#
-# Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
-# However mypy doesn't like this overloading of the "records" attribute
-# class NaturalGasBillingExampleInput(NaturalGasBillingInput):
-#     records: List[NaturalGasBillingRecordExampleInput]
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -48,30 +39,6 @@ class Example(BaseModel):
     summary: Summary
     natural_gas_usage: NaturalGasBillingInput
     temperature_data: TemperatureInput
-
-
-# Approach number 2:
-# Simply decorate the existing Natural Gas Billing Record Input class with a dynamic attribute for UA
-# This approach leaves the original class interface as-is, but adds this one attribute for testing purposes
-# Had to use the class __dict__ method of access to avoid recursion on get and set
-# def whole_home_heat_loss_rate_get(self):
-#     return self.__dict__["whole_home_heat_loss_rate"]
-
-
-# def whole_home_heat_loss_rate_set(self, value):
-#     self.__dict__["whole_home_heat_loss_rate"] = value
-
-
-# Approach number 2:
-# This code runs fine, by mypy raises errors as NaturalGasBillingRecordInput has no heat loss property
-# Extend the existing class to add a whole home heat loss rate property, with get and set methods
-# NaturalGasBillingRecordInput.whole_home_heat_loss_rate = property(
-#     whole_home_heat_loss_rate_get, whole_home_heat_loss_rate_set
-# )
-
-# Approach number 3:
-# This approach doesn't work due to ValueError: "NaturalGasBillingRecordInput" object has no field "whole_home_heat_loss_rate"
-# setattr(NaturalGasBillingRecordInput, 'whole_home_heat_loss_rate', None)
 
 
 def load_summary(folder: str) -> Summary:
@@ -105,14 +72,8 @@ def load_natural_gas(folder: str) -> NaturalGasBillingInput:
                 period_end_date=datetime.strptime(row["end_date"], "%m/%d/%Y").date(),
                 usage_therms=row["usage"],
                 inclusion_override=inclusion_override,
-                # Approach number 1:
-                # whole_home_heat_loss_rate=_whole_home_heat_loss_rate,
             )
-            # Approach number 2:
-            # Extend NaturalGasBillingRecordsInput to track whole home heat loss example input
-            # item.whole_home_heat_loss_rate = whole_home_heat_loss_rate
 
-            # Approach number 4:
             # Extend NaturalGasBillingRecordsInput using __dict__ addition to track whole home heat loss example input
             item.__dict__["whole_home_heat_loss_rate"] = whole_home_heat_loss_rate
 
