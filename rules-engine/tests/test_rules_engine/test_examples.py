@@ -54,20 +54,24 @@ class Example(BaseModel):
 # Simply decorate the existing Natural Gas Billing Record Input class with a dynamic attribute for UA
 # This approach leaves the original class interface as-is, but adds this one attribute for testing purposes
 # Had to use the class __dict__ method of access to avoid recursion on get and set
-def whole_home_heat_loss_rate_get(self):
-    return self.__dict__["whole_home_heat_loss_rate"]
+# def whole_home_heat_loss_rate_get(self):
+#     return self.__dict__["whole_home_heat_loss_rate"]
 
 
-def whole_home_heat_loss_rate_set(self, value):
-    self.__dict__["whole_home_heat_loss_rate"] = value
+# def whole_home_heat_loss_rate_set(self, value):
+#     self.__dict__["whole_home_heat_loss_rate"] = value
 
 
 # Approach number 2:
 # This code runs fine, by mypy raises errors as NaturalGasBillingRecordInput has no heat loss property
 # Extend the existing class to add a whole home heat loss rate property, with get and set methods
-NaturalGasBillingRecordInput.whole_home_heat_loss_rate = property(
-    whole_home_heat_loss_rate_get, whole_home_heat_loss_rate_set
-)
+# NaturalGasBillingRecordInput.whole_home_heat_loss_rate = property(
+#     whole_home_heat_loss_rate_get, whole_home_heat_loss_rate_set
+# )
+
+# Approach number 3:
+# This approach doesn't work due to ValueError: "NaturalGasBillingRecordInput" object has no field "whole_home_heat_loss_rate"
+# setattr(NaturalGasBillingRecordInput, 'whole_home_heat_loss_rate', None)
 
 
 def load_summary(folder: str) -> Summary:
@@ -106,7 +110,11 @@ def load_natural_gas(folder: str) -> NaturalGasBillingInput:
             )
             # Approach number 2:
             # Extend NaturalGasBillingRecordsInput to track whole home heat loss example input
-            item.whole_home_heat_loss_rate = whole_home_heat_loss_rate
+            # item.whole_home_heat_loss_rate = whole_home_heat_loss_rate
+
+            # Approach number 4:
+            # Extend NaturalGasBillingRecordsInput using __dict__ addition to track whole home heat loss example input
+            item.__dict__["whole_home_heat_loss_rate"] = whole_home_heat_loss_rate
 
             records.append(item)
 
@@ -229,8 +237,8 @@ def test_billing_records_whole_home_heat_loss_rate(data: Example) -> None:
     for result in rules_engine_result.billing_records:
         example = next(data_iter)
         whole_home_heat_loss_rate = (
-            example.whole_home_heat_loss_rate
-            if example.whole_home_heat_loss_rate
+            example.__dict__["whole_home_heat_loss_rate"]
+            if example.__dict__["whole_home_heat_loss_rate"]
             else None
         )
         assert result.whole_home_heat_loss_rate == approx(
