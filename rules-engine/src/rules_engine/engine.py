@@ -1,9 +1,11 @@
+"""
+TODO: Add module description
+"""
 from __future__ import annotations
 
 import bisect
 import statistics as sts
 from datetime import date, timedelta
-from pprint import pprint
 from typing import Any, List, Optional, Tuple
 
 from rules_engine.pydantic_models import (
@@ -30,6 +32,9 @@ def get_outputs_oil_propane(
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
 ) -> RulesEngineResult:
+    """
+    Analyze the heat load for a home that is using oil or propane as its current heating system fuel.
+    """
     billing_periods: List[NormalizedBillingPeriodRecordBase] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
@@ -61,6 +66,9 @@ def get_outputs_natural_gas(
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
+    """
+    Analyze the heat load for a home that is using natural gas as its current heating system fuel.
+    """
     billing_periods: List[NormalizedBillingPeriodRecordBase] = []
 
     for input_val in natural_gas_billing_input.records:
@@ -85,6 +93,9 @@ def get_outputs_normalized(
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordBase],
 ) -> RulesEngineResult:
+    """
+    Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
+    """
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input, billing_periods=billing_periods
@@ -146,6 +157,7 @@ def get_outputs_normalized(
             analysis_type=billing_period.analysis_type,
             default_inclusion_by_calculation=default_inclusion_by_calculation,
             eliminated_as_outlier=billing_period.eliminated_as_outlier,
+            whole_home_heat_loss_rate=billing_period.ua,
         )
         billing_records.append(billing_record)
 
@@ -161,6 +173,11 @@ def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
     billing_periods: List[NormalizedBillingPeriodRecordBase],
 ) -> List[BillingPeriod]:
+    """
+    Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
+
+    TODO: Extract this method to another class or make it private
+    """
     # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
     # in the corresponding billing period
     intermediate_billing_periods = []
@@ -191,6 +208,11 @@ def convert_to_intermediate_billing_periods(
 
 
 def date_to_analysis_type(d: date) -> AnalysisType:
+    """
+    Converts the date from a billing period into an enum representing the period's usage in the rules engine.
+
+    TODO: Extract this method to another class or make it private.
+    """
     months = {
         1: AnalysisType.ALLOWED_HEATING_USAGE,
         2: AnalysisType.ALLOWED_HEATING_USAGE,
@@ -570,11 +592,16 @@ class Home:
 
 
 class BillingPeriod:
+    """
+    An internal class storing data whence heating usage per billing
+    period is calculated.
+    """
+
     input: NormalizedBillingPeriodRecordBase
     avg_heating_usage: float
     balance_point: float
     partial_ua: float
-    ua: float
+    ua: Optional[float]
     total_hdd: float
     eliminated_as_outlier: bool
 
@@ -590,6 +617,7 @@ class BillingPeriod:
         self.usage = usage
         self.analysis_type = analysis_type
         self.eliminated_as_outlier = False
+        self.ua = None
 
         self.days = len(self.avg_temps)
 
