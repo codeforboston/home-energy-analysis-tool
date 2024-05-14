@@ -26,7 +26,7 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 # Filter out example 2 for now, since it's for oil fuel type
 # INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
 
-# UNDO: Filter out all but the first example, breslow, as that is the only one that has UA values added to the CSV so far, for 68 degree balance point example
+# UNDO: Filter out all but the first example, breslow, as that is the only example where the UA values from the spreadsheet "just work", this for 68 degree balance point
 INPUT_DATA = filter(lambda d: d == "breslow", next(os.walk(ROOT_DIR))[1])
 # INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
 
@@ -35,9 +35,19 @@ class Summary(SummaryInput, SummaryOutput):
     local_weather_station: str
 
 
+# Extend NG Billing Record Input to capture whole home heat loss input from example data
+class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
+    whole_home_heat_loss_rate: float
+
+
+# Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
+class NaturalGasBillingExampleInput(NaturalGasBillingInput):
+    records: List[NaturalGasBillingRecordExampleInput]
+
+
 class Example(BaseModel):
     summary: Summary
-    natural_gas_usage: NaturalGasBillingInput
+    natural_gas_usage: NaturalGasBillingExampleInput
     temperature_data: TemperatureInput
 
 
@@ -47,7 +57,9 @@ def load_summary(folder: str) -> Summary:
         return Summary(**d)
 
 
-def load_natural_gas(folder: str) -> NaturalGasBillingInput:
+def load_natural_gas(
+    folder: str, estimated_balance_point: float
+) -> NaturalGasBillingExampleInput:
     records = []
 
     with open(ROOT_DIR / folder / "natural-gas.csv") as f:
@@ -59,27 +71,29 @@ def load_natural_gas(folder: str) -> NaturalGasBillingInput:
                 inclusion_override = None
             else:
                 inclusion_override = int(inclusion_override)
-            ua = row["ua"]
-            if ua == "":
-                whole_home_heat_loss_rate = None
-            else:
-                whole_home_heat_loss_rate = float(ua)
 
-            item = NaturalGasBillingRecordInput(
+            # Choose the correct billing period heat loss (aka "ua") column based on the estimated balance point provided in SummaryOutput
+            ua_column_heading = (
+                "ua_at_" + str(int(round(estimated_balance_point, 0))) + "f"
+            )
+            ua = row[ua_column_heading]
+            if bool(str(ua).strip()):  # Deal with extra whitespace in blank ua cells
+                whole_home_heat_loss_rate = float(ua)
+            else:
+                whole_home_heat_loss_rate = 0
+
+            item = NaturalGasBillingRecordExampleInput(
                 period_start_date=datetime.strptime(
                     row["start_date"], "%m/%d/%Y"
                 ).date(),
                 period_end_date=datetime.strptime(row["end_date"], "%m/%d/%Y").date(),
                 usage_therms=row["usage"],
                 inclusion_override=inclusion_override,
+                whole_home_heat_loss_rate=whole_home_heat_loss_rate,
             )
-
-            # Extend NaturalGasBillingRecordsInput using __dict__ addition to track whole home heat loss example input
-            item.__dict__["whole_home_heat_loss_rate"] = whole_home_heat_loss_rate
-
             records.append(item)
 
-    return NaturalGasBillingInput(records=records)
+    return NaturalGasBillingExampleInput(records=records)
 
 
 def load_temperature_data(weather_station: str) -> TemperatureInput:
@@ -101,7 +115,9 @@ def data(request):
     summary = load_summary(request.param)
 
     if summary.fuel_type == engine.FuelType.GAS:
-        natural_gas_usage = load_natural_gas(request.param)
+        natural_gas_usage = load_natural_gas(
+            request.param, summary.estimated_balance_point
+        )
     else:
         natural_gas_usage = None
 
@@ -198,10 +214,18 @@ def test_billing_records_whole_home_heat_loss_rate(data: Example) -> None:
     for result in rules_engine_result.billing_records:
         example = next(data_iter)
         whole_home_heat_loss_rate = (
-            example.__dict__["whole_home_heat_loss_rate"]
-            if example.__dict__["whole_home_heat_loss_rate"]
+            example.whole_home_heat_loss_rate
+            if example.whole_home_heat_loss_rate
             else None
         )
+
         assert result.whole_home_heat_loss_rate == approx(
             whole_home_heat_loss_rate, abs=0.1
         )
+
+
+"""
+        with capsys.disabled():
+            if whole_home_heat_loss_rate != None:
+                print('Result ==', result.whole_home_heat_loss_rate, ' Expected ==', whole_home_heat_loss_rate)
+"""
