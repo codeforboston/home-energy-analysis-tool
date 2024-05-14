@@ -81,7 +81,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	})
 
 	if (submission.status !== 'success') {
-		console.error("submission failed",submission)
+
+		if( process.env.NODE_ENV === "development" ) {
+			// this can have personal identifying information, so only active in development.
+			console.error("submission failed", submission)
+		}
 		return submission.reply()
 		// submission.reply({
 		// 	// You can also pass additional error to the `reply` method
