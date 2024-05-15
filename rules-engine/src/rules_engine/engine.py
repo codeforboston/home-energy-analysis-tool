@@ -6,7 +6,7 @@ from __future__ import annotations
 import bisect
 import statistics as sts
 from datetime import date, timedelta
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 from rules_engine.pydantic_models import (
     AnalysisType,
@@ -35,7 +35,7 @@ def get_outputs_oil_propane(
     """
     Analyze the heat load for a home that is using oil or propane as its current heating system fuel.
     """
-    billing_periods: List[NormalizedBillingPeriodRecordBase] = []
+    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
@@ -69,7 +69,7 @@ def get_outputs_natural_gas(
     """
     Analyze the heat load for a home that is using natural gas as its current heating system fuel.
     """
-    billing_periods: List[NormalizedBillingPeriodRecordBase] = []
+    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
 
     for input_val in natural_gas_billing_input.records:
         billing_periods.append(
@@ -91,7 +91,7 @@ def get_outputs_normalized(
     summary_input: SummaryInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: List[NormalizedBillingPeriodRecordBase],
+    billing_periods: list[NormalizedBillingPeriodRecordBase],
 ) -> RulesEngineResult:
     """
     Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
@@ -171,8 +171,8 @@ def get_outputs_normalized(
 
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
-    billing_periods: List[NormalizedBillingPeriodRecordBase],
-) -> List[BillingPeriod]:
+    billing_periods: list[NormalizedBillingPeriodRecordBase],
+) -> list[BillingPeriod]:
     """
     Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
 
@@ -243,7 +243,7 @@ def hdd(avg_temp: float, balance_point: float) -> float:
     return max(0, balance_point - avg_temp)
 
 
-def period_hdd(avg_temps: List[float], balance_point: float) -> float:
+def period_hdd(avg_temps: list[float], balance_point: float) -> float:
     """
     Sum up total heating degree days in a given time period for a given
     home.
@@ -364,7 +364,7 @@ class Home:
     def __init__(
         self,
         summary_input: SummaryInput,
-        billing_periods: List[BillingPeriod],
+        billing_periods: list[BillingPeriod],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
     ):
@@ -375,7 +375,7 @@ class Home:
         self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
 
-    def _initialize_billing_periods(self, billing_periods: List[BillingPeriod]) -> None:
+    def _initialize_billing_periods(self, billing_periods: list[BillingPeriod]) -> None:
         self.bills_winter = []
         self.bills_summer = []
         self.bills_shoulder = []
@@ -608,7 +608,7 @@ class BillingPeriod:
     def __init__(
         self,
         input: NormalizedBillingPeriodRecordBase,
-        avg_temps: List[float],
+        avg_temps: list[float],
         usage: float,
         analysis_type: AnalysisType,
     ) -> None:

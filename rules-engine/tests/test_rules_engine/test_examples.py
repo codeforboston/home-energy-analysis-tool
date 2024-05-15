@@ -3,7 +3,7 @@ import json
 import os
 import pathlib
 from datetime import date, datetime, timedelta
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal, Optional
 
 import pytest
 from pydantic import BaseModel
