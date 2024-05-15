@@ -25,13 +25,50 @@ import * as pyodideModule from 'pyodide'
 //   - avoid dealing with the server for now
 //   - pass the data to the rules engine/pyodide either in the component or the action (probably the action for validation, etc.)
 // - [x] import pyodide into single.tsx and run it with genny
-//     don't forget `npm run buildpy` to build rules engine into `public/pyodide-env` if you start a new codingspace or on local.
-// - [ ] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
-// - [ ] Issue?: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
-// - [ ] How do we stop the geocoder helper from glomming everyone's past submitted addresses onto querystring in single.tsx action? 
+//     - [x] Add to README: don't forget `npm run buildpy` to build rules engine into `public/pyodide-env` if you start a new codingspace or on local.
+// - [x] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
+// - [ ] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
+// example: [MSW] Warning: intercepted a request without a matching request handler: GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020&address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020
+// - [ ] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostatSetPoint: oldSummaryInput.thermostat_set_point, setbackTemperature: oldSummaryInput.setback_temperature, setbackHoursPerDay: oldSummaryInput.setback_hours_per_day,
 // - [ ] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
 // - [ ] (use data passing function API from #172 from rules engine) to Build table component form
+// - [ ] Michelle proposes always set form default values when run in development
 // - [ ] Pass modified table back to rules engine for full cycle revalidation 
+// - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
+
+/**
+ * ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "null",
+    "path": [
+      "setbackTemperature"
+    ],
+    "message": "Expected number, received null"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "null",
+    "path": [
+      "setbackHoursPerDay"
+    ],
+    "message": "Expected number, received null"
+  }
+]
+    at Object.get error [as error] (file:///workspaces/home-energy-analysis-tool/heat-stack/node_modules/zod/lib/index.mjs:538:31)
+    at ZodIntersection.parse (file:///workspaces/home-energy-analysis-tool/heat-stack/node_modules/zod/lib/index.mjs:638:22)
+    at genny (file:///workspaces/home-energy-analysis-tool/heat-stack/build/index.js?update=1715733465459:7338:21)
+    at action13 (file:///workspaces/home-energy-analysis-tool/heat-stack/build/index.js?update=1715733465459:7370:32)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /workspaces/home-energy-analysis-tool/heat-stack/node_modules/@sentry/src/utils/instrumentServer.ts:266:36
+    at Object.callRouteActionRR (/workspaces/home-energy-analysis-tool/heat-stack/node_modules/@remix-run/server-runtime/dist/data.js:35:16)
+    at callLoaderOrAction (/workspaces/home-energy-analysis-tool/heat-stack/node_modules/@remix-run/router/router.ts:4011:16)
+    at submit (/workspaces/home-energy-analysis-tool/heat-stack/node_modules/@remix-run/router/router.ts:3131:16)
+    at queryImpl (/workspaces/home-energy-analysis-tool/heat-stack/node_modules/@remix-run/router/router.ts:3066:22)
+ */
+
 
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -281,12 +318,23 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function Inputs() {
 	const lastResult = useActionData<typeof action>()
+	type SchemaZodFromFormType = z.infer<typeof Schema>
 	const [form, fields] = useForm({
 		lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
-		defaultValue: {},
+		defaultValue: {
+			livingArea: 3000,
+			address: '1 Broadway, Cambridge, MA 02142',
+			name: 'CIC',
+			fuelType: 'Natural Gas',
+			heatingSystemEfficiency: 85,
+			thermostatSetPoint: 68,
+			setbackTemperature: 65,
+			setbackHoursPerDay: 8,
+			// designTemperatureOverride: '',
+		} as SchemaZodFromFormType,
 		shouldValidate: 'onBlur',
 	})
 
@@ -298,7 +346,9 @@ export default function Inputs() {
 				onSubmit={form.onSubmit}
 				action="/single"
 				encType="multipart/form-data"
-			>
+			> {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
+			This will make it work when JavaScript is turned off as well 
+			<Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseHistory />
