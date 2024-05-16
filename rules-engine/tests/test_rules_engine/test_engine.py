@@ -11,20 +11,48 @@ from rules_engine.pydantic_models import (
     DhwInput,
     FuelType,
     NaturalGasBillingInput,
-    NormalizedBillingPeriodRecordInput,
+    NormalizedBillingPeriodRecordBase,
     SummaryInput,
     SummaryOutput,
     TemperatureInput,
+)
+
+dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
+    period_start_date=date(2024, 1, 1),
+    period_end_date=date(2024, 2, 1),
+    usage=1.0,
+    analysis_type_override=None,
+    inclusion_override=True,
 )
 
 
 @pytest.fixture()
 def sample_billing_periods() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
     return billing_periods
 
@@ -32,11 +60,36 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 @pytest.fixture()
 def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
     billing_periods = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
 
     return billing_periods
@@ -117,42 +170,54 @@ def sample_temp_inputs() -> TemperatureInput:
 
 
 @pytest.fixture()
-def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordInput]:
+def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBase]:
     billing_periods_dict: Any = [
         {
             "period_start_date": "2022-12-01",
             "period_end_date": "2022-12-04",
             "usage": 60,
-            "inclusion_override": None,
+            "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-01-01",
             "period_end_date": "2023-01-04",
             "usage": 50,
-            "inclusion_override": None,
+            "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-02-01",
             "period_end_date": "2023-02-04",
             "usage": 45,
-            "inclusion_override": None,
+            "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-03-01",
             "period_end_date": "2023-03-04",
             "usage": 30,
-            "inclusion_override": None,
+            "analysis_type_override": None,
+            "inclusion_override": True,
         },
         {
             "period_start_date": "2023-04-01",
             "period_end_date": "2023-04-04",
             "usage": 0.96,
-            "inclusion_override": None,
+            "analysis_type_override": None,
+            "inclusion_override": True,
+        },
+        {
+            "period_start_date": "2023-05-01",
+            "period_end_date": "2023-05-04",
+            "usage": 0.96,
+            "analysis_type_override": None,
+            "inclusion_override": True,
         },
     ]
 
     billing_periods = [
-        NormalizedBillingPeriodRecordInput(**x) for x in billing_periods_dict
+        NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
     ]
 
     return billing_periods
@@ -184,14 +249,14 @@ def test_period_hdd(temps, expected_result):
 
 def test_date_to_analysis_type():
     test_date = date.fromisoformat("2019-01-04")
-    assert engine.date_to_analysis_type(test_date) == AnalysisType.INCLUDE
+    assert engine.date_to_analysis_type(test_date) == AnalysisType.ALLOWED_HEATING_USAGE
 
     dates = ["2019-01-04", "2019-07-04", "2019-12-04"]
     types = [engine.date_to_analysis_type(date.fromisoformat(d)) for d in dates]
     expected_types = [
-        AnalysisType.INCLUDE,
-        AnalysisType.INCLUDE_IN_OTHER_ANALYSIS,
-        AnalysisType.INCLUDE,
+        AnalysisType.ALLOWED_HEATING_USAGE,
+        AnalysisType.ALLOWED_NON_HEATING_USAGE,
+        AnalysisType.ALLOWED_HEATING_USAGE,
     ]
     assert types == expected_types
 
@@ -210,6 +275,7 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     home = engine.Home(
         sample_summary_inputs,
         sample_billing_periods,
+        dhw_input=None,
         initial_balance_point=58,
     )
 
@@ -229,6 +295,7 @@ def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_o
     home = engine.Home(
         sample_summary_inputs,
         sample_billing_periods_with_outlier,
+        dhw_input=None,
         initial_balance_point=58,
     )
 
@@ -253,11 +320,36 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.BillingPeriod([41.7, 41.6, 32, 25.4], 60, AnalysisType.INCLUDE),
-        engine.BillingPeriod([28, 29, 30, 29], 50, AnalysisType.INCLUDE),
-        engine.BillingPeriod([32, 35, 35, 38], 45, AnalysisType.INCLUDE),
-        engine.BillingPeriod([41, 43, 42, 42], 30, AnalysisType.INCLUDE),
-        engine.BillingPeriod([72, 71, 70, 69], 0.96, AnalysisType.DO_NOT_INCLUDE),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41.7, 41.6, 32, 25.4],
+            60,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [28, 29, 30, 29],
+            50,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [32, 35, 35, 38],
+            45,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [41, 43, 42, 42],
+            30,
+            AnalysisType.ALLOWED_HEATING_USAGE,
+        ),
+        engine.BillingPeriod(
+            dummy_billing_period_record,
+            [72, 71, 70, 69],
+            0.96,
+            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        ),
     ]
 
     for i in range(len(expected_results)):
@@ -272,15 +364,80 @@ def test_convert_to_intermediate_billing_periods(
 def test_get_outputs_normalized(
     sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
 ):
-    summary_output = engine.get_outputs_normalized(
+    rules_engine_result = engine.get_outputs_normalized(
         sample_summary_inputs,
         None,
         sample_temp_inputs,
         sample_normalized_billing_periods,
     )
 
-    assert summary_output.estimated_balance_point == 60.5
-    assert summary_output.whole_home_heat_loss_rate == approx(1519.72, abs=1)
-    assert summary_output.standard_deviation_of_heat_loss_rate == approx(
-        0.0463, abs=0.01
+    assert rules_engine_result.summary_output.estimated_balance_point == 60.5
+    assert rules_engine_result.summary_output.whole_home_heat_loss_rate == approx(
+        1519.72, abs=1
     )
+    assert (
+        rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
+        == approx(0.0463, abs=0.01)
+    )
+    assert rules_engine_result.billing_records[0].usage == 60
+    assert rules_engine_result.billing_records[0].whole_home_heat_loss_rate != None
+    assert rules_engine_result.billing_records[5].whole_home_heat_loss_rate == None
+
+
+@pytest.mark.parametrize(
+    "sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage",
+    [
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=None,
+                stand_by_losses=None,
+            ),
+            0.80,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=2,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.85,
+            0.17,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=4,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.84,
+            0.35,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=None,
+            ),
+            0.83,
+            0.43,
+        ),
+        (
+            DhwInput(
+                number_of_occupants=5,
+                estimated_water_heating_efficiency=0.8,
+                stand_by_losses=0.10,
+            ),
+            0.82,
+            0.46,
+        ),
+    ],
+)
+def test_calculate_dhw_usage(
+    sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage
+):
+    fuel_oil_usage = engine.calculate_dhw_usage(
+        sample_dhw_inputs, summary_input_heating_system_efficiency
+    )
+    assert fuel_oil_usage == approx(expected_fuel_oil_usage, abs=0.01)

@@ -7,17 +7,35 @@ from datetime import date
 from enum import Enum
 from typing import Annotated, Any, List, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 
 class AnalysisType(Enum):
-    DO_NOT_INCLUDE = 0
-    INCLUDE = 1
-    INCLUDE_IN_OTHER_ANALYSIS = -1
+    """
+    Enum for analysis type.
+
+    'Inclusion' in calculations is now determined by
+    the default_inclusion_by_calculation and inclusion_override variables
+    Use HDDs to determine if shoulder months
+    are heating or non-heating or not allowed,
+    or included or excluded
+    """
+
+    ALLOWED_HEATING_USAGE = 1  # winter months - allowed in heating usage calculations
+    ALLOWED_NON_HEATING_USAGE = (
+        -1
+    )  # summer months - allowed in non-heating usage calculations
+    NOT_ALLOWED_IN_CALCULATIONS = (
+        0  # shoulder months that fall outside reasonable bounds
+    )
 
 
 class FuelType(Enum):
-    """Enum for fuel types. Values are BTU per usage"""
+    """
+    Enum for fuel types.
+
+    Values are BTU per usage
+    """
 
     GAS = 100000  # BTU / therm
     OIL = 139600  # BTU / gal
@@ -55,8 +73,8 @@ class DhwInput(BaseModel):
     """From DHW (Domestic Hot Water) Tab"""
 
     number_of_occupants: int = Field(description="DHW!B4")
-    estimated_water_heating_efficiency: float = Field(description="DHW!B5")
-    stand_by_losses: float = Field(description="DHW!B6")
+    estimated_water_heating_efficiency: Optional[float] = Field(description="DHW!B5")
+    stand_by_losses: Optional[float] = Field(description="DHW!B6")
 
 
 class OilPropaneBillingRecordInput(BaseModel):
@@ -89,11 +107,39 @@ class NaturalGasBillingInput(BaseModel):
     records: List[NaturalGasBillingRecordInput]
 
 
-class NormalizedBillingPeriodRecordInput(BaseModel):
-    period_start_date: date
-    period_end_date: date
-    usage: float
-    inclusion_override: Optional[AnalysisType]
+class NormalizedBillingPeriodRecordBase(BaseModel):
+    """
+    Base class for a normalized billing period record.
+
+    Holds data as fields.
+
+    analysis_type_override - for testing only, preserving compatibility
+    with the original heat calc spreadsheet, which allows users to override
+    the analysis type whereas the rules engine does not
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    period_start_date: date = Field(frozen=True)
+    period_end_date: date = Field(frozen=True)
+    usage: float = Field(frozen=True)
+    analysis_type_override: Optional[AnalysisType] = Field(frozen=True)
+    inclusion_override: bool
+
+
+class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
+    """
+    Derived class for holding a normalized billing period record.
+
+    Holds data.
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    analysis_type: AnalysisType = Field(frozen=True)
+    default_inclusion_by_calculation: bool = Field(frozen=True)
+    eliminated_as_outlier: bool = Field(frozen=True)
+    whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
 
 class TemperatureInput(BaseModel):
@@ -141,7 +187,20 @@ class BalancePointGraph(BaseModel):
     records: List[BalancePointGraphRow]
 
 
+class RulesEngineResult(BaseModel):
+    summary_output: SummaryOutput
+    balance_point_graph: BalancePointGraph
+    billing_records: List[NormalizedBillingPeriodRecord]
+
+
 @dataclass
 class Constants:
     BALANCE_POINT_SENSITIVITY: float = 0.5
-    DESIGN_SET_POINT: float = 70
+    DESIGN_SET_POINT: float = 70  # deg. F
+    DAILY_DHW_CONSUMPTION_PER_OCCUPANT: float = 15.78  # Gal/day/person
+    WATER_WEIGHT: float = 8.33  # lbs/gal
+    ENTERING_WATER_TEMPERATURE: float = 55  # deg. F
+    LEAVING_WATER_TEMPERATURE: float = 125  # deg. F
+    SPECIFIC_HEAT_OF_WATER: float = 1.00  # BTU/lbs-deg. F
+    DEFAULT_STAND_BY_LOSSES: float = 0.05  #
+    FUEL_OIL_BTU_PER_GAL: float = 139000
