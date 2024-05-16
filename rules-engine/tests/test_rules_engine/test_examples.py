@@ -23,12 +23,10 @@ from rules_engine.pydantic_models import (
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# Filter out example 2 for now, since it's for oil fuel type
-# INPUT_DATA = filter(lambda d: d != "example-2", next(os.walk(ROOT_DIR))[1])
-
-# UNDO: Filter out all but the first example, breslow, as that is the only example where the UA values from the spreadsheet "just work", this for 68 degree balance point
-INPUT_DATA = filter(lambda d: d == "breslow", next(os.walk(ROOT_DIR))[1])
-# INPUT_DATA = filter(lambda d: d == "cali", next(os.walk(ROOT_DIR))[1])
+# TODO: example-2 is OIL; need to find the source data for example-1 and example-4 for Natural Gas
+FAILING_EXAMPLES = ("example-1", "example-2", "example-4")
+# Filter out failing examples for now
+INPUT_DATA = filter(lambda d: d not in FAILING_EXAMPLES, next(os.walk(ROOT_DIR))[1])
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -73,11 +71,19 @@ def load_natural_gas(
                 inclusion_override = int(inclusion_override)
 
             # Choose the correct billing period heat loss (aka "ua") column based on the estimated balance point provided in SummaryOutput
-            ua_column_heading = (
-                "ua_at_" + str(int(round(estimated_balance_point, 0))) + "f"
-            )
-            ua = row[ua_column_heading]
-            if bool(str(ua).strip()):  # Deal with extra whitespace in blank ua cells
+            ua_column_name = None
+            # First we will look for an exact match to the value of estimated balance point
+            for column_name in row:
+                if "ua" in column_name and str(estimated_balance_point) in column_name:
+                    ua_column_name = column_name
+                    break
+            # If we don't find that exact match, we round the balance point up to find our match
+            if ua_column_name == None:
+                ua_column_name = (
+                    "ua_at_" + str(int(round(estimated_balance_point, 0))) + "f"
+                )
+            ua = row[ua_column_name].replace(",","").strip()  # Remove commas and whitespace to cleanup the data
+            if bool(ua):
                 whole_home_heat_loss_rate = float(ua)
             else:
                 whole_home_heat_loss_rate = 0
@@ -222,10 +228,3 @@ def test_billing_records_whole_home_heat_loss_rate(data: Example) -> None:
         assert result.whole_home_heat_loss_rate == approx(
             whole_home_heat_loss_rate, abs=0.1
         )
-
-
-"""
-        with capsys.disabled():
-            if whole_home_heat_loss_rate != None:
-                print('Result ==', result.whole_home_heat_loss_rate, ' Expected ==', whole_home_heat_loss_rate)
-"""
