@@ -5,7 +5,7 @@ Data models for input and output data in the rules engine.
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Annotated, Any, List, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
@@ -88,7 +88,7 @@ class OilPropaneBillingRecordInput(BaseModel):
 class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab. Container for holding all rows of the billing input table."""
 
-    records: List[OilPropaneBillingRecordInput]
+    records: list[OilPropaneBillingRecordInput]
     preceding_delivery_date: date = Field(description="Oil-Propane!B6")
 
 
@@ -104,7 +104,7 @@ class NaturalGasBillingRecordInput(BaseModel):
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
-    records: List[NaturalGasBillingRecordInput]
+    records: list[NaturalGasBillingRecordInput]
 
 
 class NormalizedBillingPeriodRecordBase(BaseModel):
@@ -143,8 +143,8 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
 
 
 class TemperatureInput(BaseModel):
-    dates: List[date]
-    temperatures: List[float]
+    dates: list[date]
+    temperatures: list[float]
 
 
 class SummaryOutput(BaseModel):
@@ -184,13 +184,13 @@ class BalancePointGraphRow(BaseModel):
 class BalancePointGraph(BaseModel):
     """From Summary page"""
 
-    records: List[BalancePointGraphRow]
+    records: list[BalancePointGraphRow]
 
 
 class RulesEngineResult(BaseModel):
     summary_output: SummaryOutput
     balance_point_graph: BalancePointGraph
-    billing_records: List[NormalizedBillingPeriodRecord]
+    billing_records: list[NormalizedBillingPeriodRecord]
 
 
 @dataclass
