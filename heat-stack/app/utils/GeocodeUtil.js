@@ -1,19 +1,17 @@
 const BASE_URL =  "https://geocoding.geo.census.gov";
-const ADDRESS_ENDPOINT = "/geocoder/locations/address";
+const ADDRESS_ENDPOINT = "/geocoder/locations/onelineaddress";
 const params = new URLSearchParams();
 
 class GeocodeUtil {
 
     /**
      * 
-     * @param {*} street 
-     * @param {*} city 
-     * @param {*} state 
+     * @param {*} address
      * @returns x,y {x,y} lon/lat. If the given address was valid. I've implemented 0 handling here. 
      *  This is the happiest of paths, with hardcoded values also...
      */
     async getLL(address) {
-        params.append("onelineaddress",address);
+        params.append("address",address);
         params.append("format","json");
         params.append("benchmark",2020);
 
