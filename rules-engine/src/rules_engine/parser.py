@@ -5,12 +5,12 @@ National Grid CSVs.
 import csv
 import io
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
-class NaturalGasCompany(str, Enum):
+class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
 
