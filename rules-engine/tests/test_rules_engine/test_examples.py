@@ -42,7 +42,7 @@ class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
 
 # Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
 class NaturalGasBillingExampleInput(NaturalGasBillingInput):
-    records: List[NaturalGasBillingRecordExampleInput]
+    records: list[NaturalGasBillingRecordExampleInput]
 
 
 class Example(BaseModel):
