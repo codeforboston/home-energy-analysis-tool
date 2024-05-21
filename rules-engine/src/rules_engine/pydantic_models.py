@@ -5,9 +5,7 @@ Data models for input and output data in the rules engine.
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-
 from typing import Annotated, Any, Optional, Sequence
-
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
