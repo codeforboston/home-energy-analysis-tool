@@ -5,7 +5,7 @@ Data models for input and output data in the rules engine.
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any, Optional, Sequence
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
@@ -104,7 +104,7 @@ class NaturalGasBillingRecordInput(BaseModel):
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
-    records: list[NaturalGasBillingRecordInput]
+    records: Sequence[NaturalGasBillingRecordInput]
 
 
 class NormalizedBillingPeriodRecordBase(BaseModel):
