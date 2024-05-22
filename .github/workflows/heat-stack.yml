@@ -37,6 +37,7 @@ jobs:
         uses: "./.github/actions/setup-rules-engine"
         with:
           python-version: ${{ matrix.python-version }}
+          working-directory: ${{ env.rules-engine-working-directory }}
       - name: Check style
         run: |
           make lint
