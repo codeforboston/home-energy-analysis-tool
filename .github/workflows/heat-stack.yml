@@ -170,7 +170,7 @@ jobs:
   deploy-to-servers:
     name: 🚀 Heat-Stack - Deploy
     runs-on: ubuntu-22.04
-    needs: [lint-heat-stack, typecheck-heat-stack, vitest-heat-stack] #, playwright-heat-stack]
+    needs: [lint-js, typecheck-js, vitest-pyodide-js] #, playwright-heat-stack]
     # only build/deploy main branch on pushes
     if:
       ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
