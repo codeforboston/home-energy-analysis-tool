@@ -22,12 +22,13 @@ from rules_engine.pydantic_models import (
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
+NATURAL_GAS_DIR = ROOT_DIR / "natural_gas"
 
 # TODO: example-2 is OIL; need to find the source data for example-1 and example-4 for Natural Gas and update csv
 YET_TO_BE_UPDATED_EXAMPLES = ("example-1", "example-2", "example-4")
 # Filter out failing examples for now
 INPUT_DATA = filter(
-    lambda d: d not in YET_TO_BE_UPDATED_EXAMPLES, next(os.walk(ROOT_DIR))[1]
+    lambda d: d not in YET_TO_BE_UPDATED_EXAMPLES, next(os.walk(NATURAL_GAS_DIR))[1]
 )
 
 
@@ -52,7 +53,7 @@ class Example(BaseModel):
 
 
 def load_summary(folder: str) -> Summary:
-    with open(ROOT_DIR / folder / "summary.json") as f:
+    with open(NATURAL_GAS_DIR / folder / "summary.json") as f:
         d = json.load(f)
         return Summary(**d)
 
@@ -62,7 +63,7 @@ def load_natural_gas(
 ) -> NaturalGasBillingExampleInput:
     records = []
 
-    with open(ROOT_DIR / folder / "natural-gas.csv") as f:
+    with open(NATURAL_GAS_DIR / folder / "natural-gas.csv") as f:
         reader = csv.DictReader(f)
         row: Any
         for row in reader:
