@@ -127,6 +127,10 @@ def load_temperature_data(weather_station: str) -> TemperatureInput:
 
 @pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
+    """
+    Loads the usage and temperature data and summary inputs into an 
+    Example instance.
+    """
     summary = load_summary(request.param)
 
     if summary.fuel_type == engine.FuelType.GAS:
