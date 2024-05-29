@@ -29,7 +29,7 @@ import * as pyodideModule from 'pyodide'
 // - [x] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
 // - [x] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
 // example: [MSW] Warning: intercepted a request without a matching request handler: GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020&address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020
-// - [ ] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostatSetPoint: oldSummaryInput.thermostat_set_point, setbackTemperature: oldSummaryInput.setback_temperature, setbackHoursPerDay: oldSummaryInput.setback_hours_per_day,
+// - [ ] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostat_set_point: oldSummaryInput.thermostat_set_point, setback_temperature: oldSummaryInput.setback_temperature, setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
 // - [ ] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
 // - [ ] (use data passing function API from #172 from rules engine) to Build table component form
 // - [ ] Michelle proposes always set form default values when run in development
@@ -43,7 +43,7 @@ import * as pyodideModule from 'pyodide'
     "expected": "number",
     "received": "null",
     "path": [
-      "setbackTemperature"
+      "setback_temperature"
     ],
     "message": "Expected number, received null"
   },
@@ -52,7 +52,7 @@ import * as pyodideModule from 'pyodide'
     "expected": "number",
     "received": "null",
     "path": [
-      "setbackHoursPerDay"
+      "setback_hours_per_day"
     ],
     "message": "Expected number, received null"
   }
@@ -92,19 +92,19 @@ const addressMaxLength = 100
 // }
 // // type Home = z.infer<typeof HomeSchema>
 
-// // TODO Next: Ask an LLM how we get fuelType out of HomeSchema from zod
+// // TODO Next: Ask an LLM how we get fuel_type out of HomeSchema from zod
 
-const HomeFormSchema = Home.pick({ livingArea: true })
+const HomeFormSchema = Home.pick({ living_area: true })
 	.and(Location.pick({ address: true }))
 	.and(Case.pick({ name: true }))
 
 const CurrentHeatingSystemSchema = Home.pick({
-	fuelType: true,
-	heatingSystemEfficiency: true,
-	designTemperatureOverride: true,
-	thermostatSetPoint: true,
-	setbackTemperature: true,
-	setbackHoursPerDay: true,
+	fuel_type: true,
+	heating_system_efficiency: true,
+	design_temperature_override: true,
+	thermostat_set_point: true,
+	setback_temperature: true,
+	setback_hours_per_day: true,
 })
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema)
@@ -144,13 +144,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const {
 		name,
 		address,
-		livingArea,
-		fuelType,
-		heatingSystemEfficiency,
-		thermostatSetPoint,
-		setbackTemperature,
-		setbackHoursPerDay,
-		designTemperatureOverride,
+		living_area,
+		fuel_type,
+		heating_system_efficiency,
+		thermostat_set_point,
+		setback_temperature,
+		setback_hours_per_day,
+		design_temperature_override,
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -270,18 +270,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		}
 
 		const SI: SchemaZodFromFormType = Schema.parse({
-			livingArea: oldSummaryInput.living_area,
+			living_area: oldSummaryInput.living_area,
 			address: '123 Main St', // Provide a valid address
 			name: 'My Home', // Provide a valid name
-			fuelType:
+			fuel_type:
 				oldSummaryInput.fuel_type === 'GAS'
 					? 'Natural Gas'
 					: oldSummaryInput.fuel_type,
-			heatingSystemEfficiency: oldSummaryInput.heating_system_efficiency,
-			thermostatSetPoint: oldSummaryInput.thermostat_set_point,
-			setbackTemperature: oldSummaryInput.setback_temperature,
-			setbackHoursPerDay: oldSummaryInput.setback_hours_per_day,
-			designTemperatureOverride: oldSummaryInput.design_temperature,
+			heating_system_efficiency: oldSummaryInput.heating_system_efficiency,
+			thermostat_set_point: oldSummaryInput.thermostat_set_point,
+			setback_temperature: oldSummaryInput.setback_temperature,
+			setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
+			design_temperature_override: oldSummaryInput.design_temperature,
 		})
 
 		console.log('SI', SI)
@@ -325,15 +325,15 @@ export default function Inputs() {
 			return parseWithZod(formData, { schema: Schema })
 		},
 		defaultValue: {
-			livingArea: 3000,
+			living_area: 3000,
 			address: '1 Broadway, Cambridge, MA 02142',
 			name: 'CIC',
-			fuelType: 'Natural Gas',
-			heatingSystemEfficiency: 85,
-			thermostatSetPoint: 68,
-			setbackTemperature: 65,
-			setbackHoursPerDay: 8,
-			// designTemperatureOverride: '',
+			fuel_type: 'Natural Gas',
+			heating_system_efficiency: 85,
+			thermostat_set_point: 68,
+			setback_temperature: 65,
+			setback_hours_per_day: 8,
+			// design_temperature_override: '',
 		} as SchemaZodFromFormType,
 		shouldValidate: 'onBlur',
 	})
