@@ -1,6 +1,7 @@
 import pathlib
 from datetime import date
 
+import pytest
 from rules_engine import parser
 from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
@@ -10,13 +11,13 @@ ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 # of refactoring elsewhere in the codebase.
 
 
-def _read_gas_bill_eversource():
+def _read_gas_bill_eversource() -> str:
     """Read a test natural gas bill from a test Eversource CSV"""
     with open(ROOT_DIR / "feldman" / "natural-gas-eversource.csv") as f:
         return f.read()
 
 
-def _read_gas_bill_national_grid():
+def _read_gas_bill_national_grid() -> str:
     """Read a test natural gas bill from a test National Grid CSV"""
     with open(ROOT_DIR / "quateman" / "natural-gas-national-grid.csv") as f:
         return f.read()
@@ -76,11 +77,32 @@ def test_parse_gas_bill():
 
 def test_parse_gas_bill_eversource():
     """Tests parsing a natural gas bill from Eversource."""
-    _validate_eversource(parser.parse_gas_bill_eversource(_read_gas_bill_eversource()))
+    _validate_eversource(parser._parse_gas_bill_eversource(_read_gas_bill_eversource()))
 
 
 def test_parse_gas_bill_national_grid():
     """Tests parsing a natural gas bill from National Grid."""
     _validate_national_grid(
-        parser.parse_gas_bill_national_grid(_read_gas_bill_national_grid())
+        parser._parse_gas_bill_national_grid(_read_gas_bill_national_grid())
     )
+
+
+def test_detect_natural_gas_company():
+    """Tests if the natural gas company is correctly detected from the parsed csv."""
+    read_eversource = _read_gas_bill_eversource()
+    read_nationalgrid = _read_gas_bill_national_grid()
+    assert (
+        parser._detect_gas_company(read_eversource)
+        == parser.NaturalGasCompany.EVERSOURCE
+    )
+    assert (
+        parser._detect_gas_company(read_nationalgrid)
+        == parser.NaturalGasCompany.NATIONAL_GRID
+    )
+
+
+def test_detect_natural_gas_company_with_error():
+    """Tests if an error is raised if the natural gas company is incorrect in the csv."""
+    read_csv_string = r"Some bogus string input"
+    with pytest.raises(ValueError):
+        parser._detect_gas_company(read_csv_string)
