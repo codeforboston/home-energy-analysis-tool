@@ -27,7 +27,7 @@ import * as pyodideModule from 'pyodide'
 // - [x] import pyodide into single.tsx and run it with genny
 //     - [x] Add to README: don't forget `npm run buildpy` to build rules engine into `public/pyodide-env` if you start a new codingspace or on local.
 // - [x] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
-// - [ ] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
+// - [x] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
 // example: [MSW] Warning: intercepted a request without a matching request handler: GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020&address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020
 // - [ ] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostatSetPoint: oldSummaryInput.thermostat_set_point, setbackTemperature: oldSummaryInput.setback_temperature, setbackHoursPerDay: oldSummaryInput.setback_hours_per_day,
 // - [ ] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)

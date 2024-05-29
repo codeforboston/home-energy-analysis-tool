@@ -1,6 +1,5 @@
 const BASE_URL =  "https://geocoding.geo.census.gov";
 const ADDRESS_ENDPOINT = "/geocoder/locations/onelineaddress";
-const params = new URLSearchParams();
 
 class GeocodeUtil {
 
@@ -11,6 +10,8 @@ class GeocodeUtil {
      *  This is the happiest of paths, with hardcoded values also...
      */
     async getLL(address) {
+        const params = new URLSearchParams();
+
         params.append("address",address);
         params.append("format","json");
         params.append("benchmark",2020);
