@@ -2,6 +2,7 @@ import pathlib
 from datetime import date
 
 import pytest
+
 from rules_engine import parser
 from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 

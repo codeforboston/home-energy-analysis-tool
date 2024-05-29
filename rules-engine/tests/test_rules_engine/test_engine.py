@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 from pytest import approx
+
 from rules_engine import engine
 from rules_engine.pydantic_models import (
     AnalysisType,
