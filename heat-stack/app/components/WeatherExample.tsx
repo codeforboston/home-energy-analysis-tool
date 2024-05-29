@@ -1,3 +1,4 @@
+/* todo: unused, delete me */
 import { loader } from "#app/root.tsx";
 import test from "@playwright/test";
 import { json } from "@remix-run/node"; // or cloudflare/deno

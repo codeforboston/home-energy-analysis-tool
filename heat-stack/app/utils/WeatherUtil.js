@@ -1,12 +1,11 @@
-import { time } from "console";
-
 const BASE_URL = "https://archive-api.open-meteo.com";
 const WHATEVER_PATH = "/v1/archive";
-const params = new URLSearchParams();
 
 class WeatherUtil {
 
     async getThatWeathaData(longitude,latitude,startDate, endDate) {
+        const params = new URLSearchParams();
+
         params.append("latitude",latitude);
         params.append("longitude",longitude);
         params.append("daily","temperature_2m_max");
