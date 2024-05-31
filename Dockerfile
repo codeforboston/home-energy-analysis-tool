@@ -10,38 +10,37 @@ RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
 # Install all node_modules, including dev dependencies
 FROM base as deps
 
-WORKDIR /myapp
+WORKDIR /myapp/heat-stack
 
-ADD package.json package-lock.json .npmrc ./
+ADD heat-stack/package.json heat-stack/package-lock.json heat-stack/.npmrc ./
 RUN npm install --include=dev
 
 # Setup production node_modules
 FROM base as production-deps
 
-WORKDIR /myapp
+WORKDIR /myapp/heat-stack
 
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json .npmrc ./
+COPY --from=deps /myapp/heat-stack/node_modules /myapp/heat-stack/node_modules
+ADD heat-stack/package.json heat-stack/package-lock.json heat-stack/.npmrc ./
 RUN npm prune --omit=dev
 
 # Build the app
 FROM base as build
 
-WORKDIR /myapp
+WORKDIR /myapp/heat-stack
 
-COPY --from=deps /myapp/node_modules /myapp/node_modules
+COPY --from=deps /myapp/heat-stack/node_modules /myapp/heat-stack/node_modules
 
-ADD prisma .
+ADD heat-stack/prisma .
 RUN npx prisma generate
 
-ADD . .
+ADD heat-stack/. .
 RUN npm run build
 
 FROM python:3.12.3-slim-bookworm as rules
 WORKDIR /myapp
-RUN mkdir -p /myapp/rules-engine
-ADD rules-engine/. /myapp/rules-engine
-RUN cd /myapp/rules-engine && bash -c "source setup-wheel.sh"
+ADD rules-engine/. .
+RUN bash -c "source setup-wheel.sh"
 
 
 # Finally, build the production image with minimal heat-stacktprint
@@ -63,23 +62,24 @@ RUN echo "#!/bin/sh\nset -x\nsqlite3 \$DATABASE_URL" > /usr/local/bin/database-c
 
 WORKDIR /myapp
 
-COPY --from=production-deps /myapp/node_modules /myapp/node_modules
-COPY --from=rules /myapp/rules-engine/dist/*.whl /myapp/heat-stack/public
+COPY --from=production-deps /myapp/heat-stack/node_modules /myapp/heat-stack/node_modules
+COPY --from=build /myapp/heat-stack/node_modules/.prisma /myapp/heat-stack/node_modules/.prisma
 
-COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
-
-COPY --from=build /myapp/server-build /myapp/server-build
-COPY --from=build /myapp/build /myapp/build
-COPY --from=build /myapp/public /myapp/public
-COPY --from=build /myapp/package.json /myapp/package.json
-COPY --from=build /myapp/prisma /myapp/prisma
-COPY --from=build /myapp/app/components/ui/icons /myapp/app/components/ui/icons
+COPY --from=build /myapp/heat-stack/server-build /myapp/heat-stack/server-build
+COPY --from=build /myapp/heat-stack/build /myapp/heat-stack/build
+COPY --from=build /myapp/heat-stack/public /myapp/heat-stack/public
+COPY --from=build /myapp/heat-stack/package.json /myapp/heat-stack/package.json
+COPY --from=build /myapp/heat-stack/prisma /myapp/heat-stack/prisma
+COPY --from=build /myapp/heat-stack/app/components/ui/icons /myapp/heat-stack/app/components/ui/icons
+COPY --from=rules /myapp/dist/*.whl /myapp/heat-stack/public
 
 # prepare for litefs
 COPY --from=flyio/litefs:0.5.8 /usr/local/bin/litefs /usr/local/bin/litefs
-ADD other/litefs.yml /etc/litefs.yml
+ADD heat-stack/other/litefs.yml /etc/litefs.yml
 RUN mkdir -p /data ${LITEFS_DIR}
 
-ADD . .
+ADD heat-stack/. .
 
 CMD ["litefs", "mount"]
+
+
