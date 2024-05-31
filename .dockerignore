@@ -7,11 +7,3 @@
 /.cache
 /public/build
 /build
-
- "test": "
- 
- cd ../rules-engine 
- python3 -m venv venv 
- source venv/bin/activate 
- pip install -q build
-python3 -m build 
