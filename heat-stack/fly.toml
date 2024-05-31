@@ -1,4 +1,4 @@
-app = "heat2"
+app = "heat-stack"
 primary_region = "bos"
 kill_signal = "SIGINT"
 kill_timeout = 5
