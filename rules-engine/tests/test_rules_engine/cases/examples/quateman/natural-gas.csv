@@ -1,4 +1,4 @@
-start_date,end_date,days_in_bill,usage,inclusion_override,inclusion_code,avg_daily_usage,daily_htg_usage,hdd_at_50.5f,hdd_at_51.5f,hdd_at_52.5f,ua_at_50.5f,ua_at_51.5f,ua_at_52.5f,ua_sensitivity_at_0.2_therms,ua_sensitivity_at_0.4_therms,unused1,estimated_heating_use_therms,estimated_other_use_therms,estimated_total_use_therms,estimated_savings_therms,estimated_savings_percent,unused2,start_row,end_row
+start_date,end_date,days_in_bill,usage,inclusion_override,inclusion_code,avg_daily_usage,daily_htg_usage,hdd_at_51f,hdd_at_52f,hdd_at_53f,ua_at_51f,ua_at_52f,ua_at_53f,ua_sensitivity_at_0.2_therms,ua_sensitivity_at_0.4_therms,unused1,estimated_heating_use_therms,estimated_other_use_therms,estimated_total_use_therms,estimated_savings_therms,estimated_savings_percent,unused2,start_row,end_row
 10/2/2020,11/4/2020,34,29,,0,0.85,0.57,104.9,120.6,136.6,,,,,,,,,,,,,3566,3598
 11/5/2020,12/3/2020,29,36,,1,1.24,0.96,152.1,171.1,190.1,  736.4 ,  654.7 ,  589.2 ,  723.2 ,  586.2 ,,,,,,,,3600,3627
 12/4/2020,1/7/2021,35,97,,1,2.77,2.49,559.7,592.7,625.7,  628.2 ,  593.3 ,  562.0 ,  617.1 ,  569.4 ,,,,,,,,3629,3662
