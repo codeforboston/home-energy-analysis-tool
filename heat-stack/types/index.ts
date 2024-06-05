@@ -25,16 +25,16 @@ export const Home = z.object({
 	/**
 	 * unit: square feet
 	 */
-	livingArea: z.number().min(500).max(10000),
-	fuelType: z.enum(['Natural Gas','Oil','Propane']),
-	designTemperatureOverride: z.number().optional(),
+	living_area: z.number().min(500).max(10000),
+	fuel_type: z.enum(['Natural Gas','Oil','Propane']),
+	design_temperature_override: z.number().optional(),
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
-	heatingSystemEfficiency: z.number().min(60).max(100),
-	thermostatSetPoint: z.number(),
-	setbackTemperature: z.number().optional(),
-	setbackHoursPerDay: z.number().optional(),
+	heating_system_efficiency: z.number().min(60).max(100),
+	thermostat_set_point: z.number(),
+	setback_temperature: z.number().optional(),
+	setback_hours_per_day: z.number().optional(),
 	numberOfOccupants: z.number(),
 	estimatedWaterHeatingEfficiency: z.number(),
 	standByLosses: z.number(),
