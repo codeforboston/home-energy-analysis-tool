@@ -14,6 +14,7 @@ from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInpu
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
+    BERKSHIRE = "berkshire" #TODO: Implement CSV parser for Berkshire
 
 
 class _NaturalGasCompanyBillRegex:
