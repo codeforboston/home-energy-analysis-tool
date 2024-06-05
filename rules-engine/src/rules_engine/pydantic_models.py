@@ -107,6 +107,7 @@ class NaturalGasBillingInput(BaseModel):
 
     records: Sequence[NaturalGasBillingRecordInput]
 
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore[misc]
     @cached_property
     def overall_start_date(self) -> date:
@@ -122,6 +123,7 @@ class NaturalGasBillingInput(BaseModel):
             min_date = min(min_date, record.period_start_date)
         return min_date
 
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore[misc]
     @cached_property
     def overall_end_date(self) -> date:
