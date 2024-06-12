@@ -30,10 +30,10 @@ import * as pyodideModule from 'pyodide'
 // - [x] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
 // example: [MSW] Warning: intercepted a request without a matching request handler: GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020&address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020
 // - [x] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostat_set_point: oldSummaryInput.thermostat_set_point, setback_temperature: oldSummaryInput.setback_temperature, setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
-// - [ ] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
-// - [ ] Pass CSV and form data to rules engine
-// - [ ] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window. 
-// - [ ] (use data passing function API from #172 from rules engine) to Build table component form
+// - [skipped] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
+// - [ ] #162: Pass CSV and form data to rules engine
+// - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window. 
+// - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
 // - [ ] Michelle proposes always set form default values when run in development
 // - [ ] Pass modified table back to rules engine for full cycle revalidation 
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
