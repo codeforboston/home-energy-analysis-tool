@@ -1,0 +1,1 @@
+{"version":3,"file":"tos-keZemvP4.js","sources":["../../../app/routes/_marketing+/tos.tsx"],"sourcesContent":["export default function TermsOfServiceRoute() {\n\treturn <div>Terms of service</div>\n}\n"],"names":["TermsOfServiceRoute","jsx","children"],"mappings":"8CAAA,SAAwBA,GAAsB,CACtC,OAAAC,EAAAA,IAAC,OAAIC,SAAgB,kBAAA,CAAA,CAC7B"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"privacy-CJItoDsU.js","sources":["../../../app/routes/_marketing+/privacy.tsx"],"sourcesContent":["export default function PrivacyRoute() {\n\treturn <div>Privacy</div>\n}\n"],"names":["PrivacyRoute","jsx","children"],"mappings":"8CAAA,SAAwBA,GAAe,CAC/B,OAAAC,EAAAA,IAAC,OAAIC,SAAO,SAAA,CAAA,CACpB"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"about-DEtQIx41.js","sources":["../../../app/routes/_marketing+/about.tsx"],"sourcesContent":["export default function AboutRoute() {\n\treturn <div>About page</div>\n}\n"],"names":["AboutRoute","jsx","children"],"mappings":"8CAAA,SAAwBA,GAAa,CAC7B,OAAAC,EAAAA,IAAC,OAAIC,SAAU,YAAA,CAAA,CACvB"}

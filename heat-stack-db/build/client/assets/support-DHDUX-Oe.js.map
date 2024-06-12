@@ -1,0 +1,1 @@
+{"version":3,"file":"support-DHDUX-Oe.js","sources":["../../../app/routes/_marketing+/support.tsx"],"sourcesContent":["export default function SupportRoute() {\n\treturn <div>Support</div>\n}\n"],"names":["SupportRoute","jsx","children"],"mappings":"8CAAA,SAAwBA,GAAe,CAC/B,OAAAC,EAAAA,IAAC,OAAIC,SAAO,SAAA,CAAA,CACpB"}
