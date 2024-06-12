@@ -384,6 +384,22 @@ def test_get_outputs_normalized(
     assert rules_engine_result.billing_records[5].whole_home_heat_loss_rate == None
 
 
+def test_get_outputs_normalized_null_temp(
+    sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
+):
+    sample_temp_inputs.temperatures[0] = None
+    with pytest.raises(ValueError) as e:
+        rules_engine_result = engine.get_outputs_normalized(
+            sample_summary_inputs,
+            None,
+            sample_temp_inputs,
+            sample_normalized_billing_periods,
+        )
+    
+    
+
+
+
 @pytest.mark.parametrize(
     "sample_dhw_inputs, summary_input_heating_system_efficiency, expected_fuel_oil_usage",
     [
