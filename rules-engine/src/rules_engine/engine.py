@@ -194,10 +194,10 @@ def convert_to_intermediate_billing_periods(
 
         if None in temperature_input.temperatures[start_idx:end_idx]:
             raise ValueError("Temperature input value cannot be null." 
-                             + "This error was probably raised because the last billing period"
-                             + "ended in the last five days.  The front end needs to fetch the most" 
-                             + "recent data from open-meteos forecast (not historical) api or you"
-                             + "the user need to try again once at least five days have passed"
+                             + "This error was probably raised because the last billing period\n"
+                             + "ended in the last five days.  The front end needs to fetch the most\n" 
+                             + "recent data from open-meteos forecast (not historical) api or you\n"
+                             + "the user need to try again once at least five days have passed\n"
                              + "since the last billing period.")
         
 
