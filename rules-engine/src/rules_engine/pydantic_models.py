@@ -181,7 +181,14 @@ class TemperatureInput(BaseModel):
 
 
 class SummaryOutput(BaseModel):
-    """From Summary tab"""
+    """
+    Holds data from the Summary tab of the Excel workbook.
+
+    Each 'description' in this object code refers to a field in
+    an Excel workbook that this code reads.  The tab goes
+    before the exclamation point, and the workbook coordinate
+    goes afterward.
+    """
 
     estimated_balance_point: float = Field(
         description="Summary!B20"

@@ -192,6 +192,13 @@ def convert_to_intermediate_billing_periods(
             + 1
         )
 
+        if None in temperature_input.temperatures[start_idx:end_idx]:
+            raise ValueError("Temperature input value cannot be null." 
+                             + "This error was probably raised because the last billing period"
+                             + "ended in the last five days.  Fetch the most recent data or"
+                             + "try again in up to six days.")
+        
+
         analysis_type = date_to_analysis_type(billing_period.period_end_date)
         if billing_period.analysis_type_override:
             analysis_type = billing_period.analysis_type_override
