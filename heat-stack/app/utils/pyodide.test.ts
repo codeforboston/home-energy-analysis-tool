@@ -1,7 +1,7 @@
 import * as pyodideModule from 'pyodide'
 import { expect, test, beforeEach } from 'vitest'
-import GeocodeUtil from "#app/utils/GeocodeUtil.js";
-import WeatherUtil from "#app/utils/WeatherUtil.js";
+import GeocodeUtil from "#app/utils/GeocodeUtil";
+import WeatherUtil from "#app/utils/WeatherUtil";
 // import PyodideUtil  from "#app/utils/pyodide.util.js";
 
 
