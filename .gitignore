@@ -8,5 +8,5 @@ node_modules
 
 #local temporary folders
 heat-app
-venv
+venv*
 heat-tmp
