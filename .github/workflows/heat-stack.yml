@@ -191,13 +191,6 @@ jobs:
           file: '${{ env.heat-stack-working-directory }}/fly.toml'
           field: 'app'
 
-      # move Dockerfile to root
-      - name: 🚚 Move Dockerfile
-        working-directory: ${{ env.heat-stack-working-directory }} 
-        run: |
-          mv ./other/Dockerfile ./Dockerfile
-          mv ./other/.dockerignore ./.dockerignore
-
       - name: Pull Built Wheel Artifact
         uses: actions/download-artifact@v4
         with:
