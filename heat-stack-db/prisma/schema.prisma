@@ -167,3 +167,13 @@ model Connection {
 
   @@unique([providerName, providerId])
 }
+
+// NEW
+
+model MockNote {
+  id   String @id @default(cuid())
+  note String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

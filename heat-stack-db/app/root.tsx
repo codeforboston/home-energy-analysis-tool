@@ -47,6 +47,7 @@ import { type Theme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
+import MockNotesButton from './components/mock-heat-stack-form.tsx'
 
 export const links: LinksFunction = () => {
 	return [
@@ -226,6 +227,7 @@ function App() {
 						<div className="block w-full sm:hidden">{searchBar}</div>
 					</nav>
 				</header>
+				<MockNotesButton route={'/mock_notes/'} />
 
 				<div className="flex-1">
 					<Outlet />
