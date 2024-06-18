@@ -56,8 +56,6 @@ import {
 	makeTimings,
 	time,
 } from './utils/timing.server.ts'
-import { WeatherExample } from './components/WeatherExample.tsx'
-import { Weather } from './WeatherExample.js'
 import { honeypot } from './utils/honeypot.server.ts'
 import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
@@ -138,15 +136,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	// }
 	// const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = honeypot.getInputProps()
-	// Weather station data
-	const w_href: string =
-		'https://archive-api.open-meteo.com/v1/archive?latitude=52.52&longitude=13.41&daily=temperature_2m_max&timezone=America%2FNew_York&start_date=2022-01-01&end_date=2023-08-30&temperature_unit=fahrenheit'
-	const w_res: Response = await fetch(w_href)
-	const weather: Weather = (await w_res.json()) as Weather
 
 	return json(
 		{
-			weather,
 			user,
 			requestInfo: {
 				hints: getHints(request),

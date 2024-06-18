@@ -5,9 +5,10 @@ Data models for input and output data in the rules engine.
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Annotated, Any, List, Optional
+from functools import cached_property
+from typing import Annotated, Any, Optional, Sequence
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, computed_field
 
 
 class AnalysisType(Enum):
@@ -88,7 +89,7 @@ class OilPropaneBillingRecordInput(BaseModel):
 class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab. Container for holding all rows of the billing input table."""
 
-    records: List[OilPropaneBillingRecordInput]
+    records: list[OilPropaneBillingRecordInput]
     preceding_delivery_date: date = Field(description="Oil-Propane!B6")
 
 
@@ -104,7 +105,39 @@ class NaturalGasBillingRecordInput(BaseModel):
 class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
-    records: List[NaturalGasBillingRecordInput]
+    records: Sequence[NaturalGasBillingRecordInput]
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_start_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty."
+                + "Could not calculate overall start date from empty natural gas billing records."
+                + "Try again with non-empty natural gas billing records."
+            )
+
+        min_date = date.max
+        for record in self.records:
+            min_date = min(min_date, record.period_start_date)
+        return min_date
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_end_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty."
+                + "Could not calculate overall start date from empty natural gas billing records."
+                + "Try again with non-empty natural gas billing records."
+            )
+
+        max_date = date.min
+        for record in self.records:
+            max_date = max(max_date, record.period_end_date)
+        return max_date
 
 
 class NormalizedBillingPeriodRecordBase(BaseModel):
@@ -139,11 +172,12 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     analysis_type: AnalysisType = Field(frozen=True)
     default_inclusion_by_calculation: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
+    whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
 
 class TemperatureInput(BaseModel):
-    dates: List[date]
-    temperatures: List[float]
+    dates: list[date]
+    temperatures: list[float]
 
 
 class SummaryOutput(BaseModel):
@@ -183,13 +217,13 @@ class BalancePointGraphRow(BaseModel):
 class BalancePointGraph(BaseModel):
     """From Summary page"""
 
-    records: List[BalancePointGraphRow]
+    records: list[BalancePointGraphRow]
 
 
 class RulesEngineResult(BaseModel):
     summary_output: SummaryOutput
     balance_point_graph: BalancePointGraph
-    billing_records: List[NormalizedBillingPeriodRecord]
+    billing_records: list[NormalizedBillingPeriodRecord]
 
 
 @dataclass
