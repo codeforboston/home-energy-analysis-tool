@@ -25,7 +25,7 @@ ADD heat-stack/package.json heat-stack/package-lock.json heat-stack/.npmrc ./
 RUN npm prune --omit=dev
 
 # Build the app
-FROM base as build
+FROM base as heat-build
 
 WORKDIR /myapp/heat-stack
 
@@ -37,7 +37,7 @@ RUN npx prisma generate
 ADD heat-stack/. .
 RUN npm run build
 
-FROM python:3.12.3-slim-bookworm as rules
+FROM python:3.12.3-slim-bookworm as rules-build
 WORKDIR /myapp
 ADD rules-engine/. .
 RUN bash -c "source setup-wheel.sh"
