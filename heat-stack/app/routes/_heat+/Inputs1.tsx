@@ -23,7 +23,7 @@ const addressMaxLength = 100
 const HomeInformationSchema = z.object({
 	name: z.string().min(1).max(nameMaxLength),
 	address: z.string().min(1).max(addressMaxLength),
-	livingArea: z.number().min(1),
+	living_area: z.number().min(1),
 })
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -56,7 +56,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	// - [ ] Build form #2 and #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
-	const { name, address, livingArea } = submission.value
+	const { name, address, living_area } = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
 
