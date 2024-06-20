@@ -1,0 +1,21 @@
+{
+    "local_weather_station": "KBED-Bedford",
+    "design_temperature_override": null,
+    "living_area": 1500,
+    "fuel_type": "OIL",
+    "heating_system_efficiency": 0.8,
+    "other_fuel_usage": null,
+    "other_fuel_usage_override": 0.40,
+    "thermostat_set_point": 68.0,
+    "setback_temperature": null,
+    "setback_hours_per_day": null,
+    "estimated_balance_point": 58.0,
+    "balance_point_sensitivity": 1.0,
+    "average_indoor_temperature": 68.0,
+    "difference_between_ti_and_tbp": 10.0,
+    "design_temperature": 8.4,
+    "whole_home_heat_loss_rate": 767,
+    "standard_deviation_of_heat_loss_rate": 0.0152,
+    "average_heat_load": 39573,
+    "maximum_heat_load": 47242
+}
