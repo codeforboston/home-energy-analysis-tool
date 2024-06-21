@@ -272,7 +272,7 @@ export function useDebounce<
 	)
 }
 
-export async function downloadFile(url: string, retries: number = 0) {
+export async function downloadFile(url: string, retries: number = 0): Promise<any>  {
 	const MAX_RETRIES = 3
 	try {
 		const response = await fetch(url)
