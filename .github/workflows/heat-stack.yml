@@ -138,7 +138,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-      - run: tsc -v    
+      - run: npm run tsc -v    
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
