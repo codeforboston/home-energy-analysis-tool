@@ -145,6 +145,9 @@ jobs:
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
+      - name: prisma generate
+        working-directory: ${{ env.heat-stack-working-directory }}
+        run: npx prisma generate
       - name: 🔎 Type check
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run typecheck --if-present
