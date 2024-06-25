@@ -117,8 +117,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-      - run: npm install -g typescript
-      - run: tsc -v
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -140,6 +138,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+      - run: tsc -v    
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
