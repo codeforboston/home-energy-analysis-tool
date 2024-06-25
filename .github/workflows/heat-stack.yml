@@ -168,6 +168,9 @@ jobs:
       - name: 🏄 Copy test env vars
         working-directory: ${{ env.heat-stack-working-directory }}
         run: cp .env.example .env
+      - name: prisma generate
+        working-directory: ${{ env.heat-stack-working-directory }}
+        run: npx prisma generate
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
