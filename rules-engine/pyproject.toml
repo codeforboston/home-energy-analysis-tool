@@ -19,6 +19,7 @@ dev = [
     "pydantic",
     "pydocstyle",
     "pytest",
+    "types-openpyxl",
 ]
 
 [tool.isort]
