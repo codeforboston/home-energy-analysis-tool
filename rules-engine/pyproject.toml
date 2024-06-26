@@ -15,6 +15,7 @@ dev = [
     "black",
     "isort",
     "mypy",
+    "openpyxl",
     "pydantic",
     "pydocstyle",
     "pytest",
