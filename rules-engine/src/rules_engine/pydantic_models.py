@@ -5,9 +5,10 @@ Data models for input and output data in the rules engine.
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
+from functools import cached_property
 from typing import Annotated, Any, Optional, Sequence
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, computed_field
 
 
 class AnalysisType(Enum):
@@ -105,6 +106,38 @@ class NaturalGasBillingInput(BaseModel):
     """From Natural Gas tab. Container for holding all rows of the billing input table."""
 
     records: Sequence[NaturalGasBillingRecordInput]
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_start_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty."
+                + "Could not calculate overall start date from empty natural gas billing records."
+                + "Try again with non-empty natural gas billing records."
+            )
+
+        min_date = date.max
+        for record in self.records:
+            min_date = min(min_date, record.period_start_date)
+        return min_date
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_end_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty."
+                + "Could not calculate overall start date from empty natural gas billing records."
+                + "Try again with non-empty natural gas billing records."
+            )
+
+        max_date = date.min
+        for record in self.records:
+            max_date = max(max_date, record.period_end_date)
+        return max_date
 
 
 class NormalizedBillingPeriodRecordBase(BaseModel):

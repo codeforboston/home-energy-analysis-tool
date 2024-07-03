@@ -14,9 +14,9 @@ nvm use 20
 
 # install and patch the environment
 npm install
+npm run buildpy # to build rules engine into `public/pyodide-env`
 npm run dev
 ```
-
 
 ### Set up in a new GitHub CodingSpace:
 
@@ -26,6 +26,7 @@ cp .env.example .env
 
 nvm use 20
 npm install
+npm run buildpy # to build rules engine into `public/pyodide-env`
 npm run dev
 ```
 

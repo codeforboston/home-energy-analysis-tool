@@ -4,6 +4,7 @@ National Grid CSVs.
 """
 import csv
 import io
+import re
 from datetime import datetime, timedelta
 from enum import StrEnum
 
@@ -13,6 +14,19 @@ from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInpu
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
+
+
+class _NaturalGasCompanyBillRegex:
+    """
+    The regex for which to search a natural gas bill to determine its company.
+    """
+
+    EVERSOURCE = re.compile(
+        r"Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature"
+    )
+    NATIONAL_GRID = re.compile(
+        r"Name,.*,,,,,\nAddress,.*,,,,,\nAccount Number,.*,,,,,\nService,.*,,,,,\n"
+    )
 
 
 class _GasBillRowEversource:
@@ -57,20 +71,43 @@ class _GasBillRowNationalGrid:
         self.usage = row["USAGE"]
 
 
-def parse_gas_bill(data: str, company: NaturalGasCompany) -> NaturalGasBillingInput:
+def _detect_gas_company(data: str) -> NaturalGasCompany:
+    """
+    Return which natural gas company issued this bill.
+    """
+    if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
+        return NaturalGasCompany.NATIONAL_GRID
+    elif _NaturalGasCompanyBillRegex.EVERSOURCE.search(data):
+        return NaturalGasCompany.EVERSOURCE
+    else:
+        raise ValueError(
+            """Could not detect which company this bill was from:\n 
+                           Regular expressions matched not."""
+        )
+
+
+def parse_gas_bill(
+    data: str, company: NaturalGasCompany | None = None
+) -> NaturalGasBillingInput:
     """
     Parse a natural gas bill from a given natural gas company.
+
+    Tries to automatically detect the company that sent the bill.
+    Otherwise, requires the company be passed as an argument.
     """
+    if company == None:
+        company = _detect_gas_company(data)
+
     match company:
         case NaturalGasCompany.EVERSOURCE:
-            return parse_gas_bill_eversource(data)
+            return _parse_gas_bill_eversource(data)
         case NaturalGasCompany.NATIONAL_GRID:
-            return parse_gas_bill_national_grid(data)
+            return _parse_gas_bill_national_grid(data)
         case _:
             raise ValueError("Wrong CSV format selected: select another format.")
 
 
-def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
+def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
     Return a list of gas bill data parsed from an Eversource CSV
     received as a string.
@@ -103,7 +140,7 @@ def parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     return NaturalGasBillingInput(records=records)
 
 
-def parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
+def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
     """
     Return a list of gas bill data parsed from an National Grid CSV
     received as a string.
