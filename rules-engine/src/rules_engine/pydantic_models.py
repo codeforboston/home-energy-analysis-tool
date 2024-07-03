@@ -102,10 +102,19 @@ class NaturalGasBillingRecordInput(BaseModel):
     inclusion_override: Optional[AnalysisType] = Field(description="Natural Gas!E")
 
 
-class NaturalGasBillingInput(BaseModel):
-    """From Natural Gas tab. Container for holding all rows of the billing input table."""
+class ElectricBillingRecordInput(BaseModel):
+    """From Electric tab. A single row of the Billing input table."""
 
-    records: Sequence[NaturalGasBillingRecordInput]
+    period_start_date: date = Field(description="Electric!A")
+    period_end_date: date = Field(description="Electric!B")
+    usage_watt_hours: float = Field(description="Electric!D")
+    inclusion_override: Optional[AnalysisType] = Field(description="Electric!E")
+
+
+class ElectricBillingInput(BaseModel):
+    """From Electric tab. Container for holding all rows of the billing input table."""
+
+    records: Sequence[ElectricBillingRecordInput]
 
     # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore[misc]
@@ -113,9 +122,9 @@ class NaturalGasBillingInput(BaseModel):
     def overall_start_date(self) -> date:
         if len(self.records) == 0:
             raise ValueError(
-                "Natural gas billing records cannot be empty."
-                + "Could not calculate overall start date from empty natural gas billing records."
-                + "Try again with non-empty natural gas billing records."
+                "Electric billing records cannot be empty.\n"
+                + "Could not calculate overall start date from empty electricicity billing records.\n"
+                + "Try again with non-empty electricicity billing records.\n"
             )
 
         min_date = date.max
@@ -129,9 +138,47 @@ class NaturalGasBillingInput(BaseModel):
     def overall_end_date(self) -> date:
         if len(self.records) == 0:
             raise ValueError(
-                "Natural gas billing records cannot be empty."
-                + "Could not calculate overall start date from empty natural gas billing records."
-                + "Try again with non-empty natural gas billing records."
+                "Electric billing records cannot be empty.\n"
+                + "Could not calculate overall start date from empty electricicity billing records.\n"
+                + "Try again with non-empty electricicity billing records.\n"
+            )
+
+        max_date = date.min
+        for record in self.records:
+            max_date = max(max_date, record.period_end_date)
+        return max_date
+
+
+class NaturalGasBillingInput(BaseModel):
+    """From Natural Gas tab. Container for holding all rows of the billing input table."""
+
+    records: Sequence[NaturalGasBillingRecordInput]
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_start_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty.\n"
+                + "Could not calculate overall start date from empty natural gas billing records.\n"
+                + "Try again with non-empty natural gas billing records.\n"
+            )
+
+        min_date = date.max
+        for record in self.records:
+            min_date = min(min_date, record.period_start_date)
+        return min_date
+
+    # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def overall_end_date(self) -> date:
+        if len(self.records) == 0:
+            raise ValueError(
+                "Natural gas billing records cannot be empty.\n"
+                + "Could not calculate overall start date from empty natural gas billing records.\n"
+                + "Try again with non-empty natural gas billing records.\n"
             )
 
         max_date = date.min

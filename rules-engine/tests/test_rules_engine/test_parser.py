@@ -4,7 +4,10 @@ from datetime import date
 import pytest
 
 from rules_engine import parser
-from rules_engine.pydantic_models import NaturalGasBillingRecordInput
+from rules_engine.pydantic_models import (
+    NaturalGasBillingRecordInput,
+    ElectricBillingRecordInput
+)
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
@@ -22,6 +25,26 @@ def _read_gas_bill_national_grid() -> str:
     """Read a test natural gas bill from a test National Grid CSV"""
     with open(ROOT_DIR / "quateman" / "natural-gas-national-grid.csv") as f:
         return f.read()
+
+
+def _get_gas_bill_xml_path() -> pathlib.Path:
+    """Return the path of a test natural gas XML bill"""
+    return (pathlib.Path(__file__).parent
+            / "cases"
+            / "parsing"
+            / "xml"
+            / "natural_gas"
+            / "ngma_natural_gas_billing_billing_data_Service 1_1_2021-05-26_to_2024-04-25.xml")
+
+
+def _get_electric_bill_xml_path() -> pathlib.Path:
+    """Return the path of a test natural gas XML bill"""
+    return (pathlib.Path(__file__).parent
+            / "cases"
+            / "parsing"
+            / "xml"
+            / "electricicity"
+            / "TestGBDataHourlyNineDaysBinnedDaily.xml")
 
 
 def _validate_eversource(result):
@@ -58,6 +81,34 @@ def _validate_national_grid(result):
     assert second_row.inclusion_override == None
 
 
+def _validate_gas_bill_xml(result):
+    """Validate the result of reading a National Grid CSV."""
+    assert len(result.records) == 35
+    for row in result.records:
+        assert isinstance(row, NaturalGasBillingRecordInput)
+
+    second_row = result.records[1]
+    assert second_row.period_start_date == date(2021, 6, 29)
+    assert second_row.period_end_date == date(2021, 7, 27)
+    assert isinstance(second_row.usage_therms, float)
+    assert second_row.usage_therms == 14
+    assert second_row.inclusion_override == None
+
+
+def _validate_electric_bill_xml(result):
+    """Validate the result of reading a National Grid CSV."""
+    assert len(result.records) == 216
+    for row in result.records:
+        assert isinstance(row, ElectricBillingRecordInput)
+
+    second_row = result.records[1]
+    assert second_row.period_start_date == date(2014, 1, 1)
+    assert second_row.period_end_date == date(2014, 1, 1)
+    assert isinstance(second_row.usage_watt_hours, float)
+    assert second_row.usage_watt_hours == 273
+    assert second_row.inclusion_override == None
+
+
 def test_parse_gas_bill():
     """
     Tests the logic of parse_gas_bill.
@@ -86,6 +137,18 @@ def test_parse_gas_bill_national_grid():
     _validate_national_grid(
         parser._parse_gas_bill_national_grid(_read_gas_bill_national_grid())
     )
+
+
+def test_parse_gas_bill_xml():
+    """Tests parsing a natural gas bill from a Green Button XML."""
+    _validate_gas_bill_xml(
+        parser._parse_gas_bill_xml(_get_gas_bill_xml_path()))
+
+
+def test_parse_electric_bill_xml():
+    """Tests parsing an electricicity bill from a Green Button XML."""
+    _validate_electric_bill_xml(
+        parser._parse_electric_bill_xml(_get_electric_bill_xml_path()))
 
 
 def test_detect_natural_gas_company():
