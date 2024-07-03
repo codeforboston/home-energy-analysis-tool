@@ -6,7 +6,7 @@ import pytest
 from rules_engine import parser
 from rules_engine.pydantic_models import (
     NaturalGasBillingRecordInput,
-    ElectricBillingRecordInput
+    ElectricBillingRecordInput,
 )
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
@@ -29,22 +29,26 @@ def _read_gas_bill_national_grid() -> str:
 
 def _get_gas_bill_xml_path() -> pathlib.Path:
     """Return the path of a test natural gas XML bill"""
-    return (pathlib.Path(__file__).parent
-            / "cases"
-            / "parsing"
-            / "xml"
-            / "natural_gas"
-            / "ngma_natural_gas_billing_billing_data_Service 1_1_2021-05-26_to_2024-04-25.xml")
+    return (
+        pathlib.Path(__file__).parent
+        / "cases"
+        / "parsing"
+        / "xml"
+        / "natural_gas"
+        / "ngma_natural_gas_billing_billing_data_Service 1_1_2021-05-26_to_2024-04-25.xml"
+    )
 
 
 def _get_electric_bill_xml_path() -> pathlib.Path:
     """Return the path of a test natural gas XML bill"""
-    return (pathlib.Path(__file__).parent
-            / "cases"
-            / "parsing"
-            / "xml"
-            / "electricicity"
-            / "TestGBDataHourlyNineDaysBinnedDaily.xml")
+    return (
+        pathlib.Path(__file__).parent
+        / "cases"
+        / "parsing"
+        / "xml"
+        / "electricicity"
+        / "TestGBDataHourlyNineDaysBinnedDaily.xml"
+    )
 
 
 def _validate_eversource(result):
@@ -141,14 +145,14 @@ def test_parse_gas_bill_national_grid():
 
 def test_parse_gas_bill_xml():
     """Tests parsing a natural gas bill from a Green Button XML."""
-    _validate_gas_bill_xml(
-        parser._parse_gas_bill_xml(_get_gas_bill_xml_path()))
+    _validate_gas_bill_xml(parser._parse_gas_bill_xml(_get_gas_bill_xml_path()))
 
 
 def test_parse_electric_bill_xml():
     """Tests parsing an electricicity bill from a Green Button XML."""
     _validate_electric_bill_xml(
-        parser._parse_electric_bill_xml(_get_electric_bill_xml_path()))
+        parser._parse_electric_bill_xml(_get_electric_bill_xml_path())
+    )
 
 
 def test_detect_natural_gas_company():

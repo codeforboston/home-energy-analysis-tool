@@ -13,7 +13,7 @@ from .pydantic_models import (
     NaturalGasBillingInput,
     NaturalGasBillingRecordInput,
     ElectricBillingInput,
-    ElectricBillingRecordInput
+    ElectricBillingRecordInput,
 )
 
 
@@ -209,7 +209,7 @@ def _parse_gas_bill_xml(path: str) -> NaturalGasBillingInput:
     return NaturalGasBillingInput(records=records)
 
 
-def _parse_electric_bill_xml(path: str) -> NaturalGasBillingInput:
+def _parse_electric_bill_xml(path: str) -> ElectricBillingInput:
     """
     Return a list of gas bill data parsed from a Green Button XML
     received as a string.

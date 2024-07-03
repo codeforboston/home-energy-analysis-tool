@@ -6,7 +6,7 @@ from rules_engine.pydantic_models import (
     NaturalGasBillingInput,
     NaturalGasBillingRecordInput,
     ElectricBillingInput,
-    ElectricBillingRecordInput
+    ElectricBillingRecordInput,
 )
 
 _EXAMPLE_VALID_RECORDS_NATURAL_GAS = NaturalGasBillingInput(
