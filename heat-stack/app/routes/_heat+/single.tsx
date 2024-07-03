@@ -4,7 +4,7 @@ import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { json, ActionFunctionArgs } from '@remix-run/node'
-import { Form, redirect, useActionData } from '@remix-run/react'
+import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
 import { z } from 'zod'
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
@@ -198,6 +198,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function Inputs() {
+	// const location = useLocation();
+	// console.log(`location:`, location);  // `.state` is `null`
 	const lastResult = useActionData<typeof action>()
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	const [form, fields] = useForm({
