@@ -3,10 +3,10 @@ from datetime import date
 import pytest
 
 from rules_engine.pydantic_models import (
-    NaturalGasBillingInput,
-    NaturalGasBillingRecordInput,
     ElectricBillingInput,
     ElectricBillingRecordInput,
+    NaturalGasBillingInput,
+    NaturalGasBillingRecordInput,
 )
 
 _EXAMPLE_VALID_RECORDS_NATURAL_GAS = NaturalGasBillingInput(

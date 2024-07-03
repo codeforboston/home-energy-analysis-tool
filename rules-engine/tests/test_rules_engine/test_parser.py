@@ -5,8 +5,8 @@ import pytest
 
 from rules_engine import parser
 from rules_engine.pydantic_models import (
-    NaturalGasBillingRecordInput,
     ElectricBillingRecordInput,
+    NaturalGasBillingRecordInput,
 )
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
