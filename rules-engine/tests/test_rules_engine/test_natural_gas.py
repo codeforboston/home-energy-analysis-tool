@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from pytest import approx
 from typing_extensions import Annotated
 
+from test_utils import Summary
+
 from rules_engine import engine
 from rules_engine.pydantic_models import (
     NaturalGasBillingInput,
@@ -18,6 +20,8 @@ from rules_engine.pydantic_models import (
     SummaryOutput,
     TemperatureInput,
 )
+
+from test_utils import load_fuel_billing_example_input
 
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
@@ -38,11 +42,21 @@ class Summary(SummaryInput, SummaryOutput):
 
 # Extend NG Billing Record Input to capture whole home heat loss input from example data
 class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
+    """
+    whole_home_heat_loss_rate is added to this class solely because of testing needs
+    and must be included, and this class must be used instead of NaturalGasBillingRecordInput,
+    which would otherwise intuitively be used, and which is used in production.
+    """
     whole_home_heat_loss_rate: float
 
 
 # Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
 class NaturalGasBillingExampleInput(NaturalGasBillingInput):
+    """
+    This class exists to contain a list of NaturalGasBillingRecordExampleInput, which
+    must be used for testing purposes rather than NaturalGasBillingInput, which would
+    otherwise intuitively used, and which is used in production.
+    """
     records: list[NaturalGasBillingRecordExampleInput]
 
 
@@ -56,61 +70,6 @@ def load_summary(folder: str) -> Summary:
     with open(NATURAL_GAS_DIR / folder / "summary.json") as f:
         d = json.load(f)
         return Summary(**d)
-
-
-def load_natural_gas(
-    folder: str, estimated_balance_point: float
-) -> NaturalGasBillingExampleInput:
-    records = []
-
-    with open(NATURAL_GAS_DIR / folder / "natural-gas.csv") as f:
-        reader = csv.DictReader(f)
-        row: Any
-        for row in reader:
-            inclusion_override = row["inclusion_override"]
-            if inclusion_override == "":
-                inclusion_override = None
-            else:
-                inclusion_override = int(inclusion_override)
-
-            # Choose the correct billing period heat loss (aka "ua") column based on the estimated balance point provided in SummaryOutput
-            ua_column_name = None
-            # First we will look for an exact match to the value of the estimated balance point
-            for column_name in row:
-                if (
-                    "ua_at_" in column_name
-                    and str(estimated_balance_point) in column_name
-                ):
-                    ua_column_name = column_name
-                    break
-            # If we don't find that exact match, we round the balance point up to find our match
-            # It's possible that with further updates to summary data in xls and regen csv files, we wouldn't have this case
-            if ua_column_name == None:
-                ua_column_name = (
-                    "ua_at_" + str(int(round(estimated_balance_point, 0))) + "f"
-                )
-            ua = (
-                row[ua_column_name].replace(",", "").strip()
-            )  # Remove commas and whitespace to cleanup the data
-            if bool(ua):
-                whole_home_heat_loss_rate = float(ua)
-            else:
-                whole_home_heat_loss_rate = 0
-
-            item = NaturalGasBillingRecordExampleInput(
-                period_start_date=datetime.strptime(
-                    row["start_date"].split(maxsplit=1)[0], "%Y-%m-%d"
-                ).date(),
-                period_end_date=datetime.strptime(
-                    row["end_date"].split(maxsplit=1)[0], "%Y-%m-%d"
-                ).date(),
-                usage_therms=row["usage"],
-                inclusion_override=inclusion_override,
-                whole_home_heat_loss_rate=whole_home_heat_loss_rate,
-            )
-            records.append(item)
-
-    return NaturalGasBillingExampleInput(records=records)
 
 
 def load_temperature_data(weather_station: str) -> TemperatureInput:
@@ -130,14 +89,14 @@ def load_temperature_data(weather_station: str) -> TemperatureInput:
 @pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
     """
-    Loads the usage and temperature data and summary inputs into an 
+    Loads the usage and temperature data and summary inputs into an
     Example instance.
     """
     summary = load_summary(request.param)
 
     if summary.fuel_type == engine.FuelType.GAS:
-        natural_gas_usage = load_natural_gas(
-            request.param, summary.estimated_balance_point
+        natural_gas_usage = load_fuel_billing_example_input(
+            request.param, "GAS", summary.estimated_balance_point
         )
     else:
         natural_gas_usage = None
