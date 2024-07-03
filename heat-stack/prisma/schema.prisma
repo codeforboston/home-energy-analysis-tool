@@ -167,3 +167,49 @@ model Connection {
 
   @@unique([providerName, providerId])
 }
+
+// TO BE VERIFIED BY STEVE -- JAKE
+// model HeatLoadAnalysis {
+//   id                              String @id @default(cuid())
+//   home                            Home   @relation(fields: [homeId], references: [id])
+//   homeId                          String
+//   rulesEngineVersion              Int
+//   estimatedBalancePoint           Float
+//   otherFuelUsage                  Float
+//   averageIndoorTemperature        Float
+//   differenceBetweenTiAndTbp       Float
+//   designTemperature               Float
+//   wholeHomeHeatLossRate           Float
+//   standardDeviationOfHeatLossRate Float
+//   averageHeatLoad                 Float
+//   maximumHeatLoad                 Float
+// }
+
+// TO BE VERIFIED BY STEVE -- JAKE
+// model Home {
+// id               String             @id @default(cuid())
+// name             String
+// address          String
+// city             String
+// state            String
+// zip              String
+// country          String
+// createdAt        DateTime           @default(now())
+// updatedAt        DateTime           @updatedAt
+// heatLoadAnalysis HeatLoadAnalysis[]
+// HeatLoadAnalysis HeatLoadAnalysis[]
+// }
+
+model Home {
+  id       Int       @id @default(autoincrement())
+  address  String
+  gasBills GasBill[]
+}
+
+model GasBill {
+  id     String   @id @default(cuid())
+  date   DateTime
+  amount Float
+  homeId Int
+  home   Home     @relation(fields: [homeId], references: [id])
+}
