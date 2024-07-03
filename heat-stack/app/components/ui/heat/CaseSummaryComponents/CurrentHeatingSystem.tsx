@@ -1,6 +1,7 @@
+import { useForm, getInputProps } from '@conform-to/react'
 import { Form } from '@remix-run/react'
-import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import { Button } from '#/app/components/ui/button.tsx'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
@@ -22,60 +23,46 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			{/* <Form method="post" action="/current"> */}
 			<div>
 				{' '}
-				<Label htmlFor="fuelType" className={`${subtitleClass}`}>
+				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
 					Fuel Type
 				</Label>
 				<div className="flex space-x-4">
 					<div className="basis-1/4">
-						<Input
-							name={props.fields.fuelType.name}
-							id="fuelType"
-							type="text"
-						/>
+						<Input {...getInputProps(props.fields.fuel_type, { type: "text" })} />
 					</div>
 				</div>
 				<div className="min-h-[32px] px-4 pb-3 pt-1">
 					<ErrorList
-						id={props.fields.fuelType.errorId}
-						errors={props.fields.fuelType.errors}
+						id={props.fields.fuel_type.errorId}
+						errors={props.fields.fuel_type.errors}
 					/>
 				</div>
 			</div>
 
-			<Label htmlFor="heatingSystemEfficiency" className={`${subtitleClass}`}>
+			<Label htmlFor="heating_system_efficiency" className={`${subtitleClass}`}>
 				Heating system efficiency %
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input
-						name={props.fields.heatingSystemEfficiency.name}
-						id="heatingSystemEfficiency"
-						type="text"
-						placeholder="(Percent)"
-					/>
+					<Input placeholder="(Percent)" {...getInputProps(props.fields.heating_system_efficiency, { type: "text" })} />
 					<div className={`${descriptiveClass}`}>
 						Typical natural gas efficiency is 80%-95%
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
-							id={props.fields.heatingSystemEfficiency.errorId}
-							errors={props.fields.heatingSystemEfficiency.errors}
+							id={props.fields.heating_system_efficiency.errorId}
+							errors={props.fields.heating_system_efficiency.errors}
 						/>
 					</div>
 				</div>
 			</div>
 
-			<Label htmlFor="designTemperatureOverride" className={`${subtitleClass}`}>
+			<Label htmlFor="design_temperature_override" className={`${subtitleClass}`}>
 				Design temperature override (°F)
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input
-						name={props.fields.designTemperatureOverride.name}
-						id="designTemperatureOverride"
-						type="text"
-						placeholder="(Optional)"
-					/>
+					<Input placeholder="(Optional)" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
 						<div className={`${descriptiveClass}`}>
 							65°F is the 99% ASHRAE heating design temperature at this location
@@ -83,8 +70,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
-							id={props.fields.designTemperatureOverride.errorId}
-							errors={props.fields.designTemperatureOverride.errors}
+							id={props.fields.design_temperature_override.errorId}
+							errors={props.fields.design_temperature_override.errors}
 						/>
 					</div>
 				</div>
@@ -94,56 +81,41 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				<h6 className={`${subtitleClass}`}>Thermostat Settings</h6>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="thermostatSetPoint">
+						<Label htmlFor="thermostat_set_point">
 							<b>Set Point (°F)</b>{' '}
 						</Label>
-						<Input
-							name={props.fields.thermostatSetPoint.name}
-							id="thermostatSetPoint"
-							type="text"
-							placeholder="(Fahrenheit)"
-						/>
+						<Input placeholder="(Fahrenheit)" {...getInputProps(props.fields.thermostat_set_point, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Usual thermostat setting for heating
 						</div>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
-								id={props.fields.thermostatSetPoint.errorId}
-								errors={props.fields.thermostatSetPoint.errors}
+								id={props.fields.thermostat_set_point.errorId}
+								errors={props.fields.thermostat_set_point.errors}
 							/>
 						</div>
 					</div>
 					<div className="basis-1/3">
-						<Label htmlFor="setbackTemperature">
+						<Label htmlFor="setback_temperature">
 							<b>Setback Temperature (°F)</b>
 						</Label>
-						<Input
-							name={props.fields.setbackTemperature.name}
-							id="setbackTemperature"
-							type="text"
-							placeholder="(Optional)"
-						/>
+						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
 							during working or sleep hours
 						</div>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
-								id={props.fields.setbackTemperature.errorId}
-								errors={props.fields.setbackTemperature.errors}
+								id={props.fields.setback_temperature.errorId}
+								errors={props.fields.setback_temperature.errors}
 							/>
 						</div>
 					</div>
 					<div className="basis-1/3">
-						<Label htmlFor="setbackHoursPerDay">
+						<Label htmlFor="setback_hours_per_day">
 							<b>Setback hours per day</b>
 						</Label>
-						<Input
-							name={props.fields.setbackHoursPerDay.name}
-							id="setbackHoursPerDay"
-							type="text"
-							placeholder="(Optional)"
-						/>
+						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Typical natural gas efficiency is 80%-95%
 						</div>
@@ -153,8 +125,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						</div>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
-								id={props.fields.setbackHoursPerDay.errorId}
-								errors={props.fields.setbackHoursPerDay.errors}
+								id={props.fields.setback_hours_per_day.errorId}
+								errors={props.fields.setback_hours_per_day.errors}
 							/>
 						</div>
 					</div>
