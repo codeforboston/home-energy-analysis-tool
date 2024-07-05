@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timedelta
 from enum import StrEnum
 
-from greenbutton_objects import parse
+from greenbutton_objects import parse # type: ignore
 
 from .pydantic_models import (
     ElectricBillingInput,
