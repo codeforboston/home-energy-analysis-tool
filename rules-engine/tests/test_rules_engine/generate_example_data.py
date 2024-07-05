@@ -24,9 +24,6 @@ import openpyxl
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# Identify all available example data directories
-INPUT_DATA_DIRS = list(os.walk(ROOT_DIR))
-
 
 def generate_summary_json(workbook: Any, working_directory: Path) -> str:
     """
@@ -184,7 +181,6 @@ if __name__ == "__main__":
     # For each example folder, read the excel sheet and write summary.json and "fuel_type".csv
     for root, dirs, files in os.walk(ROOT_DIR):
         working_directory = Path(root)
-        print("found directory =", working_directory)
         try:
             workbook = openpyxl.load_workbook(
                 filename=working_directory / "Heat Load Analysis Beta 7.xlsx",
@@ -192,8 +188,9 @@ if __name__ == "__main__":
             )
         except FileNotFoundError as fnf_error:
             # It's ok to iterate over directories that do not contain an excel file
+            print("Skipping test directory:", working_directory)
             continue
-        print("processing directory =", working_directory)
+        print("Processing test directory:", working_directory)
         fuel_type = generate_summary_json(workbook, working_directory)
         generate_billing_record_input_csv(workbook, fuel_type, working_directory)
         workbook.close()
