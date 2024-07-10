@@ -47,6 +47,8 @@ import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
+import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler'
+import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
@@ -75,7 +77,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	console.log('action started')
 
-	const formData = await request.formData()
+	const uploadHandler = createMemoryUploadHandler({
+		maxPartSize: 1024 * 1024 * 5, // 5 MB
+	})
+	const formData = await parseMultipartFormData(request, uploadHandler)
+
+	const file = formData.get('energy_use_upload')
+	// const reader = new FileReader();
+	
+	console.log('file uploaded', file!.toString(), file)
+
+	// const formData = await request.formData()
 	const submission = parseWithZod(formData, {
 		schema: Schema,
 	})
