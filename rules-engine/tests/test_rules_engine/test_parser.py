@@ -92,6 +92,8 @@ def _validate_gas_bill_xml(result):
         assert isinstance(row, NaturalGasBillingRecordInput)
 
     second_row = result.records[1]
+    # TODO: Make these tests pass when run online.  They pass when run
+    # locally.
     assert second_row.period_start_date == date(2021, 6, 29)
     assert second_row.period_end_date == date(2021, 7, 27)
     assert isinstance(second_row.usage_therms, float)
