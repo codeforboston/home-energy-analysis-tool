@@ -92,8 +92,8 @@ def _validate_gas_bill_xml(result):
         assert isinstance(row, NaturalGasBillingRecordInput)
 
     second_row = result.records[1]
-    assert second_row.period_start_date == date(2021, 6, 29)
-    assert second_row.period_end_date == date(2021, 7, 27)
+    assert second_row.period_start_date == date(2021, 6, 30)
+    assert second_row.period_end_date == date(2021, 7, 28)
     assert isinstance(second_row.usage_therms, float)
     assert second_row.usage_therms == 14
     assert second_row.inclusion_override == None
