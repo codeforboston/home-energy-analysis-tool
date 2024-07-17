@@ -27,15 +27,15 @@ import * as pyodideModule from 'pyodide'
 // - [x] import pyodide into single.tsx and run it with genny
 //     - [x] Add to README: don't forget `npm run buildpy` to build rules engine into `public/pyodide-env` if you start a new codingspace or on local.
 // - [x] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
-// - [x] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action? 
+// - [x] (To reproduce: Fill out and submit form and go back and submit form again) How do we stop the geocoder helper from concatenating everyone's past submitted addresses onto querystring in single.tsx action?
 // example: [MSW] Warning: intercepted a request without a matching request handler: GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020&address=1+Broadway%2C+Cambridge%2C+MA+02142&format=json&benchmark=2020
 // - [x] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostat_set_point: oldSummaryInput.thermostat_set_point, setback_temperature: oldSummaryInput.setback_temperature, setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
 // - [skipped] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
 // - [ ] #162: Pass CSV and form data to rules engine
-// - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window. 
+// - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
 // - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
 // - [ ] Michelle proposes always set form default values when run in development
-// - [ ] Pass modified table back to rules engine for full cycle revalidation 
+// - [ ] Pass modified table back to rules engine for full cycle revalidation
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
 
@@ -82,12 +82,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	})
 	const formData = await parseMultipartFormData(request, uploadHandler)
 
-	const file = formData.get('energy_use_upload')
-	// const reader = new FileReader();
-	
-	console.log('file uploaded', file!.toString(), file)
+	const file = formData.get('energy_use_upload') as File // fix as File?
 
-	// const formData = await request.formData()
+	async function handleFile(file: File) {
+		try {
+			const fileContent = await file.text()
+			return fileContent
+		} catch (error) {
+			console.error('Error reading file:', error)
+			return ''
+		}
+	}
+
+	// TODO: think about the edge cases and handle the bad user input here:
+	const uploadedTextFile: string = file !== null ? await handleFile(file) : ''
+	
 	const submission = parseWithZod(formData, {
 		schema: Schema,
 	})
@@ -179,23 +188,73 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	console.log('SI', SI)
 
+	await pyodide.loadPackage(
+		'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+	)
+
+	/* NOTES for pydantic, typing-extensions, annotated_types: 
+		pyodide should match pyodide-core somewhat. 
+		typing-extensions needs specific version per https://github.com/pyodide/pyodide/issues/4234#issuecomment-1771735148
+		try getting it from 
+		   - https://pypi.org/project/pydantic/#files
+		   - https://pypi.org/project/typing-extensions/
+		   - https://pypi.org/project/annotated-types/#files
+	*/
+	await pyodide.loadPackage(
+		'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
+	)
+	await pyodide.loadPackage(
+		'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
+	)
+	await pyodide.loadPackage(
+		'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
+	)
+
+	await pyodide.loadPackage(
+		'../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+	)
+
+	console.log("uploadedTextFile", uploadedTextFile)
+
+	/**
+	 * Need to parse the gas bill first to determine the start and end dates of the bill
+	 * so that we can request the weather for those dates.
+	 */
+	const executeParseGasBillPy = await pyodide.runPythonAsync(`
+		from rules_engine import parser
+		from rules_engine.pydantic_models import (
+			FuelType,
+			SummaryInput,
+			TemperatureInput
+		)
+		from rules_engine import engine
+	
+		def executeParse(csvDataJs):
+			naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+	
+			return naturalGasInputRecords.model_dump(mode="json")
+		executeParse
+		`)
+	const result = executeParseGasBillPy(uploadedTextFile).toJs()
+	console.log('result', result)
+
 	// Get today's date
-	const today = new Date();
+	const today = new Date()
 
 	// Calculate the date 2 years ago from today
-	const twoYearsAgo = new Date(today);
-	twoYearsAgo.setFullYear(today.getFullYear() - 2);
+	const twoYearsAgo = new Date(today)
+	twoYearsAgo.setFullYear(today.getFullYear() - 2)
 
 	// Set the start_date and end_date
-	const start_date = twoYearsAgo;
-	const end_date = today;
+	const start_date = twoYearsAgo
+	const end_date = today
 
 	// const TIWD: TemperatureInput = await WU.getThatWeathaData(longitude, latitude, start_date, end_date);
 	const TIWD = await WU.getThatWeathaData(
 		x,
 		y,
 		start_date.toISOString().split('T')[0],
-		end_date.toISOString().split('T')[0]
+		end_date.toISOString().split('T')[0],
 	)
 	const BI = [
 		{
@@ -205,6 +264,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			inclusion_override: null,
 		},
 	]
+
+	// const datesFromTIWD = TIWD.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
+	// const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: TIWD.temperatures}
+
+	// const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
 	return redirect(`/single`)
 }
@@ -241,7 +305,9 @@ export default function Inputs() {
 				onSubmit={form.onSubmit}
 				action="/single"
 				encType="multipart/form-data"
-			> {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
+			>
+				{' '}
+				{/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
 			This will make it work when JavaScript is turned off as well 
 			<Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
 				<HomeInformation fields={fields} />
