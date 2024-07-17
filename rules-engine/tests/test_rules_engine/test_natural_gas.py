@@ -2,62 +2,34 @@ import csv
 import json
 import os
 import pathlib
-from datetime import date, datetime, timedelta
-from typing import Any, Literal, Optional
+from datetime import datetime
+from typing import Any
 
 import pytest
 from pydantic import BaseModel
 from pytest import approx
-from typing_extensions import Annotated
-
-from test_utils import Summary
 
 from rules_engine import engine
-from rules_engine.pydantic_models import (
-    NaturalGasBillingInput,
-    NaturalGasBillingRecordInput,
-    SummaryInput,
-    SummaryOutput,
-    TemperatureInput,
-)
+from rules_engine.pydantic_models import FuelType, TemperatureInput
 
-from test_utils import load_fuel_billing_example_input
+from .test_utils import (
+    NaturalGasBillingExampleInput,
+    Summary,
+    load_fuel_billing_example_input,
+    load_temperature_data,
+)
 
 # Test inputs are provided as separate directory within the "cases/examples" directory
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 NATURAL_GAS_DIR = ROOT_DIR / "natural_gas"
 
-# TODO: example-2 is OIL; shen is misbehaving
-YET_TO_BE_UPDATED_EXAMPLES = ("example-2", "shen")
+# TODO: shen is misbehaving
+YET_TO_BE_UPDATED_EXAMPLES = ["shen"]
 # Filter out failing examples for now
 INPUT_DATA = filter(
     lambda d: d not in YET_TO_BE_UPDATED_EXAMPLES, next(os.walk(NATURAL_GAS_DIR))[1]
 )
-
-
-class Summary(SummaryInput, SummaryOutput):
-    local_weather_station: str
-
-
-# Extend NG Billing Record Input to capture whole home heat loss input from example data
-class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
-    """
-    whole_home_heat_loss_rate is added to this class solely because of testing needs
-    and must be included, and this class must be used instead of NaturalGasBillingRecordInput,
-    which would otherwise intuitively be used, and which is used in production.
-    """
-    whole_home_heat_loss_rate: float
-
-
-# Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
-class NaturalGasBillingExampleInput(NaturalGasBillingInput):
-    """
-    This class exists to contain a list of NaturalGasBillingRecordExampleInput, which
-    must be used for testing purposes rather than NaturalGasBillingInput, which would
-    otherwise intuitively used, and which is used in production.
-    """
-    records: list[NaturalGasBillingRecordExampleInput]
 
 
 class Example(BaseModel):
@@ -72,20 +44,6 @@ def load_summary(folder: str) -> Summary:
         return Summary(**d)
 
 
-def load_temperature_data(weather_station: str) -> TemperatureInput:
-    with open(ROOT_DIR / "temperature-data.csv", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        dates = []
-        temperatures = []
-
-        row: Any
-        for row in reader:
-            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d").date())
-            temperatures.append(row[weather_station])
-
-    return TemperatureInput(dates=dates, temperatures=temperatures)
-
-
 @pytest.fixture(scope="module", params=INPUT_DATA)
 def data(request):
     """
@@ -94,15 +52,19 @@ def data(request):
     """
     summary = load_summary(request.param)
 
-    if summary.fuel_type == engine.FuelType.GAS:
+    if summary.fuel_type == FuelType.GAS:
         natural_gas_usage = load_fuel_billing_example_input(
-            request.param, "GAS", summary.estimated_balance_point
+            NATURAL_GAS_DIR / request.param,
+            FuelType.GAS,
+            summary.estimated_balance_point,
         )
     else:
         natural_gas_usage = None
 
     weather_station_short_name = summary.local_weather_station[:4]
-    temperature_data = load_temperature_data(weather_station_short_name)
+    temperature_data = load_temperature_data(
+        ROOT_DIR / "temperature-data.csv", weather_station_short_name
+    )
 
     example = Example(
         summary=summary,

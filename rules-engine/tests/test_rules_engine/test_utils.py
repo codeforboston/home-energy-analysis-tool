@@ -1,7 +1,18 @@
-from pydantic import BaseModel
+import csv
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Any
 
-import NaturalGasBillingExampleInput
-import OilPropaneBillingExampleInput
+from rules_engine.pydantic_models import (
+    FuelType,
+    NaturalGasBillingInput,
+    NaturalGasBillingRecordInput,
+    OilPropaneBillingInput,
+    OilPropaneBillingRecordInput,
+    SummaryInput,
+    SummaryOutput,
+    TemperatureInput,
+)
 
 
 class Summary(SummaryInput, SummaryOutput):
@@ -9,28 +20,79 @@ class Summary(SummaryInput, SummaryOutput):
     Holds summary.json information alongside a string referring to a
     local weather station.
     """
+
     local_weather_station: str
 
 
+# Extend NG Billing Record Input to capture whole home heat loss input from example data
+class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
+    """
+    whole_home_heat_loss_rate is added to this class solely because of testing needs
+    and must be included, and this class must be used instead of NaturalGasBillingRecordInput,
+    which would otherwise intuitively be used, and which is used in production.
+    """
+
+    whole_home_heat_loss_rate: float
+
+
+# Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
+class NaturalGasBillingExampleInput(NaturalGasBillingInput):
+    """
+    This class exists to contain a list of NaturalGasBillingRecordExampleInput, which
+    must be used for testing purposes rather than NaturalGasBillingInput, which would
+    otherwise intuitively used, and which is used in production.
+    """
+
+    records: list[NaturalGasBillingRecordExampleInput]
+
+
+class OilPropaneBillingRecordExampleInput(OilPropaneBillingRecordInput):
+    """
+    whole_home_heat_loss_rate is added to this class solely because of testing needs
+    and must be included, and this class must be used instead of OilPropaneBillingRecordInput,
+    which would otherwise intuitively be used, and which is used in production.
+    """
+
+    whole_home_heat_loss_rate: float
+
+
+class OilPropaneBillingExampleInput(OilPropaneBillingInput):
+    """
+    This class exists to contain a list of OilPropaneBillingRecordExampleInput, which
+    must be used for testing purposes rather than OilPropaneBillingInput, which would
+    otherwise intuitively used, and which is used in production.
+    """
+
+    records: list[OilPropaneBillingRecordExampleInput]
+
+
 def load_fuel_billing_example_input(
-    folder: str, fuel_type: str, estimated_balance_point: float
+    folder: Path, fuel_type: FuelType, estimated_balance_point: float
 ) -> NaturalGasBillingExampleInput | OilPropaneBillingExampleInput:
     """
-    Loads a NaturalGasBillingExampleInput or 
+    Loads a NaturalGasBillingExampleInput or
     OilPropaneBillingExampleInput from an appropriate csv.
 
     Arguments:
-        folder - the string path to the file
+        folder - the path to the file
         fuel_type - GAS or OIL, the latter of which refers to propane
                     too
         estimated_balance_point - TODO: Document what this argument is.
     """
-    records = []
 
-    with open(folder / fuel_type) as f:
+    file_name = None
+    match fuel_type:
+        case FuelType.GAS:
+            file_name = "natural-gas.csv"
+        case FuelType.OIL:
+            file_name = "oil-propane.csv"
+
+    records = []
+    preceding_delivery_date = None
+    with open(folder / file_name) as f:
         reader = csv.DictReader(f)
         row: Any
-        for row in reader:
+        for i, row in enumerate(reader):
             inclusion_override = row["inclusion_override"]
             if inclusion_override == "":
                 inclusion_override = None
@@ -66,19 +128,52 @@ def load_fuel_billing_example_input(
             else:
                 whole_home_heat_loss_rate = 0
 
-            item = NaturalGasBillingRecordExampleInput(
-                period_start_date=datetime.strptime(
-                    row["start_date"].split(maxsplit=1)[0], "%Y-%m-%d"
-                ).date(),
-                period_end_date=datetime.strptime(
-                    row["end_date"].split(maxsplit=1)[0], "%Y-%m-%d"
-                ).date(),
-                usage_therms=row["usage"],
-                inclusion_override=inclusion_override,
-                whole_home_heat_loss_rate=whole_home_heat_loss_rate,
-            )
-            records.append(item)
+            if fuel_type == FuelType.GAS:
+                item = NaturalGasBillingRecordExampleInput(
+                    period_start_date=_parse_date(row["start_date"]),
+                    period_end_date=_parse_date(row["end_date"]),
+                    usage_therms=row["usage"],
+                    inclusion_override=inclusion_override,
+                    whole_home_heat_loss_rate=whole_home_heat_loss_rate,
+                )
+                records.append(item)
+            elif fuel_type == FuelType.OIL:
+                if i == 0:
+                    preceding_delivery_date = _parse_date(
+                        row["start_date"]
+                    ) - timedelta(days=1)
 
-    return (NaturalGasBillingExampleInput(records=records)
-            if fuel_type == "GAS"
-            else OilPropaneBillingExample(records=records))
+                item = OilPropaneBillingRecordExampleInput(
+                    period_end_date=_parse_date(row["end_date"]),
+                    gallons=row["usage"],
+                    inclusion_override=inclusion_override,
+                    whole_home_heat_loss_rate=whole_home_heat_loss_rate,
+                )
+                records.append(item)
+            else:
+                raise ValueError("Unsupported fuel type.")
+
+        if fuel_type == FuelType.GAS:
+            return NaturalGasBillingExampleInput(records=records)
+        elif fuel_type == FuelType.OIL:
+            return OilPropaneBillingExampleInput(
+                records=records, preceding_delivery_date=preceding_delivery_date
+            )
+
+
+def _parse_date(value: str) -> date:
+    return datetime.strptime(value.split(maxsplit=1)[0], "%Y-%m-%d").date()
+
+
+def load_temperature_data(path: Path, weather_station: str) -> TemperatureInput:
+    with open(path, encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        dates = []
+        temperatures = []
+
+        row: Any
+        for row in reader:
+            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d").date())
+            temperatures.append(row[weather_station])
+
+    return TemperatureInput(dates=dates, temperatures=temperatures)
