@@ -9,13 +9,13 @@
     "thermostat_set_point": 68,
     "setback_temperature": null,
     "setback_hours_per_day": null,
-    "estimated_balance_point": 61,
+    "estimated_balance_point": 60,
     "balance_point_sensitivity": 1,
     "average_indoor_temperature": 68,
-    "difference_between_ti_and_tbp": 7,
+    "difference_between_ti_and_tbp": 8,
     "design_temperature": 8.4,
-    "whole_home_heat_loss_rate": 919.0,
-    "standard_deviation_of_heat_loss_rate": 0.0341,
-    "average_heat_load": 50166.0,
-    "maximum_heat_load": 56598.0
+    "whole_home_heat_loss_rate": 952.0,
+    "standard_deviation_of_heat_loss_rate": 0.0355,
+    "average_heat_load": 51035.0,
+    "maximum_heat_load": 58652.0
 }
