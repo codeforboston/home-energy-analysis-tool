@@ -23,8 +23,9 @@ from rules_engine.pydantic_models import (
 # Each subdirectory contains a JSON file (named summary.json) which specifies the inputs for the test runner
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# TODO: example-2 is OIL; shen is misbehaving
-YET_TO_BE_UPDATED_EXAMPLES = ("example-2", "shen")
+# TODO: example-2 is OIL; all others are Natural Gas
+YET_TO_BE_UPDATED_EXAMPLES = "example-2"
+
 # Filter out failing examples for now
 INPUT_DATA = filter(
     lambda d: d not in YET_TO_BE_UPDATED_EXAMPLES, next(os.walk(ROOT_DIR))[1]
