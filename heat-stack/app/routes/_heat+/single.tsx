@@ -32,6 +32,8 @@ import * as pyodideModule from 'pyodide'
 // - [x] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostat_set_point: oldSummaryInput.thermostat_set_point, setback_temperature: oldSummaryInput.setback_temperature, setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
 // - [skipped] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
 // - [ ] #162: Pass CSV and form data to rules engine
+// - [ ] Read the  'overall_start_date' => '2020-10-02',  'overall_end_date' => '2022-11-03' from NaturalGasUsageData and pass to weather fetcher (move up)
+// - [ ] Validate pyodide data
 // - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
 // - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
 // - [ ] Michelle proposes always set form default values when run in development
@@ -41,7 +43,7 @@ import * as pyodideModule from 'pyodide'
 
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Home, Location, Case } from '../../../types/index.ts'
+import { Home, Location, Case, NaturalGasUsageData, validateNaturalGasUsageData } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -140,13 +142,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	// 	createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	// )
 
-	console.log('loading PU/PM/GU/WU')
+	console.log('loading pyodideUtil/pyodideModule/geocodeUtil/weatherUtil')
 
-	// const PU = PyodideUtil.getInstance();
-	// const PM = await PU.getPyodideModule();
-	const GU = new GeocodeUtil()
-	const WU = new WeatherUtil()
-	// console.log("loaded PU/PM/GU/WU");
+	// const pyodideUtil = PyodideUtil.getInstance();
+	// const pyodideModule = await pyodideUtil.getPyodideModule();
+	const geocodeUtil = new GeocodeUtil()
+	const weatherUtil = new WeatherUtil()
+	// console.log("loaded pyodideUtil/pyodideModule/geocodeUtil/weatherUtil");
 	////////////////////////
 	const getPyodide = async () => {
 		return await pyodideModule.loadPyodide({
@@ -163,18 +165,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const pyodide: any = await runPythonScript()
 	//////////////////////
 
-	let { x, y } = await GU.getLL(address)
+	let { x, y } = await geocodeUtil.getLL(address)
 	console.log('geocoded', x, y)
 
-	// let { SI, TIWD, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
+	// let { formSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
 
-	// PU.runit(SI,null,TIWD,JSON.stringify(BI));
+	// pyodideUtil.runit(formSchema,null,weatherData,JSON.stringify(BI));
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 
-	const SI: SchemaZodFromFormType = Schema.parse({
+	const formSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
 		address,
 		name: 'My Home',
@@ -186,7 +188,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		design_temperature_override,
 	})
 
-	console.log('SI', SI)
+	console.log('formSchema', formSchema)
 
 	await pyodide.loadPackage(
 		'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
@@ -231,31 +233,45 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	
 		def executeParse(csvDataJs):
 			naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
-	
 			return naturalGasInputRecords.model_dump(mode="json")
 		executeParse
-		`)
-	const result = executeParseGasBillPy(uploadedTextFile).toJs()
-	console.log('result', result)
+	`)
+	// This assignment of the same name is a special thing. We don't remember the name right now.
+	// It's not necessary, but it is possible.
+	type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
 
-	// Get today's date
-	const today = new Date()
+	const resultFromPyodide: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
 
-	// Calculate the date 2 years ago from today
-	const twoYearsAgo = new Date(today)
-	twoYearsAgo.setFullYear(today.getFullYear() - 2)
 
-	// Set the start_date and end_date
-	const start_date = twoYearsAgo
-	const end_date = today
+	// console.log('result', resultFromPyodide )//, validateNaturalGasUsageData(resultFromPyodide))
+	const startDateString = resultFromPyodide.get('overall_start_date')
+	const start_date = new Date(startDateString)
 
-	// const TIWD: TemperatureInput = await WU.getThatWeathaData(longitude, latitude, start_date, end_date);
-	const TIWD = await WU.getThatWeathaData(
+	const endDateString = resultFromPyodide.get('overall_end_date')
+	const end_date = new Date(endDateString)
+	
+	// // Get today's date
+	// const today = new Date()
+
+	// // Calculate the date 2 years ago from today
+	// const twoYearsAgo = new Date(today)
+	// twoYearsAgo.setFullYear(today.getFullYear() - 2)
+
+	// // Set the start_date and end_date
+	// const start_date = twoYearsAgo
+	// const end_date = today
+
+	// const weatherData: TemperatureInput = await weatherUtil.getThatWeathaData(longitude, latitude, start_date, end_date);
+	const weatherData = await weatherUtil.getThatWeathaData(
 		x,
 		y,
 		start_date.toISOString().split('T')[0],
 		end_date.toISOString().split('T')[0],
 	)
+	console.log(`========\n========`)
+	// console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
+	console.log(weatherData)
+	
 	const BI = [
 		{
 			period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
@@ -265,8 +281,33 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		},
 	]
 
-	// const datesFromTIWD = TIWD.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
-	// const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: TIWD.temperatures}
+	// let { formSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
+
+	// pyodideUtil.runit(formSchema,null,weatherData,JSON.stringify(BI));
+	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
+	// Main form entrypoint
+
+	const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
+		#from rules_engine import parser
+		#from rules_engine.pydantic_models import (
+		#	FuelType,
+		#	SummaryInput,
+		#	TemperatureInput
+		#)
+		#from rules_engine import engine
+	
+		def executeGetAnalyticsFromForm(csvDataJs):
+			#naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+			#return naturalGasInputRecords.model_dump(mode="json")
+			pass
+		executeGetAnalyticsFromForm
+	`)
+
+	// type Analytics = z.infer<typeof Analytics>;
+	// const resultFromPyodide: Analytics = executeGetAnalyticsFromFormJs('something').toJs()
+
+	// const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
+	// const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
 
 	// const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 

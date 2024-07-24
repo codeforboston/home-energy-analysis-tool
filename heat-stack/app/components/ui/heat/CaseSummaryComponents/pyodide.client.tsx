@@ -14,3 +14,5 @@ export default function Foo() {
     getPyodide();
     return <div>Hello</div>
 }
+
+// const Thing = lazy(() => import("./pyodide.client.tsx"));

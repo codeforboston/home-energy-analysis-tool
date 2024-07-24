@@ -55,6 +55,36 @@ export const NaturalGasBillRecord = z.object({
 	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
 });
 
+export const NaturalGasUsageData = z.object({
+	records: z.array(NaturalGasBillRecord),
+	overall_start_date: z.string(),
+	overall_end_date: z.string(),
+});
+
+// Convert Map to plain object (recursive)
+/** TODO: make sure this is how we need it to be for Map validation */
+export function mapToObject(map: Map<any, any>): any {
+	const obj = Object.fromEntries(map);
+	for (let key in obj) {
+	  if (obj[key] instanceof Map) {
+		obj[key] = mapToObject(obj[key]);
+	  } else if (Array.isArray(obj[key])) {
+		obj[key] = obj[key].map((item: any) => 
+		  item instanceof Map ? mapToObject(item) : item
+		);
+	  }
+	}
+	return obj;
+  }
+  type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
+
+  // Validation function
+  export const validateNaturalGasUsageData = (data: unknown): NaturalGasUsageData => {
+	const plainObject = data instanceof Map ? mapToObject(data) : data;
+	return NaturalGasUsageData.parse(plainObject);
+  };
+  
+  
 export const OilPropaneBill = z.object({
 	provider: z.string(),
 	precedingDeliveryDate: z.date(),
