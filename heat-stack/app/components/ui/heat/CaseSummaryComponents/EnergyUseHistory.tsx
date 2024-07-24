@@ -107,7 +107,6 @@ getPyodide();
 // 	execute
 // `)
 
-const Thing = lazy(() => import("./pyodide.client.tsx"));
 
 // export function EnergyUseHistory(props: EnergyUseProps) {
 export function EnergyUseHistory() {
@@ -122,7 +121,6 @@ export function EnergyUseHistory() {
 			<h2 className={`${titleClass}`}>Energy Use History</h2>
 			<div>
 				<Suspense fallback={'<div>Blah</div>'}>
-					<Thing/>
 					<input
 						id="energy_use_upload"
 						aria-label="Upload your energy billing company's bill."
