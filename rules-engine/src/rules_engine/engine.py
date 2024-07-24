@@ -381,6 +381,7 @@ class Home:
         self.bills_shoulder = []
 
         # winter months 1; summer months -1; shoulder months 0
+        print("Init BP0: ", billing_periods[1])
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
 
@@ -440,6 +441,7 @@ class Home:
         self.balance_point_graph = BalancePointGraph(records=[])
 
         self.uas = [billing_period.ua for billing_period in self.bills_winter]
+        print("Hey I'm a winter bill:",self.bills_winter)
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
@@ -624,3 +626,9 @@ class BillingPeriod:
     def set_initial_balance_point(self, balance_point: float) -> None:
         self.balance_point = balance_point
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
+
+    def __str__(self) -> str:
+        return f"{self.input}, {self.ua}, {self.eliminated_as_outlier}, {self.days}, {self.avg_temps}, {self.usage}, {self.analysis_type}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
