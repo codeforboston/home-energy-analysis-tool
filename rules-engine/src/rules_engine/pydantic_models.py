@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 from functools import cached_property
-from typing import Annotated, Any, Optional, Sequence
+from typing import Annotated, Any, Literal, Optional, Sequence
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, computed_field
 
@@ -83,7 +83,9 @@ class OilPropaneBillingRecordInput(BaseModel):
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
-    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
+    inclusion_override: Optional[
+        Literal[AnalysisType.ALLOWED_HEATING_USAGE] | Literal[AnalysisType.NOT_ALLOWED_IN_CALCULATIONS]
+    ] = Field(description="Oil-Propane!F")
 
 
 class OilPropaneBillingInput(BaseModel):

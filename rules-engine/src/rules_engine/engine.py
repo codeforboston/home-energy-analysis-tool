@@ -40,17 +40,12 @@ def get_outputs_oil_propane(
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
         start_date = last_date + timedelta(days=1)
-        inclusion = (
-            AnalysisType.ALLOWED_HEATING_USAGE
-            if input_val.inclusion_override
-            else AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
-        )
         billing_periods.append(
             NormalizedBillingPeriodRecordBase(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
-                analysis_type_override=inclusion,
+                analysis_type_override=input_val.inclusion_override,
                 inclusion_override=True,
             )
         )
@@ -98,7 +93,9 @@ def get_outputs_normalized(
     """
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
-        temperature_input=temperature_input, billing_periods=billing_periods
+        temperature_input=temperature_input, 
+        billing_periods=billing_periods,
+        fuel_type=summary_input.fuel_type,
     )
 
     home = Home(
@@ -172,6 +169,7 @@ def get_outputs_normalized(
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
     billing_periods: list[NormalizedBillingPeriodRecordBase],
+    fuel_type: FuelType,
 ) -> list[BillingPeriod]:
     """
     Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
@@ -192,8 +190,12 @@ def convert_to_intermediate_billing_periods(
             + 1
         )
 
-        analysis_type = date_to_analysis_type(billing_period.period_end_date)
-        if billing_period.analysis_type_override:
+        if fuel_type == FuelType.GAS:
+            analysis_type = _date_to_analysis_type_natural_gas(billing_period.period_end_date)
+        elif fuel_type == FuelType.OIL or fuel_type == FuelType.PROPANE:
+            analysis_type = _date_to_analysis_type_oil_propane(billing_period.period_start_date, billing_period.period_end_date)
+
+        if billing_period.analysis_type_override is not None:
             analysis_type = billing_period.analysis_type_override
 
         intermediate_billing_period = BillingPeriod(
@@ -207,11 +209,22 @@ def convert_to_intermediate_billing_periods(
     return intermediate_billing_periods
 
 
-def date_to_analysis_type(d: date) -> AnalysisType:
+def _date_to_analysis_type_oil_propane(start_date: date, end_date: date) -> AnalysisType:
     """
-    Converts the date from a billing period into an enum representing the period's usage in the rules engine.
+    Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
+    """
+    if (end_date.month > 4 and end_date.month < 11) \
+        or (start_date.month > 3 and start_date.month < 10) \
+        or (start_date.month < 7 and end_date.month > 7) \
+        or (start_date.month < 7 and start_date.year < end_date.year):
+        return AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+    else:
+        return AnalysisType.ALLOWED_HEATING_USAGE
 
-    TODO: Extract this method to another class or make it private.
+
+def _date_to_analysis_type_natural_gas(d: date) -> AnalysisType:
+    """
+    Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
     """
     months = {
         1: AnalysisType.ALLOWED_HEATING_USAGE,
@@ -381,7 +394,6 @@ class Home:
         self.bills_shoulder = []
 
         # winter months 1; summer months -1; shoulder months 0
-        print("Init BP0: ", billing_periods[1])
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
 
@@ -441,7 +453,6 @@ class Home:
         self.balance_point_graph = BalancePointGraph(records=[])
 
         self.uas = [billing_period.ua for billing_period in self.bills_winter]
-        print("Hey I'm a winter bill:",self.bills_winter)
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
