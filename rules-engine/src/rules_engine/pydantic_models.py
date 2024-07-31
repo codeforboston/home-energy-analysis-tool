@@ -92,7 +92,7 @@ class OilPropaneBillingRecordInput(BaseModel):
 class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab. Container for holding all rows of the billing input table."""
 
-    records: list[OilPropaneBillingRecordInput]
+    records: Sequence[OilPropaneBillingRecordInput]
     preceding_delivery_date: date = Field(description="Oil-Propane!B6")
 
 

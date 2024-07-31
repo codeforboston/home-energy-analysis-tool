@@ -67,7 +67,7 @@ def load_summary(folder: str) -> Summary:
         return Summary(**data)
 
 
-def test_get_outputs_oil_propane(data: Example):
+def test_get_outputs_oil_propane(data: Example) -> None:
     rezzy = engine.get_outputs_oil_propane(
         data.summary,
         None,

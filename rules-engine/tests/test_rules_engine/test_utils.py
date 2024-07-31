@@ -1,7 +1,7 @@
 import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from rules_engine.pydantic_models import (
     FuelType,
@@ -43,7 +43,7 @@ class NaturalGasBillingExampleInput(NaturalGasBillingInput):
     otherwise intuitively used, and which is used in production.
     """
 
-    records: list[NaturalGasBillingRecordExampleInput]
+    records: Sequence[NaturalGasBillingRecordExampleInput]
 
 
 class OilPropaneBillingRecordExampleInput(OilPropaneBillingRecordInput):
@@ -63,8 +63,7 @@ class OilPropaneBillingExampleInput(OilPropaneBillingInput):
     otherwise intuitively used, and which is used in production.
     """
 
-    records: list[OilPropaneBillingRecordExampleInput]
-
+    records: Sequence[OilPropaneBillingRecordExampleInput]
 
 def load_fuel_billing_example_input(
     folder: Path, fuel_type: FuelType, estimated_balance_point: float
@@ -84,11 +83,12 @@ def load_fuel_billing_example_input(
     match fuel_type:
         case FuelType.GAS:
             file_name = "natural-gas.csv"
-        case FuelType.OIL:
+        case FuelType.OIL | FuelType.PROPANE:
             file_name = "oil-propane.csv"
+        case _:
+            raise ValueError("Unsupported fuel type.")
 
-    records = []
-    preceding_delivery_date = None
+    records: list[Any] = []
     with open(folder / file_name) as f:
         reader = csv.DictReader(f)
         row: Any
@@ -129,27 +129,27 @@ def load_fuel_billing_example_input(
                 whole_home_heat_loss_rate = 0
 
             if fuel_type == FuelType.GAS:
-                item = NaturalGasBillingRecordExampleInput(
+                natural_gas_item = NaturalGasBillingRecordExampleInput(
                     period_start_date=_parse_date(row["start_date"]),
                     period_end_date=_parse_date(row["end_date"]),
                     usage_therms=row["usage"],
                     inclusion_override=inclusion_override,
                     whole_home_heat_loss_rate=whole_home_heat_loss_rate,
                 )
-                records.append(item)
+                records.append(natural_gas_item)
             elif fuel_type == FuelType.OIL:
                 if i == 0:
                     preceding_delivery_date = _parse_date(
                         row["start_date"]
                     ) - timedelta(days=1)
 
-                item = OilPropaneBillingRecordExampleInput(
+                oil_propane_item = OilPropaneBillingRecordExampleInput(
                     period_end_date=_parse_date(row["end_date"]),
                     gallons=row["usage"],
                     inclusion_override=inclusion_override,
                     whole_home_heat_loss_rate=whole_home_heat_loss_rate,
                 )
-                records.append(item)
+                records.append(oil_propane_item)
             else:
                 raise ValueError("Unsupported fuel type.")
 
@@ -159,6 +159,8 @@ def load_fuel_billing_example_input(
             return OilPropaneBillingExampleInput(
                 records=records, preceding_delivery_date=preceding_delivery_date
             )
+        else:
+            raise ValueError("Unsupported fuel type.")
 
 
 def _parse_date(value: str) -> date:
