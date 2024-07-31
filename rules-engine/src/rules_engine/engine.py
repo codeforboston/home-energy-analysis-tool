@@ -1,6 +1,7 @@
 """
 TODO: Add module description
 """
+
 from __future__ import annotations
 
 import bisect
@@ -93,7 +94,7 @@ def get_outputs_normalized(
     """
     initial_balance_point = 60
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
-        temperature_input=temperature_input, 
+        temperature_input=temperature_input,
         billing_periods=billing_periods,
         fuel_type=summary_input.fuel_type,
     )
@@ -191,9 +192,13 @@ def convert_to_intermediate_billing_periods(
         )
 
         if fuel_type == FuelType.GAS:
-            analysis_type = _date_to_analysis_type_natural_gas(billing_period.period_end_date)
+            analysis_type = _date_to_analysis_type_natural_gas(
+                billing_period.period_end_date
+            )
         elif fuel_type == FuelType.OIL or fuel_type == FuelType.PROPANE:
-            analysis_type = _date_to_analysis_type_oil_propane(billing_period.period_start_date, billing_period.period_end_date)
+            analysis_type = _date_to_analysis_type_oil_propane(
+                billing_period.period_start_date, billing_period.period_end_date
+            )
 
         if billing_period.analysis_type_override is not None:
             analysis_type = billing_period.analysis_type_override
@@ -209,14 +214,18 @@ def convert_to_intermediate_billing_periods(
     return intermediate_billing_periods
 
 
-def _date_to_analysis_type_oil_propane(start_date: date, end_date: date) -> AnalysisType:
+def _date_to_analysis_type_oil_propane(
+    start_date: date, end_date: date
+) -> AnalysisType:
     """
     Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
     """
-    if (end_date.month > 4 and end_date.month < 11) \
-        or (start_date.month > 3 and start_date.month < 10) \
-        or (start_date.month < 7 and end_date.month > 7) \
-        or (start_date.month < 7 and start_date.year < end_date.year):
+    if (
+        (end_date.month > 4 and end_date.month < 11)
+        or (start_date.month > 3 and start_date.month < 10)
+        or (start_date.month < 7 and end_date.month > 7)
+        or (start_date.month < 7 and start_date.year < end_date.year)
+    ):
         return AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
     else:
         return AnalysisType.ALLOWED_HEATING_USAGE

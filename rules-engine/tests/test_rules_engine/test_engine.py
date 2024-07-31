@@ -249,10 +249,15 @@ def test_period_hdd(temps, expected_result):
 
 def test_date_to_analysis_type_natural_gas():
     test_date = date.fromisoformat("2019-01-04")
-    assert engine._date_to_analysis_type_natural_gas(test_date) == AnalysisType.ALLOWED_HEATING_USAGE
+    assert (
+        engine._date_to_analysis_type_natural_gas(test_date)
+        == AnalysisType.ALLOWED_HEATING_USAGE
+    )
 
     dates = ["2019-01-04", "2019-07-04", "2019-12-04"]
-    types = [engine._date_to_analysis_type_natural_gas(date.fromisoformat(d)) for d in dates]
+    types = [
+        engine._date_to_analysis_type_natural_gas(date.fromisoformat(d)) for d in dates
+    ]
     expected_types = [
         AnalysisType.ALLOWED_HEATING_USAGE,
         AnalysisType.ALLOWED_NON_HEATING_USAGE,
@@ -316,7 +321,7 @@ def test_convert_to_intermediate_billing_periods(
     sample_temp_inputs, sample_normalized_billing_periods
 ):
     results = engine.convert_to_intermediate_billing_periods(
-        sample_temp_inputs, 
+        sample_temp_inputs,
         sample_normalized_billing_periods,
         FuelType.GAS,
     )

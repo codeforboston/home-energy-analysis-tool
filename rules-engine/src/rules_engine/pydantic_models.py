@@ -84,7 +84,8 @@ class OilPropaneBillingRecordInput(BaseModel):
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
     inclusion_override: Optional[
-        Literal[AnalysisType.ALLOWED_HEATING_USAGE] | Literal[AnalysisType.NOT_ALLOWED_IN_CALCULATIONS]
+        Literal[AnalysisType.ALLOWED_HEATING_USAGE]
+        | Literal[AnalysisType.NOT_ALLOWED_IN_CALCULATIONS]
     ] = Field(description="Oil-Propane!F")
 
 

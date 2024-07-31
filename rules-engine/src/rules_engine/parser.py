@@ -2,6 +2,7 @@
 Return lists of gas billing data parsed from Eversource and
 National Grid CSVs.
 """
+
 import csv
 import io
 import re
