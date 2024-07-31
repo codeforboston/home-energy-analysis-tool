@@ -5,7 +5,7 @@ export const Case = z.object({
 	name: z.string()
 })
 
-export const HeatLoadAnalysis = z.object({
+export const HeatLoadAnalysisZod = z.object({
 	rulesEngineVersion: z.string(),
 	estimatedBalancePoint: z.number(),
 	otherFuelUsage: z.number(),
@@ -14,7 +14,7 @@ export const HeatLoadAnalysis = z.object({
 	/**
 	 * designTemperature in Fahrenheit
 	 */
-	designTemperature: z.number().max(-10).min(50),
+	design_temperature: z.number().max(50).min(-50),
 	wholeHomeHeatLossRate: z.number(),
 	standardDeviationHeatLossRate: z.number(),
 	averageHeatLoad: z.number(),
@@ -26,7 +26,7 @@ export const Home = z.object({
 	 * unit: square feet
 	 */
 	living_area: z.number().min(500).max(10000),
-	fuel_type: z.enum(['Natural Gas','Oil','Propane']),
+	fuel_type: z.enum(['GAS','OIL','PROPANE']),
 	design_temperature_override: z.number().optional(),
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1

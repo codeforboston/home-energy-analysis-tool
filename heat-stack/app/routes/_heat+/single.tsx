@@ -32,18 +32,22 @@ import * as pyodideModule from 'pyodide'
 // - [x] Zod error at these three lines in Genny because the .optional() zod setting (see ./types/index.tsx) is getting lost somehow, refactor as much of genny away as possible: thermostat_set_point: oldSummaryInput.thermostat_set_point, setback_temperature: oldSummaryInput.setback_temperature, setback_hours_per_day: oldSummaryInput.setback_hours_per_day,
 // - [skipped] Display Conform's form-wide errors, currently thrown away (if we think of a use case - 2 fields conflicting...)
 // - [ ] #162: Pass CSV and form data to rules engine
-// - [ ] Read the  'overall_start_date' => '2020-10-02',  'overall_end_date' => '2022-11-03' from NaturalGasUsageData and pass to weather fetcher (move up)
+// - [x] #162: Read the 'overall_start_date' => '2020-10-02',  'overall_end_date' => '2022-11-03' from NaturalGasUsageData and pass to weather fetcher (move up)
 // - [ ] Validate pyodide data
+// - [ ] #162: Get Pydantic to accept our 3rd param userAdjustedData aka pyodideResultsFromTextFile in the 2nd python block
+// - [ ] Only use csv data after any time the user uploads csv. When the user adjusts the table, use the table data instead.
+// - [ ] Use all data (inputs, csv, and user adjustments) to get results from the rules engine
+// - [ ] Disable the submit button when inputs or csv file are invalid
 // - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
 // - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
-// - [ ] Michelle proposes always set form default values when run in development
+// - [ ] Proposition: always set form default values when run in development
 // - [ ] Pass modified table back to rules engine for full cycle revalidation
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
 
 // Ours
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Home, Location, Case, NaturalGasUsageData, validateNaturalGasUsageData } from '../../../types/index.ts'
+import { Home, Location, Case, NaturalGasUsageData, validateNaturalGasUsageData, HeatLoadAnalysisZod } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -71,7 +75,8 @@ const CurrentHeatingSystemSchema = Home.pick({
 	setback_hours_per_day: true,
 })
 
-const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema)
+const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
+const SchemaWithDesignTemperature = Schema.and(HeatLoadAnalysisZod.pick({design_temperature: true}))
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
@@ -168,27 +173,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	let { x, y } = await geocodeUtil.getLL(address)
 	console.log('geocoded', x, y)
 
-	// let { formSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
+	// let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
 
-	// pyodideUtil.runit(formSchema,null,weatherData,JSON.stringify(BI));
+	// pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 
-	const formSchema: SchemaZodFromFormType = Schema.parse({
+	// const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
+	const parsedAndValidatedFormSchema: SchemaZodFromFormType = SchemaWithDesignTemperature.parse({
 		living_area: living_area,
 		address,
-		name: 'My Home',
+		name: `${ name }'s home`,
 		fuel_type,
 		heating_system_efficiency,
 		thermostat_set_point,
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
+		design_temperature: 12
 	})
 
-	console.log('formSchema', formSchema)
+	// console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
 
 	await pyodide.loadPackage(
 		'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
@@ -216,7 +223,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		'../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
 	)
 
-	console.log("uploadedTextFile", uploadedTextFile)
+	// console.log("uploadedTextFile", uploadedTextFile)
 
 	/**
 	 * Need to parse the gas bill first to determine the start and end dates of the bill
@@ -236,18 +243,32 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			return naturalGasInputRecords.model_dump(mode="json")
 		executeParse
 	`)
+
+	/** Example:
+	 * records: [
+	 *   Map(4) {
+	 *     'period_start_date' => '2022-10-04',
+	 *     'period_end_date' => '2022-11-03',
+	 *     'usage_therms' => 19,
+	 *     'inclusion_override' => undefined
+	 *   }
+	 * ],
+	 * 'overall_start_date' => '2020-10-02',
+	 * 'overall_end_date' => '2022-11-03'
+	 */
 	// This assignment of the same name is a special thing. We don't remember the name right now.
 	// It's not necessary, but it is possible.
 	type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
+	const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
 
-	const resultFromPyodide: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
+	console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
+	const startDateString = pyodideResultsFromTextFile.get('overall_start_date')
+	// Do we need this?:
+	// const startDateString = pyodideResultsFromTextFile.overall_start_date
 
-
-	// console.log('result', resultFromPyodide )//, validateNaturalGasUsageData(resultFromPyodide))
-	const startDateString = resultFromPyodide.get('overall_start_date')
 	const start_date = new Date(startDateString)
 
-	const endDateString = resultFromPyodide.get('overall_end_date')
+	const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
 	const end_date = new Date(endDateString)
 	
 	// // Get today's date
@@ -268,46 +289,70 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		start_date.toISOString().split('T')[0],
 		end_date.toISOString().split('T')[0],
 	)
-	console.log(`========\n========`)
-	// console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
-	console.log(weatherData)
+
+	const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
+    const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
 	
-	const BI = [
-		{
-			period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
-			period_end_date: new Date('2024-01-06'),
-			usage: 100,
-			inclusion_override: null,
-		},
-	]
+	// console.log(`========\n========`)
+	// console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
+	// console.log(weatherData)
+	
+	// const BI = [
+	// 	{
+	// 		period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
+	// 		period_end_date: new Date('2024-01-06'),
+	// 		usage: 100,
+	// 		inclusion_override: null,
+	// 	},
+	// ]
 
-	// let { formSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
+	// let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
 
-	// pyodideUtil.runit(formSchema,null,weatherData,JSON.stringify(BI));
+	// pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
 	const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
-		#from rules_engine import parser
-		#from rules_engine.pydantic_models import (
-		#	FuelType,
-		#	SummaryInput,
-		#	TemperatureInput
-		#)
-		#from rules_engine import engine
-	
-		def executeGetAnalyticsFromForm(csvDataJs):
-			#naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
-			#return naturalGasInputRecords.model_dump(mode="json")
-			pass
+		from rules_engine import parser
+		from rules_engine.pydantic_models import (
+			FuelType,
+			SummaryInput,
+			TemperatureInput
+		)
+		from rules_engine import engine
+
+		def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData):
+			
+			summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
+			temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+
+			# using the same thing for userAdjustedData didn't seem to work: 
+			# Traceback (most recent call last): File "<exec>", line 23, in executeGetAnalyticsFromForm 
+			# File "/lib/python3.11/site-packages/rules_engine/engine.py", line 74, in get_outputs_natural_gas 
+			# for input_val in natural_gas_billing_input.records: ^^^ AttributeError: records 
+
+			#userAdjustedDataFromJs = userAdjustedData.as_object_map().values()._mapping
+
+
+			# We will just pass in this data
+			# naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+
+			summaryInput = SummaryInput(**summaryInputFromJs)
+			temperatureInput = TemperatureInput(**temperatureInputFromJs)
+
+			outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, userAdjustedData)
+
+			return outputs.model_dump(mode="json")
 		executeGetAnalyticsFromForm
 	`)
 
+	// `uploadedTextFile` is a potential placeholder for development, but try with `pyodideResultsFromTextFile` for now
+	const gasBillDataWithUserAdjustments = pyodideResultsFromTextFile;
+	
 	// type Analytics = z.infer<typeof Analytics>;
-	// const resultFromPyodide: Analytics = executeGetAnalyticsFromFormJs('something').toJs()
+	const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
 
-	// const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
-	// const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
+	console.log(foo, "foo")
 
 	// const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
@@ -328,7 +373,7 @@ export default function Inputs() {
 			living_area: 3000,
 			address: '1 Broadway, Cambridge, MA 02142',
 			name: 'CIC',
-			fuel_type: 'Natural Gas',
+			fuel_type: 'GAS',
 			heating_system_efficiency: 85,
 			thermostat_set_point: 68,
 			setback_temperature: 65,
