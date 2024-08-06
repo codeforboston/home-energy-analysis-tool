@@ -8,19 +8,18 @@ from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# TODO: Make sure that the tests pass because they're all broken because
-# of refactoring elsewhere in the codebase.
-
 
 def _read_gas_bill_eversource() -> str:
     """Read a test natural gas bill from a test Eversource CSV"""
-    with open(ROOT_DIR / "feldman" / "natural-gas-eversource.csv") as f:
+    with open(ROOT_DIR / "natural_gas" / "feldman" / "natural-gas-eversource.csv") as f:
         return f.read()
 
 
 def _read_gas_bill_national_grid() -> str:
     """Read a test natural gas bill from a test National Grid CSV"""
-    with open(ROOT_DIR / "quateman" / "natural-gas-national-grid.csv") as f:
+    with open(
+        ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
+    ) as f:
         return f.read()
 
 

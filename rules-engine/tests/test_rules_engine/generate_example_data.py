@@ -9,7 +9,6 @@ Test example spreadsheets are provided in separate household folders within the 
 Each folder contains an excel file (named "Heat Load Analysis Beta 7.xlsx") which specifies the example inputs
 Once this module is run, each folder will contain three files, the original excel, a summary.json, and a fuel-specific csv file
 
-NOTE: This module depends on the existing "cases/examples" directory structure.  Should this be changed, updates will be needed.
 NOTE: Due to the variety of types in the Summary and Fuel specific worksheets, the workbook object is purposely of type Any.
 """
 
@@ -18,22 +17,15 @@ import json
 import os
 import pathlib
 import re
+from pathlib import Path
 from typing import Any
 
 import openpyxl
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
-# As of right now, all examples can and should be generated
-YET_TO_BE_UPDATED_EXAMPLES = ""
 
-# Filter in/out failing examples, if any
-INPUT_DATA = filter(
-    lambda d: d not in YET_TO_BE_UPDATED_EXAMPLES, next(os.walk(ROOT_DIR))[1]
-)
-
-
-def generate_summary_json(workbook: Any, folder: str) -> str:
+def generate_summary_json(workbook: Any, working_directory: Path) -> str:
     """
     Read the heat load analysis spreadsheet and write information from the "Summary" tab into a json file
     We do this so our test runners use the json file for faster processing of our example data
@@ -91,7 +83,7 @@ def generate_summary_json(workbook: Any, folder: str) -> str:
                 break
 
     # Now that we have accumulated all the relevant fields into a data dictionary, write out summary.json
-    with open(ROOT_DIR / folder / "summary.json", "w") as json_file:
+    with open(working_directory / "summary.json", "w") as json_file:
         json.dump(data, json_file, indent=4)
 
     # Return the fuel type we found in the Summary worksheet so we can operate on the correct worksheet next
@@ -99,7 +91,7 @@ def generate_summary_json(workbook: Any, folder: str) -> str:
 
 
 def generate_billing_record_input_csv(
-    workbook: Any, fuel_type: str, folder: str
+    workbook: Any, fuel_type: str, working_directory: Path
 ) -> None:
     """
     Read the heat load analysis spreadsheet and write data from the appropriate "fuel type" worksheet into a csv file
@@ -107,7 +99,7 @@ def generate_billing_record_input_csv(
     """
     # Choose the appropriate fuel-type worksheet, set header and data row locations and output filename for each type
     if fuel_type == "GAS":
-        output_file_path = ROOT_DIR / folder / "natural-gas.csv"
+        output_file_path = working_directory / "natural-gas.csv"
         worksheet = workbook["Natural Gas"]
         header_row = 4
         billing_row = 5
@@ -123,7 +115,7 @@ def generate_billing_record_input_csv(
             "daily_htg_usage",
         ]
     elif fuel_type == "OIL":
-        output_file_path = ROOT_DIR / folder / "oil-propane.csv"
+        output_file_path = working_directory / "oil-propane.csv"
         worksheet = workbook["Oil-Propane"]
         header_row = 5
         billing_row = 7
@@ -187,12 +179,19 @@ def generate_billing_record_input_csv(
 
 if __name__ == "__main__":
     # For each example folder, read the excel sheet and write summary.json and "fuel_type".csv
-    for folder in INPUT_DATA:
-        workbook = openpyxl.load_workbook(
-            filename=ROOT_DIR / folder / "Heat Load Analysis Beta 7.xlsx",
-            data_only=True,
-        )
-        fuel_type = generate_summary_json(workbook, folder)
-        generate_billing_record_input_csv(workbook, fuel_type, folder)
+    for root, dirs, files in os.walk(ROOT_DIR):
+        working_directory = Path(root)
+        try:
+            workbook = openpyxl.load_workbook(
+                filename=working_directory / "Heat Load Analysis Beta 7.xlsx",
+                data_only=True,
+            )
+        except FileNotFoundError as fnf_error:
+            # It's ok to iterate over directories that do not contain an excel file
+            print("Skipping test directory:", working_directory)
+            continue
+        print("Processing test directory:", working_directory)
+        fuel_type = generate_summary_json(workbook, working_directory)
+        generate_billing_record_input_csv(workbook, fuel_type, working_directory)
         workbook.close()
         del workbook
