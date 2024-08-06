@@ -65,6 +65,7 @@ class OilPropaneBillingExampleInput(OilPropaneBillingInput):
 
     records: Sequence[OilPropaneBillingRecordExampleInput]
 
+
 def load_fuel_billing_example_input(
     folder: Path, fuel_type: FuelType, estimated_balance_point: float
 ) -> NaturalGasBillingExampleInput | OilPropaneBillingExampleInput:
