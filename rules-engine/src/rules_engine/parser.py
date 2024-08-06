@@ -9,7 +9,14 @@ import re
 from datetime import datetime, timedelta
 from enum import StrEnum
 
-from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
+from greenbutton_objects import parse  # type: ignore
+
+from .pydantic_models import (
+    ElectricBillingInput,
+    ElectricBillingRecordInput,
+    NaturalGasBillingInput,
+    NaturalGasBillingRecordInput,
+)
 
 
 class NaturalGasCompany(StrEnum):
@@ -178,3 +185,51 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
         records.append(record)
 
     return NaturalGasBillingInput(records=records)
+
+
+def _parse_gas_bill_xml(path: str) -> NaturalGasBillingInput:
+    """
+    Return a list of gas bill data parsed from a Green Button XML
+    received as a string.
+    """
+    ups = parse.parse_feed(path)
+    records = []
+    for up in ups:
+        for mr in up.meterReadings:
+            for ir in mr.intervalReadings:
+                records.append(
+                    NaturalGasBillingRecordInput(
+                        period_start_date=ir.timePeriod.start.date(),
+                        period_end_date=(
+                            ir.timePeriod.start + ir.timePeriod.duration
+                        ).date(),
+                        usage_therms=ir.value,
+                        inclusion_override=None,
+                    )
+                )
+
+    return NaturalGasBillingInput(records=records)
+
+
+def _parse_electric_bill_xml(path: str) -> ElectricBillingInput:
+    """
+    Return a list of gas bill data parsed from a Green Button XML
+    received as a string.
+    """
+    ups = parse.parse_feed(path)
+    records = []
+    for up in ups:
+        for mr in up.meterReadings:
+            for ir in mr.intervalReadings:
+                records.append(
+                    ElectricBillingRecordInput(
+                        period_start_date=ir.timePeriod.start.date(),
+                        period_end_date=(
+                            ir.timePeriod.start + ir.timePeriod.duration
+                        ).date(),
+                        usage_watt_hours=ir.value,
+                        inclusion_override=None,
+                    )
+                )
+
+    return ElectricBillingInput(records=records)

@@ -6,6 +6,9 @@ node_modules
 # Easy way to create temporary files/folders that won't accidentally be added to git
 *.local.*
 
+# PyCharm
+.idea/
+
 #local temporary folders
 heat-app
 venv
