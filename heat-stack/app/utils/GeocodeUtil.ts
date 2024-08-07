@@ -1,6 +1,7 @@
 const BASE_URL =  "https://geocoding.geo.census.gov";
 const ADDRESS_ENDPOINT = "/geocoder/geographies/onelineaddress";
 
+// example: https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20broadway%2C%20cambridge%2C%20ma%2002142&benchmark=4&vintage=4&format=json
 interface CensusGeocoderResponse {
     result: {
       input: {
