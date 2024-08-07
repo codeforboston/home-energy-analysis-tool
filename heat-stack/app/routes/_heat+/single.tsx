@@ -412,6 +412,16 @@ Traceback (most recent call last): File "<exec>", line 32,
     }, */
 
     const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
+
+    const billingRecords = foo.get('billing_records')
+    billingRecords.forEach((record: any) => {
+        record.set('inclusion_override', true);
+    });
+    console.log("bill", billingRecords)
+    foo.set('billing_records', null)
+    foo.set('billing_records', billingRecords)
+    /* why is inclusion_override still false after roundtrip */
+
     const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
 
     console.log("foo2", foo2)
