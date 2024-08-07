@@ -192,7 +192,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		design_temperature: 12
+		design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
 	// console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
@@ -321,38 +321,84 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		)
 		from rules_engine import engine
 
-		def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData):
+		def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs):
+		"""
+			second step: this will be the first time to draw the table, "billing_records" is the "roundtripping" parameter as userAdjustedData.
+			# two new geocode parameters may be needed for design temp:
+			# watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
+			# in addition to latitude and longitude from GeocodeUtil.ts object .
+			# pack the get_design_temp output into summary_input
+		"""
 			
 			summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
 			temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
 
-			# using the same thing for userAdjustedData didn't seem to work: 
-			# Traceback (most recent call last): File "<exec>", line 23, in executeGetAnalyticsFromForm 
-			# File "/lib/python3.11/site-packages/rules_engine/engine.py", line 74, in get_outputs_natural_gas 
-			# for input_val in natural_gas_billing_input.records: ^^^ AttributeError: records 
-
-			#userAdjustedDataFromJs = userAdjustedData.as_object_map().values()._mapping
-
-
 			# We will just pass in this data
-			# naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+			naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
 			summaryInput = SummaryInput(**summaryInputFromJs)
+			# from Alan: summaryInput = SummaryInput((design_temperature=helpers.get_design_temp(...), **summaryInputFromJs)
+
 			temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
-			outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, userAdjustedData)
+			outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
 
 			return outputs.model_dump(mode="json")
 		executeGetAnalyticsFromForm
 	`)
 
-	// `uploadedTextFile` is a potential placeholder for development, but try with `pyodideResultsFromTextFile` for now
-	const gasBillDataWithUserAdjustments = pyodideResultsFromTextFile;
-	
+
+
 	// type Analytics = z.infer<typeof Analytics>;
-	const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
+	const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, uploadedTextFile).toJs()
 
 	console.log(foo, "foo")
+
+	const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
+		from rules_engine import parser
+		from rules_engine.pydantic_models import (
+			FuelType,
+			SummaryInput,
+			TemperatureInput,
+			NormalizedBillingPeriodRecordBase
+		)
+		from rules_engine import engine
+
+		# def get_outputs_normalized(
+		#	summary_input: SummaryInput,
+		#	dhw_input: Optional[DhwInput],
+		#	temperature_input: TemperatureInput,
+		#	billing_periods: list[NormalizedBillingPeriodRecordBase],
+		# )
+
+		def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData):
+			"""
+			"billing_records" is the "roundtripping" parameter to be passed as userAdjustedData.
+			"""
+			
+			summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
+			temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+
+			summaryInput = SummaryInput(**summaryInputFromJs)
+			# from Alan: summaryInput = SummaryInput((design_temperature=helpers.get_design_temp(...), **summaryInputFromJs)
+
+			temperatureInput = TemperatureInput(**temperatureInputFromJs)
+
+			outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
+
+			# third step, re-run of the table data
+			userAdjustedDataFromJsToPython = [NormalizedBillingPeriodRecordBase(**record) for record in userAdjustedData['records']]
+
+			outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
+
+			return outputs2.model_dump(mode="json")
+		executeGetAnalyticsFromForm
+	`)
+		// `uploadedTextFile` is a potential placeholder for development, but try with `pyodideResultsFromTextFile` for now
+
+	const gasBillDataWithUserAdjustments = foo.get('billing_records'); /* billing_records is untested here */
+	const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
+
 
 	// const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
