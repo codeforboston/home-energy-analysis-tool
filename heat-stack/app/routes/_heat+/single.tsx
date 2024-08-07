@@ -411,7 +411,7 @@ Traceback (most recent call last): File "<exec>", line 32,
       'whole_home_heat_loss_rate' => undefined
     }, */
 
-    const gasBillDataWithUserAdjustments = foo.get('billing_records'); /* billing_records is untested here */
+    const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
     const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
 
     console.log("foo2", foo2)
