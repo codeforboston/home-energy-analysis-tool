@@ -31,3 +31,12 @@ disallow_incomplete_defs = true
 
 [tool.pydocstyle]
 select = "D207,D208,D3,D417"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+data = ["*.csv"]

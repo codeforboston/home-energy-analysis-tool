@@ -157,10 +157,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
     ////////////////////////
     const getPyodide = async () => {
         return await pyodideModule.loadPyodide({
-            // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
-            // TODO: figure out how to determine if we're in browser or remix server and use ternary.
             indexURL: 'public/pyodide-env/',
-        })
+            packages:["numpy","pydantic","pydantic_core","annotated_types","rules_engine"]
+        });
     }
     const runPythonScript = async () => {
         const pyodide: any = await getPyodide()
@@ -169,8 +168,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
     const pyodide: any = await runPythonScript()
     //////////////////////
-
-    let { x, y } = await geocodeUtil.getLL(address)
+    let { coordz:{ x, y}, compositeKey:{ state, county } } = await geocodeUtil.getGeoData(address);
     console.log('geocoded', x, y)
 
     // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
@@ -181,6 +179,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
 
+    /**
+     * Get helpers.py function that gets us designTemp
+     */
+
+    let helpers = pyodide.pyimport("rules_engine.helpers");
+    let dtRet = helpers.get_design_temp(state,county); // Returns a string. below the design_temp property expects an int. make sure to cast.
     // const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
     const parsedAndValidatedFormSchema: SchemaZodFromFormType = SchemaWithDesignTemperature.parse({
         living_area: living_area,
@@ -192,14 +196,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
         setback_temperature,
         setback_hours_per_day,
         design_temperature_override,
-        design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-    })
+        design_temperature: +dtRet
+    });
+
 
     // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
 
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-    )
+    // await pyodide.loadPackage(
+    //     'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+    // )
 
     /* NOTES for pydantic, typing-extensions, annotated_types: 
         pyodide should match pyodide-core somewhat. 
@@ -209,19 +214,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
            - https://pypi.org/project/typing-extensions/
            - https://pypi.org/project/annotated-types/#files
     */
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
-    )
+    // await pyodide.loadPackage(
+    //     'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
+    // )
+    // await pyodide.loadPackage(
+    //     'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
+    // )
+    // await pyodide.loadPackage(
+    //     'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
+    // )
 
-    await pyodide.loadPackage(
-        '../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
-    )
+    // await pyodide.loadPackage(
+    //     '../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+    // )
 
     // console.log("uploadedTextFile", uploadedTextFile)
 
@@ -270,19 +275,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
     const end_date = new Date(endDateString)
-    
-    // // Get today's date
-    // const today = new Date()
 
-    // // Calculate the date 2 years ago from today
-    // const twoYearsAgo = new Date(today)
-    // twoYearsAgo.setFullYear(today.getFullYear() - 2)
-
-    // // Set the start_date and end_date
-    // const start_date = twoYearsAgo
-    // const end_date = today
-
-    // const weatherData: TemperatureInput = await weatherUtil.getThatWeathaData(longitude, latitude, start_date, end_date);
     const weatherData = await weatherUtil.getThatWeathaData(
         x,
         y,
@@ -293,24 +286,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
     const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
     
-    // console.log(`========\n========`)
-    // console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
-    // console.log(weatherData)
-    
-    // const BI = [
-    // 	{
-    // 		period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
-    // 		period_end_date: new Date('2024-01-06'),
-    // 		usage: 100,
-    // 		inclusion_override: null,
-    // 	},
-    // ]
-
-    // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
-
-    // pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
-    // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
-    // Main form entrypoint
 
     const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
         from rules_engine import parser
@@ -349,7 +324,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // type Analytics = z.infer<typeof Analytics>;
     const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile).toJs()
 
-    console.log(foo, "foo")
+    // console.log(foo, "foo")
 
     const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
     	from rules_engine import parser
@@ -424,7 +399,7 @@ Traceback (most recent call last): File "<exec>", line 32,
 
     const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
 
-    console.log("foo2", foo2)
+    // console.log("foo2", foo2)
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
