@@ -1,7 +1,7 @@
 import csv
 import pathlib
 
-DESIGN_TEMP_DIR = pathlib.Path(__file__).parent.parent.parent.parent / "design_temp"
+DESIGN_TEMP_DIR = pathlib.Path(__file__).parent.parent / "data"
 DESIGN_TEMP_FILE = DESIGN_TEMP_DIR / "merged_structure_temps.csv"
 
 # Function to take in stateId & countyId
@@ -31,14 +31,14 @@ def get_design_temp(state_id: str, county_id: str) -> int:
 
     if _DESIGN_TEMPS is None:
         load_design_temps()
-    
-    key = (state_id, county_id)
 
-    design_temp = _DESIGN_TEMPS.get(key)
+    key = (state_id, county_id)
+    if _DESIGN_TEMPS is not None:
+        design_temp = _DESIGN_TEMPS.get(key)
     if design_temp is None:
         raise ValueError(
             f"Lookup for state_id '{state_id}' and county_id '{county_id}' was not found. "
             "Ensure that the ids are valid and that design temperature data is up to date."
         )
-    
+
     return design_temp
