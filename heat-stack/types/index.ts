@@ -5,6 +5,7 @@ export const Case = z.object({
 	name: z.string()
 })
 
+/** TODO: fix camelcase and snake case mix */
 export const HeatLoadAnalysisZod = z.object({
 	rulesEngineVersion: z.string(),
 	estimatedBalancePoint: z.number(),
@@ -52,14 +53,21 @@ export const NaturalGasBillRecord = z.object({
 	periodStartDate: z.date(),
 	periodEndDate: z.date(),
 	usageTherms: z.number(),
-	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
-});
-
-export const NaturalGasUsageData = z.object({
-	records: z.array(NaturalGasBillRecord),
-	overall_start_date: z.string(),
-	overall_end_date: z.string(),
-});
+	inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
+  });
+  
+  // Helper function to create a date string schema
+  const dateStringSchema = () => 
+	z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Use YYYY-MM-DD");
+  
+  export const NaturalGasUsageData = z.map(
+	z.enum(["overall_start_date", "overall_end_date", "records"]),
+	z.union([
+	  dateStringSchema(),
+	  z.array(NaturalGasBillRecord)
+	])
+  );
+  
 
 // Convert Map to plain object (recursive)
 /** TODO: make sure this is how we need it to be for Map validation */

@@ -263,12 +263,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
     const startDateString = pyodideResultsFromTextFile.get('overall_start_date')
+    const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
+
     // Do we need this?:
     // const startDateString = pyodideResultsFromTextFile.overall_start_date
 
+    if (typeof startDateString !== 'string' || typeof endDateString !== 'string') {
+        throw new Error('Start date or end date is missing or invalid');
+      }
+      
     const start_date = new Date(startDateString)
-
-    const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
     const end_date = new Date(endDateString)
     
     // // Get today's date

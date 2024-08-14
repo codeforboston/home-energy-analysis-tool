@@ -1,15 +1,15 @@
 import { type z } from 'zod'
-import { type HeatLoadAnalysis as HeatLoadAnalysisZod} from '#types/index'
+import { type HeatLoadAnalysisZod} from '#types/index'
 
-type HeatLoadAnalysis = z.infer<typeof HeatLoadAnalysisZod>
+type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
 export function AnalysisHeader() {
-	const heatLoadAnalysis: HeatLoadAnalysis = {
+	const heatLoadAnalysis: HeatLoadAnalysisZod = {
 		rulesEngineVersion: 'Beta 1',
 		estimatedBalancePoint: 60.5,
 		otherFuelUsage: 1.07,
 		averageIndoorTemperature: 68,
 		differenceBetweenTiAndTbp: 0,
-		designTemperature: 0,
+		design_temperature: 0,
 		wholeHomeHeatLossRate: 1112,
 		standardDeviationHeatLossRate: 5.52,
 		averageHeatLoad: 0,
