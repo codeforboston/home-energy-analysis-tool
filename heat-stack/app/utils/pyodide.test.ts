@@ -1,7 +1,7 @@
 import * as pyodideModule from 'pyodide'
 import { expect, test, beforeEach } from 'vitest'
-import GeocodeUtil from "#app/utils/GeocodeUtil.js";
-import WeatherUtil from "#app/utils/WeatherUtil.js";
+import GeocodeUtil from "#app/utils/GeocodeUtil";
+import WeatherUtil from "#app/utils/WeatherUtil";
 // import PyodideUtil  from "#app/utils/pyodide.util.js";
 
 
@@ -162,7 +162,8 @@ test('pyodide solves climate change', async () => {
     // This other API may be needed to get the lookup column composite key values for merged_structure_temps.csv for the design temp.
     // https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20Broadway%2C%20Cambridge%2C%20MA%2002139&benchmark=4&vintage=4
     const address = "1 Broadway, Cambridge, MA 02142";
-    let { x, y } = await GU.getLL(address);
+    let {coordinates, state_id, county_id}  = await GU.getLL(address)
+    let {x, y} = coordinates;
     console.log ("address", address, x, y);
     const TIWD = await WU.getThatWeathaData(x, y, "2024-03-20", "2024-04-20");
     console.log("weather data",TIWD);

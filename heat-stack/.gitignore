@@ -20,3 +20,4 @@ node_modules
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
 *.local.*
+public/pyodide-env/rules_engine-*-py3-none-any.whl
