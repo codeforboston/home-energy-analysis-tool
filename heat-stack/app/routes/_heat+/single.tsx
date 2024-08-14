@@ -54,7 +54,7 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
 import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
-import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData'
+import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
