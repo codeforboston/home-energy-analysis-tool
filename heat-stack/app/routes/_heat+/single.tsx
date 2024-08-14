@@ -34,7 +34,7 @@ import * as pyodideModule from 'pyodide'
 // - [x] #162: Pass CSV and form data to rules engine
 // - [x] #162: Read the 'overall_start_date' => '2020-10-02',  'overall_end_date' => '2022-11-03' from NaturalGasUsageData and pass to weather fetcher (move up)
 // - [x] #162: Get Pydantic to accept our 3rd param userAdjustedData aka pyodideResultsFromTextFile in the 2nd python block
-// - [ ] #162?: Rebase once #228 is merged and incorporate helpers.get_design_temp in python rather than 12, reconsider SchemaWithDesignTemperature,  add parameters from geocoder for new variables.
+// - [x] #162?: Rebase once #228 is merged and incorporate helpers.get_design_temp in python rather than 12, reconsider SchemaWithDesignTemperature,  add parameters from geocoder for new variables.
 // - [ ] Validate pyodide data
 // - [ ] Only use csv data after any time the user uploads csv. When the user adjusts the table, use the table data instead.
 // - [ ] Disable the submit button when inputs or csv file are invalid
@@ -76,7 +76,6 @@ const CurrentHeatingSystemSchema = Home.pick({
 })
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
-const SchemaWithDesignTemperature = Schema.and(HeatLoadAnalysisZod.pick({design_temperature: true}))
 
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
@@ -170,7 +169,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const pyodide: any = await runPythonScript()
     //////////////////////
 
-    let { x, y } = await geocodeUtil.getLL(address)
+    let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
+    let {x, y} = coordinates;
+
     console.log('geocoded', x, y)
 
     // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
@@ -181,8 +182,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
 
-    // const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
-    const parsedAndValidatedFormSchema: SchemaZodFromFormType = SchemaWithDesignTemperature.parse({
+    const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
         living_area: living_area,
         address,
         name: `${ name }'s home`,
@@ -192,7 +192,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         setback_temperature,
         setback_hours_per_day,
         design_temperature_override,
-        design_temperature: 12 /* TODO:  see #162 and esp. #123*/
+        // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
     })
 
     // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
@@ -220,7 +220,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     )
 
     await pyodide.loadPackage(
-        '../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+        'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
     )
 
     // console.log("uploadedTextFile", uploadedTextFile)
@@ -319,11 +319,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
             SummaryInput,
             TemperatureInput
         )
-        from rules_engine import engine
+        from rules_engine import engine, helpers
 
-        def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs):
+        def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id):
             """
-            second step: this will be the first time to draw the table, "billing_records" is the "roundtripping" parameter as userAdjustedData.
+            second step: this will be the first time to draw the table
             # two new geocode parameters may be needed for design temp:
             # watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
             # in addition to latitude and longitude from GeocodeUtil.ts object .
@@ -336,8 +336,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
             # We will just pass in this data
             naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
-            summaryInput = SummaryInput(**summaryInputFromJs)
-            # from Alan: summaryInput = SummaryInput((design_temperature=helpers.get_design_temp(...), **summaryInputFromJs)
+            design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
@@ -347,47 +347,50 @@ export async function action({ request, params }: ActionFunctionArgs) {
         executeGetAnalyticsFromForm
     `)
     // type Analytics = z.infer<typeof Analytics>;
-    const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile).toJs()
+    const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    console.log(foo, "foo")
+    //console.log("foo billing records [0]", foo.get('billing_records')[0] )
 
     const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
-    	from rules_engine import parser
-    	from rules_engine.pydantic_models import (
-    		FuelType,
-    		SummaryInput,
-    		TemperatureInput,
-    		NormalizedBillingPeriodRecordBase
-    	)
-    	from rules_engine import engine
+        from rules_engine import parser
+        from rules_engine.pydantic_models import (
+            FuelType,
+            SummaryInput,
+            TemperatureInput,
+            NormalizedBillingPeriodRecordBase
+        )
+        from rules_engine import engine, helpers
 
-    	# def get_outputs_normalized(
-    	#	summary_input: SummaryInput,
-    	#	dhw_input: Optional[DhwInput],
-    	#	temperature_input: TemperatureInput,
-    	#	billing_periods: list[NormalizedBillingPeriodRecordBase],
-    	# )
+        # def get_outputs_normalized(
+        #	summary_input: SummaryInput,
+        #	dhw_input: Optional[DhwInput],
+        #	temperature_input: TemperatureInput,
+        #	billing_periods: list[NormalizedBillingPeriodRecordBase],
+        # )
 
-    	def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData):
-    		"""
-    		"billing_records" is the "roundtripping" parameter to be passed as userAdjustedData.
-    		"""
+        def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
+            """
+            "billing_records" is the "roundtripping" parameter to be passed as userAdjustedData.
+            """
             
-    		summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-    		temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+            summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
+            temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
 
-    		summaryInput = SummaryInput(**summaryInputFromJs)
-    		# from Alan: summaryInput = SummaryInput((design_temperature=helpers.get_design_temp(...), **summaryInputFromJs)
+            design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+            # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
+            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
-    		temperatureInput = TemperatureInput(**temperatureInputFromJs)
+            temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
-    		# third step, re-run of the table data
-    		userAdjustedDataFromJsToPython = [NormalizedBillingPeriodRecordBase(**record) for record in userAdjustedData['billing_records'] ]
+            # third step, re-run of the table data
+            userAdjustedDataFromJsToPython = [NormalizedBillingPeriodRecordBase(**record) for record in userAdjustedData['billing_records'] ]
+            # print("py", userAdjustedDataFromJsToPython[0])
 
-    		outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
+            outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
 
-    		return outputs2.model_dump(mode="json")
-    	executeRoundtripAnalyticsFromForm
+            # print("py2", outputs2.billing_records[0])
+            return outputs2.model_dump(mode="json")
+        executeRoundtripAnalyticsFromForm
     `)
 
     /**
@@ -417,14 +420,16 @@ Traceback (most recent call last): File "<exec>", line 32,
     billingRecords.forEach((record: any) => {
         record.set('inclusion_override', true);
     });
-    console.log("bill", billingRecords)
-    foo.set('billing_records', null)
-    foo.set('billing_records', billingRecords)
+    // foo.set('billing_records', null)
+    // foo.set('billing_records', billingRecords)
+    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
     /* why is inclusion_override still false after roundtrip */
 
-    const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments).toJs()
+    const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-    console.log("foo2", foo2)
+    // console.log("foo2 billing records[0]", foo2.get('billing_records')[0]);
+    // console.log("foo2", foo2);
+    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
