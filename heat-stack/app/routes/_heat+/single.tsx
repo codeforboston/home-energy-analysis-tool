@@ -53,8 +53,8 @@ import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
-import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler'
-import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData'
+import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
+import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
