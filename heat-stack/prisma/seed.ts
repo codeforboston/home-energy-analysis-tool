@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { promiseHash } from 'remix-utils/promise'
 import { prisma } from '#app/utils/db.server.ts'
+import { MOCK_CODE_GITHUB } from '#app/utils/providers/constants'
 import {
 	cleanupDb,
 	createPassword,
@@ -23,13 +24,16 @@ async function seed() {
 	const entities = ['user', 'note']
 	const actions = ['create', 'read', 'update', 'delete']
 	const accesses = ['own', 'any'] as const
+
+	let permissionsToCreate = []
 	for (const entity of entities) {
 		for (const action of actions) {
 			for (const access of accesses) {
-				await prisma.permission.create({ data: { entity, action, access } })
+				permissionsToCreate.push({ entity, action, access })
 			}
 		}
 	}
+	await prisma.permission.createMany({ data: permissionsToCreate })
 	console.timeEnd('🔑 Created permissions...')
 
 	console.time('👑 Created roles...')
@@ -83,14 +87,18 @@ async function seed() {
 									length: faker.number.int({ min: 1, max: 3 }),
 								}).map(() => {
 									const imgNumber = faker.number.int({ min: 0, max: 9 })
-									return noteImages[imgNumber]
+									const img = noteImages[imgNumber]
+									if (!img) {
+										throw new Error(`Could not find image #${imgNumber}`)
+									}
+									return img
 								}),
 							},
 						})),
 					},
 				},
 			})
-			.catch(e => {
+			.catch((e) => {
 				console.error('Error creating a user:', e)
 				return null
 			})
@@ -132,7 +140,7 @@ async function seed() {
 		}),
 	})
 
-	const githubUser = await insertGitHubUser('MOCK_CODE_GITHUB_KODY')
+	const githubUser = await insertGitHubUser(MOCK_CODE_GITHUB)
 
 	await prisma.user.create({
 		select: { id: true },
@@ -253,10 +261,16 @@ async function seed() {
 }
 
 seed()
-	.catch(e => {
+	.catch((e) => {
 		console.error(e)
 		process.exit(1)
 	})
 	.finally(async () => {
 		await prisma.$disconnect()
 	})
+
+// we're ok to import from the test directory in this file
+/*
+eslint
+	no-restricted-imports: "off",
+*/

@@ -58,14 +58,14 @@ function createGitHubUser(code?: string | null) {
 			id: faker.string.uuid(),
 			name: faker.person.fullName(),
 			avatar_url: 'https://github.com/ghost.png',
-			emails: emails.map(e => e.email),
+			emails: emails.map((e) => e.email),
 		},
 		emails,
 		primaryEmail: primaryEmail.email,
 	}
 }
 
-type GitHubUser = ReturnType<typeof createGitHubUser>
+export type GitHubUser = ReturnType<typeof createGitHubUser>
 
 async function getGitHubUsers() {
 	try {
@@ -80,6 +80,14 @@ async function getGitHubUsers() {
 	}
 }
 
+export async function deleteGitHubUser(primaryEmail: string) {
+	const users = await getGitHubUsers()
+	const user = users.find((u) => u.primaryEmail === primaryEmail)
+	if (!user) return null
+	await setGitHubUsers(users.filter((u) => u.primaryEmail !== primaryEmail))
+	return user
+}
+
 export async function deleteGitHubUsers() {
 	await fsExtra.remove(githubUserFixturePath)
 }
@@ -90,7 +98,7 @@ async function setGitHubUsers(users: Array<GitHubUser>) {
 
 export async function insertGitHubUser(code?: string | null) {
 	const githubUsers = await getGitHubUsers()
-	let user = githubUsers.find(u => u.code === code)
+	let user = githubUsers.find((u) => u.code === code)
 	if (user) {
 		Object.assign(user, createGitHubUser(code))
 	} else {
@@ -109,7 +117,9 @@ async function getUser(request: Request) {
 	if (!accessToken) {
 		return new Response('Unauthorized', { status: 401 })
 	}
-	const user = (await getGitHubUsers()).find(u => u.accessToken === accessToken)
+	const user = (await getGitHubUsers()).find(
+		(u) => u.accessToken === accessToken,
+	)
 
 	if (!user) {
 		return new Response('Not Found', { status: 404 })
@@ -118,7 +128,9 @@ async function getUser(request: Request) {
 }
 
 const passthroughGitHub =
-	!process.env.GITHUB_CLIENT_ID.startsWith('MOCK_') && !process.env.TESTING
+	!process.env.GITHUB_CLIENT_ID.startsWith('MOCK_') &&
+	process.env.NODE_ENV !== 'test'
+
 export const handlers: Array<HttpHandler> = [
 	http.post(
 		'https://github.com/login/oauth/access_token',
@@ -128,7 +140,7 @@ export const handlers: Array<HttpHandler> = [
 
 			const code = params.get('code')
 			const githubUsers = await getGitHubUsers()
-			let user = githubUsers.find(u => u.code === code)
+			let user = githubUsers.find((u) => u.code === code)
 			if (!user) {
 				user = await insertGitHubUser(code)
 			}
@@ -154,7 +166,7 @@ export const handlers: Array<HttpHandler> = [
 		if (passthroughGitHub) return passthrough()
 
 		const mockUser = (await getGitHubUsers()).find(
-			u => u.profile.id === params.id,
+			(u) => u.profile.id === params.id,
 		)
 		if (mockUser) return json(mockUser.profile)
 

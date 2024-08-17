@@ -1,27 +1,18 @@
-import { useForm, getFormProps } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
-import { invariantResponse } from '@epic-web/invariant'
-import { cssBundleHref } from '@remix-run/css-bundle'
 import {
 	json,
 	type LoaderFunctionArgs,
-	type ActionFunctionArgs,
 	type HeadersFunction,
 	type LinksFunction,
 	type MetaFunction,
 } from '@remix-run/node'
-
 import {
 	Form,
 	Link,
 	Links,
-	LiveReload,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useFetcher,
-	useFetchers,
 	useLoaderData,
 	useMatches,
 	useSubmit,
@@ -44,23 +35,17 @@ import {
 } from './components/ui/dropdown-menu.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
-import tailwindStyleSheetUrl from './styles/tailwind.css'
-import './App.css'
-
+import { ThemeSwitch, useTheme } from './routes/resources+/theme-switch.tsx'
+import tailwindStyleSheetUrl from './styles/tailwind.css?url'
 import { getUserId, logout } from './utils/auth.server.ts'
-import { ClientHintCheck, getHints, useHints } from './utils/client-hints.tsx'
+import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
-import {
-	combineServerTimings,
-	makeTimings,
-	time,
-} from './utils/timing.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
 import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
-import { useRequestInfo } from './utils/request-info.ts'
-import { type Theme, setTheme, getTheme } from './utils/theme.server.ts'
+import { type Theme, getTheme } from './utils/theme.server.ts'
+import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 
@@ -68,9 +53,6 @@ export const links: LinksFunction = () => {
 	return [
 		// Preload svg sprite as a resource to avoid render blocking
 		{ rel: 'preload', href: iconsHref, as: 'image' },
-		// Preload CSS as a resource to avoid render blocking
-		{ rel: 'preload', href: tailwindStyleSheetUrl, as: 'style' },
-		cssBundleHref ? { rel: 'preload', href: cssBundleHref, as: 'style' } : null,
 		{ rel: 'mask-icon', href: '/favicons/mask-icon.svg' },
 		{
 			rel: 'alternate icon',
@@ -83,10 +65,8 @@ export const links: LinksFunction = () => {
 			href: '/site.webmanifest',
 			crossOrigin: 'use-credentials',
 		} as const, // necessary to make typescript happy
-		//These should match the css preloads above to avoid css as render blocking resource
 		{ rel: 'icon', type: 'image/svg+xml', href: '/favicons/favicon.svg' },
 		{ rel: 'stylesheet', href: tailwindStyleSheetUrl },
-		cssBundleHref ? { rel: 'stylesheet', href: cssBundleHref } : null,
 	].filter(Boolean)
 }
 
@@ -128,13 +108,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				{ timings, type: 'find user', desc: 'find user in root' },
 			)
 		: null
-	// if (userId && !user) {
-	// 	console.info('something weird happened')
-	// 	// something weird happened... The user is authenticated but we can't find
-	// 	// them in the database. Maybe they were deleted? Let's log them out.
-	// 	await logout({ request, redirectTo: '/' })
-	// }
-	// const { toast, headers: toastHeaders } = await getToast(request)
+	if (userId && !user) {
+		console.info('something weird happened')
+		// something weird happened... The user is authenticated but we can't find
+		// them in the database. Maybe they were deleted? Let's log them out.
+		await logout({ request, redirectTo: '/' })
+	}
+	const { toast, headers: toastHeaders } = await getToast(request)
 	const honeyProps = honeypot.getInputProps()
 
 	return json(
@@ -149,18 +129,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				},
 			},
 			ENV: getEnv(),
+			toast,
 			honeyProps,
 		},
 		{
-			headers: combineHeaders({ 'Server-Timing': timings.toString() }),
+			headers: combineHeaders(
+				{ 'Server-Timing': timings.toString() },
+				toastHeaders,
+			),
 		},
 	)
 }
 
-/**
- * Step 4 of making Server Timings
- * https://github.com/epicweb-dev/epic-stack/blob/main/docs/server-timing.md
- */
 export const headers: HeadersFunction = ({ loaderHeaders }) => {
 	const headers = {
 		'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
@@ -172,17 +152,23 @@ function Document({
 	children,
 	nonce,
 	env = {},
+	allowIndexing = true,
 }: {
 	children: React.ReactNode
 	nonce: string
 	env?: Record<string, string>
+	allowIndexing?: boolean
 }) {
 	return (
 		<html lang="en" className={`h-full overflow-x-hidden`}>
 			<head>
+				<ClientHintCheck nonce={nonce} />
 				<Meta />
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
+				{allowIndexing ? null : (
+					<meta name="robots" content="noindex, nofollow" />
+				)}
 				<Links />
 			</head>
 			<body className="bg-background text-foreground">
@@ -197,7 +183,6 @@ function Document({
 				/>
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
-				<LiveReload nonce={nonce} />
 			</body>
 		</html>
 	)
@@ -208,28 +193,35 @@ function App() {
 	const nonce = useNonce()
 	const user = useOptionalUser()
 	const matches = useMatches()
-	const isOnSearchPage = matches.find(m => m.id === 'routes/users+/index')
+	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
+	const allowIndexing = data.ENV.ALLOW_INDEXING !== 'false'
+	useToast(data.toast)
 
 	return (
-		<Document nonce={nonce} env={data.ENV}>
+		<Document
+			nonce={nonce}
+			allowIndexing={allowIndexing}
+			env={data.ENV}
+		>
 			<div className="flex h-screen flex-col justify-between">
 				<header className="container py-6">
-					{
-						<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-							<TopLinks />
-							<div className="flex items-center gap-10">
-								{user ? (
-									<UserDropdown />
-								) : (
-									<Button asChild variant="default" size="lg">
-										{/* <Link to="/login">Log In</Link> */}
-									</Button>
-								)}
-							</div>
-							<div className="block w-full sm:hidden">{searchBar}</div>
-						</nav>
-					}
+					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+						<TopLinks />
+						<div className="ml-auto hidden max-w-sm flex-1 sm:block">
+							{searchBar}
+						</div>
+						<div className="flex items-center gap-10">
+							{user ? (
+								<UserDropdown />
+							) : (
+								<Button asChild variant="default" size="lg">
+									{/* <Link to="/login">Log In</Link> */}
+								</Button>
+							)}
+						</div>
+						<div className="block w-full sm:hidden">{searchBar}</div>
+					</nav>
 				</header>
 
 				<div className="flex-1">
@@ -244,8 +236,10 @@ function App() {
 
 				<div className="container flex justify-between pb-5">
 					<TopLinks />
+					{/* <ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} /> */}
 				</div>
 			</div>
+			<EpicToaster closeButton position="top-center" />
 			<EpicProgress />
 		</Document>
 	)
@@ -292,7 +286,7 @@ function UserDropdown() {
 					<Link
 						to={`/users/${user.username}`}
 						// this is for progressive enhancement
-						onClick={e => e.preventDefault()}
+						onClick={(e) => e.preventDefault()}
 						className="flex items-center gap-2"
 					>
 						<img
@@ -325,7 +319,7 @@ function UserDropdown() {
 					<DropdownMenuItem
 						asChild
 						// this prevents the menu from closing before the form submission is completed
-						onSelect={event => {
+						onSelect={(event) => {
 							event.preventDefault()
 							submit(formRef.current)
 						}}
