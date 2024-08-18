@@ -9,7 +9,6 @@ import { z } from 'zod'
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
 import PyodideUtil from '#app/utils/pyodide.util.js'
-import * as pyodideModule from 'pyodide'
 
 // TODO NEXT WEEK
 // - [x] Server side error checking/handling
@@ -113,17 +112,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
             console.error('submission failed', submission)
         }
         return submission.reply()
-        // submission.reply({
-        // 	// You can also pass additional error to the `reply` method
-        // 	formErrors: ['Submission failed'],
-        // 	fieldErrors: {
-        // 		address: ['Address is invalid'],
-        // 	},
-
-        // 	// or avoid sending the the field value back to client by specifying the field names
-        // 	hideFields: ['password'],
-        // }),
-        // {status: submission.status === "error" ? 400 : 200}
     }
 
     const {
@@ -148,35 +136,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     console.log('loading pyodideUtil/pyodideModule/geocodeUtil/weatherUtil')
 
-    // const pyodideUtil = PyodideUtil.getInstance();
-    // const pyodideModule = await pyodideUtil.getPyodideModule();
+    const pyodideUtil: PyodideUtil = PyodideUtil.getInstance();
     const geocodeUtil = new GeocodeUtil()
     const weatherUtil = new WeatherUtil()
-    // console.log("loaded pyodideUtil/pyodideModule/geocodeUtil/weatherUtil");
-    ////////////////////////
-    const getPyodide = async () => {
-        return await pyodideModule.loadPyodide({
-            // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
-            // TODO: figure out how to determine if we're in browser or remix server and use ternary.
-            indexURL: 'public/pyodide-env/',
-        })
-    }
-    const runPythonScript = async () => {
-        const pyodide: any = await getPyodide()
-        return pyodide
-    }
-    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
-    const pyodide: any = await runPythonScript()
-    //////////////////////
+    const pyodide = await pyodideUtil.getPyodideModule();
+    const pyHelpers = await pyodideUtil.getHelpersModule();
 
-    let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
-    let {x, y} = coordinates;
-
+    let { coordinates, state_id, county_id }  = await geocodeUtil.getLL(address)
+    let { x, y } = coordinates;
     console.log('geocoded', x, y)
 
-    // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
-
-    // pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
     // Main form entrypoint
 
@@ -197,10 +166,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
 
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-    )
-
     /* NOTES for pydantic, typing-extensions, annotated_types: 
         pyodide should match pyodide-core somewhat. 
         typing-extensions needs specific version per https://github.com/pyodide/pyodide/issues/4234#issuecomment-1771735148
@@ -209,19 +174,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
            - https://pypi.org/project/typing-extensions/
            - https://pypi.org/project/annotated-types/#files
     */
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
-    )
-
-    await pyodide.loadPackage(
-        'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
-    )
 
     // console.log("uploadedTextFile", uploadedTextFile)
 
@@ -275,18 +227,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const start_date = new Date(startDateString)
     const end_date = new Date(endDateString)
     
-    // // Get today's date
-    // const today = new Date()
-
-    // // Calculate the date 2 years ago from today
-    // const twoYearsAgo = new Date(today)
-    // twoYearsAgo.setFullYear(today.getFullYear() - 2)
-
-    // // Set the start_date and end_date
-    // const start_date = twoYearsAgo
-    // const end_date = today
-
-    // const weatherData: TemperatureInput = await weatherUtil.getThatWeathaData(longitude, latitude, start_date, end_date);
     const weatherData = await weatherUtil.getThatWeathaData(
         x,
         y,
