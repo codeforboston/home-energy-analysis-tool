@@ -20,7 +20,7 @@ import {
 import { withSentry } from '@sentry/remix'
 import { useRef } from 'react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
-import { z } from 'zod'
+// import { z } from 'zod'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
@@ -35,7 +35,7 @@ import {
 } from './components/ui/dropdown-menu.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
-import { ThemeSwitch, useTheme } from './routes/resources+/theme-switch.tsx'
+// import { ThemeSwitch, useTheme } from './routes/resources+/theme-switch.tsx'
 import tailwindStyleSheetUrl from './styles/tailwind.css?url'
 import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
@@ -44,7 +44,7 @@ import { getEnv } from './utils/env.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
 import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
-import { type Theme, getTheme } from './utils/theme.server.ts'
+// import { type Theme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
@@ -125,7 +125,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				origin: getDomainUrl(request),
 				path: new URL(request.url).pathname,
 				userPrefs: {
-					theme: getTheme(request),
+					// theme: getTheme(request),
 				},
 			},
 			ENV: getEnv(),
