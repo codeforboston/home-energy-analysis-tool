@@ -3,13 +3,18 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, ActionFunctionArgs } from '@remix-run/node'
+import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
-import { z } from 'zod'
+import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
+import * as pyodideModule from 'pyodide'
+import { type z } from 'zod'
+import { Button } from '#/app/components/ui/button.tsx'
+import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
-import PyodideUtil from '#app/utils/pyodide.util.js'
-import * as pyodideModule from 'pyodide'
+
+
 
 // TODO NEXT WEEK
 // - [x] Server side error checking/handling
@@ -46,18 +51,11 @@ import * as pyodideModule from 'pyodide'
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
 
 // Ours
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Home, Location, Case, NaturalGasUsageData, validateNaturalGasUsageData, HeatLoadAnalysisZod } from '../../../types/index.ts'
+import { Home, Location, Case, type NaturalGasUsageData, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import { Button } from '#/app/components/ui/button.tsx'
-import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
-import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-
-const nameMaxLength = 50
-const addressMaxLength = 100
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -146,13 +144,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // 	createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
     // )
 
-    console.log('loading pyodideUtil/pyodideModule/geocodeUtil/weatherUtil')
+    console.log('loading geocodeUtil/weatherUtil')
 
-    // const pyodideUtil = PyodideUtil.getInstance();
-    // const pyodideModule = await pyodideUtil.getPyodideModule();
     const geocodeUtil = new GeocodeUtil()
     const weatherUtil = new WeatherUtil()
-    // console.log("loaded pyodideUtil/pyodideModule/geocodeUtil/weatherUtil");
     ////////////////////////
     const getPyodide = async () => {
         return await pyodideModule.loadPyodide({
@@ -170,13 +165,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
     //////////////////////
 
     let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
-    let {x, y} = coordinates;
+    let {x, y} = coordinates ?? {x: 0, y: 0};
 
     console.log('geocoded', x, y)
 
-    // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
-
-    // pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
     // Main form entrypoint
 
@@ -262,60 +254,49 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
 
     console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
-    const startDateString = pyodideResultsFromTextFile.get('overall_start_date')
-    const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
-
-    // Do we need this?:
-    // const startDateString = pyodideResultsFromTextFile.overall_start_date
-
+    const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
+    const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
+    
     if (typeof startDateString !== 'string' || typeof endDateString !== 'string') {
         throw new Error('Start date or end date is missing or invalid');
-      }
-      
-    const start_date = new Date(startDateString)
-    const end_date = new Date(endDateString)
+    }
     
-    // // Get today's date
-    // const today = new Date()
-
-    // // Calculate the date 2 years ago from today
-    // const twoYearsAgo = new Date(today)
-    // twoYearsAgo.setFullYear(today.getFullYear() - 2)
-
-    // // Set the start_date and end_date
-    // const start_date = twoYearsAgo
-    // const end_date = today
-
-    // const weatherData: TemperatureInput = await weatherUtil.getThatWeathaData(longitude, latitude, start_date, end_date);
+    // Get today's date
+    const today = new Date();
+    // Calculate the date 2 years ago from today
+    const twoYearsAgo = new Date(today);
+    twoYearsAgo.setFullYear(today.getFullYear() - 2);
+    
+    let start_date = new Date(startDateString);
+    let end_date = new Date(endDateString);
+    
+    // Use default dates if parsing fails
+    if (isNaN(start_date.getTime())) {
+        console.warn('Invalid start date, using date from 2 years ago');
+        start_date = twoYearsAgo;
+    }
+    if (isNaN(end_date.getTime())) {
+        console.warn('Invalid end date, using today\'s date');
+        end_date = today;
+    }
+    
+    // Function to ensure we always return a valid date string
+    const formatDateString = (date: Date): string => {
+        return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10);
+    };
+    
     const weatherData = await weatherUtil.getThatWeathaData(
         x,
         y,
-        start_date.toISOString().split('T')[0],
-        end_date.toISOString().split('T')[0],
-    )
+        formatDateString(start_date),
+        formatDateString(end_date)
+    );
 
     const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
     const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
-    
-    // console.log(`========\n========`)
-    // console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
-    // console.log(weatherData)
-    
-    // const BI = [
-    // 	{
-    // 		period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
-    // 		period_end_date: new Date('2024-01-06'),
-    // 		usage: 100,
-    // 		inclusion_override: null,
-    // 	},
-    // ]
 
-    // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
-
-    // pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
-    // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
-    // Main form entrypoint
-
+    /** Main form entrypoint
+     */
     const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
         from rules_engine import parser
         from rules_engine.pydantic_models import (
@@ -355,6 +336,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     //console.log("foo billing records [0]", foo.get('billing_records')[0] )
 
+    /**
+     * second time and after, when table is modified, this becomes entrypoint
+     */
     const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
         from rules_engine import parser
         from rules_engine.pydantic_models import (

@@ -1,18 +1,20 @@
 import fs from 'fs'
 import {
 	cachified as baseCachified,
-	lruCacheAdapter,
 	verboseReporter,
 	mergeReporters,
 	type CacheEntry,
 	type Cache as CachifiedCache,
 	type CachifiedOptions,
+	type Cache,
+	totalTtl,
+	type CreateReporter,
 } from '@epic-web/cachified'
 import { remember } from '@epic-web/remember'
 import Database from 'better-sqlite3'
 import { LRUCache } from 'lru-cache'
 import { z } from 'zod'
-import { updatePrimaryCacheValue } from '#app/routes/admin+/cache_.sqlite.tsx'
+import { updatePrimaryCacheValue } from '#app/routes/admin+/cache_.sqlite.server.ts'
 import { getInstanceInfo, getInstanceInfoSync } from './litefs.server.ts'
 import { cachifiedTimingReporter, type Timings } from './timing.server.ts'
 
@@ -52,7 +54,19 @@ const lru = remember(
 	() => new LRUCache<string, CacheEntry<unknown>>({ max: 5000 }),
 )
 
-export const lruCache = lruCacheAdapter(lru)
+export const lruCache = {
+	name: 'app-memory-cache',
+	set: (key, value) => {
+		const ttl = totalTtl(value?.metadata)
+		lru.set(key, value, {
+			ttl: ttl === Infinity ? undefined : ttl,
+			start: value?.metadata?.createdTime,
+		})
+		return value
+	},
+	get: (key) => lru.get(key),
+	delete: (key) => lru.delete(key),
+} satisfies Cache
 
 const cacheEntrySchema = z.object({
 	metadata: z.object({
@@ -86,7 +100,6 @@ export const cache: CachifiedCache = {
 		return { metadata, value }
 	},
 	async set(key, entry) {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const { currentIsPrimary, primaryInstance } = await getInstanceInfo()
 		if (currentIsPrimary) {
 			cacheDb
@@ -103,7 +116,7 @@ export const cache: CachifiedCache = {
 			void updatePrimaryCacheValue({
 				key,
 				cacheValue: entry,
-			}).then(response => {
+			}).then((response) => {
 				if (!response.ok) {
 					console.error(
 						`Error updating cache value for key "${key}" on primary instance (${primaryInstance}): ${response.status} ${response.statusText}`,
@@ -122,7 +135,7 @@ export const cache: CachifiedCache = {
 			void updatePrimaryCacheValue({
 				key,
 				cacheValue: undefined,
-			}).then(response => {
+			}).then((response) => {
 				if (!response.ok) {
 					console.error(
 						`Error deleting cache value for key "${key}" on primary instance (${primaryInstance}): ${response.status} ${response.statusText}`,
@@ -138,7 +151,7 @@ export async function getAllCacheKeys(limit: number) {
 		sqlite: cacheDb
 			.prepare('SELECT key FROM cache LIMIT ?')
 			.all(limit)
-			.map(row => (row as { key: string }).key),
+			.map((row) => (row as { key: string }).key),
 		lru: [...lru.keys()],
 	}
 }
@@ -148,20 +161,22 @@ export async function searchCacheKeys(search: string, limit: number) {
 		sqlite: cacheDb
 			.prepare('SELECT key FROM cache WHERE key LIKE ? LIMIT ?')
 			.all(`%${search}%`, limit)
-			.map(row => (row as { key: string }).key),
-		lru: [...lru.keys()].filter(key => key.includes(search)),
+			.map((row) => (row as { key: string }).key),
+		lru: [...lru.keys()].filter((key) => key.includes(search)),
 	}
 }
 
-export async function cachified<Value>({
-	timings,
-	reporter = verboseReporter(),
-	...options
-}: CachifiedOptions<Value> & {
-	timings?: Timings
-}): Promise<Value> {
-	return baseCachified({
-		...options,
-		reporter: mergeReporters(cachifiedTimingReporter(timings), reporter),
-	})
+export async function cachified<Value>(
+	{
+		timings,
+		...options
+	}: CachifiedOptions<Value> & {
+		timings?: Timings
+	},
+	reporter: CreateReporter<Value> = verboseReporter<Value>(),
+): Promise<Value> {
+	return baseCachified(
+		options,
+		mergeReporters(cachifiedTimingReporter(timings), reporter),
+	)
 }
