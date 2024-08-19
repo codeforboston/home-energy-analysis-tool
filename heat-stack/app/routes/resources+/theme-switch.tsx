@@ -127,5 +127,5 @@ export function useTheme() {
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? hints.theme : optimisticMode
 	}
-	return requestInfo.userPrefs.theme ?? hints.theme
+	return requestInfo.userPrefs /* .theme ?? hints.theme */
 }
