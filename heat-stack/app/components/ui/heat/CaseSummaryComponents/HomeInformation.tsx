@@ -1,9 +1,9 @@
+import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
 import { Form } from '@remix-run/react'
-import { ErrorList } from "./ErrorList.tsx"
 import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
-import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
+import { ErrorList } from "./ErrorList.tsx"
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
