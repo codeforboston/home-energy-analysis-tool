@@ -14,8 +14,11 @@ source = "data"
 destination = "/data"
 
 [build]
-dockerfile = "/other/Dockerfile"
-ignorefile = "/other/Dockerfile.dockerignore"
+# github actions moves these for now, but upstream they no longer need to be moved:
+dockerfile = "Dockerfile"
+ignorefile = "Dockerfile.dockerignore"
+# dockerfile = "/other/Dockerfile"
+# ignorefile = "/other/Dockerfile.dockerignore"
 
 [[services]]
 internal_port = 8080
