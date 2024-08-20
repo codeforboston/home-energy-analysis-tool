@@ -3,6 +3,12 @@
 ### On your computer
 
 ```
+# [install Git Large File Storage](https://git-lfs.com/)
+Homebrew: brew install git-lfs
+run the command: git lfs install
+```
+
+```
 git clone git@github.com:codeforboston/home-energy-analysis-tool.git
 # create an environment file
 cd heat-stack
