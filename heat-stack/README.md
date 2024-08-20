@@ -3,7 +3,8 @@
 ### On your computer
 
 ```
-# [install Git Large File Storage](https://git-lfs.com/)
+# install Git Large File Storage 
+docs here: https://git-lfs.com/
 Homebrew: brew install git-lfs
 run the command: git lfs install
 ```
