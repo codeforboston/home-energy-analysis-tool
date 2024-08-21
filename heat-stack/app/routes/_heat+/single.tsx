@@ -43,12 +43,13 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [ ] Validate pyodide data
 // - [ ] Only use csv data after any time the user uploads csv. When the user adjusts the table, use the table data instead.
 // - [ ] Disable the submit button when inputs or csv file are invalid
-// - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
+// - [x] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
 // - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
-// - [ ] Proposition: always set form default values when run in development
+// - [x] Proposition: always set form default values when run in development
 // - [ ] Pass modified table back to rules engine for full cycle revalidation
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
+// - [ ] Will weather service take timestamp instead of timezone date data?
 
 // Ours
 import { Home, Location, Case, type NaturalGasUsageData, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
@@ -253,7 +254,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
     const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
 
-    console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
+    // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
     const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
     const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
     
@@ -421,13 +422,41 @@ Traceback (most recent call last): File "<exec>", line 32,
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
-    return redirect(`/single`)
+    const str_version = JSON.stringify(foo2, replacer);
+    // const json_version = JSON.parse(str_version);
+    console.log("str_version", str_version);
+
+    // Consider adding to form data
+    return json({data: str_version});
+    // return redirect(`/single`)
+}
+
+// https://stackoverflow.com/a/56150320
+function replacer(key: any, value: any) {
+    if(value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    } else {
+        return value;
+    }
+}
+    
+function reviver(key: any, value: any) {
+    if(typeof value === 'object' && value !== null) {
+        if (value.dataType === 'Map') {
+        return new Map(value.value);
+        }
+    }
+    return value;
 }
 
 export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
+    console.log("lastResult", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
         lastResult,
@@ -450,6 +479,7 @@ export default function Inputs() {
 
     return (
         <>
+        <pre>{JSON.stringify(lastResult, null, 2)}</pre>
             <Form
                 id={form.id}
                 method="post"
