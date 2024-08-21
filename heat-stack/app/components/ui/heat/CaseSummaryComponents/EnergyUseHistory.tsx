@@ -33,6 +33,8 @@ export function EnergyUseHistory() {
 					/>
 					<Button type="submit"> <Upload className="h-4 w-4 mr-2" /> Upload</Button>
 				</Suspense>
+				(<a className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 gap-1" href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484">Get example file here</a>)
+
 			</div>
 			<AnalysisHeader />
 			<EnergyUseHistoryChart />
