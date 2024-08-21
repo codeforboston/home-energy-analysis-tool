@@ -492,7 +492,7 @@ export default function Inputs() {
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
-        lastResult,
+        /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
         onValidate({ formData }) {
             return parseWithZod(formData, { schema: Schema })
         },
