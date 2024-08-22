@@ -2,13 +2,32 @@
 
 ### On your computer
 
+Install Git Large File Storage with Homebrew, see [docs](https://git-lfs.com/).
 ```
-# install Git Large File Storage 
-docs here: https://git-lfs.com/
-Homebrew: brew install git-lfs
-run the command: git lfs install
+brew install git-lfs
+git lfs install
 ```
+Alternatively, you can install Git Large File Storage using a package manager, see [docs](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
+- Navigate to git-lfs.com and click Download
+- On your computer, locate and unzip the downloaded file
+- Open Terminal
+- Change the current working directory into the folder you downloaded and unzipped.
+  ```
+  cd ~/Downloads/git-lfs-1.X.X
+  ```
+- To install the file, run this command:
+  ```
+  $ ./install.sh
+   > Git LFS initialized.
+  ```
+- Next, make required changes to your global Git config:
+  ```
+  $ git lfs install
+  > Git LFS initialized.
+  ```
+- You should see a message indicating that git lfs install was successful
 
+Proceed to clone the repository
 ```
 git clone git@github.com:codeforboston/home-energy-analysis-tool.git
 # create an environment file
