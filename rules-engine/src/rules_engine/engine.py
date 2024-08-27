@@ -139,7 +139,6 @@ def get_outputs_normalized(
 
     billing_records = []
     for billing_period in intermediate_billing_periods:
-
         billing_record = NormalizedBillingPeriodRecord(
             period_start_date=billing_period.input.period_start_date,
             period_end_date=billing_period.input.period_end_date,
@@ -400,7 +399,8 @@ class Home:
 
             _analysis_type = billing_period.analysis_type
 
-            if billing_period.inclusion_override: # The user has requested we override an inclusion decision
+            if billing_period.inclusion_override:
+                # The user has requested we override an inclusion decision
                 if _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
                     # In this case we assume the intent is to exclude this bill from winter calculations
                     _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
