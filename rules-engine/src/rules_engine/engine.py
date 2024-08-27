@@ -46,8 +46,7 @@ def get_outputs_oil_propane(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
-                analysis_type_override=input_val.inclusion_override,
-                inclusion_override=True,
+                inclusion_override=input_val.inclusion_override,
             )
         )
         last_date = input_val.period_end_date
@@ -73,8 +72,7 @@ def get_outputs_natural_gas(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
-                analysis_type_override=input_val.inclusion_override,
-                inclusion_override=True,
+                inclusion_override=input_val.inclusion_override,
             )
         )
 
@@ -141,19 +139,13 @@ def get_outputs_normalized(
 
     billing_records = []
     for billing_period in intermediate_billing_periods:
-        # TODO: fix inclusion override to come from inputs
-        default_inclusion_by_calculation = True
-        if billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
-            default_inclusion_by_calculation = False
 
         billing_record = NormalizedBillingPeriodRecord(
             period_start_date=billing_period.input.period_start_date,
             period_end_date=billing_period.input.period_end_date,
             usage=billing_period.input.usage,
-            analysis_type_override=billing_period.input.analysis_type_override,
-            inclusion_override=False,
+            inclusion_override=billing_period.input.inclusion_override,
             analysis_type=billing_period.analysis_type,
-            default_inclusion_by_calculation=default_inclusion_by_calculation,
             eliminated_as_outlier=billing_period.eliminated_as_outlier,
             whole_home_heat_loss_rate=billing_period.ua,
         )
@@ -199,15 +191,15 @@ def convert_to_intermediate_billing_periods(
             analysis_type = _date_to_analysis_type_oil_propane(
                 billing_period.period_start_date, billing_period.period_end_date
             )
-
-        if billing_period.analysis_type_override is not None:
-            analysis_type = billing_period.analysis_type_override
+        else:
+            raise ValueError("Unsupported fuel type.")
 
         intermediate_billing_period = BillingPeriod(
             input=billing_period,
             avg_temps=temperature_input.temperatures[start_idx:end_idx],
             usage=billing_period.usage,
             analysis_type=analysis_type,
+            inclusion_override=billing_period.inclusion_override,
         )
         intermediate_billing_periods.append(intermediate_billing_period)
 
@@ -402,15 +394,26 @@ class Home:
         self.bills_summer = []
         self.bills_shoulder = []
 
-        # winter months 1; summer months -1; shoulder months 0
+        # winter months 1 (ALLOWED_HEATING_USAGE); summer months -1 (ALLOWED_NON_HEATING_USAGE); shoulder months 0 (NOT_ALLOWED...)
         for billing_period in billing_periods:
             billing_period.set_initial_balance_point(self.balance_point)
 
-            if billing_period.analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
+            _analysis_type = billing_period.analysis_type
+
+            if billing_period.inclusion_override: # The user has requested we override an inclusion decision
+                if _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
+                    # In this case we assume the intent is to exclude this bill from winter calculations
+                    _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+                elif _analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
+                    # In this case we assume the intent is to include this bill in heating calculations
+                    _analysis_type = AnalysisType.ALLOWED_HEATING_USAGE
+                else:
+                    # In this case we assume the intent is to exclude this bill from summer calculations
+                    _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+
+            if _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE:
                 self.bills_winter.append(billing_period)
-            elif (
-                billing_period.analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
-            ):
+            elif _analysis_type == AnalysisType.NOT_ALLOWED_IN_CALCULATIONS:
                 self.bills_shoulder.append(billing_period)
             else:
                 self.bills_summer.append(billing_period)
@@ -633,11 +636,13 @@ class BillingPeriod:
         avg_temps: list[float],
         usage: float,
         analysis_type: AnalysisType,
+        inclusion_override: bool,
     ) -> None:
         self.input = input
         self.avg_temps = avg_temps
         self.usage = usage
         self.analysis_type = analysis_type
+        self.inclusion_override = inclusion_override
         self.eliminated_as_outlier = False
         self.ua = None
 

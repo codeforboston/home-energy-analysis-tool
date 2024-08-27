@@ -16,7 +16,7 @@ class AnalysisType(Enum):
     Enum for analysis type.
 
     'Inclusion' in calculations is now determined by
-    the default_inclusion_by_calculation and inclusion_override variables
+    the date_to_analysis_type calculation and the inclusion_override variable
     Use HDDs to determine if shoulder months
     are heating or non-heating or not allowed,
     or included or excluded
@@ -83,10 +83,7 @@ class OilPropaneBillingRecordInput(BaseModel):
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
-    inclusion_override: Optional[
-        Literal[AnalysisType.ALLOWED_HEATING_USAGE]
-        | Literal[AnalysisType.NOT_ALLOWED_IN_CALCULATIONS]
-    ] = Field(description="Oil-Propane!F")
+    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
 
 
 class OilPropaneBillingInput(BaseModel):
@@ -102,7 +99,7 @@ class NaturalGasBillingRecordInput(BaseModel):
     period_start_date: date = Field(description="Natural Gas!A")
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
-    inclusion_override: Optional[AnalysisType] = Field(description="Natural Gas!E")
+    inclusion_override: Optional[bool] = Field(description="Natural Gas!E")
 
 
 class NaturalGasBillingInput(BaseModel):
@@ -148,10 +145,6 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     Base class for a normalized billing period record.
 
     Holds data as fields.
-
-    analysis_type_override - for testing only, preserving compatibility
-    with the original heat calc spreadsheet, which allows users to override
-    the analysis type whereas the rules engine does not
     """
 
     model_config = ConfigDict(validate_assignment=True)
@@ -159,8 +152,7 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     period_start_date: date = Field(frozen=True)
     period_end_date: date = Field(frozen=True)
     usage: float = Field(frozen=True)
-    analysis_type_override: Optional[AnalysisType] = Field(frozen=True)
-    inclusion_override: bool
+    inclusion_override: bool = Field(frozen=True)
 
 
 class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
@@ -173,7 +165,6 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     model_config = ConfigDict(validate_assignment=True)
 
     analysis_type: AnalysisType = Field(frozen=True)
-    default_inclusion_by_calculation: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
     whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
