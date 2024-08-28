@@ -17,18 +17,19 @@ class AnalysisType(Enum):
 
     'Inclusion' in calculations is now determined by
     the date_to_analysis_type calculation and the inclusion_override variable
+
+    TODO: determine if the following logic has actually been implemented...
     Use HDDs to determine if shoulder months
     are heating or non-heating or not allowed,
     or included or excluded
     """
 
-    ALLOWED_HEATING_USAGE = 1  # winter months - allowed in heating usage calculations
-    ALLOWED_NON_HEATING_USAGE = (
-        -1
-    )  # summer months - allowed in non-heating usage calculations
-    NOT_ALLOWED_IN_CALCULATIONS = (
-        0  # shoulder months that fall outside reasonable bounds
-    )
+    # winter months - allowed in heating usage calculations
+    ALLOWED_HEATING_USAGE = 1
+    # summer months - allowed in non-heating usage calculations
+    ALLOWED_NON_HEATING_USAGE = -1
+    # shoulder months - these fall outside reasonable bounds
+    NOT_ALLOWED_IN_CALCULATIONS = 0
 
 
 class FuelType(Enum):
@@ -144,7 +145,7 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     """
     Base class for a normalized billing period record.
 
-    Holds data as fields.
+    Holds data inputs provided by the UI as fields.
     """
 
     model_config = ConfigDict(validate_assignment=True)
@@ -159,12 +160,13 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     """
     Derived class for holding a normalized billing period record.
 
-    Holds data.
+    Holds generated data that is calculated by the rules engine.
     """
 
     model_config = ConfigDict(validate_assignment=True)
 
     analysis_type: AnalysisType = Field(frozen=True)
+    winter_cusp_month: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
     whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
