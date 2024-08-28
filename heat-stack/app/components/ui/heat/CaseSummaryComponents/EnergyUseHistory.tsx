@@ -13,7 +13,8 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
 
 // export function EnergyUseHistory(props: EnergyUseProps) {
-export function EnergyUseHistory() {
+export function EnergyUseHistory(props) {
+	console.log(`EnergyUseHistory:`, props.usage_data);
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
@@ -37,7 +38,7 @@ export function EnergyUseHistory() {
 
 			</div>
 			<AnalysisHeader />
-			<EnergyUseHistoryChart />
+			{/* <EnergyUseHistoryChart usage_data={props.usage_data} /> */}
 		</div>
 	)
 }
