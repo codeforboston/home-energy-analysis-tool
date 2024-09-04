@@ -194,42 +194,42 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
             "period_end_date": "2022-12-04",
             "usage": 60,
             "inclusion_override": False,
-            "winter_cusp_month": False,
+            "default_inclusion": False,
         },
         {
             "period_start_date": "2023-01-01",
             "period_end_date": "2023-01-04",
             "usage": 50,
             "inclusion_override": False,
-            "winter_cusp_month": False,
+            "default_inclusion": False,
         },
         {
             "period_start_date": "2023-02-01",
             "period_end_date": "2023-02-04",
             "usage": 45,
             "inclusion_override": False,
-            "winter_cusp_month": False,
+            "default_inclusion": False,
         },
         {
             "period_start_date": "2023-03-01",
             "period_end_date": "2023-03-04",
             "usage": 30,
             "inclusion_override": False,
-            "winter_cusp_month": False,
+            "default_inclusion": False,
         },
         {
             "period_start_date": "2023-04-01",
             "period_end_date": "2023-04-04",
             "usage": 0.96,
             "inclusion_override": False,
-            "winter_cusp_month": True,
+            "default_inclusion": True,
         },
         {
             "period_start_date": "2023-05-01",
             "period_end_date": "2023-05-04",
             "usage": 0.96,
             "inclusion_override": False,
-            "winter_cusp_month": False,
+            "default_inclusion": False,
         },
     ]
 
@@ -266,12 +266,12 @@ def test_period_hdd(temps, expected_result):
 
 def test_date_to_analysis_type_natural_gas():
     test_date = date.fromisoformat("2019-01-04")
-    analysis_type, winter_cusp_month = engine._date_to_analysis_type_natural_gas(
+    analysis_type, default_inclusion = engine._date_to_analysis_type_natural_gas(
         test_date
     )
     assert (
         analysis_type == AnalysisType.ALLOWED_HEATING_USAGE
-        and winter_cusp_month == False
+        and default_inclusion == False
     )
 
 

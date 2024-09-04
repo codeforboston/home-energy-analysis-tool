@@ -166,7 +166,7 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     model_config = ConfigDict(validate_assignment=True)
 
     analysis_type: AnalysisType = Field(frozen=True)
-    winter_cusp_month: bool = Field(frozen=True)
+    default_inclusion: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
     whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
