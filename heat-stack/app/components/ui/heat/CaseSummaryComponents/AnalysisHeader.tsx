@@ -3,19 +3,49 @@ import { type HeatLoadAnalysisZod} from '#types/index'
 
 type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
 export function AnalysisHeader(props: { usage_data: any }) {
-	const heatLoadAnalysis: HeatLoadAnalysisZod = {
-		rulesEngineVersion: 'Beta 1',
-		estimatedBalancePoint: 60.5,
-		otherFuelUsage: 1.07,
-		averageIndoorTemperature: 68,
-		differenceBetweenTiAndTbp: 0,
-		design_temperature: 0,
-		wholeHomeHeatLossRate: 1112,
-		standardDeviationHeatLossRate: 5.52,
-		averageHeatLoad: 0,
-		maximumHeatLoad: 0,
-	}
-	console.log("AnalysisHeader:", props.usage_data?.get('summary_output'))
+	// const heatLoadAnalysis: HeatLoadAnalysisZod = {
+	// 	rulesEngineVersion: 'Beta 1',
+	// 	estimatedBalancePoint: 60.5,
+	// 	otherFuelUsage: 1.07,
+	// 	averageIndoorTemperature: 68,
+	// 	differenceBetweenTiAndTbp: 0,
+	// 	design_temperature: 0,
+	// 	wholeHomeHeatLossRate: 1112,
+	// 	standardDeviationHeatLossRate: 5.52,
+	// 	averageHeatLoad: 0,
+	// 	maximumHeatLoad: 0,
+	// }
+
+	// Example usage_data
+	// new Map([[
+	// 		"estimated_balance_point",
+	// 		61.5
+	// 	],[
+	// 		"other_fuel_usage",
+	// 		0.2857142857142857
+	// 	],[
+	// 		"average_indoor_temperature",
+	// 		67
+	// 	],[
+	// 		"difference_between_ti_and_tbp",
+	// 		5.5
+	// 	],[
+	// 		"design_temperature",
+	// 		1
+	// 	],[
+	// 		"whole_home_heat_loss_rate",
+	// 		48001.81184312083
+	// 	],[
+	// 		"standard_deviation_of_heat_loss_rate",
+	// 		0.08066745182677547
+	// 	],[
+	// 		"average_heat_load",
+	// 		3048115.0520381727
+	// 	],[
+	// 		"maximum_heat_load",
+	// 		3312125.0171753373
+	// 	]])
+
 
 	const summaryOutputs = props.usage_data?.get('summary_output')
 	return (
@@ -31,7 +61,6 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						<br />
 						Balance Point Temperature<br />
 						<div className="item">
-							{/* {heatLoadAnalysis.estimatedBalancePoint} */}
 							{summaryOutputs?.get('estimated_balance_point')} °F
 						</div>{' '}
 						<br />
@@ -44,7 +73,6 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						<br />
 						Daily non-heating Usage <br />
 						<div className="item">
-							{/* {heatLoadAnalysis.otherFuelUsage} therms */}
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.get('other_fuel_usage').toFixed(2)} therms
 						</div>{' '}
@@ -54,7 +82,6 @@ export function AnalysisHeader(props: { usage_data: any }) {
 					<div className="item-title-small">
 						Standard Deviation of UA <br />
 						<div className="item">
-							{/* {heatLoadAnalysis.standardDeviationHeatLossRate} % */}
 							{/* Rounding to two decimal places */}
 							{(summaryOutputs?.get('standard_deviation_of_heat_loss_rate')*100).toFixed(2)} %
 						</div>{' '}
@@ -62,7 +89,7 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						Whole-home UA
 						<br />
 						<div className="item">
-							{/* {heatLoadAnalysis.wholeHomeHeatLossRate} BTU/h-°F */}
+							{/* Rounding to zero decimal places */}
 							{summaryOutputs?.get('whole_home_heat_loss_rate').toFixed(0)} BTU/h-°F
 						</div>{' '}
 						<br />

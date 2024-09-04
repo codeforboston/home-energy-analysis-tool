@@ -38,7 +38,7 @@ export function EnergyUseHistory(props: { usage_data: any }) {
 
 			</div>
 			{props.usage_data && <AnalysisHeader usage_data={ props.usage_data } /> } 
-			{/* {props.usage_data && <EnergyUseHistoryChart usage_data={props.usage_data} />} */}
+			{props.usage_data && <EnergyUseHistoryChart usage_data={props.usage_data} />}
 		</div>
 	)
 }
