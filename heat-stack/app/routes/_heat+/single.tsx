@@ -443,6 +443,7 @@ function replacer(key: any, value: any) {
     }
 }
     
+// https://stackoverflow.com/a/56150320
 function reviver(key: any, value: any) {
     if(typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
@@ -492,6 +493,7 @@ export default function Inputs() {
 
     let usage_data = null;
     let show_usage_data = lastResult !== undefined;
+    console.log('lastResult', lastResult)
     if ( show_usage_data ) {
         usage_data = JSON.parse(lastResult.data, reviver);
     }
@@ -532,11 +534,11 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                {!show_usage_data && <EnergyUseHistory usage_data={ usage_data } />}
+                <EnergyUseHistory usage_data={ usage_data } />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            <HeatLoadAnalysis />
+            {show_usage_data && <HeatLoadAnalysis /> }
         </>
     )
 }

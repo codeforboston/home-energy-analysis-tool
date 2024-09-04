@@ -2,7 +2,7 @@ import { type z } from 'zod'
 import { type HeatLoadAnalysisZod} from '#types/index'
 
 type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
-export function AnalysisHeader() {
+export function AnalysisHeader(props: { usage_data: any }) {
 	const heatLoadAnalysis: HeatLoadAnalysisZod = {
 		rulesEngineVersion: 'Beta 1',
 		estimatedBalancePoint: 60.5,
@@ -15,7 +15,9 @@ export function AnalysisHeader() {
 		averageHeatLoad: 0,
 		maximumHeatLoad: 0,
 	}
+	console.log("AnalysisHeader:", props.usage_data?.get('summary_output'))
 
+	const summaryOutputs = props.usage_data?.get('summary_output')
 	return (
 		<div className="section-title">
 			<div className="item-group-title">Analysis</div>
@@ -24,7 +26,7 @@ export function AnalysisHeader() {
 					<div className="item-title-small">
 						Average Indoor Temperature <br />
 						<div className="item">
-							{heatLoadAnalysis.averageIndoorTemperature} °F
+							 {summaryOutputs?.get('average_indoor_temperature')} °F
 						</div>{' '}
 						<br />
 						Balance Point Temperature (°F) <br />
