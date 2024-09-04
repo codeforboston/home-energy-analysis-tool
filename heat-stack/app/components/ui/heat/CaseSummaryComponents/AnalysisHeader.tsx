@@ -20,7 +20,7 @@ export function AnalysisHeader(props: { usage_data: any }) {
 	const summaryOutputs = props.usage_data?.get('summary_output')
 	return (
 		<div className="section-title">
-			<div className="item-group-title">Analysis</div>
+			<div className="item-group-title">Heat Load Analysis</div>
 			<div className="flex flex-row">
 				<div className="basis-1/3">
 					<div className="item-title-small">
@@ -29,9 +29,10 @@ export function AnalysisHeader(props: { usage_data: any }) {
 							 {summaryOutputs?.get('average_indoor_temperature')} °F
 						</div>{' '}
 						<br />
-						Balance Point Temperature (°F) <br />
+						Balance Point Temperature<br />
 						<div className="item">
-							{heatLoadAnalysis.estimatedBalancePoint}
+							{/* {heatLoadAnalysis.estimatedBalancePoint} */}
+							{summaryOutputs?.get('estimated_balance_point')} °F
 						</div>{' '}
 						<br />
 					</div>
@@ -43,7 +44,9 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						<br />
 						Daily non-heating Usage <br />
 						<div className="item">
-							{heatLoadAnalysis.otherFuelUsage} therms
+							{/* {heatLoadAnalysis.otherFuelUsage} therms */}
+							{/* Rounding to two decimal places */}
+							{summaryOutputs?.get('other_fuel_usage').toFixed(2)} therms
 						</div>{' '}
 					</div>
 				</div>
@@ -51,13 +54,16 @@ export function AnalysisHeader(props: { usage_data: any }) {
 					<div className="item-title-small">
 						Standard Deviation of UA <br />
 						<div className="item">
-							{heatLoadAnalysis.standardDeviationHeatLossRate} %
+							{/* {heatLoadAnalysis.standardDeviationHeatLossRate} % */}
+							{/* Rounding to two decimal places */}
+							{(summaryOutputs?.get('standard_deviation_of_heat_loss_rate')*100).toFixed(2)} %
 						</div>{' '}
 						<br />
 						Whole-home UA
 						<br />
 						<div className="item">
-							{heatLoadAnalysis.wholeHomeHeatLossRate} BTU/h-°F
+							{/* {heatLoadAnalysis.wholeHomeHeatLossRate} BTU/h-°F */}
+							{summaryOutputs?.get('whole_home_heat_loss_rate').toFixed(0)} BTU/h-°F
 						</div>{' '}
 						<br />
 					</div>
