@@ -1,0 +1,7 @@
+#EnergyUseHistoryChart .inclusion-true{
+    background: #ffffff;
+}
+#EnergyUseHistoryChart .inclusion-false{
+    background: #F5F5F5;
+    opacity: .4;
+}

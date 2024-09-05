@@ -45,9 +45,19 @@ export function AnalysisHeader(props: { usage_data: any }) {
 	// 		"maximum_heat_load",
 	// 		3312125.0171753373
 	// 	]])
-
+	
 
 	const summaryOutputs = props.usage_data?.get('summary_output')
+
+	// Calculate the number of billing periods included in Heating calculations
+	const heatingAnalysisTypeRecords = props.usage_data?.get('billing_records')?.filter((billingRecord) => billingRecord.get('analysis_type') == 1)
+	
+	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter((billingRecord) => billingRecord.get('default_inclusion_by_calculation') == true && billingRecord.get('inclusion_override') == false).length
+
+	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter((billingRecord) => billingRecord.get('default_inclusion_by_calculation') == false && billingRecord.get('inclusion_override') == true).length
+
+	const numRecordsForHeatingCalculations = recordsIncludedByDefault + recordsIncludedByOverride
+
 	return (
 		<div className="section-title">
 			<div className="item-group-title">Heat Load Analysis</div>
@@ -69,7 +79,7 @@ export function AnalysisHeader(props: { usage_data: any }) {
 				<div className="basis-1/3">
 					<div className="item-title-small">
 						Number of Periods Included <br />
-						<div className="item">(to be calculated)</div>
+						<div className="item">{numRecordsForHeatingCalculations}</div>
 						<br />
 						Daily non-heating Usage <br />
 						<div className="item">

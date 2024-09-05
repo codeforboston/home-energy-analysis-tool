@@ -479,7 +479,7 @@ export default function Inputs() {
     * "2020-10-02" 
      */
     /* @ts-ignore */
-    console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
+    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
 
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
