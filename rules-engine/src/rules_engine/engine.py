@@ -210,7 +210,7 @@ def convert_to_intermediate_billing_periods(
 
 def _date_to_analysis_type_oil_propane(
     start_date: date, end_date: date
-) -> AnalysisType:
+) -> tuple[AnalysisType, bool]:
     """
     Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
     """
@@ -223,7 +223,7 @@ def _date_to_analysis_type_oil_propane(
         _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
         _default_inclusion = False
     else:
-        _analysis_type =  AnalysisType.ALLOWED_HEATING_USAGE
+        _analysis_type = AnalysisType.ALLOWED_HEATING_USAGE
         _default_inclusion = True
     return (_analysis_type, _default_inclusion)
 
@@ -246,8 +246,8 @@ def _date_to_analysis_type_natural_gas(d: date) -> tuple[AnalysisType, bool]:
         11: AnalysisType.ALLOWED_HEATING_USAGE,
         12: AnalysisType.ALLOWED_HEATING_USAGE,
     }
-    
-    default_inclusion_by_month = { 
+
+    default_inclusion_by_month = {
         1: True,
         2: True,
         3: True,
@@ -455,11 +455,17 @@ class Home:
 
             if billing_period.inclusion_override:
                 _default_inclusion = not _default_inclusion
-            
-            if _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE and _default_inclusion:
-                    self.bills_winter.append(billing_period)
-            elif _analysis_type == AnalysisType.ALLOWED_NON_HEATING_USAGE and _default_inclusion:
-                    self.bills_summer.append(billing_period)
+
+            if (
+                _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE
+                and _default_inclusion
+            ):
+                self.bills_winter.append(billing_period)
+            elif (
+                _analysis_type == AnalysisType.ALLOWED_NON_HEATING_USAGE
+                and _default_inclusion
+            ):
+                self.bills_summer.append(billing_period)
             else:  # the rest are excluded from calculations
                 self.bills_shoulder.append(billing_period)
 
