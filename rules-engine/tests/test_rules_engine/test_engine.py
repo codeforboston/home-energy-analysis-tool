@@ -33,7 +33,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -41,7 +41,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -49,7 +49,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -72,7 +72,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             [41.7, 41.6, 32, 25.4],
             60,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -80,7 +80,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -88,7 +88,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -96,7 +96,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
-            False,
+            True,
             False,
         ),
         engine.BillingPeriod(
@@ -194,28 +194,28 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
             "period_end_date": "2022-12-04",
             "usage": 60,
             "inclusion_override": False,
-            "default_inclusion": False,
+            "default_inclusion": True,
         },
         {
             "period_start_date": "2023-01-01",
             "period_end_date": "2023-01-04",
             "usage": 50,
             "inclusion_override": False,
-            "default_inclusion": False,
+            "default_inclusion": True,
         },
         {
             "period_start_date": "2023-02-01",
             "period_end_date": "2023-02-04",
             "usage": 45,
             "inclusion_override": False,
-            "default_inclusion": False,
+            "default_inclusion": True,
         },
         {
             "period_start_date": "2023-03-01",
             "period_end_date": "2023-03-04",
             "usage": 30,
             "inclusion_override": False,
-            "default_inclusion": False,
+            "default_inclusion": True,
         },
         {
             "period_start_date": "2023-04-01",
@@ -271,7 +271,7 @@ def test_date_to_analysis_type_natural_gas():
     )
     assert (
         analysis_type == AnalysisType.ALLOWED_HEATING_USAGE
-        and default_inclusion == False
+        and default_inclusion == True
     )
 
 
