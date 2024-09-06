@@ -189,7 +189,7 @@ def convert_to_intermediate_billing_periods(
                 billing_period.period_end_date
             )
         elif fuel_type == FuelType.OIL or fuel_type == FuelType.PROPANE:
-            analysis_type = _date_to_analysis_type_oil_propane(
+            analysis_type, default_inclusion = _date_to_analysis_type_oil_propane(
                 billing_period.period_start_date, billing_period.period_end_date
             )
         else:
@@ -220,9 +220,12 @@ def _date_to_analysis_type_oil_propane(
         or (start_date.month < 7 and end_date.month > 7)
         or (start_date.month < 7 and start_date.year < end_date.year)
     ):
-        return AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+        _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
+        _default_inclusion = False
     else:
-        return AnalysisType.ALLOWED_HEATING_USAGE
+        _analysis_type =  AnalysisType.ALLOWED_HEATING_USAGE
+        _default_inclusion = True
+    return (_analysis_type, _default_inclusion)
 
 
 def _date_to_analysis_type_natural_gas(d: date) -> tuple[AnalysisType, bool]:
