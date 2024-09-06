@@ -54,11 +54,20 @@ import { tr } from '@faker-js/faker'
 // 	naturalGasBillRecord04,
 // ]
 
+
+
+
+
 // export function EnergyUseHistoryChart(props: z.infer<typeof NaturalGasUsageData>) {
 export function EnergyUseHistoryChart(props: { usage_data: any }) {
 	console.log("EnergyUseHistoryChart Component:", props.usage_data?.get('billing_records'))
 
 	const billingRecords = props.usage_data?.get('billing_records')
+
+	const handleOverrideCheckboxChange = () => {
+		console.log("handleOverrideCheckboxChange")
+		 
+	}
 
 	return (
 		<Table id='EnergyUseHistoryChart'>
@@ -129,7 +138,11 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 								}
 								</TableCell>
 							<TableCell>
-								<Checkbox checked={period.get('inclusion_override')} disabled={overrideCheckboxDisabled}/>
+								<Checkbox 
+									checked={period.get('inclusion_override')} 
+									disabled={overrideCheckboxDisabled}
+									onClick={handleOverrideCheckboxChange}
+								/>
 							</TableCell>
 						</TableRow>
 					)
