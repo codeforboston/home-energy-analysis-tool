@@ -167,3 +167,10 @@ model Connection {
 
   @@unique([providerName, providerId])
 }
+
+model OilPropaneBillingRecordInput {
+    id                     String @id @default(cuid())
+    period_end_date        DateTime
+    gallons                Float
+    inclusion_override     String
+}

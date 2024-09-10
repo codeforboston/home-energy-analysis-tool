@@ -8,6 +8,9 @@
     "#app/*": "./app/*",
     "#tests/*": "./tests/*"
   },
+  "prisma": {
+    "seed": "ts-node ./prisma/seed.ts"
+  },
   "scripts": {
     "build": "run-s build:*",
     "build:icons": "tsx ./other/build-icons.ts",
@@ -50,7 +53,7 @@
     "@epic-web/totp": "^1.1.2",
     "@nasa-gcn/remix-seo": "^2.0.1",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^5.19.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-label": "^2.1.0",
@@ -86,10 +89,9 @@
     "intl-parse-accept-language": "^1.0.0",
     "isbot": "^5.1.13",
     "litefs-js": "^1.1.2",
-    "lucide-react": "^0.428.0",
     "lru-cache": "^11.0.0",
+    "lucide-react": "^0.428.0",
     "morgan": "^1.10.0",
-    "prisma": "^5.17.0",
     "pyodide": "0.24.1",
     "qrcode": "^1.5.3",
     "react": "^18.3.1",
@@ -151,6 +153,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-sql": "^0.18.1",
     "prettier-plugin-tailwindcss": "^0.6.5",
+    "prisma": "^5.19.1",
     "remix-flat-routes": "^0.6.5",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
@@ -163,8 +166,5 @@
   "epic-stack": {
     "head": "b2f899fec54a76c1e0e863dadad6e9340af5ca1b",
     "date": "2024-08-15T23:19:44Z"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }
