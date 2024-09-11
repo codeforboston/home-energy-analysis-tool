@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -30,14 +30,14 @@ _EXAMPLE_INVALID_RECORDS = NaturalGasBillingInput(
 
 
 def test_natural_gas_billing_input_overall_start_date():
-    expected_overall_start_date = date(2020, 1, 1)
+    expected_overall_start_date = datetime(2020, 1, 1)
     actual_overall_start_date = _EXAMPLE_VALID_RECORDS.overall_start_date
 
     assert expected_overall_start_date == actual_overall_start_date
 
 
 def test_natural_gas_billing_input_overall_end_date():
-    expected_overall_end_date = date(2020, 2, 28)
+    expected_overall_end_date = datetime(2020, 2, 28)
     actual_overall_end_date = _EXAMPLE_VALID_RECORDS.overall_end_date
 
     assert expected_overall_end_date == actual_overall_end_date
