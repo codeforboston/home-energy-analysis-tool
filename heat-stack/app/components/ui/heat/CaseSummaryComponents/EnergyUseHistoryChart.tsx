@@ -11,7 +11,6 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
-import './styles/EnergyUseHistoryChart.css'
 import HeatingUsage from './assets/HeatingUsage.png'
 import NonHeatingUsage from './assets/NonHeatingUsage.png'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.png'
@@ -87,7 +86,7 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 			</TableHeader>
 			<TableBody>
 				{/* {naturalGasBill.map((period, index) => { */}
-				{billingRecords.map((period, index) => {
+				{billingRecords.map((period: Map<string, any>, index: number) => {
 
 					const startDate = new Date(period.get('period_start_date'))
 					const endDate = new Date(period.get('period_end_date'))
@@ -98,7 +97,7 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 
 					// Set Analysis Type image and checkbox setting
 					const analysisType = period.get('analysis_type')
-					let analysisType_Image = null
+					let analysisType_Image = undefined
 					let overrideCheckboxDisabled = false
 
 					/* switch case for 1, -1, 0 */
@@ -120,10 +119,11 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 					if (period.get('inclusion_override')) {
 						calculatedInclusion = !calculatedInclusion
 					}
-					const rowInclusionClassName = 'inclusion-' + calculatedInclusion
-
+					
+					const variant = calculatedInclusion ? 'included' : 'excluded'
+					
 					return (
-						<TableRow key={index} className={rowInclusionClassName} >
+						<TableRow key={index} variant={variant}>
 							<TableCell className="font-medium">{index + 1}</TableCell>
 							<TableCell><img src={analysisType_Image} alt='Analysis Type'></img></TableCell>
 							<TableCell>{startDate.toLocaleDateString()}</TableCell>

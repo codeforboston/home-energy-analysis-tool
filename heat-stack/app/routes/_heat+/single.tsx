@@ -1,6 +1,6 @@
 /** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
-import { useForm } from '@conform-to/react'
+import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
@@ -489,13 +489,24 @@ export default function Inputs() {
         Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      *//* @ts-ignore */
+     
     // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
-
+ 
+    type ActionResult = 
+    | SubmissionResult<string[]>
+    | { data: string }
+    | undefined;
+  
+    /** typeguard for useAction between string[] and {data: string} */
+    function hasDataProperty(result: ActionResult): result is { data: string } {
+        return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
+    }  
+  
     let usage_data = null;
     let show_usage_data = lastResult !== undefined;
     console.log('lastResult', lastResult)
-    if ( show_usage_data ) {
-        usage_data = JSON.parse(lastResult.data, reviver);
+    if ( show_usage_data && hasDataProperty(lastResult)) {
+        usage_data = JSON.parse(lastResult?.data, reviver);
     }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
