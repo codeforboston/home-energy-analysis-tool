@@ -238,7 +238,7 @@ def _date_to_analysis_type_natural_gas(d: date) -> tuple[AnalysisType, bool]:
         3: AnalysisType.ALLOWED_HEATING_USAGE,
         4: AnalysisType.ALLOWED_HEATING_USAGE,
         5: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
-        6: AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
+        6: AnalysisType.ALLOWED_NON_HEATING_USAGE,
         7: AnalysisType.ALLOWED_NON_HEATING_USAGE,
         8: AnalysisType.ALLOWED_NON_HEATING_USAGE,
         9: AnalysisType.ALLOWED_NON_HEATING_USAGE,
