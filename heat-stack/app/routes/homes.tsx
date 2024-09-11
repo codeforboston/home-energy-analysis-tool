@@ -1,7 +1,7 @@
-import type {
-  ActionFunctionArgs,
+import  {
+  type ActionFunctionArgs,
+  redirect
 } from "@remix-run/node";
-import { redirect } from "@remix-run/node"
 
 export async function action({
 	request

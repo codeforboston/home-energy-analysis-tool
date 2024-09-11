@@ -3,7 +3,7 @@ import { z } from 'zod'
 const schema = z.object({
 	NODE_ENV: z.enum(['production', 'development', 'test'] as const),
 	DATABASE_PATH: z.string(),
-	PYODIDE_PATH: z.string(),
+	// PYODIDE_PATH: z.string(),
 	DATABASE_URL: z.string(),
 	SESSION_SECRET: z.string(),
 	INTERNAL_COMMAND_TOKEN: z.string(),
@@ -17,6 +17,7 @@ const schema = z.object({
 	GITHUB_CLIENT_ID: z.string().default('MOCK_GITHUB_CLIENT_ID'),
 	GITHUB_CLIENT_SECRET: z.string().default('MOCK_GITHUB_CLIENT_SECRET'),
 	GITHUB_TOKEN: z.string().default('MOCK_GITHUB_TOKEN'),
+	ALLOW_INDEXING: z.enum(['true', 'false']).optional(),
 })
 
 declare global {
@@ -51,6 +52,7 @@ export function getEnv() {
 	return {
 		MODE: process.env.NODE_ENV,
 		SENTRY_DSN: process.env.SENTRY_DSN,
+		ALLOW_INDEXING: process.env.ALLOW_INDEXING,
 	}
 }
 

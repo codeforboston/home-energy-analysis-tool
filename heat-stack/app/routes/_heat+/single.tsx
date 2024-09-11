@@ -3,9 +3,14 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, ActionFunctionArgs } from '@remix-run/node'
+import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
-import { z } from 'zod'
+import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
+import * as pyodideModule from 'pyodide'
+import { type z } from 'zod'
+import { Button } from '#/app/components/ui/button.tsx'
+import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
 import PyodideUtil from '#app/utils/pyodide.util.js'
@@ -37,26 +42,20 @@ import PyodideUtil from '#app/utils/pyodide.util.js'
 // - [ ] Validate pyodide data
 // - [ ] Only use csv data after any time the user uploads csv. When the user adjusts the table, use the table data instead.
 // - [ ] Disable the submit button when inputs or csv file are invalid
-// - [Waiting] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
+// - [x] Use start_date and end_date from rules-engine output of CSV parsing rather than 2 year window.
 // - [ ] (use data passing function API from PR#172 from rules engine) to Build table component form
-// - [ ] Proposition: always set form default values when run in development
+// - [x] Proposition: always set form default values when run in development
 // - [ ] Pass modified table back to rules engine for full cycle revalidation
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
+// - [ ] Will weather service take timestamp instead of timezone date data?
 
 // Ours
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Home, Location, Case, NaturalGasUsageData, validateNaturalGasUsageData, HeatLoadAnalysisZod } from '../../../types/index.ts'
+import { Home, Location, Case, type NaturalGasUsageData, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import { Button } from '#/app/components/ui/button.tsx'
-import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler'
-import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData'
-
-const nameMaxLength = 50
-const addressMaxLength = 100
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -134,7 +133,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // 	createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
     // )
 
-    console.log('loading pyodideUtil/pyodideModule/geocodeUtil/weatherUtil')
+    console.log('loading geocodeUtil/weatherUtil')
 
     const pyodideUtil: PyodideUtil = PyodideUtil.getInstance();
     const geocodeUtil = new GeocodeUtil()
@@ -213,49 +212,50 @@ export async function action({ request, params }: ActionFunctionArgs) {
     type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
     const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
 
-    console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
-    const startDateString = pyodideResultsFromTextFile.get('overall_start_date')
-    const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
-
-    // Do we need this?:
-    // const startDateString = pyodideResultsFromTextFile.overall_start_date
-
+    // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
+    const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
+    const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
+    
     if (typeof startDateString !== 'string' || typeof endDateString !== 'string') {
         throw new Error('Start date or end date is missing or invalid');
-      }
-      
-    const start_date = new Date(startDateString)
-    const end_date = new Date(endDateString)
+    }
+    
+    // Get today's date
+    const today = new Date();
+    // Calculate the date 2 years ago from today
+    const twoYearsAgo = new Date(today);
+    twoYearsAgo.setFullYear(today.getFullYear() - 2);
+    
+    let start_date = new Date(startDateString);
+    let end_date = new Date(endDateString);
+    
+    // Use default dates if parsing fails
+    if (isNaN(start_date.getTime())) {
+        console.warn('Invalid start date, using date from 2 years ago');
+        start_date = twoYearsAgo;
+    }
+    if (isNaN(end_date.getTime())) {
+        console.warn('Invalid end date, using today\'s date');
+        end_date = today;
+    }
+    
+    // Function to ensure we always return a valid date string
+    const formatDateString = (date: Date): string => {
+        return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10);
+    };
     
     const weatherData = await weatherUtil.getThatWeathaData(
         x,
         y,
-        start_date.toISOString().split('T')[0],
-        end_date.toISOString().split('T')[0],
-    )
+        formatDateString(start_date),
+        formatDateString(end_date)
+    );
 
     const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
     const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
-    
-    // console.log(`========\n========`)
-    // console.log(`end`, weatherData.dates[weatherData.dates.length - 1]);
-    // console.log(weatherData)
-    
-    // const BI = [
-    // 	{
-    // 		period_start_date: new Date('2023-12-30'), //new Date("2023-12-30"),
-    // 		period_end_date: new Date('2024-01-06'),
-    // 		usage: 100,
-    // 		inclusion_override: null,
-    // 	},
-    // ]
 
-    // let { parsedAndValidatedFormSchema, weatherData, BI } = await genny(x, y, '2024-01-01', '2024-01-03')
-
-    // pyodideUtil.runit(parsedAndValidatedFormSchema,null,weatherData,JSON.stringify(BI));
-    // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
-    // Main form entrypoint
-
+    /** Main form entrypoint
+     */
     const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
         from rules_engine import parser
         from rules_engine.pydantic_models import (
@@ -295,6 +295,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     //console.log("foo billing records [0]", foo.get('billing_records')[0] )
 
+    /**
+     * second time and after, when table is modified, this becomes entrypoint
+     */
     const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
         from rules_engine import parser
         from rules_engine.pydantic_models import (
@@ -377,16 +380,77 @@ Traceback (most recent call last): File "<exec>", line 32,
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
-    return redirect(`/single`)
+    const str_version = JSON.stringify(foo2, replacer);
+    // const json_version = JSON.parse(str_version);
+    // console.log("str_version", str_version);
+
+    // Consider adding to form data
+    return json({data: str_version});
+    // return redirect(`/single`)
+}
+
+// https://stackoverflow.com/a/56150320
+function replacer(key: any, value: any) {
+    if(value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    } else {
+        return value;
+    }
+}
+    
+function reviver(key: any, value: any) {
+    if(typeof value === 'object' && value !== null) {
+        if (value.dataType === 'Map') {
+        return new Map(value.value);
+        }
+    }
+    return value;
 }
 
 export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
+
+     /* @ts-ignore */
+    console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
+
+    /**
+     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+     *
+     * temp1.get('summary_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
+     */
+    /* @ts-ignore */
+    console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('summary_output'): undefined)
+    
+    /**
+     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+     * temp1.get('billing_records')
+     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+     * temp1.get('billing_records')[0]
+     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion_by_calculation → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+     * temp1.get('billing_records')[0].get('period_start_date')
+    * "2020-10-02" 
+     */
+    /* @ts-ignore */
+    console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
+
+    /**
+     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+     *  temp1.get('balance_point_graph').get('records')
+        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
+        temp1.get('balance_point_graph').get('records')[0]
+        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
+        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
+     *//* @ts-ignore */
+    console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
+
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
-        lastResult,
+        /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
         onValidate({ formData }) {
             return parseWithZod(formData, { schema: Schema })
         },
@@ -406,6 +470,7 @@ export default function Inputs() {
 
     return (
         <>
+        <pre>{JSON.stringify(lastResult, null, 2)}</pre>
             <Form
                 id={form.id}
                 method="post"
