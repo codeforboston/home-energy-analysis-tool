@@ -1,6 +1,6 @@
 import * as pyodideModule from 'pyodide'
-import GeocodeUtil from "#app/utils/GeocodeUtil";
-import WeatherUtil from "#app/utils/WeatherUtil";
+// import GeocodeUtil from "#app/utils/GeocodeUtil";
+// import WeatherUtil from "#app/utils/WeatherUtil";
 
 export default function Foo() {
     const getPyodide = async () => {
@@ -11,7 +11,7 @@ export default function Foo() {
         console.log(thing)
         return thing;
     }
-    getPyodide();
+    void getPyodide();
     return <div>Hello</div>
 }
 

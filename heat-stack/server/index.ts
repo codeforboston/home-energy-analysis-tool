@@ -1,16 +1,6 @@
 import crypto from 'crypto'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import {
-	createRequestHandler as _createRequestHandler,
-	type RequestHandler,
-} from '@remix-run/express'
-import {
-	broadcastDevReady,
-	installGlobals,
-	type ServerBuild,
-} from '@remix-run/node'
-import * as Sentry from '@sentry/remix'
+import { createRequestHandler } from '@remix-run/express'
+import { type ServerBuild } from '@remix-run/node'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
@@ -21,23 +11,22 @@ import getPort, { portNumbers } from 'get-port'
 import helmet from 'helmet'
 import morgan from 'morgan'
 
-installGlobals()
+const MODE = process.env.NODE_ENV ?? 'development'
+const IS_PROD = MODE === 'production'
+const IS_DEV = MODE === 'development'
+const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
 
-const MODE = process.env.NODE_ENV
+if (IS_PROD && process.env.SENTRY_DSN) {
+	void import('./utils/monitoring.js').then(({ init }) => init())
+}
 
-const createRequestHandler = Sentry.wrapExpressCreateRequestHandler(
-	_createRequestHandler,
-)
-
-const BUILD_PATH = '../build/index.js'
-const WATCH_PATH = '../build/version.txt'
-
-/**
- * Initial build
- * @type {ServerBuild}
- */
-const build = await import(BUILD_PATH)
-let devBuild = build
+const viteDevServer = IS_PROD
+	? undefined
+	: await import('vite').then((vite) =>
+			vite.createServer({
+				server: { middlewareMode: true },
+			}),
+		)
 
 const app = express()
 
@@ -49,6 +38,8 @@ app.set('trust proxy', true)
 
 // ensure HTTPS only (X-Forwarded-Proto comes from Fly)
 app.use((req, res, next) => {
+	if (req.method !== 'GET') return next()
+
 	const proto = req.get('X-Forwarded-Proto')
 	const host = getHost(req)
 	if (proto === 'http') {
@@ -76,26 +67,27 @@ app.use(compression())
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
 
-app.use(Sentry.Handlers.requestHandler())
-app.use(Sentry.Handlers.tracingHandler())
+if (viteDevServer) {
+	app.use(viteDevServer.middlewares)
+} else {
+	// Remix fingerprints its assets so we can cache forever.
+	app.use(
+		'/assets',
+		express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
+	)
 
-// Remix fingerprints its assets so we can cache forever.
-app.use(
-	'/build',
-	express.static('public/build', { immutable: true, maxAge: '1y' }),
-)
+	// Everything else (like favicon.ico) is cached for an hour. You may want to be
+	// more aggressive with this caching.
+	app.use(express.static('build/client', { maxAge: '1h' }))
+}
 
-// Everything else (like favicon.ico) is cached for an hour. You may want to be
-// more aggressive with this caching.
-app.use(express.static('public', { maxAge: '1h' }))
-
-app.get(['/build/*', '/img/*', '/fonts/*', '/favicons/*'], (req, res) => {
+app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	// if we made it past the express.static for these, then we're missing something.
 	// So we'll just send a 404 and won't bother calling other middleware.
 	return res.status(404).send('Not found')
 })
 
-morgan.token('url', (req, res) => decodeURIComponent(req.url ?? ''))
+morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
 app.use(
 	morgan('tiny', {
 		skip: (req, res) =>
@@ -113,6 +105,7 @@ app.use((_, res, next) => {
 
 app.use(
 	helmet({
+		xPoweredBy: false,
 		referrerPolicy: { policy: 'same-origin' },
 		crossOriginEmbedderPolicy: false,
 		contentSecurityPolicy: {
@@ -121,7 +114,7 @@ app.use(
 			directives: {
 				'connect-src': [
 					MODE === 'development' ? 'ws:' : null,
-					process.env.SENTRY_DSN ? '*.ingest.sentry.io' : null,
+					process.env.SENTRY_DSN ? '*.sentry.io' : null,
 					"'self'",
 				].filter(Boolean),
 				'font-src': ["'self'"],
@@ -148,15 +141,20 @@ app.use(
 // rate limiting because playwright tests are very fast and we don't want to
 // have to wait for the rate limit to reset between tests.
 const maxMultiple =
-	MODE !== 'production' || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
+	!IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
 const rateLimitDefault = {
 	windowMs: 60 * 1000,
 	max: 1000 * maxMultiple,
 	standardHeaders: true,
 	legacyHeaders: false,
-	// Fly.io prevents spoofing of X-Forwarded-For
-	// so no need to validate the trustProxy config
 	validate: { trustProxy: false },
+	// Malicious users can spoof their IP address which means we should not deault
+	// to trusting req.ip when hosted on Fly.io. However, users cannot spoof Fly-Client-Ip.
+	// When sitting behind a CDN such as cloudflare, replace fly-client-ip with the CDN
+	// specific header such as cf-connecting-ip
+	keyGenerator: (req: express.Request) => {
+		return req.get('fly-client-ip') ?? `${req.ip}`
+	},
 }
 
 const strongestRateLimit = rateLimit({
@@ -185,7 +183,7 @@ app.use((req, res, next) => {
 		'/resources/verify',
 	]
 	if (req.method !== 'GET' && req.method !== 'HEAD') {
-		if (strongPaths.some(p => req.path.includes(p))) {
+		if (strongPaths.some((p) => req.path.includes(p))) {
 			return strongestRateLimit(req, res, next)
 		}
 		return strongRateLimit(req, res, next)
@@ -200,50 +198,62 @@ app.use((req, res, next) => {
 	return generalRateLimit(req, res, next)
 })
 
-function getRequestHandler(build: ServerBuild): RequestHandler {
-	function getLoadContext(_: any, res: any) {
-		return { cspNonce: res.locals.cspNonce }
-	}
-	return createRequestHandler({ build, mode: MODE, getLoadContext })
+async function getBuild() {
+	const build = viteDevServer
+		? viteDevServer.ssrLoadModule('virtual:remix/server-build')
+		: // @ts-ignore this should exist before running the server
+			// but it may not exist just yet.
+			await import('../build/server/index.js')
+	// not sure how to make this happy 🤷‍♂️
+	return build as unknown as ServerBuild
+}
+
+if (!ALLOW_INDEXING) {
+	app.use((_, res, next) => {
+		res.set('X-Robots-Tag', 'noindex, nofollow')
+		next()
+	})
 }
 
 app.all(
 	'*',
-	MODE === 'development'
-		? (...args) => getRequestHandler(devBuild)(...args)
-		: getRequestHandler(build),
+	createRequestHandler({
+		getLoadContext: (_: any, res: any) => ({
+			cspNonce: res.locals.cspNonce,
+			serverBuild: getBuild(),
+		}),
+		mode: MODE,
+		build: getBuild,
+	}),
 )
 
 const desiredPort = Number(process.env.PORT || 3000)
 const portToUse = await getPort({
 	port: portNumbers(desiredPort, desiredPort + 100),
 })
+const portAvailable = desiredPort === portToUse
+if (!portAvailable && !IS_DEV) {
+	console.log(`⚠️ Port ${desiredPort} is not available.`)
+	process.exit(1)
+}
 
 const server = app.listen(portToUse, () => {
-	const addy = server.address()
-	const portUsed =
-		desiredPort === portToUse
-			? desiredPort
-			: addy && typeof addy === 'object'
-				? addy.port
-				: 0
-
-	if (portUsed !== desiredPort) {
+	if (!portAvailable) {
 		console.warn(
 			chalk.yellow(
-				`⚠️  Port ${desiredPort} is not available, using ${portUsed} instead.`,
+				`⚠️  Port ${desiredPort} is not available, using ${portToUse} instead.`,
 			),
 		)
 	}
 	console.log(`🚀  We have liftoff!`)
-	const localUrl = `http://localhost:${portUsed}`
+	const localUrl = `http://localhost:${portToUse}`
 	let lanUrl: string | null = null
 	const localIp = ipAddress() ?? 'Unknown'
 	// Check if the address is a private ip
 	// https://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces
 	// https://github.com/facebook/create-react-app/blob/d960b9e38c062584ff6cfb1a70e1512509a966e7/packages/react-dev-utils/WebpackDevServerUtils.js#LL48C9-L54C10
 	if (/^10[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(localIp)) {
-		lanUrl = `http://${localIp}:${portUsed}`
+		lanUrl = `http://${localIp}:${portToUse}`
 	}
 
 	console.log(
@@ -253,35 +263,10 @@ ${lanUrl ? `${chalk.bold('On Your Network:')}  ${chalk.cyan(lanUrl)}` : ''}
 ${chalk.bold('Press Ctrl+C to stop')}
 		`.trim(),
 	)
-
-	if (MODE === 'development') {
-		broadcastDevReady(build)
-	}
 })
 
 closeWithGrace(async () => {
 	await new Promise((resolve, reject) => {
-		server.close(e => (e ? reject(e) : resolve('ok')))
+		server.close((e) => (e ? reject(e) : resolve('ok')))
 	})
 })
-
-// during dev, we'll keep the build module up to date with the changes
-if (MODE === 'development') {
-	async function reloadBuild() {
-		devBuild = await import(`${BUILD_PATH}?update=${Date.now()}`)
-		broadcastDevReady(devBuild)
-	}
-
-	// We'll import chokidar here so doesn't get bundled in production.
-	const chokidar = await import('chokidar')
-
-	const dirname = path.dirname(fileURLToPath(import.meta.url))
-	const watchPath = path.join(dirname, WATCH_PATH).replace(/\\/g, '/')
-
-	const buildWatcher = chokidar
-		.watch(watchPath, { ignoreInitial: true })
-		.on('add', reloadBuild)
-		.on('change', reloadBuild)
-
-	closeWithGrace(() => buildWatcher.close())
-}

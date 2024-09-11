@@ -30,7 +30,6 @@ function createTimer(type: string, desc?: string) {
 			let timingType = timings[type]
 
 			if (!timingType) {
-				// eslint-disable-next-line no-multi-assign
 				timingType = timings[type] = []
 			}
 			timingType.push({ desc, time: performance.now() - start })
@@ -71,7 +70,7 @@ export function getServerTimeHeader(timings?: Timings) {
 				}, 0)
 				.toFixed(1)
 			const desc = timingInfos
-				.map(t => t.desc)
+				.map((t) => t.desc)
 				.filter(Boolean)
 				.join(' & ')
 			return [
@@ -102,7 +101,7 @@ export function cachifiedTimingReporter<Value>(
 			`${key} cache retrieval`,
 		)
 		let getFreshValueTimer: ReturnType<typeof createTimer> | undefined
-		return event => {
+		return (event) => {
 			switch (event.name) {
 				case 'getFreshValueStart':
 					getFreshValueTimer = createTimer(

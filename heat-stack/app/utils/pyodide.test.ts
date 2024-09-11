@@ -163,7 +163,7 @@ test('pyodide solves climate change', async () => {
     // https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20Broadway%2C%20Cambridge%2C%20MA%2002139&benchmark=4&vintage=4
     const address = "1 Broadway, Cambridge, MA 02142";
     let {coordinates, state_id, county_id}  = await GU.getLL(address)
-    let {x, y} = coordinates;
+    let {x, y} = coordinates ?? {x: 0, y: 0};
     console.log ("address", address, x, y);
     const TIWD = await WU.getThatWeathaData(x, y, "2024-03-20", "2024-04-20");
     console.log("weather data",TIWD);

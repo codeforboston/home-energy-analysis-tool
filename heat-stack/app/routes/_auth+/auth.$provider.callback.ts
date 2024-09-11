@@ -6,7 +6,12 @@ import {
 } from '#app/utils/auth.server.ts'
 import { ProviderNameSchema, providerLabels } from '#app/utils/connections.tsx'
 import { prisma } from '#app/utils/db.server.ts'
+import { ensurePrimary } from '#app/utils/litefs.server.ts'
 import { combineHeaders } from '#app/utils/misc.tsx'
+import {
+	normalizeEmail,
+	normalizeUsername,
+} from '#app/utils/providers/provider.ts'
 import {
 	destroyRedirectToHeader,
 	getRedirectCookieValue,
@@ -16,16 +21,17 @@ import {
 	redirectWithToast,
 } from '#app/utils/toast.server.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
-import { handleNewSession } from './login.tsx'
-import {
-	onboardingEmailSessionKey,
-	prefilledProfileKey,
-	providerIdKey,
-} from './onboarding_.$provider.tsx'
+import { handleNewSession } from './login.server.ts'
+import { onboardingEmailSessionKey } from './onboarding.tsx'
+import { prefilledProfileKey, providerIdKey } from './onboarding_.$provider.tsx'
 
 const destroyRedirectTo = { 'set-cookie': destroyRedirectToHeader }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+	// this loader performs mutations, so we need to make sure we're on the
+	// primary instance to avoid writing to a read-only replica
+	await ensurePrimary()
+
 	const providerName = ProviderNameSchema.parse(params.provider)
 	const redirectTo = getRedirectCookieValue(request)
 	const label = providerLabels[providerName]
@@ -33,8 +39,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	const authResult = await authenticator
 		.authenticate(providerName, request, { throwOnError: true })
 		.then(
-			data => ({ success: true, data }) as const,
-			error => ({ success: false, error }) as const,
+			(data) => ({ success: true, data }) as const,
+			(error) => ({ success: false, error }) as const,
 		)
 
 	if (!authResult.success) {
@@ -138,8 +144,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	verifySession.set(onboardingEmailSessionKey, profile.email)
 	verifySession.set(prefilledProfileKey, {
 		...profile,
-		email: profile.email.toLowerCase(),
-		username: profile.username?.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase(),
+		email: normalizeEmail(profile.email),
+		username:
+			typeof profile.username === 'string'
+				? normalizeUsername(profile.username)
+				: undefined,
 	})
 	verifySession.set(providerIdKey, profile.id)
 	const onboardingRedirect = [

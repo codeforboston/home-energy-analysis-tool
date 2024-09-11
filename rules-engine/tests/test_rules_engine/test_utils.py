@@ -94,11 +94,7 @@ def load_fuel_billing_example_input(
         reader = csv.DictReader(f)
         row: Any
         for i, row in enumerate(reader):
-            inclusion_override = row["inclusion_override"]
-            if inclusion_override == "":
-                inclusion_override = None
-            else:
-                inclusion_override = int(inclusion_override)
+            inclusion_override = bool(row["inclusion_override"])
 
             # Choose the correct billing period heat loss (aka "ua")
             # column based on the estimated balance point provided in

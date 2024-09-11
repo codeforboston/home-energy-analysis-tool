@@ -4,26 +4,26 @@ const LAYERS_COUNTY = 82;
 
 // example: https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20broadway%2C%20cambridge%2C%20ma%2002142&benchmark=4&vintage=4&format=json
 interface CensusGeocoderResponse {
-  result: {
-    input: {
-      address: {
-        address: string
-      }
-      vintage: {
-        isDefault: boolean
-        id: string
-        vintageName: string
-        vintageDescription: string
-      }
-      benchmark: {
-        isDefault: boolean
-        benchmarkDescription: string
-        id: string
-        benchmarkName: string
-      }
-    }
-    addressMatches: AddressMatch[]
-  }
+	result: {
+		input: {
+			address: {
+				address: string
+			}
+			vintage: {
+				isDefault: boolean
+				id: string
+				vintageName: string
+				vintageDescription: string
+			}
+			benchmark: {
+				isDefault: boolean
+				benchmarkDescription: string
+				id: string
+				benchmarkName: string
+			}
+		}
+		addressMatches: AddressMatch[]
+	}
 }
 
 interface AddressMatch {
@@ -77,14 +77,14 @@ interface Geography {
 }
 
 class GeocodeUtil {
-  /**
-   *
-   * @param {*} address
-   * @returns x,y {x,y} lon/lat. If the given address was valid. I've implemented 0 handling here.
-   *  This is the happiest of paths, with hardcoded values also...
-   */
-  async getLL(address: string) {
-    const params = new URLSearchParams()
+	/**
+	 *
+	 * @param {*} address
+	 * @returns x,y {x,y} lon/lat. If the given address was valid. I've implemented 0 handling here.
+	 *  This is the happiest of paths, with hardcoded values also...
+	 */
+	async getLL(address: string) {
+		const params = new URLSearchParams()
 
     params.append('address', address)
     params.append('format', 'json')
