@@ -183,7 +183,10 @@ def sample_temp_inputs() -> TemperatureInput:
         ],
     }
 
-    return TemperatureInput(**temperature_dict)
+    return TemperatureInput(
+        temperatures=temperature_dict['temperatures'],
+        dates=[date.fromisoformat(x) for x in temperature_dict['dates']],
+    )
 
 
 @pytest.fixture()
@@ -233,8 +236,18 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
         },
     ]
 
+    # billing_periods = [
+    #     NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
+    # ]
+
     billing_periods = [
-        NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
+        NormalizedBillingPeriodRecordBase(
+            period_start_date=date.fromisoformat(x["period_start_date"]),
+            period_end_date=date.fromisoformat(x["period_end_date"]),
+            usage=x["usage"],
+            analysis_type_override=x["analysis_type_override"],
+            inclusion_override=x["inclusion_override"],
+        ) for x in billing_periods_dict
     ]
 
     return billing_periods
