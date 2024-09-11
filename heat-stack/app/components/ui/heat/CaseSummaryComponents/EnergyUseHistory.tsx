@@ -13,14 +13,15 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
 
 // export function EnergyUseHistory(props: EnergyUseProps) {
-export function EnergyUseHistory() {
+export function EnergyUseHistory(props: { usage_data: any }) {
+	// console.log(`EnergyUseHistory:`, props.usage_data);
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	return (
 		
 		<div>
-			<h2 className={`${titleClass}`}>Energy Use History</h2>
+			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
 			<div>
 				<Suspense fallback={'<div>Blah</div>'}>
 					<input
@@ -36,8 +37,8 @@ export function EnergyUseHistory() {
 				(<a className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 gap-1" href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484">Get example file here</a>)
 
 			</div>
-			<AnalysisHeader />
-			<EnergyUseHistoryChart />
+			{props.usage_data && <AnalysisHeader usage_data={ props.usage_data } /> } 
+			{props.usage_data && <EnergyUseHistoryChart usage_data={props.usage_data} />}
 		</div>
 	)
 }
