@@ -10,14 +10,14 @@ from rules_engine.pydantic_models import (
 _EXAMPLE_VALID_RECORDS = NaturalGasBillingInput(
     records=[
         NaturalGasBillingRecordInput(
-            period_start_date=date(2020, 1, 1),
-            period_end_date=date(2020, 1, 31),
+            period_start_date=datetime(2020, 1, 1),
+            period_end_date=datetime(2020, 1, 31),
             usage_therms=10,
             inclusion_override=None,
         ),
         NaturalGasBillingRecordInput(
-            period_start_date=date(2020, 2, 1),
-            period_end_date=date(2020, 2, 28),
+            period_start_date=datetime(2020, 2, 1),
+            period_end_date=datetime(2020, 2, 28),
             usage_therms=10,
             inclusion_override=None,
         ),

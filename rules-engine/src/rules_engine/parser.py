@@ -123,7 +123,7 @@ def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     records = []
     for row in reader:
         parsed_row = _GasBillRowEversource(row)
-        period_end_date = datetime.strptime(parsed_row.read_date, "%m/%d/%Y").date()
+        period_end_date = datetime.strptime(parsed_row.read_date, "%m/%d/%Y")
         # Calculate period_start_date using the end date and number of days in the bill
         # Care should be taken here to avoid off-by-one errors
         period_start_date = period_end_date - timedelta(
@@ -166,8 +166,8 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
     for row in reader:
         parsed_row = _GasBillRowNationalGrid(row)
 
-        period_start_date = datetime.strptime(parsed_row.start_date, "%m/%d/%Y").date()
-        period_end_date = datetime.strptime(parsed_row.end_date, "%m/%d/%Y").date()
+        period_start_date = datetime.strptime(parsed_row.start_date, "%m/%d/%Y")
+        period_end_date = datetime.strptime(parsed_row.end_date, "%m/%d/%Y")
 
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
