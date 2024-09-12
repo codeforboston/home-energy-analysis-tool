@@ -245,7 +245,6 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
             period_start_date=date.fromisoformat(x["period_start_date"]),
             period_end_date=date.fromisoformat(x["period_end_date"]),
             usage=x["usage"],
-            analysis_type_override=x["analysis_type_override"],
             inclusion_override=x["inclusion_override"],
         ) for x in billing_periods_dict
     ]
