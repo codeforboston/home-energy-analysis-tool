@@ -184,8 +184,8 @@ def sample_temp_inputs() -> TemperatureInput:
     }
 
     return TemperatureInput(
-        temperatures=temperature_dict['temperatures'],
-        dates=[datetime.fromisoformat(x) for x in temperature_dict['dates']],
+        temperatures=temperature_dict["temperatures"],
+        dates=[datetime.fromisoformat(x) for x in temperature_dict["dates"]],
     )
 
 
@@ -246,7 +246,8 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
             period_end_date=datetime.fromisoformat(x["period_end_date"]),
             usage=x["usage"],
             inclusion_override=x["inclusion_override"],
-        ) for x in billing_periods_dict
+        )
+        for x in billing_periods_dict
     ]
 
     return billing_periods
