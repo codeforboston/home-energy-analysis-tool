@@ -168,9 +168,26 @@ model Connection {
   @@unique([providerName, providerId])
 }
 
-model OilPropaneBillingRecordInput {
-    id                     String @id @default(cuid())
-    period_end_date        DateTime
-    gallons                Float
-    inclusion_override     String
+model Home {
+  id         String @id @default(cuid())
+  name       String
+  address    String
+  livingArea Float
+  Case Case[]
+}
+
+model Case {
+  id                              String @id @default(cuid())
+  // homeId is a foreign key to a Home object, the primary (referenced) key of which is id
+  home                            Home @relation(fields: [homeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  homeId                          String
+  fuelType                        String
+  designTemperatureOverride       Boolean
+  heatingSystemEfficiency         Int
+  thermostatSetPoint              Int
+  setbackTemperature              Int
+  setbackHoursPerDay              Int
+  numberOfOccupants               Int
+  estimatedWaterHeatingEfficiency Int
+  standByLosses                   Int
 }
