@@ -8,12 +8,5 @@ npx prisma migrate dev --name NAME
 where NAME is your choice of migration name.
 
 # To Generate the Database without Changing the Schema
-First, generate the prisma client
+TODO: Figure this out
 ```
-npx prisma generate
-```
-Then, synchronize your schema with the database:
-```
-npx prisma db push
-```
-
