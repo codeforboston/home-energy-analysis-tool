@@ -173,7 +173,8 @@ model Home {
   name       String
   address    String
   livingArea Float
-  Case Case[]
+  Case       Case[]
+  File       File[]
 }
 
 model Case {
@@ -190,4 +191,17 @@ model Case {
   numberOfOccupants               Int
   estimatedWaterHeatingEfficiency Int
   standByLosses                   Int
+  File                            File[]
 }
+
+model File {
+  id          String @id @default(cuid())
+  home        Home @relation(fields: [homeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  case        Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  homeId      String
+  caseId      String
+  filePath    String
+  description String
+  // TODO: Storing the File CLOB proved difficult; regardless, we may want to store it in a external storage and replace this field with a String URL
+}
+
