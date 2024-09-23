@@ -192,6 +192,7 @@ model Case {
   estimatedWaterHeatingEfficiency Int
   standByLosses                   Int
   File                            File[]
+  BillingPeriod                   BillingPeriod[]
 }
 
 model File {
@@ -202,6 +203,20 @@ model File {
   caseId      String
   filePath    String
   description String
-  // TODO: Storing the File CLOB proved difficult; regardless, we may want to store it in a external storage and replace this field with a String URL
 }
 
+model BillingPeriod {
+  id                            String @id @default(cuid())
+  case                          Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId                        String
+  periodStartDate               DateTime
+  periodEndDate                 DateTime
+  usage                         Float
+  analysisTypeOverride          Boolean
+  inclusionOverride             Boolean
+  originalAnalysisType          Int
+  analysisType                  Int 
+  defaultInclusionByCalculation Boolean
+  eliminatedAsOutlier           Boolean
+  wholeHomeHeatLossRate         Float
+}
