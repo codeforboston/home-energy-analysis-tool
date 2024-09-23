@@ -141,6 +141,23 @@ CREATE TABLE "File" (
 );
 
 -- CreateTable
+CREATE TABLE "BillingPeriod" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "caseId" TEXT NOT NULL,
+    "periodStartDate" DATETIME NOT NULL,
+    "periodEndDate" DATETIME NOT NULL,
+    "usage" REAL NOT NULL,
+    "analysisTypeOverride" BOOLEAN NOT NULL,
+    "inclusionOverride" BOOLEAN NOT NULL,
+    "originalAnalysisType" INTEGER NOT NULL,
+    "analysisType" INTEGER NOT NULL,
+    "defaultInclusionByCalculation" BOOLEAN NOT NULL,
+    "eliminatedAsOutlier" BOOLEAN NOT NULL,
+    "wholeHomeHeatLossRate" REAL NOT NULL,
+    CONSTRAINT "BillingPeriod_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "_PermissionToRole" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
