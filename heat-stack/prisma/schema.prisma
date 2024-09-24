@@ -179,9 +179,10 @@ model Home {
 
 model Case {
   id                              String @id @default(cuid())
-  // homeId is a foreign key to a Home object, the primary (referenced) key of which is id
   home                            Home @relation(fields: [homeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  summaryOutput                   SummaryOutput[] // There can be only one summaryOutput, but attempting anything else yielded an error.
   homeId                          String
+  summaryOutputId                 String @unique
   fuelType                        String
   designTemperatureOverride       Boolean
   heatingSystemEfficiency         Int
@@ -220,3 +221,21 @@ model BillingPeriod {
   eliminatedAsOutlier           Boolean
   wholeHomeHeatLossRate         Float
 }
+
+model SummaryOutput {
+    // TODO: implement one to one for Case and Summary.  
+    // Below is giving an error
+    id                              String @id @default(cuid())
+    case                            Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    caseId                          String @unique
+    estimatedBalancePoint           Float
+    otherFuelUsage                  Float 
+    averageIndoorTemperature        Float
+    differenceBetweenTiAndTbp       Float
+    designTemperature               Float
+    wholeHomeHeatLossRate           Float
+    standardDeviationOfHeatLossRate Float
+    averageHeatLoad                 Float
+    maximumHeatLoad                 Float
+}
+
