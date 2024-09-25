@@ -238,7 +238,7 @@ test('pyodide solves climate change', async () => {
 
 
         summaryInput = SummaryInput(**summaryInputFromJs)
-        temperatureInput = TemperatureInput(dates=[date.fromisoformat(date) for date in temperatureInputFromJs["dates"]], temperatures=temperatureInputFromJs["temperatures"])
+        temperatureInput = TemperatureInput(dates=[date.fromisoformat(date_) for date_ in temperatureInputFromJs["dates"]], temperatures=temperatureInputFromJs["temperatures"])
 
         outputs = engine.get_outputs_natural_gas(summaryInput,temperatureInput, naturalGasInputRecords)
 
