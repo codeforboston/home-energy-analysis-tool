@@ -220,6 +220,7 @@ test('pyodide solves climate change', async () => {
     }
 
     const executePy = await pyodide.runPythonAsync(`
+    from datetime import date
     from rules_engine import parser
     from rules_engine.pydantic_models import (
         FuelType,
@@ -237,7 +238,7 @@ test('pyodide solves climate change', async () => {
 
 
         summaryInput = SummaryInput(**summaryInputFromJs)
-        temperatureInput = TemperatureInput(**temperatureInputFromJs)
+        temperatureInput = TemperatureInput(dates=[date.fromisoformat(date_) for date_ in temperatureInputFromJs["dates"]], temperatures=temperatureInputFromJs["temperatures"])
 
         outputs = engine.get_outputs_natural_gas(summaryInput,temperatureInput, naturalGasInputRecords)
 
