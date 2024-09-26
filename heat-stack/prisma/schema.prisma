@@ -11,9 +11,11 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  username String  @unique
+  id       String @id @default(cuid())
+  caseUser CaseUser[]
+
+  email    String @unique
+  username String @unique
   name     String?
 
   createdAt DateTime @default(now())
@@ -174,12 +176,12 @@ model Home {
   address    String
   livingArea Float
   Case       Case[]
-  File       File[]
 }
 
 model Case {
-  id                              String @id @default(cuid())
+  id                              Int @id @default(autoincrement())
   home                            Home @relation(fields: [homeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseUser                        CaseUser[]
   summaryOutput                   SummaryOutput[] // There can be only one summaryOutput, but attempting anything else yielded an error.
   homeId                          String
   summaryOutputId                 String @unique
@@ -197,45 +199,47 @@ model Case {
 }
 
 model File {
-  id          String @id @default(cuid())
-  home        Home @relation(fields: [homeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id          Int @id @default(autoincrement())
   case        Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  homeId      String
-  caseId      String
+  caseId      Int
   filePath    String
   description String
 }
 
 model BillingPeriod {
-  id                            String @id @default(cuid())
+  id                            Int @id @default(autoincrement())
   case                          Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  caseId                        String
+  caseId                        Int
   periodStartDate               DateTime
   periodEndDate                 DateTime
   usage                         Float
   analysisTypeOverride          Boolean
   inclusionOverride             Boolean
   originalAnalysisType          Int
-  analysisType                  Int 
+  analysisType                  Int
   defaultInclusionByCalculation Boolean
   eliminatedAsOutlier           Boolean
   wholeHomeHeatLossRate         Float
 }
 
 model SummaryOutput {
-    // TODO: implement one to one for Case and Summary.  
-    // Below is giving an error
-    id                              String @id @default(cuid())
-    case                            Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    caseId                          String @unique
-    estimatedBalancePoint           Float
-    otherFuelUsage                  Float 
-    averageIndoorTemperature        Float
-    differenceBetweenTiAndTbp       Float
-    designTemperature               Float
-    wholeHomeHeatLossRate           Float
-    standardDeviationOfHeatLossRate Float
-    averageHeatLoad                 Float
-    maximumHeatLoad                 Float
+  id                              Int @id @default(autoincrement())
+  case                            Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId                          Int
+  estimatedBalancePoint           Float
+  otherFuelUsage                  Float 
+  averageIndoorTemperature        Float
+  differenceBetweenTiAndTbp       Float
+  designTemperature               Float
+  wholeHomeHeatLossRate           Float
+  standardDeviationOfHeatLossRate Float
+  averageHeatLoad                 Float
+  maximumHeatLoad                 Float
 }
 
+model CaseUser {
+  case   Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId Int @id @default(autoincrement())
+  userId String
+}
