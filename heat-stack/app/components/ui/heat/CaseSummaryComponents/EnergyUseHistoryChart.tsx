@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
 import { type z } from 'zod'
-import { NaturalGasUsageData, type NaturalGasBillRecord as NaturalGasBillRecordZod } from '#types/index'
+import {
+	NaturalGasUsageData,
+	type NaturalGasBillRecord as NaturalGasBillRecordZod,
+} from '#types/index'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
-
 
 import {
 	Table,
@@ -55,31 +57,28 @@ import { tr } from '@faker-js/faker'
 // 	naturalGasBillRecord04,
 // ]
 
-
-
-
-
-// export function EnergyUseHistoryChart(props: z.infer<typeof NaturalGasUsageData>) {
-export function EnergyUseHistoryChart(props: { usage_data: any }) {
-	const [records, setRecords] = useState([])
-	console.log("EnergyUseHistoryChart Component:", props.usage_data?.get('billing_records'))
-
+export function EnergyUseHistoryChart(props: { usage_data: Map<string, any> }) {
+	const [billingRecords, setBillingRecords] = useState<Map<string, any>[]>([])
 
 	useEffect(() => {
-		const billingRecords = props.usage_data?.get('billing_records')
-		setRecords(billingRecords)
-
+		const records = props.usage_data?.get('billing_records') || []
+		setBillingRecords(records as Map<string, any>[])
 	}, [props.usage_data])
 
-	const handleOverrideCheckboxChange = (index: number) => {
-		const newRecords = [...data]
+    const handleOverrideCheckboxChange = (index: number) => {
+        setBillingRecords((prevRecords) => {
+            const newRecords = [...prevRecords]
+            const periodMap = newRecords[index]
 
-		
+            if (periodMap instanceof Map) {
+                const currentOverride = periodMap.get('inclusion_override')
+                periodMap.set('inclusion_override', !currentOverride)
+                newRecords[index] = periodMap
+            }
 
-		console.log(records, "props.usage_data")
-		console.log("handleOverrideCheckboxChange")
-
-	}
+            return newRecords
+        })
+    }
 
 	return (
 		<Table id='EnergyUseHistoryChart'>
@@ -98,9 +97,7 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{/* {naturalGasBill.map((period, index) => { */}
-				{records.map((period: Map<string, any>, index: number) => {
-
+				{billingRecords.map((period: Map<string, any>, index: number) => {
 					const startDate = new Date(period.get('period_start_date'))
 					const endDate = new Date(period.get('period_end_date'))
 
@@ -136,32 +133,31 @@ export function EnergyUseHistoryChart(props: { usage_data: any }) {
 					const variant = calculatedInclusion ? 'included' : 'excluded'
 
 					return (
-						<TableRow key={index} variant={variant}>
-							<TableCell className="font-medium">{index + 1}</TableCell>
-							<TableCell><img src={analysisType_Image} alt='Analysis Type'></img></TableCell>
-							<TableCell>{startDate.toLocaleDateString()}</TableCell>
-							<TableCell>{endDate.toLocaleDateString()}</TableCell>
-							<TableCell>{daysInPeriod}</TableCell>
-							<TableCell>{period.get('usage')}</TableCell>
-							<TableCell>
-								{period.get('whole_home_heat_loss_rate') ?
-									period.get('whole_home_heat_loss_rate').toFixed(0)
-									:
-									"-"
-								}
-							</TableCell>
-							<TableCell>
-								<Checkbox
-									checked={period.get('inclusion_override')}
-									disabled={overrideCheckboxDisabled}
-									onClick={() => handleOverrideCheckboxChange(index)}
-
-								/>
-							</TableCell>
-						</TableRow>
-					)
-				})}
-			</TableBody>
-		</Table>
-	)
+                        <TableRow key={index}>
+                            <TableCell className="font-medium">{index + 1}</TableCell>
+                            <TableCell>
+                                <img src={analysisType_Image} alt="Analysis Type" />
+                            </TableCell>
+                            <TableCell>{startDate.toLocaleDateString()}</TableCell>
+                            <TableCell>{endDate.toLocaleDateString()}</TableCell>
+                            <TableCell>{daysInPeriod}</TableCell>
+                            <TableCell>{period.get('usage')}</TableCell>
+                            <TableCell>
+                                {period.get('whole_home_heat_loss_rate')
+                                    ? period.get('whole_home_heat_loss_rate').toFixed(0)
+                                    : '-'}
+                            </TableCell>
+                            <TableCell>
+                                <Checkbox
+                                       checked={period.get('inclusion_override')}
+                                    disabled={overrideCheckboxDisabled}
+                                    onClick={() => handleOverrideCheckboxChange(index)}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    )
+                })}
+            </TableBody>
+        </Table>
+    )
 }
