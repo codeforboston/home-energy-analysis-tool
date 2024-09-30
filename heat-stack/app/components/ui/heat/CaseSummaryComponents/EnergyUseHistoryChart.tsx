@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
 import { type z } from 'zod'
+import { type usageDataSchema, BillingRecordsSchema } from '#/types/types.ts'
 import {
 	NaturalGasUsageData,
 	type NaturalGasBillRecord as NaturalGasBillRecordZod,
@@ -57,31 +58,35 @@ import { tr } from '@faker-js/faker'
 // 	naturalGasBillRecord04,
 // ]
 
-export function EnergyUseHistoryChart(props: { usage_data: Map<string, any> }) {
-	const [billingRecords, setBillingRecords] = useState<Map<string, any>[]>([])
+export function EnergyUseHistoryChart({ usage_data }: { usage_data: usageDataSchema }) {
+	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
 	useEffect(() => {
-		const records = props.usage_data?.get('billing_records') || []
-		setBillingRecords(records as Map<string, any>[])
-	}, [props.usage_data])
+		if (usage_data?.billing_records) {
+			// Process the billing records directly without converting from Map
+			setBillingRecords(usage_data.billing_records)
+		}
+	}, [usage_data])
 
-    const handleOverrideCheckboxChange = (index: number) => {
-        setBillingRecords((prevRecords) => {
-            const newRecords = [...prevRecords]
-            const periodMap = newRecords[index]
-
-            if (periodMap instanceof Map) {
-                const currentOverride = periodMap.get('inclusion_override')
-                periodMap.set('inclusion_override', !currentOverride)
-                newRecords[index] = periodMap
-            }
-
-            return newRecords
-        })
-    }
+	const handleOverrideCheckboxChange = (index: number) => {
+		setBillingRecords((prevRecords) => {
+			const newRecords = [...prevRecords]
+			const period = newRecords[index]
+			
+			if (period) {
+				const currentOverride = period.inclusion_override
+				// Toggle 'inclusion_override'
+				period.inclusion_override = !currentOverride
+				
+				newRecords[index] = { ...period } 
+			}
+			
+			return newRecords
+		})
+	}
 
 	return (
-		<Table id='EnergyUseHistoryChart'>
+		<Table id="EnergyUseHistoryChart">
 			<TableHeader>
 				<TableRow>
 					<TableHead className="w-[100px]">#</TableHead>
@@ -97,16 +102,16 @@ export function EnergyUseHistoryChart(props: { usage_data: Map<string, any> }) {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{billingRecords.map((period: Map<string, any>, index: number) => {
-					const startDate = new Date(period.get('period_start_date'))
-					const endDate = new Date(period.get('period_end_date'))
+				{billingRecords.map((period, index) => {
+					const startDate = new Date(period.period_start_date)
+					const endDate = new Date(period.period_end_date)
 
 					// Calculate days in period
 					const timeInPeriod = endDate.getTime() - startDate.getTime()
 					const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
 
 					// Set Analysis Type image and checkbox setting
-					const analysisType = period.get('analysis_type')
+					const analysisType = period.analysis_type
 					let analysisType_Image = undefined
 					let overrideCheckboxDisabled = false
 
@@ -125,39 +130,39 @@ export function EnergyUseHistoryChart(props: { usage_data: Map<string, any> }) {
 					}
 
 					// Adjust inclusion for user input
-					let calculatedInclusion = period.get('default_inclusion_by_calculation')
-					if (period.get('inclusion_override')) {
+					let calculatedInclusion = period.default_inclusion_by_calculation
+					if (period.inclusion_override) {
 						calculatedInclusion = !calculatedInclusion
 					}
 
 					const variant = calculatedInclusion ? 'included' : 'excluded'
 
 					return (
-                        <TableRow key={index}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell>
-                                <img src={analysisType_Image} alt="Analysis Type" />
-                            </TableCell>
-                            <TableCell>{startDate.toLocaleDateString()}</TableCell>
-                            <TableCell>{endDate.toLocaleDateString()}</TableCell>
-                            <TableCell>{daysInPeriod}</TableCell>
-                            <TableCell>{period.get('usage')}</TableCell>
-                            <TableCell>
-                                {period.get('whole_home_heat_loss_rate')
-                                    ? period.get('whole_home_heat_loss_rate').toFixed(0)
-                                    : '-'}
-                            </TableCell>
-                            <TableCell>
-                                <Checkbox
-                                       checked={period.get('inclusion_override')}
-                                    disabled={overrideCheckboxDisabled}
-                                    onClick={() => handleOverrideCheckboxChange(index)}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    )
-                })}
-            </TableBody>
-        </Table>
-    )
+						<TableRow key={index}>
+							<TableCell className="font-medium">{index + 1}</TableCell>
+							<TableCell>
+								<img src={analysisType_Image} alt="Analysis Type" />
+							</TableCell>
+							<TableCell>{startDate.toLocaleDateString()}</TableCell>
+							<TableCell>{endDate.toLocaleDateString()}</TableCell>
+							<TableCell>{daysInPeriod}</TableCell>
+							<TableCell>{period.usage}</TableCell>
+							<TableCell>
+								{period.whole_home_heat_loss_rate
+									? period.whole_home_heat_loss_rate.toFixed(0)
+									: '-'}
+							</TableCell>
+							<TableCell>
+								<Checkbox
+									checked={period.inclusion_override}
+									disabled={overrideCheckboxDisabled}
+									onClick={() => handleOverrideCheckboxChange(index)}
+								/>
+							</TableCell>
+						</TableRow>
+					)
+				})}
+			</TableBody>
+		</Table>
+	)
 }
