@@ -171,11 +171,17 @@ model Connection {
 }
 
 model Home {
-  id         String @id @default(cuid())
-  name       String
-  address    String
-  livingArea Float
-  Case       Case[]
+  id                      String @id @default(cuid())
+  name                    String
+  contact_1_name          String
+  contact_1_email_address String
+  contact_1_phone         String
+  contact_2_name          String
+  contact_2_email_address String
+  contact_2_phone         String
+  address                 String
+  livingArea              Float
+  Case                    Case[]
 }
 
 model Case {
@@ -225,7 +231,7 @@ model BillingPeriod {
 model SummaryOutput {
   id                              Int @id @default(autoincrement())
   case                            Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  caseId                          Int
+  caseId                          Int @unique
   estimatedBalancePoint           Float
   otherFuelUsage                  Float 
   averageIndoorTemperature        Float
