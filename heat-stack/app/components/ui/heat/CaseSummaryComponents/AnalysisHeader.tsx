@@ -1,13 +1,7 @@
 import { type z } from 'zod';
-import { usageDataSchema, BillingRecordsSchema, SummaryOutputSchema } from '#types/index'
+import { type UsageDataSchema } from '#/types/types.ts'; 
 
-
-// type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
-type usageDataZod = z.infer<typeof usageDataSchema>
-type BillingRecordsZod = z.infer<typeof BillingRecordsSchema>
-type SummaryOutputZod = z.infer<typeof SummaryOutputSchema>
-
-export function AnalysisHeader({ usage_data }: { usage_data: usageDataZod}) {
+export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Example usage_data
 	// new Map([[
 	// 		"estimated_balance_point",
@@ -39,21 +33,21 @@ export function AnalysisHeader({ usage_data }: { usage_data: usageDataZod}) {
 	// 	]])
 
 	// Extract the summary_output from usage_data
-	const summaryOutputs: SummaryOutputZod | undefined = usage_data?.summary_output;
+	const summaryOutputs = usage_data?.summary_output;
 
 	// Calculate the number of billing periods included in Heating calculations
 	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
-		(billingRecord: BillingRecordsZod) => billingRecord.analysis_type === 1,
+		(billingRecord) => billingRecord.analysis_type === 1,
 	);
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
-		(billingRecord:BillingRecordsZod) =>
+		(billingRecord) =>
 		billingRecord.default_inclusion_by_calculation === true &&
 		billingRecord.inclusion_override === false,
 	).length;
 
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
-		(billingRecord: BillingRecordsZod) =>
+		(billingRecord) =>
 		billingRecord.default_inclusion_by_calculation === false &&
 		billingRecord.inclusion_override === true,
 	).length;

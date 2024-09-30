@@ -1,7 +1,7 @@
 import { Upload } from 'lucide-react'
 
 import { Button } from '#/app/components/ui/button.tsx'
-import { type usageDataSchema } from '#/types/types.ts'
+import { type UsageDataSchema } from '#/types/types.ts'; 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
@@ -14,7 +14,7 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 export function EnergyUseHistory({
 	usage_data,
 }: {
-	usage_data: usageDataSchema
+	usage_data: UsageDataSchema
 }) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'

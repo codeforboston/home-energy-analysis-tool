@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
-import { type usageDataSchema, BillingRecordsSchema } from '#/types/types.ts'
+import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'; 
 import {
 	NaturalGasUsageData,
 	type NaturalGasBillRecord as NaturalGasBillRecordZod,
@@ -58,7 +58,7 @@ import { tr } from '@faker-js/faker'
 // 	naturalGasBillRecord04,
 // ]
 
-export function EnergyUseHistoryChart({ usage_data }: { usage_data: usageDataSchema }) {
+export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSchema }) {
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
 	useEffect(() => {
