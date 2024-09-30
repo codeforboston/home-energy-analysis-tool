@@ -13,4 +13,4 @@ export type BalancePointGraphSchema = z.infer<typeof balancePointGraphSchema>;
 export type SummaryOutputSchema = z.infer<typeof summaryOutputSchema>;
 export type BillingRecordSchema = z.infer<typeof billingRecordSchema>;
 export type BillingRecordsSchema = z.infer<typeof billingRecordsSchema>;
-export type usageDataSchema = z.infer<typeof usageDataSchema>;
+export type UsageDataSchema = z.infer<typeof usageDataSchema>;
