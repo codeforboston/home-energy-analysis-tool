@@ -248,4 +248,5 @@ model CaseUser {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   caseId Int @id @default(autoincrement())
   userId String
+  @@unique([caseId, userId])
 }
