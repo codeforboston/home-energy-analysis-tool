@@ -1,9 +1,13 @@
-import { type z } from 'zod'
-import { type HeatLoadAnalysisZod } from '#types/index'
+import { type z } from 'zod';
+import { usageDataSchema, BillingRecordsSchema, SummaryOutputSchema } from '#types/index'
 
-type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
-export function AnalysisHeader(props: { usage_data: any }) {
 
+// type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
+type usageDataZod = z.infer<typeof usageDataSchema>
+type BillingRecordsZod = z.infer<typeof BillingRecordsSchema>
+type SummaryOutputZod = z.infer<typeof SummaryOutputSchema>
+
+export function AnalysisHeader({ usage_data }: { usage_data: usageDataZod}) {
 	// Example usage_data
 	// new Map([[
 	// 		"estimated_balance_point",
@@ -34,27 +38,29 @@ export function AnalysisHeader(props: { usage_data: any }) {
 	// 		3312125.0171753373
 	// 	]])
 
-	const summaryOutputs = props.usage_data?.get('summary_output')
+	// Extract the summary_output from usage_data
+	const summaryOutputs: SummaryOutputZod | undefined = usage_data?.summary_output;
 
 	// Calculate the number of billing periods included in Heating calculations
-	const heatingAnalysisTypeRecords = props.usage_data
-		?.get('billing_records')
-		?.filter((billingRecord: any) => billingRecord.get('analysis_type') == 1)
+	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
+		(billingRecord: BillingRecordsZod) => billingRecord.analysis_type === 1,
+	);
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
-		(billingRecord: any) =>
-			billingRecord.get('default_inclusion_by_calculation') == true &&
-			billingRecord.get('inclusion_override') == false,
-	).length
+		(billingRecord:BillingRecordsZod) =>
+		billingRecord.default_inclusion_by_calculation === true &&
+		billingRecord.inclusion_override === false,
+	).length;
 
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
-		(billingRecord: any) =>
-			billingRecord.get('default_inclusion_by_calculation') == false &&
-			billingRecord.get('inclusion_override') == true,
-	).length
+		(billingRecord: BillingRecordsZod) =>
+		billingRecord.default_inclusion_by_calculation === false &&
+		billingRecord.inclusion_override === true,
+	).length;
 
 	const numRecordsForHeatingCalculations =
-		recordsIncludedByDefault + recordsIncludedByOverride
+		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
+
 
 	return (
 		<div className="section-title">
@@ -64,14 +70,14 @@ export function AnalysisHeader(props: { usage_data: any }) {
 					<div className="item-title-small">
 						Average Indoor Temperature <br />
 						<div className="item">
-							{summaryOutputs?.get('average_indoor_temperature')} °F
-						</div>{' '}
+							{summaryOutputs?.average_indoor_temperature} °F
+						</div>
 						<br />
 						Balance Point Temperature
 						<br />
 						<div className="item">
-							{summaryOutputs?.get('estimated_balance_point')} °F
-						</div>{' '}
+							{summaryOutputs?.estimated_balance_point} °F
+						</div>
 						<br />
 					</div>
 				</div>
@@ -83,8 +89,8 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						Daily non-heating Usage <br />
 						<div className="item">
 							{/* Rounding to two decimal places */}
-							{summaryOutputs?.get('other_fuel_usage').toFixed(2)} therms
-						</div>{' '}
+							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
+						</div>
 					</div>
 				</div>
 				<div className="basis-1/3">
@@ -93,19 +99,17 @@ export function AnalysisHeader(props: { usage_data: any }) {
 						<div className="item">
 							{/* Rounding to two decimal places */}
 							{(
-								summaryOutputs?.get('standard_deviation_of_heat_loss_rate') *
-								100
-							).toFixed(2)}{' '}
+								summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
+							)?.toFixed(2)}{' '}
 							%
-						</div>{' '}
+						</div>
 						<br />
 						Whole-home UA
 						<br />
 						<div className="item">
 							{/* Rounding to zero decimal places */}
-							{summaryOutputs?.get('whole_home_heat_loss_rate').toFixed(0)}{' '}
-							BTU/h-°F
-						</div>{' '}
+							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
+						</div>
 						<br />
 					</div>
 				</div>

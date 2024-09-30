@@ -453,10 +453,38 @@ function reviver(key: any, value: any) {
     return value;
 }
 
+function mapToObject(input: any): any {
+    // Base case: if input is not an object or is null, return it as-is
+    if (typeof input !== 'object' || input === null) {
+        return input;
+    }
+
+    // Handle case where input is a Map-like object (with "dataType" as "Map" and a "value" array)
+    if (input.dataType === 'Map' && Array.isArray(input.value)) {
+        const obj: Record<any, any> = {}; // Initialize an empty object
+        for (const [key, value] of input.value) {
+            obj[key] = mapToObject(value); // Recursively process nested Maps
+        }
+        return obj;
+    }
+
+    // Handle case where input is an array
+    if (Array.isArray(input)) {
+        return input.map(mapToObject); // Recursively process each array element
+    }
+
+    console.log('input', input)
+    // Return the input for any other types of objects
+    return input;
+}
+
+
+
 export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
+    
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -503,11 +531,27 @@ export default function Inputs() {
     }  
   
     let usage_data = null;
+    let modifiedLastResult = null;
     let show_usage_data = lastResult !== undefined;
+
     console.log('lastResult', lastResult)
-    if ( show_usage_data && hasDataProperty(lastResult)) {
-        usage_data = JSON.parse(lastResult?.data, reviver);
+    
+    // Ensure we handle the result properly
+    if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
+        try {
+            // Parse the JSON string from lastResult.data
+            const parsedData = JSON.parse(lastResult.data);
+
+            // Recursively transform any Maps in lastResult to objects
+            modifiedLastResult = mapToObject(parsedData);
+            usage_data = modifiedLastResult; // Get the relevant part of the transformed result
+
+        } catch (error) {
+            console.error('Error parsing lastResult data:', error);
+        }
     }
+
+    console.log('usage_data', usage_data);
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
