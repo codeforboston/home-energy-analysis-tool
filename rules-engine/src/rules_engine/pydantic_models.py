@@ -84,7 +84,6 @@ class OilPropaneBillingRecordInput(BaseModel):
 
     period_end_date: date = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
-    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
 
 
 class OilPropaneBillingInput(BaseModel):
@@ -100,7 +99,6 @@ class NaturalGasBillingRecordInput(BaseModel):
     period_start_date: date = Field(description="Natural Gas!A")
     period_end_date: date = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
-    inclusion_override: Optional[bool] = Field(description="Natural Gas!E")
 
 
 class NaturalGasBillingInput(BaseModel):
