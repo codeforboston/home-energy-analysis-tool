@@ -138,7 +138,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 					const variant = calculatedInclusion ? 'included' : 'excluded'
 
 					return (
-						<TableRow key={index}>
+						<TableRow key={index} variant={variant}>
 							<TableCell className="font-medium">{index + 1}</TableCell>
 							<TableCell>
 								<img src={analysisType_Image} alt="Analysis Type" />
