@@ -160,8 +160,8 @@ def load_fuel_billing_example_input(
             raise ValueError("Unsupported fuel type.")
 
 
-def _parse_date(value: str) -> date:
-    return datetime.strptime(value.split(maxsplit=1)[0], "%Y-%m-%d").date()
+def _parse_date(value: str) -> datetime:
+    return datetime.strptime(value.split(maxsplit=1)[0], "%Y-%m-%d")
 
 
 def load_temperature_data(path: Path, weather_station: str) -> TemperatureInput:
@@ -172,7 +172,7 @@ def load_temperature_data(path: Path, weather_station: str) -> TemperatureInput:
 
         row: Any
         for row in reader:
-            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d").date())
+            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d"))
             temperatures.append(row[weather_station])
 
     return TemperatureInput(dates=dates, temperatures=temperatures)
