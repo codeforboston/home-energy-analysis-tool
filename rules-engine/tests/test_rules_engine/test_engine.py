@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 import pytest
@@ -18,8 +18,8 @@ from rules_engine.pydantic_models import (
 )
 
 dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
-    period_start_date=date(2024, 1, 1),
-    period_end_date=date(2024, 2, 1),
+    period_start_date=datetime(2024, 1, 1),
+    period_end_date=datetime(2024, 2, 1),
     usage=1.0,
     inclusion_override=False,
 )
@@ -183,7 +183,10 @@ def sample_temp_inputs() -> TemperatureInput:
         ],
     }
 
-    return TemperatureInput(**temperature_dict)
+    return TemperatureInput(
+        temperatures=temperature_dict["temperatures"],
+        dates=[datetime.fromisoformat(x) for x in temperature_dict["dates"]],
+    )
 
 
 @pytest.fixture()
@@ -233,8 +236,18 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
         },
     ]
 
+    # billing_periods = [
+    #     NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
+    # ]
+
     billing_periods = [
-        NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
+        NormalizedBillingPeriodRecordBase(
+            period_start_date=datetime.fromisoformat(x["period_start_date"]),
+            period_end_date=datetime.fromisoformat(x["period_end_date"]),
+            usage=x["usage"],
+            inclusion_override=x["inclusion_override"],
+        )
+        for x in billing_periods_dict
     ]
 
     return billing_periods
