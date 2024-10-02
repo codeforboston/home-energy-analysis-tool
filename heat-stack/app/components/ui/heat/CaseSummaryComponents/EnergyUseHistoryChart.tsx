@@ -70,7 +70,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 
 	const handleOverrideCheckboxChange = (index: number) => {
 		setBillingRecords((prevRecords) => {
-			const newRecords = [...prevRecords]
+			const newRecords = structuredClone(prevRecords)
 			const period = newRecords[index]
 			
 			if (period) {
@@ -80,7 +80,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 				
 				newRecords[index] = { ...period } 
 			}
-			
+
 			return newRecords
 		})
 	}
