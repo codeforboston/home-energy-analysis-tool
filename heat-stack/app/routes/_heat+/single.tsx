@@ -453,31 +453,35 @@ function reviver(key: any, value: any) {
     return value;
 }
 
-function mapToObject(input: any): any {
-    // Base case: if input is not an object or is null, return it as-is
-    if (typeof input !== 'object' || input === null) {
-        return input;
-    }
+/**
+ * Translates an already replaced (see https://stackoverflow.com/a/56150320) and then parsed Map from pyodide into a plain js Object.
+ * @param input {Map} 
+ * @returns {Object}
+ */
+function replacedMapToObject(input: any): any {
+	// Base case: if input is not an object or is null, return it as-is
+	if (typeof input !== 'object' || input === null) {
+		return input
+	}
 
-    // Handle case where input is a Map-like object (with "dataType" as "Map" and a "value" array)
-    if (input.dataType === 'Map' && Array.isArray(input.value)) {
-        const obj: Record<any, any> = {}; // Initialize an empty object
-        for (const [key, value] of input.value) {
-            obj[key] = mapToObject(value); // Recursively process nested Maps
-        }
-        return obj;
-    }
+	// Handle case where input is a Map-like object (with "dataType" as "Map" and a "value" array)
+	if (input.dataType === 'Map' && Array.isArray(input.value)) {
+		const obj: Record<any, any> = {} // Initialize an empty object
+		for (const [key, value] of input.value) {
+			obj[key] = replacedMapToObject(value) // Recursively process nested Maps
+		}
+		return obj
+	}
 
-    // Handle case where input is an array
-    if (Array.isArray(input)) {
-        return input.map(mapToObject); // Recursively process each array element
-    }
+	// Handle case where input is an array
+	if (Array.isArray(input)) {
+		return input.map(replacedMapToObject) // Recursively process each array element
+	}
 
-    console.log('input', input)
-    // Return the input for any other types of objects
-    return input;
+	console.log('input', input)
+	// Return the input for any other types of objects
+	return input
 }
-
 
 
 export default function Inputs() {
@@ -543,15 +547,14 @@ export default function Inputs() {
             const parsedData = JSON.parse(lastResult.data);
 
             // Recursively transform any Maps in lastResult to objects
-            modifiedLastResult = mapToObject(parsedData);
+            modifiedLastResult = replacedMapToObject(parsedData);
             usage_data = modifiedLastResult; // Get the relevant part of the transformed result
-
+            console.log('usage_data', usage_data)
+            
         } catch (error) {
             console.error('Error parsing lastResult data:', error);
         }
     }
-
-    console.log('usage_data', usage_data);
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
