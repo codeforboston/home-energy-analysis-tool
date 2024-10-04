@@ -106,81 +106,6 @@ CREATE TABLE "Connection" (
 );
 
 -- CreateTable
-CREATE TABLE "Home" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "livingArea" REAL NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "Case" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "homeId" TEXT NOT NULL,
-    "summaryOutputId" TEXT NOT NULL,
-    "fuelType" TEXT NOT NULL,
-    "designTemperatureOverride" BOOLEAN NOT NULL,
-    "heatingSystemEfficiency" INTEGER NOT NULL,
-    "thermostatSetPoint" INTEGER NOT NULL,
-    "setbackTemperature" INTEGER NOT NULL,
-    "setbackHoursPerDay" INTEGER NOT NULL,
-    "numberOfOccupants" INTEGER NOT NULL,
-    "estimatedWaterHeatingEfficiency" INTEGER NOT NULL,
-    "standByLosses" INTEGER NOT NULL,
-    CONSTRAINT "Case_homeId_fkey" FOREIGN KEY ("homeId") REFERENCES "Home" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "File" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "caseId" INTEGER NOT NULL,
-    "filePath" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    CONSTRAINT "File_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "BillingPeriod" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "caseId" INTEGER NOT NULL,
-    "periodStartDate" DATETIME NOT NULL,
-    "periodEndDate" DATETIME NOT NULL,
-    "usage" REAL NOT NULL,
-    "analysisTypeOverride" BOOLEAN NOT NULL,
-    "inclusionOverride" BOOLEAN NOT NULL,
-    "originalAnalysisType" INTEGER NOT NULL,
-    "analysisType" INTEGER NOT NULL,
-    "defaultInclusionByCalculation" BOOLEAN NOT NULL,
-    "eliminatedAsOutlier" BOOLEAN NOT NULL,
-    "wholeHomeHeatLossRate" REAL NOT NULL,
-    CONSTRAINT "BillingPeriod_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "SummaryOutput" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "caseId" INTEGER NOT NULL,
-    "estimatedBalancePoint" REAL NOT NULL,
-    "otherFuelUsage" REAL NOT NULL,
-    "averageIndoorTemperature" REAL NOT NULL,
-    "differenceBetweenTiAndTbp" REAL NOT NULL,
-    "designTemperature" REAL NOT NULL,
-    "wholeHomeHeatLossRate" REAL NOT NULL,
-    "standardDeviationOfHeatLossRate" REAL NOT NULL,
-    "averageHeatLoad" REAL NOT NULL,
-    "maximumHeatLoad" REAL NOT NULL,
-    CONSTRAINT "SummaryOutput_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "CaseUser" (
-    "caseId" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "userId" TEXT NOT NULL,
-    CONSTRAINT "CaseUser_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "CaseUser_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "_PermissionToRole" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -231,9 +156,6 @@ CREATE UNIQUE INDEX "Verification_target_type_key" ON "Verification"("target", "
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Connection_providerName_providerId_key" ON "Connection"("providerName", "providerId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Case_summaryOutputId_key" ON "Case"("summaryOutputId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
