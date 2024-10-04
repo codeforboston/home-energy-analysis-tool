@@ -12,6 +12,7 @@ datasource db {
 
 model User {
   id       String @id @default(cuid())
+  // caseUser added when CaseUser model added for HEAT schema
   caseUser CaseUser[]
 
   email    String @unique
