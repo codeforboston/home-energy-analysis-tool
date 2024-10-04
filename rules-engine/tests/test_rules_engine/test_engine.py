@@ -185,7 +185,7 @@ def sample_temp_inputs() -> TemperatureInput:
 
     return TemperatureInput(
         temperatures=temperature_dict["temperatures"],
-        dates=[datetime.fromisoformat(x) for x in temperature_dict["dates"]],
+        dates=temperature_dict["dates"],
     )
 
 

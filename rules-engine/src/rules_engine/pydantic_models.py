@@ -171,8 +171,12 @@ class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
 
+def _date_string_parser(rate: str) -> datetime:
+    return datetime.strptime(rate, "%Y-%m-%d")
+
+
 class TemperatureInput(BaseModel):
-    dates: list[datetime]
+    dates: list[Annotated[datetime, BeforeValidator(_date_string_parser)]]
     temperatures: list[float]
 
 
