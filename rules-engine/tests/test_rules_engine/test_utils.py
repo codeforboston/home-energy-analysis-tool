@@ -94,11 +94,7 @@ def load_fuel_billing_example_input(
         reader = csv.DictReader(f)
         row: Any
         for i, row in enumerate(reader):
-            inclusion_override = row["inclusion_override"]
-            if inclusion_override == "":
-                inclusion_override = None
-            else:
-                inclusion_override = int(inclusion_override)
+            inclusion_override = bool(row["inclusion_override"])
 
             # Choose the correct billing period heat loss (aka "ua")
             # column based on the estimated balance point provided in
@@ -164,8 +160,8 @@ def load_fuel_billing_example_input(
             raise ValueError("Unsupported fuel type.")
 
 
-def _parse_date(value: str) -> date:
-    return datetime.strptime(value.split(maxsplit=1)[0], "%Y-%m-%d").date()
+def _parse_date(value: str) -> datetime:
+    return datetime.strptime(value.split(maxsplit=1)[0], "%Y-%m-%d")
 
 
 def load_temperature_data(path: Path, weather_station: str) -> TemperatureInput:
@@ -176,7 +172,7 @@ def load_temperature_data(path: Path, weather_station: str) -> TemperatureInput:
 
         row: Any
         for row in reader:
-            dates.append(datetime.strptime(row["Date"], "%Y-%m-%d").date())
+            dates.append(row["Date"])
             temperatures.append(row[weather_station])
 
     return TemperatureInput(dates=dates, temperatures=temperatures)

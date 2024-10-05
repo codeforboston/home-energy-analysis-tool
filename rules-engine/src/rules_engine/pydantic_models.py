@@ -3,7 +3,7 @@ Data models for input and output data in the rules engine.
 """
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from functools import cached_property
 from typing import Annotated, Any, Literal, Optional, Sequence
@@ -16,19 +16,20 @@ class AnalysisType(Enum):
     Enum for analysis type.
 
     'Inclusion' in calculations is now determined by
-    the default_inclusion_by_calculation and inclusion_override variables
+    the date_to_analysis_type calculation and the inclusion_override variable
+
+    TODO: determine if the following logic has actually been implemented...
     Use HDDs to determine if shoulder months
     are heating or non-heating or not allowed,
     or included or excluded
     """
 
-    ALLOWED_HEATING_USAGE = 1  # winter months - allowed in heating usage calculations
-    ALLOWED_NON_HEATING_USAGE = (
-        -1
-    )  # summer months - allowed in non-heating usage calculations
-    NOT_ALLOWED_IN_CALCULATIONS = (
-        0  # shoulder months that fall outside reasonable bounds
-    )
+    # winter months - allowed in heating usage calculations
+    ALLOWED_HEATING_USAGE = 1
+    # summer months - allowed in non-heating usage calculations
+    ALLOWED_NON_HEATING_USAGE = -1
+    # shoulder months - these fall outside reasonable bounds
+    NOT_ALLOWED_IN_CALCULATIONS = 0
 
 
 class FuelType(Enum):
@@ -81,28 +82,25 @@ class DhwInput(BaseModel):
 class OilPropaneBillingRecordInput(BaseModel):
     """From Oil-Propane tab"""
 
-    period_end_date: date = Field(description="Oil-Propane!B")
+    period_end_date: datetime = Field(description="Oil-Propane!B")
     gallons: float = Field(description="Oil-Propane!C")
-    inclusion_override: Optional[
-        Literal[AnalysisType.ALLOWED_HEATING_USAGE]
-        | Literal[AnalysisType.NOT_ALLOWED_IN_CALCULATIONS]
-    ] = Field(description="Oil-Propane!F")
+    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
 
 
 class OilPropaneBillingInput(BaseModel):
     """From Oil-Propane tab. Container for holding all rows of the billing input table."""
 
     records: Sequence[OilPropaneBillingRecordInput]
-    preceding_delivery_date: date = Field(description="Oil-Propane!B6")
+    preceding_delivery_date: datetime = Field(description="Oil-Propane!B6")
 
 
 class NaturalGasBillingRecordInput(BaseModel):
     """From Natural Gas tab. A single row of the Billing input table."""
 
-    period_start_date: date = Field(description="Natural Gas!A")
-    period_end_date: date = Field(description="Natural Gas!B")
+    period_start_date: datetime = Field(description="Natural Gas!A")
+    period_end_date: datetime = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
-    inclusion_override: Optional[AnalysisType] = Field(description="Natural Gas!E")
+    inclusion_override: Optional[bool] = Field(description="Natural Gas!E")
 
 
 class NaturalGasBillingInput(BaseModel):
@@ -113,7 +111,7 @@ class NaturalGasBillingInput(BaseModel):
     # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore[misc]
     @cached_property
-    def overall_start_date(self) -> date:
+    def overall_start_date(self) -> datetime:
         if len(self.records) == 0:
             raise ValueError(
                 "Natural gas billing records cannot be empty."
@@ -121,7 +119,7 @@ class NaturalGasBillingInput(BaseModel):
                 + "Try again with non-empty natural gas billing records."
             )
 
-        min_date = date.max
+        min_date = datetime.max
         for record in self.records:
             min_date = min(min_date, record.period_start_date)
         return min_date
@@ -129,7 +127,7 @@ class NaturalGasBillingInput(BaseModel):
     # Suppress mypy error when computed_field is used with cached_property; see https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore[misc]
     @cached_property
-    def overall_end_date(self) -> date:
+    def overall_end_date(self) -> datetime:
         if len(self.records) == 0:
             raise ValueError(
                 "Natural gas billing records cannot be empty."
@@ -137,7 +135,7 @@ class NaturalGasBillingInput(BaseModel):
                 + "Try again with non-empty natural gas billing records."
             )
 
-        max_date = date.min
+        max_date = datetime.min
         for record in self.records:
             max_date = max(max_date, record.period_end_date)
         return max_date
@@ -147,39 +145,38 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     """
     Base class for a normalized billing period record.
 
-    Holds data as fields.
-
-    analysis_type_override - for testing only, preserving compatibility
-    with the original heat calc spreadsheet, which allows users to override
-    the analysis type whereas the rules engine does not
+    Holds data inputs provided by the UI as fields.
     """
 
     model_config = ConfigDict(validate_assignment=True)
 
-    period_start_date: date = Field(frozen=True)
-    period_end_date: date = Field(frozen=True)
+    period_start_date: datetime = Field(frozen=True)
+    period_end_date: datetime = Field(frozen=True)
     usage: float = Field(frozen=True)
-    analysis_type_override: Optional[AnalysisType] = Field(frozen=True)
-    inclusion_override: bool
+    inclusion_override: bool = Field(frozen=True)
 
 
 class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
     """
     Derived class for holding a normalized billing period record.
 
-    Holds data.
+    Holds generated data that is calculated by the rules engine.
     """
 
     model_config = ConfigDict(validate_assignment=True)
 
     analysis_type: AnalysisType = Field(frozen=True)
-    default_inclusion_by_calculation: bool = Field(frozen=True)
+    default_inclusion: bool = Field(frozen=True)
     eliminated_as_outlier: bool = Field(frozen=True)
     whole_home_heat_loss_rate: Optional[float] = Field(frozen=True)
 
 
+def _date_string_parser(rate: str) -> datetime:
+    return datetime.strptime(rate, "%Y-%m-%d")
+
+
 class TemperatureInput(BaseModel):
-    dates: list[date]
+    dates: list[Annotated[datetime, BeforeValidator(_date_string_parser)]]
     temperatures: list[float]
 
 

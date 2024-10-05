@@ -1,5 +1,5 @@
 import pathlib
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -33,8 +33,8 @@ def _validate_eversource(result):
     # from excel: 11/19/2021,12/17/2021,29,124,,1,4.28,3.82
 
     second_row = result.records[1]
-    assert second_row.period_start_date == date(2021, 11, 19)
-    assert second_row.period_end_date == date(2021, 12, 17)
+    assert second_row.period_start_date == datetime(2021, 11, 19)
+    assert second_row.period_end_date == datetime(2021, 12, 17)
     assert isinstance(second_row.usage_therms, float)
     assert second_row.usage_therms == 124
     assert second_row.inclusion_override == None
@@ -50,8 +50,8 @@ def _validate_national_grid(result):
     # from excel: 11/6/2020,12/3/2020,28,36,,1,1.29,0.99
 
     second_row = result.records[1]
-    assert second_row.period_start_date == date(2020, 11, 5)
-    assert second_row.period_end_date == date(2020, 12, 3)
+    assert second_row.period_start_date == datetime(2020, 11, 5)
+    assert second_row.period_end_date == datetime(2020, 12, 3)
     assert isinstance(second_row.usage_therms, float)
     assert second_row.usage_therms == 36
     assert second_row.inclusion_override == None

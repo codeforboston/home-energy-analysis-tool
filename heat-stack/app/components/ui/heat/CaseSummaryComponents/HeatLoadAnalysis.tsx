@@ -1,4 +1,4 @@
-import { AnalysisHeader } from './AnalysisHeader.tsx'
+// import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
@@ -13,7 +13,7 @@ export function Graphs() {
 			</h2>
 			Fuel Type
 			{fuel_type}
-			<AnalysisHeader />
+			{/* <AnalysisHeader /> */}
 			<HeatLoad />
 			<WholeHomeUAComparison />
 		</div>

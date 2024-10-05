@@ -1,6 +1,6 @@
 /** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
-import { useForm } from '@conform-to/react'
+import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
@@ -22,13 +22,13 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [x] - Get zod and Typescript to play nice
 // - [x] (We're here) Build form #2
 // - [ ] Build upload form
-//   - https://www.epicweb.dev/workshops/professional-web-forms/file-upload/intro-to-file-upload
-//   - https://github.com/epicweb-dev/web-forms/tree/main/exercises/04.file-upload
-//   - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L58
-//   - createMemoryUploadHandler
-//   - parseMultipartFormData
-//   - avoid dealing with the server for now
-//   - pass the data to the rules engine/pyodide either in the component or the action (probably the action for validation, etc.)
+//   - [x] https://www.epicweb.dev/workshops/professional-web-forms/file-upload/intro-to-file-upload
+//   - [x] https://github.com/epicweb-dev/web-forms/tree/main/exercises/04.file-upload
+//   - [x] https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L58
+//   - [x] createMemoryUploadHandler
+//   - [x] parseMultipartFormData
+//   - [ ] avoid dealing with the server for now
+//   - [ ] pass the data to the rules engine/pyodide either in the component or the action (probably the action for validation, etc.)
 // - [x] import pyodide into single.tsx and run it with genny
 //     - [x] Add to README: don't forget `npm run buildpy` to build rules engine into `public/pyodide-env` if you start a new codingspace or on local.
 // - [x] figure out how to set field defaults with Conform to speed up trials (defaultValue prop on input doesn't work) https://conform.guide/api/react/useForm
@@ -443,6 +443,7 @@ function replacer(key: any, value: any) {
     }
 }
     
+// https://stackoverflow.com/a/56150320
 function reviver(key: any, value: any) {
     if(typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
@@ -457,8 +458,8 @@ export default function Inputs() {
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
 
-     /* @ts-ignore */
-    console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
+    /* @ts-ignore */
+    // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
@@ -466,7 +467,7 @@ export default function Inputs() {
      * temp1.get('summary_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
      */
     /* @ts-ignore */
-    console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('summary_output'): undefined)
+    // console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('summary_output'): undefined)
     
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
@@ -478,7 +479,7 @@ export default function Inputs() {
     * "2020-10-02" 
      */
     /* @ts-ignore */
-    console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
+    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
 
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
@@ -488,7 +489,25 @@ export default function Inputs() {
         Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      *//* @ts-ignore */
-    console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
+     
+    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
+ 
+    type ActionResult = 
+    | SubmissionResult<string[]>
+    | { data: string }
+    | undefined;
+  
+    /** typeguard for useAction between string[] and {data: string} */
+    function hasDataProperty(result: ActionResult): result is { data: string } {
+        return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
+    }  
+  
+    let usage_data = null;
+    let show_usage_data = lastResult !== undefined;
+    console.log('lastResult', lastResult)
+    if ( show_usage_data && hasDataProperty(lastResult)) {
+        usage_data = JSON.parse(lastResult?.data, reviver);
+    }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
@@ -526,11 +545,11 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory />
+                <EnergyUseHistory usage_data={ usage_data } />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            <HeatLoadAnalysis />
+            {show_usage_data && <HeatLoadAnalysis /> }
         </>
     )
 }
