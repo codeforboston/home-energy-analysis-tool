@@ -14,7 +14,7 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
 
-
+import PyodideUtil from '#app/utils/pyodide.util'
 
 // TODO NEXT WEEK
 // - [x] Server side error checking/handling
@@ -112,17 +112,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
             console.error('submission failed', submission)
         }
         return submission.reply()
-        // submission.reply({
-        // 	// You can also pass additional error to the `reply` method
-        // 	formErrors: ['Submission failed'],
-        // 	fieldErrors: {
-        // 		address: ['Address is invalid'],
-        // 	},
-
-        // 	// or avoid sending the the field value back to client by specifying the field names
-        // 	hideFields: ['password'],
-        // }),
-        // {status: submission.status === "error" ? 400 : 200}
     }
 
     const {
@@ -147,27 +136,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     console.log('loading geocodeUtil/weatherUtil')
 
+    const pyodideUtil: PyodideUtil = PyodideUtil.getInstance();
     const geocodeUtil = new GeocodeUtil()
     const weatherUtil = new WeatherUtil()
-    ////////////////////////
-    const getPyodide = async () => {
-        return await pyodideModule.loadPyodide({
-            // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
-            // TODO: figure out how to determine if we're in browser or remix server and use ternary.
-            indexURL: 'public/pyodide-env/',
-        })
-    }
-    const runPythonScript = async () => {
-        const pyodide: any = await getPyodide()
-        return pyodide
-    }
-    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
-    const pyodide: any = await runPythonScript()
-    //////////////////////
+    const pyodide = await pyodideUtil.getPyodideModule();
+    const pyHelpers = await pyodideUtil.getHelpersModule();
+    // wirte comment that pyhelpers is not beign used  yet. but will be. 
+    //    pyHelpers.get_design_temp();
 
-    let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
+    let { coordinates, state_id, county_id }  = await geocodeUtil.getLL(address)
     let {x, y} = coordinates ?? {x: 0, y: 0};
-
     console.log('geocoded', x, y)
 
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
@@ -190,10 +168,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
 
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-    )
-
     /* NOTES for pydantic, typing-extensions, annotated_types: 
         pyodide should match pyodide-core somewhat. 
         typing-extensions needs specific version per https://github.com/pyodide/pyodide/issues/4234#issuecomment-1771735148
@@ -202,19 +176,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
            - https://pypi.org/project/typing-extensions/
            - https://pypi.org/project/annotated-types/#files
     */
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
-    )
-
-    await pyodide.loadPackage(
-        'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
-    )
 
     // console.log("uploadedTextFile", uploadedTextFile)
 
@@ -322,6 +283,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             # We will just pass in this data
             naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
+            # can replace this with pyHelpers! boom!! what whaaat!!!
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
             summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
