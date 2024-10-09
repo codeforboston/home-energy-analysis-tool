@@ -11,6 +11,7 @@ home variables used
 ```
 
 1. Remove temporary_rules_engine.py
+1. Move files in rules-engine/src/rules_engine to rules-engine/src to avoid dirs with similar names.
 2. Combine class NormalizedBillingPeriodRecordBase and class NormalizedBillingPeriodRecord
 3. Rename new combined class to BillingInput
 4. Rename BillingPeriod to ProcessedBill and billing_period to processed_bill
