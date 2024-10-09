@@ -144,7 +144,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     //    pyHelpers.get_design_temp();
 
     let { coordinates, state_id, county_id }  = await geocodeUtil.getLL(address)
-    let { x, y } = coordinates;
+    let {x, y} = coordinates ?? {x: 0, y: 0};
     console.log('geocoded', x, y)
 
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
