@@ -140,6 +140,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const weatherUtil = new WeatherUtil()
     const pyodide = await pyodideUtil.getPyodideModule();
     const pyHelpers = await pyodideUtil.getHelpersModule();
+    // wirte comment that pyhelpers is not beign used  yet. but will be. 
+    //    pyHelpers.get_design_temp();
 
     let { coordinates, state_id, county_id }  = await geocodeUtil.getLL(address)
     let { x, y } = coordinates;
@@ -280,6 +282,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             # We will just pass in this data
             naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
+            # can replace this with pyHelpers! boom!! what whaaat!!!
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
             summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
