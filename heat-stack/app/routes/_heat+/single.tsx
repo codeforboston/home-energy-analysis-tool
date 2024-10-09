@@ -13,7 +13,8 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import GeocodeUtil from '#app/utils/GeocodeUtil'
 import WeatherUtil from '#app/utils/WeatherUtil'
-import PyodideUtil from '#app/utils/pyodide.util.js'
+
+import PyodideUtil from '#app/utils/pyodide.util'
 
 // TODO NEXT WEEK
 // - [x] Server side error checking/handling

@@ -96,13 +96,13 @@ class GeocodeUtil {
     let rezzy = await fetch(url)
     let jrez = (await rezzy.json()) as CensusGeocoderResponse
     // TODO: Return all addresses and let the user choose the right one
-    let coordz = jrez.result.addressMatches[0].coordinates
+    let coordz = jrez?.result?.addressMatches[0]?.coordinates
     // console.log(JSON.stringify(jrez, null, 2));
     return {
       coordinates: coordz,
-      state_id: jrez.result.addressMatches[0].geographies.Counties[0].STATE,
+      state_id: jrez.result?.addressMatches[0]?.geographies.Counties[0]?.STATE,
       county_id:
-        jrez.result.addressMatches[0].geographies.Counties[0].COUNTY,
+        jrez.result.addressMatches[0]?.geographies.Counties[0]?.COUNTY,
     }
   }
 }
