@@ -1,3 +1,20 @@
+AnalysisType
+
+Natural Gas
+-1 - summer month (non heating usage)
+0 - shoulder month - don't use
+1 - allow for heating
+
+Oil
+0 - Don't use
+1 - Use - active heating month
+
+default_inclusion True or False
+
+
+inclusion_override
+
+
 
 
 Qs:
@@ -13,7 +30,6 @@ home variables used
 ```
 
 1. Remove temporary_rules_engine.py
-
 2. Combine class NormalizedBillingPeriodRecordBase and class NormalizedBillingPeriodRecord
 3. Rename new combined class to BillingInput
 4. Rename BillingPeriod to ProcessedBill and billing_period to processed_bill
@@ -54,12 +70,15 @@ to
         // usage not needed, it is part of inputBill
       )
 ```
-6.Home - Have Home.init call Home.calculate rather than call it separately
-7. Home - change to functional programming where you provide all inputs needed
-    - _calculate_avg_summer_usage() =>
-      avg_summer_usage = _get_avg_summer_usage(summer_bills)
-    - `_calculate_avg_non_heating_usage ()` =>
-
+home = Home(asdfjlk, asdfj)
+6. Home - Have Home.init call Home.calculate rather than call it separately (or vice versa)
+7. Home - change to functional programming paradigm where you provide inputs and outputs
+    - Change
+    `_calculate_avg_summer_usage()` => `avg_summer_usage = _get_avg_summer_usage(summer_bills)`
+    - Change
+ `_calculate_avg_non_heating_usage ()` =>
+to 
+```
 avg_non_heating_usage = _get_avg_non_heating_usage (      
     fuel_type,
     avg_summer_usage,
@@ -68,12 +87,18 @@ avg_non_heating_usage = _get_avg_non_heating_usage (
     stand_by_losses, 
     heating_system_efficiency
 )
-
-`for billing_period in billing_periods` =>
 ```
+
+- change 
+`for billing_period in billing_periods ...` =>
+to
+```
+for billing_period in billing_periods
        { bills_summer, bills_winter, bills_shoulder }
         =_categorize_bills_by_season (billing_periods)
 ```
+
+- Change
 `calculate_dhw_usage()` =>
 ```      
            dhw_usage = _calculate_dhw_usage (
@@ -83,9 +108,10 @@ avg_non_heating_usage = _get_avg_non_heating_usage (
            heating_system_efficiency
            )
 ```
-`self.initialize_ua(billing_period)` =>
-`_set_ua(billing_period,avg_non_heating_usage)`
+- Chanage
+`self.initialize_ua(billing_period)` => `_set_ua(billing_period,avg_non_heating_usage)`
 
+- Chanage?? Parameters are never set
 ```
 def calculate(
         self,
@@ -105,8 +131,10 @@ def calculate (
     next_balance_point_sensitivity: float = 0.5,
 ```
 
-calculate
-`self._calculate_avg_non_heating_usage` (duplicate)
+- calculate method
+`self._calculate_avg_non_heating_usage` - duplicated.  Remove one of the calls
+
+- Chanage
 ```
 self._calculate_balance_point_and_ua(
             initial_balance_point_sensitivity,
