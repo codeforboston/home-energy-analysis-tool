@@ -1,9 +1,11 @@
 import * as pyodideModule from 'pyodide'
 
 class PyodideUtil {
-  static _instance
+  static _instance:any
+  pyodideModule:any;
+
   constructor() {
-    // if(PyodideUtil._instance) {
+    // if(PyodideUti.l._instance) {
     //     return PyodideUtil._instance;
     // }
     // PyodideUtil._instance = this;
@@ -19,9 +21,9 @@ class PyodideUtil {
 
   async getPyodideModule() {
     if (!this.pyodideModule) {
-      this.pyodideModule = await loadPyodideModule()
+      this.pyodideModule = await loadPyodideModule() 
     }
-    return this.pyodideModule
+    return this.pyodideModule 
   }
   async getEngineModule() {
     if (!this.pyodideModule) {
@@ -53,15 +55,15 @@ const loadPyodideModule = async () => {
   });
 }
 
-const getEngine = async pyodide => {
+const getEngine = async (pyodide: any)=> {
   return await pyodide.pyimport('rules_engine.engine');
 }
 
-const getHelpers = async pyodide => {
+const getHelpers = async (pyodide: any)=> {
   return await pyodide.pyimport('rules_engine.helpers');
 }
 
-const getParser = async pyodide => {
+const getParser = async (pyodide: any)=> {
   return await pyodide.pyimport('rules_engine.parser');
 }
 
