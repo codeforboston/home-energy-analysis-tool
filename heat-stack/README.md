@@ -46,6 +46,9 @@ npm run dev
 After you run the build for python. you'll just need to make sure the newest rules-engine wheel is in the JS context. 
 All we need to do is run `node ./other/utils/update-pyodide-lock.js`
 
+After you run the build for python. you'll just need to make sure the newest rules-engine wheel is in the JS context. 
+All we need to do is run `node ./other/utils/update-pyodide-lock.js`
+
 ### Set up in a new GitHub CodingSpace:
 
 ```
