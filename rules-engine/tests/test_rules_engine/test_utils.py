@@ -1,7 +1,9 @@
 import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
+
+from pydantic import Field
 
 from rules_engine.pydantic_models import (
     FuelType,
@@ -33,6 +35,7 @@ class NaturalGasBillingRecordExampleInput(NaturalGasBillingRecordInput):
     """
 
     whole_home_heat_loss_rate: float
+    inclusion_override: Optional[bool] = Field(description="Natural Gas!E")
 
 
 # Then overload NG Billing Input to contain new NG Billing Record Example Input subclass
@@ -54,6 +57,7 @@ class OilPropaneBillingRecordExampleInput(OilPropaneBillingRecordInput):
     """
 
     whole_home_heat_loss_rate: float
+    inclusion_override: Optional[bool] = Field(description="Oil-Propane!F")
 
 
 class OilPropaneBillingExampleInput(OilPropaneBillingInput):
