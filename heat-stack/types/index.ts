@@ -104,3 +104,54 @@ export const OilPropaneBillRecord = z.object({
 	gallons: z.number(),
 	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
 });
+
+// Define the schema for balance records
+export const balancePointGraphRecordSchema = z.object({
+	balance_point: z.number(),
+	heat_loss_rate: z.number(),
+	change_in_heat_loss_rate: z.number(),
+	percent_change_in_heat_loss_rate: z.number(),
+	standard_deviation: z.number(),
+})
+
+//   Define the schema for the balance point graph
+export const balancePointGraphSchema = z.object({
+	records: z.array(balancePointGraphRecordSchema),
+})
+
+// Define the schema for the 'summary_output' key
+export const summaryOutputSchema = z.object({
+	estimated_balance_point: z.number().optional().default(0), 
+	other_fuel_usage: z.number().optional().default(0),
+	average_indoor_temperature: z.number().optional().default(0),
+	difference_between_ti_and_tbp: z.number().optional().default(0),
+	design_temperature: z.number().optional().default(0),
+	whole_home_heat_loss_rate: z.number().optional().default(0),
+	standard_deviation_of_heat_loss_rate: z.number().optional().default(0),
+	average_heat_load: z.number().optional().default(0),
+	maximum_heat_load: z.number().optional().default(0),
+});
+
+
+// Define the schema for billing records
+export const billingRecordSchema = z.object({
+	period_start_date: z.string().default(''), 
+	period_end_date: z.string().default(''),
+	usage: z.number().default(0),
+	analysis_type_override: z.any().nullable(),
+	inclusion_override: z.boolean().default(false),
+	analysis_type: z.number().default(0),
+	default_inclusion_by_calculation: z.boolean().default(false),
+	eliminated_as_outlier: z.boolean().default(false),
+	whole_home_heat_loss_rate: z.number().optional().default(0),
+});
+
+// Define the schema for 'billing_records' key
+export const billingRecordsSchema = z.array(billingRecordSchema);
+
+//   Define the schema for the 'usage_data' key
+export const usageDataSchema = z.object({
+	summary_output: summaryOutputSchema,
+	balance_point_graph: balancePointGraphSchema,
+	billing_records: billingRecordsSchema,
+})
