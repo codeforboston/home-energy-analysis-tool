@@ -162,7 +162,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const pyodide: any = await getPyodide()
         return pyodide
     }
-    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
+    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/tests/test_rules_engine/test_engine.py
     const pyodide: any = await runPythonScript()
     //////////////////////
 

@@ -6,7 +6,7 @@ import WeatherUtil from "#app/utils/WeatherUtil";
 
 
 /* For this to pass, you must run 
-    `pushd ../rules-engine && python3 -m venv venv && source venv/bin/activate && pip install -q build && python3 -m build && popd` */
+    `pushd ../python && python3 -m venv venv && source venv/bin/activate && pip install -q build && python3 -m build && popd` */
 
 /* Referenced https://github.com/epicweb-dev/full-stack-testing/blob/main/exercises/04.unit-test/02.solution.spies/app/utils/misc.error-message.test.ts of https://www.epicweb.dev/workshops/web-application-testing*/
 // test('pyodide loads', async () => {
@@ -60,12 +60,12 @@ import WeatherUtil from "#app/utils/WeatherUtil";
 // 		// await micropip.install(['annotated-types'])
 
 // 		await pyodide.loadPackage(
-// 			'../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+// 			'../python/dist/rules_engine-0.0.1-py3-none-any.whl',
 // 		)
 
 // 		return pyodide
 // 	}
-// 	// consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
+// 	// consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/tests/test_rules_engine/test_engine.py
 // 	const pyodide: any = await runPythonScript()
 // 	const result = await pyodide.runPythonAsync(`
 // 	from rules_engine import engine
@@ -127,19 +127,19 @@ test('pyodide solves climate change', async () => {
         // await micropip.install(['annotated-types'])
 
         await pyodide.loadPackage(
-            '../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+            '../python/dist/rules_engine-0.0.1-py3-none-any.whl',
         )
 
         return pyodide
     }
-    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
+    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/tests/test_rules_engine/test_engine.py
     const pyodide: any = await runPythonScript()
 
     const GU = new GeocodeUtil();
     const WU = new WeatherUtil();
 
     // 1)  parser.parse_gas_bill(data: str, company: NaturalGasCompany)
-    // https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/parser.py#L60
+    // https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/parser.py#L60
 
     /* 2) get_outputs_natural_gas(
     summary_input: SummaryInput,
@@ -147,12 +147,12 @@ test('pyodide solves climate change', async () => {
     natural_gas_billing_input: NaturalGasBillingInput,
         ) -> RulesEngineResult 
 
-    https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/engine.py#L59
+    https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/engine.py#L59
     */
 
     /**
      * TODO:
-     * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/pydantic_models.py#L57
+     * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/pydantic_models.py#L57
      * - Use those to create summary_input (in the same file)
      * - Use those to create temperature_input (in the same file)
      * - Use those to create natural_gas_billing_input (in the same file)
@@ -169,7 +169,7 @@ test('pyodide solves climate change', async () => {
     console.log("weather data",TIWD);
 
 
-    // https://github.com/codeforboston/home-energy-analysis-tool/tree/main/rules-engine/tests/test_rules_engine/cases/examples/quateman
+    // https://github.com/codeforboston/home-energy-analysis-tool/tree/main/python/tests/test_rules_engine/cases/examples/quateman
     const exampleNationalGridCSV = `Name,FIRST LAST,,,,,
     Address,"100 STREET AVE, BOSTON MA 02130",,,,,
     Account Number,1111111111,,,,,
@@ -337,19 +337,19 @@ test('pyodide solves climate change', async () => {
 // 		// await micropip.install(['annotated-types'])
 
 // 		await pyodide.loadPackage(
-// 			'../rules-engine/dist/rules_engine-0.0.1-py3-none-any.whl',
+// 			'../python/dist/rules_engine-0.0.1-py3-none-any.whl',
 // 		)
 
 // 		return pyodide
 // 	}
-// 	// consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/tests/test_rules_engine/test_engine.py
+// 	// consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/tests/test_rules_engine/test_engine.py
 // 	const pyodide: any = await runPythonScript()
 
 // 	const GU = new GeocodeUtil();
 // 	const WU = new WeatherUtil();
 
 // 	// 1)  parser.parse_gas_bill(data: str, company: NaturalGasCompany)
-// 	// https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/parser.py#L60
+// 	// https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/parser.py#L60
 
 // 	/* 2) get_outputs_natural_gas(
 //     summary_input: SummaryInput,
@@ -357,12 +357,12 @@ test('pyodide solves climate change', async () => {
 //     natural_gas_billing_input: NaturalGasBillingInput,
 // 		) -> RulesEngineResult 
 
-// 	https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/engine.py#L59
+// 	https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/engine.py#L59
 // 	*/
 
 // 	/**
 // 	 * TODO:
-// 	 * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/src/rules_engine/pydantic_models.py#L57
+// 	 * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/pydantic_models.py#L57
 // 	 * - Use those to create summary_input (in the same file)
 // 	 * - Use those to create temperature_input (in the same file)
 // 	 * - Use those to create natural_gas_billing_input (in the same file)
@@ -377,7 +377,7 @@ test('pyodide solves climate change', async () => {
 // 	const TIWD = await WU.getThatWeathaData(x, y, "2024-03-20", "2024-04-20");
 // 	console.log("weather data",TIWD);
 
-// 	// https://github.com/codeforboston/home-energy-analysis-tool/tree/main/rules-engine/tests/test_rules_engine/cases/examples/quateman
+// 	// https://github.com/codeforboston/home-energy-analysis-tool/tree/main/python/tests/test_rules_engine/cases/examples/quateman
 // 	const exampleNationalGridCSV = `Name,FIRST LAST,,,,,
 // 	Address,"100 STREET AVE, BOSTON MA 02130",,,,,
 // 	Account Number,1111111111,,,,,
