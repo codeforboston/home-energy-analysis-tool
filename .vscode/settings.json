@@ -1,6 +1,6 @@
 {
     "python.testing.pytestArgs": [
-        "rules-engine"
+        "python"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true

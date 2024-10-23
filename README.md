@@ -29,4 +29,4 @@ To install the front end, see this [README.md](https://github.com/codeforboston/
 
 ### Documentation
 For the Heat Stack (Javascript) portion read: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
-For the Rules Engine (Python) portion read: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/rules-engine/README.md)
+For the Rules Engine (Python) portion read: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md)

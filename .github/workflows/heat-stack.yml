@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  rules-engine-working-directory: rules-engine  
+  rules-engine-working-directory: python  
   heat-stack-working-directory: heat-stack
 
 defaults:
