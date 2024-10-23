@@ -64,7 +64,7 @@
 // import type { Weather } from './WeatherExample.d.ts'
 
 // import * as pyodideModule from 'pyodide'
-// import engine from '../../rules-engine/src/rules_engine/engine.py'
+// import engine from '../../python/src/rules_engine/engine.py'
 
 // const getPyodide = async () => {
 // 	// public folder:
