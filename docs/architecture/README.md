@@ -1,0 +1,1 @@
+## Architectural Design of the H.E.A.T app
