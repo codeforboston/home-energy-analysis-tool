@@ -3,14 +3,17 @@ import {
 	type balancePointGraphRecordSchema,
 	type balancePointGraphSchema,
 	type summaryOutputSchema,
-	type billingRecordSchema,
-	type billingRecordsSchema,
+	type oneBillingRecordSchema,
+	type allBillingRecordsSchema,
 	type usageDataSchema,
+	type naturalGasUsageSchema
 } from './index.ts'
 
-export type BalancePointGraphRecordSchema = z.infer<typeof balancePointGraphRecordSchema>;
-export type BalancePointGraphSchema = z.infer<typeof balancePointGraphSchema>;
+
+export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>;
+export type BalancePoointGraphRecordSchema = z.infer<typeof balancePointGraphRecordSchema>;
+export type BalancePintGraphSchema = z.infer<typeof balancePointGraphSchema>;
 export type SummaryOutputSchema = z.infer<typeof summaryOutputSchema>;
-export type BillingRecordSchema = z.infer<typeof billingRecordSchema>;
-export type BillingRecordsSchema = z.infer<typeof billingRecordsSchema>;
+export type BillingRecordSchema = z.infer<typeof oneBillingRecordSchema>;
+export type BillingRecordsSchema = z.infer<typeof allBillingRecordsSchema>;
 export type UsageDataSchema = z.infer<typeof usageDataSchema>;

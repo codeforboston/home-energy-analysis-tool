@@ -52,7 +52,8 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [ ] Will weather service take timestamp instead of timezone date data?
 
 // Ours
-import { Home, Location, Case, type NaturalGasUsageData, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
+import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
+import { type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -61,11 +62,11 @@ import HeatLoadAnalysis from './heatloadanalysis.tsx'
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
 
-const HomeFormSchema = Home.pick({ living_area: true })
-    .and(Location.pick({ address: true }))
-    .and(Case.pick({ name: true }))
+const HomeFormSchema = HomeSchema.pick({ living_area: true })
+    .and(LocationSchema.pick({ address: true }))
+    .and(CaseSchema.pick({ name: true }))
 
-const CurrentHeatingSystemSchema = Home.pick({
+const CurrentHeatingSystemSchema = HomeSchema.pick({
     fuel_type: true,
     heating_system_efficiency: true,
     design_temperature_override: true,
@@ -251,8 +252,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
      */
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
-    type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
-    const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
+    const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
 
     // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
     const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
@@ -535,7 +535,6 @@ export default function Inputs() {
     }  
   
     let usage_data = null;
-    let modifiedLastResult = null;
     let show_usage_data = lastResult !== undefined;
 
     console.log('lastResult', lastResult)
@@ -547,8 +546,7 @@ export default function Inputs() {
             const parsedData = JSON.parse(lastResult.data);
 
             // Recursively transform any Maps in lastResult to objects
-            modifiedLastResult = replacedMapToObject(parsedData);
-            usage_data = modifiedLastResult; // Get the relevant part of the transformed result
+            usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
             console.log('usage_data', usage_data)
             
         } catch (error) {

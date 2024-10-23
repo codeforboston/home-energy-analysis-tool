@@ -38,6 +38,7 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Calculate the number of billing periods included in Heating calculations
 	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
 		(billingRecord) => billingRecord.analysis_type === 1,
+		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
 	);
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(

@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
-import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'; 
-import {
-	NaturalGasUsageData,
-	type NaturalGasBillRecord as NaturalGasBillRecordZod,
-} from '#types/index'
+import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
