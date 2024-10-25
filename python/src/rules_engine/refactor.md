@@ -9,11 +9,7 @@ home variables used
   stdev_pct
   balance_point_graph
 ```
-
-1. Remove temporary_rules_engine.py
-2. Rename rules-engine to "python"
-3. Rename NormalizedBillingRecordBase class to BillingInput
-4. Rename BillingPeriod to ProcessedBill and billing_period to processed_bill
+1. Look at names of classes, match with erd
 5. Combine get_outputs_normalized and convert_to_intermediate_billing_record and get rid of NormalizedBillingRecord. There is only one place NormalizedBillingRecord is used and combining code
 gets rid of the need for the class.
 - Change
