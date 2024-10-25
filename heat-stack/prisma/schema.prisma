@@ -11,9 +11,12 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  username String  @unique
+  id       String @id @default(cuid())
+  // caseUser added when CaseUser model added for HEAT schema
+  caseUser CaseUser[]
+
+  email    String @unique
+  username String @unique
   name     String?
 
   createdAt DateTime @default(now())
@@ -166,4 +169,111 @@ model Connection {
   userId String
 
   @@unique([providerName, providerId])
+}
+
+// HEAT schema starts here
+model AnalysisInput {
+  id                              Int @id @default(autoincrement())
+  location                        Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseUser                        CaseUser[]
+  analysisOutput                  AnalysisOutput[]
+  analysisInputEnergyDataFile     AnalysisInputEnergyDataFile[]
+  case                            Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId                          Int
+  locationId                      Int
+  summaryOutputId                 String @unique
+  fuelType                        String
+  designTemperatureOverride       Boolean
+  heatingSystemEfficiency         Int
+  thermostatSetPoint              Int
+  setbackTemperature              Int
+  setbackHoursPerDay              Int
+  numberOfOccupants               Int
+  estimatedWaterHeatingEfficiency Int
+  standByLosses                   Int
+  processedEnergyBill             ProcessedEnergyBill[]
+  livingArea                      Float
+}
+
+model ProcessedEnergyBill {
+  id                    Int @id @default(autoincrement())
+  AnalysisInput         AnalysisInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId       Int
+  periodStartDate       DateTime
+  periodEndDate         DateTime
+  usageTherms           Float
+  wholeHomeHeatLossRate Float
+  analysisType          Int
+  defaultInclusion      Boolean
+  inclusionOverride     Boolean
+}
+
+model AnalysisOutput {
+  id                              Int @id @default(autoincrement())
+  AnalysisInput                   AnalysisInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId                 Int
+  estimatedBalancePoint           Float
+  otherFuelUsage                  Float 
+  averageIndoorTemperature        Float
+  differenceBetweenTiAndTbp       Float
+  designTemperature               Float
+  wholeHomeHeatLossRate           Float
+  standardDeviationOfHeatLossRate Float
+  averageHeatLoad                 Float
+  maximumHeatLoad                 Float
+}
+
+model EnergyDataFile {
+  id                          Int @id @default(autoincrement())
+  provider                    String
+  fuelType                    String
+  precedingDeliveryDate       DateTime
+  filePath                    String
+  description                 String
+  AnalysisInputEnergyDataFile AnalysisInputEnergyDataFile[]
+}
+
+model AnalysisInputEnergyDataFile {
+  analysisInput    AnalysisInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId  Int
+  EnergyDataFile   EnergyDataFile @relation(fields: [energyDataFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  energyDataFileId Int
+  @@unique([analysisInputId, energyDataFileId])
+}
+
+model Case {
+  id            Int @id @default(autoincrement())
+  homeOwner     HomeOwner @relation(fields: [homeOwnerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  homeOwnerId   Int
+  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  locationId    Int
+  analysisInput AnalysisInput[]
+}
+
+model HomeOwner {
+  id                      Int @id @default(autoincrement())
+  case                    Case[]
+  name                    String
+  contact_1_name          String
+  contact_1_email_address String
+  contact_1_phone         String
+  contact_2_name          String
+  contact_2_email_address String
+  contact_2_phone         String
+}
+model Location {
+  id                      Int @id @default(autoincrement())
+  case                    Case[]
+  contact_2_email_address String
+  contact_2_phone         String
+  address                 String
+  AnalysisInput           AnalysisInput[]
+}
+
+model CaseUser {
+  case            AnalysisInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId Int @id @default(autoincrement())
+  userId          String
+  @@unique([analysisInputId, userId])
 }
