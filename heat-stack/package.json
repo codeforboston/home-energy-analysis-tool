@@ -8,9 +8,6 @@
     "#app/*": "./app/*",
     "#tests/*": "./tests/*"
   },
-  "prisma": {
-    "seed": "ts-node ./prisma/seed.ts"
-  },
   "scripts": {
     "build": "run-s build:*",
     "build:icons": "tsx ./other/build-icons.ts",
@@ -155,7 +152,6 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "prisma": "^5.19.1",
     "remix-flat-routes": "^0.6.5",
-    "ts-node": "^10.9.2",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "vite": "^5.3.4",
@@ -167,5 +163,8 @@
   "epic-stack": {
     "head": "b2f899fec54a76c1e0e863dadad6e9340af5ca1b",
     "date": "2024-08-15T23:19:44Z"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
