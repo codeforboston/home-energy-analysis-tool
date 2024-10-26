@@ -1,3 +1,35 @@
+/*
+  Warnings:
+
+  - You are about to drop the `AnalysisInput` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `AnalysisInputEnergyDataFile` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `AnalysisOutput` table. If the table is not empty, all the data it contains will be lost.
+  - The primary key for the `CaseUser` table will be changed. If it partially fails, the table could be left without primary key constraint.
+  - You are about to drop the column `analysisInputId` on the `CaseUser` table. All the data in the column will be lost.
+  - Added the required column `analysisId` to the `CaseUser` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- DropIndex
+DROP INDEX "AnalysisInput_summaryOutputId_key";
+
+-- DropIndex
+DROP INDEX "AnalysisInputEnergyDataFile_analysisInputId_energyDataFileId_key";
+
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "AnalysisInput";
+PRAGMA foreign_keys=on;
+
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "AnalysisInputEnergyDataFile";
+PRAGMA foreign_keys=on;
+
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "AnalysisOutput";
+PRAGMA foreign_keys=on;
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -106,6 +138,52 @@ CREATE TABLE "Connection" (
 );
 
 -- CreateTable
+CREATE TABLE "Analysis" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "caseId" INTEGER NOT NULL,
+    CONSTRAINT "Analysis_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "Case" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "HeatingInput" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "fuelType" TEXT NOT NULL,
+    "designTemperatureOverride" BOOLEAN NOT NULL,
+    "heatingSystemEfficiency" INTEGER NOT NULL,
+    "thermostatSetPoint" INTEGER NOT NULL,
+    "setbackTemperature" INTEGER NOT NULL,
+    "setbackHoursPerDay" INTEGER NOT NULL,
+    "numberOfOccupants" INTEGER NOT NULL,
+    "estimatedWaterHeatingEfficiency" INTEGER NOT NULL,
+    "standByLosses" INTEGER NOT NULL,
+    "livingArea" REAL NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "HeatingOutput" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "analysisId" INTEGER NOT NULL,
+    "estimatedBalancePoint" REAL NOT NULL,
+    "otherFuelUsage" REAL NOT NULL,
+    "averageIndoorTemperature" REAL NOT NULL,
+    "differenceBetweenTiAndTbp" REAL NOT NULL,
+    "designTemperature" REAL NOT NULL,
+    "wholeHomeHeatLossRate" REAL NOT NULL,
+    "standardDeviationOfHeatLossRate" REAL NOT NULL,
+    "averageHeatLoad" REAL NOT NULL,
+    "maximumHeatLoad" REAL NOT NULL,
+    CONSTRAINT "HeatingOutput_analysisId_fkey" FOREIGN KEY ("analysisId") REFERENCES "Analysis" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "AnalysisDataFile" (
+    "analysisId" INTEGER NOT NULL,
+    "energyDataFileId" INTEGER NOT NULL,
+    CONSTRAINT "AnalysisDataFile_analysisId_fkey" FOREIGN KEY ("analysisId") REFERENCES "Analysis" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "AnalysisDataFile_energyDataFileId_fkey" FOREIGN KEY ("energyDataFileId") REFERENCES "EnergyDataFile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "_PermissionToRole" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -120,6 +198,37 @@ CREATE TABLE "_RoleToUser" (
     CONSTRAINT "_RoleToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_RoleToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- RedefineTables
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_CaseUser" (
+    "analysisId" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "CaseUser_analysisId_fkey" FOREIGN KEY ("analysisId") REFERENCES "HeatingInput" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "CaseUser_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO "new_CaseUser" ("userId") SELECT "userId" FROM "CaseUser";
+DROP TABLE "CaseUser";
+ALTER TABLE "new_CaseUser" RENAME TO "CaseUser";
+CREATE UNIQUE INDEX "CaseUser_analysisId_userId_key" ON "CaseUser"("analysisId", "userId");
+CREATE TABLE "new_ProcessedEnergyBill" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "analysisInputId" INTEGER NOT NULL,
+    "periodStartDate" DATETIME NOT NULL,
+    "periodEndDate" DATETIME NOT NULL,
+    "usageTherms" REAL NOT NULL,
+    "wholeHomeHeatLossRate" REAL NOT NULL,
+    "analysisType" INTEGER NOT NULL,
+    "defaultInclusion" BOOLEAN NOT NULL,
+    "inclusionOverride" BOOLEAN NOT NULL,
+    CONSTRAINT "ProcessedEnergyBill_analysisInputId_fkey" FOREIGN KEY ("analysisInputId") REFERENCES "HeatingInput" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO "new_ProcessedEnergyBill" ("analysisInputId", "analysisType", "defaultInclusion", "id", "inclusionOverride", "periodEndDate", "periodStartDate", "usageTherms", "wholeHomeHeatLossRate") SELECT "analysisInputId", "analysisType", "defaultInclusion", "id", "inclusionOverride", "periodEndDate", "periodStartDate", "usageTherms", "wholeHomeHeatLossRate" FROM "ProcessedEnergyBill";
+DROP TABLE "ProcessedEnergyBill";
+ALTER TABLE "new_ProcessedEnergyBill" RENAME TO "ProcessedEnergyBill";
+PRAGMA foreign_keys=ON;
+PRAGMA defer_foreign_keys=OFF;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -156,6 +265,9 @@ CREATE UNIQUE INDEX "Verification_target_type_key" ON "Verification"("target", "
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Connection_providerName_providerId_key" ON "Connection"("providerName", "providerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AnalysisDataFile_analysisId_energyDataFileId_key" ON "AnalysisDataFile"("analysisId", "energyDataFileId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
