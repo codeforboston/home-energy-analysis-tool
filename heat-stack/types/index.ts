@@ -25,6 +25,10 @@ export const HomeSchema = z.object({
 	standByLosses: z.number(),
 });
 
+export const TableSchema = z.object({
+	usage_data_with_user_adjustments: z.string().optional(),
+});
+
 export const LocationSchema = z.object({
 	address: z.string(),
 });
