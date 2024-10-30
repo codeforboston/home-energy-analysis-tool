@@ -52,7 +52,8 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [ ] Will weather service take timestamp instead of timezone date data?
 
 // Ours
-import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
+import { HomeSchema, LocationSchema, CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ 
+TableSchema} from '../../../types/index.ts'
 import { type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
@@ -75,7 +76,7 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
     setback_hours_per_day: true,
 })
 
-const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
+const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema).and(TableSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
@@ -136,6 +137,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         setback_temperature,
         setback_hours_per_day,
         design_temperature_override,
+        usage_data_with_user_adjustments,
     } = submission.value
 
     // await updateNote({ id: params.noteId, title, content })
@@ -414,6 +416,8 @@ Traceback (most recent call last): File "<exec>", line 32,
     //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
     /* why is inclusion_override still false after roundtrip */
 
+    console.log(usage_data_with_user_adjustments)
+
     const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
     // console.log("foo2 billing records[0]", foo2.get('billing_records')[0]);
@@ -590,7 +594,7 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory usage_data={ usage_data } />
+                <EnergyUseHistory usage_data={ usage_data } conform_form={form} fields={fields} />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>

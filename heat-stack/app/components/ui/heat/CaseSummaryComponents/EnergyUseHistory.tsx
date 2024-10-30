@@ -4,6 +4,7 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
+import { FormMetadata } from '@conform-to/react';
 
 // import { FieldMetadata, useForm } from '@conform-to/react'
 // import { Form, useLocation } from '@remix-run/react'
@@ -13,8 +14,12 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
 export function EnergyUseHistory({
 	usage_data,
+	conform_form,
+	fields
 }: {
-	usage_data: UsageDataSchema
+	conform_form: FormMetadata<any>,
+	usage_data: UsageDataSchema,
+	fields: any
 }) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -44,7 +49,7 @@ export function EnergyUseHistory({
 			{usage_data && (
 				<>
 					<AnalysisHeader usage_data={usage_data} />
-					<EnergyUseHistoryChart usage_data={usage_data} />
+					<EnergyUseHistoryChart conform_form={conform_form} usage_data={usage_data} fields={fields} />
 				</>
 			)}
 		</div>
