@@ -11,11 +11,9 @@ home variables used
 ```
 
 1. Remove temporary_rules_engine.py
-1. Move files in rules-engine/src/rules_engine to rules-engine/src to avoid dirs with similar names.
-2. Combine class NormalizedBillingPeriodRecordBase and class NormalizedBillingPeriodRecord
-3. Rename new combined class to BillingInput
-4. Rename BillingPeriod to ProcessedBill and billing_period to processed_bill
-5. Combine get_outputs_normalized and convert_to_intermediate_billing_record
+2. Move files in rules-engine/src/rules_engine to rules-engine/src to avoid dirs with similar names.
+3. Rename classes
+4. Combine get_outputs_normalized and convert_to_intermediate_billing_record
 - Change
 ```
     billing_periods: list[NormalizedBillingPeriodRecordBase] = []
@@ -62,6 +60,7 @@ to
         // usage not needed, it is part of inputBill
       )
 ```
+5. Combine class NormalizedBillingPeriodRecordBase and class NormalizedBillingPeriodRecord
 6. Home - Call home.calculate from home.init or move the code from home.init into home.calculate.  Otherwise, the fact that Home.init does calculations is hidden.  Code looks like this:
 ```
 home=Home(args)   # does some calculations
