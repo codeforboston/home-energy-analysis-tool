@@ -1,5 +1,6 @@
 import { type z } from 'zod';
 import { type UsageDataSchema } from '#/types/types.ts'; 
+import HelpCircle from './assets/help-circle.svg'
 
 export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Example usage_data
@@ -61,7 +62,12 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 
 	return (
 		<div className="section-title mt-12">
-			<div className="item-group-title font-semibold text-2xl mb-4">Heat Load Analysis</div>
+			<div className="flex flex-row gap-0.5 mb-4">
+				<div className="item-group-title font-semibold text-2xl">Heat Load Analysis</div>
+				{/* TODO: add help text here */}
+				<img src={HelpCircle} alt='help text'/>
+			</div>
+
 			<div className="flex flex-row">
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">

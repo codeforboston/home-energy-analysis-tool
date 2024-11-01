@@ -15,6 +15,7 @@ import {
 import HeatingUsage from './assets/HeatingUsage.png'
 import NonHeatingUsage from './assets/NonHeatingUsage.png'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.png'
+import HelpCircle from './assets/help-circle.svg'
 
 import { tr } from '@faker-js/faker'
 
@@ -82,19 +83,31 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 	}
 
 	return (
-		<Table id="EnergyUseHistoryChart">
+		<Table id="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
 			<TableHeader>
-				<TableRow>
-					<TableHead className="w-[100px]">#</TableHead>
-					<TableHead>Allowed Usage*</TableHead>
-					{/* TODO: add help text */}
-					<TableHead>Start Date</TableHead>
-					<TableHead>End Date</TableHead>
-					<TableHead>Days in Period</TableHead>
-					<TableHead>Gas Usage (therms)</TableHead>
-					<TableHead>Whole-home UA (BTU/h-°F)</TableHead>
-					<TableHead>Override Default</TableHead>
-					{/* TODO: add help text */}
+				<TableRow className='text-xs text-muted-foreground bg-neutral-50'>
+					<TableHead className="text-center">#</TableHead>
+					<TableHead className='text-center'>
+						<div className="flex flex-row">
+							<div className='text-right'>Allowed Usage*</div>
+							{/* TODO: add help text */}
+							<img src={HelpCircle} alt='help text' className='pl-2'/>
+						</div>
+					</TableHead>
+					
+					<TableHead className='text-center'>Start Date</TableHead>
+					<TableHead className='text-center'>End Date</TableHead>
+					<TableHead className='text-center'>Days in Period</TableHead>
+					<TableHead className='text-center'>Gas Usage (therms)</TableHead>
+					<TableHead className='text-center'>Whole-home UA (BTU/h-°F)</TableHead>
+					<TableHead className='text-center'>
+						<div className="flex flex-row">
+							<div className='text-right'>Override Default</div>
+							{/* TODO: add help text */}
+							<img src={HelpCircle} alt='help text' className='pl-2'/>
+						</div>
+					</TableHead>
+					
 				</TableRow>
 			</TableHeader>
 			<TableBody>
@@ -136,7 +149,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 					return (
 						<TableRow key={index} variant={variant}>
 							<TableCell className="font-medium">{index + 1}</TableCell>
-							<TableCell>
+							<TableCell className='justify-items-center'>
 								<img src={analysisType_Image} alt="Analysis Type" />
 							</TableCell>
 							<TableCell>{startDate.toLocaleDateString()}</TableCell>
