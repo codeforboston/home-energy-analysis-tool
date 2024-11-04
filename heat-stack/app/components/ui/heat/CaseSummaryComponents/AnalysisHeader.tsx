@@ -68,7 +68,7 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 				<img src={HelpCircle} alt='help text'/>
 			</div>
 
-			<div className="flex flex-row">
+			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
