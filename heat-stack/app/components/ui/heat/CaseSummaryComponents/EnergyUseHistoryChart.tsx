@@ -12,10 +12,10 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
-import HeatingUsage from './assets/HeatingUsage.png'
-import NonHeatingUsage from './assets/NonHeatingUsage.png'
-import NotAllowedInCalculations from './assets/NotAllowedInCalculations.png'
+import HeatingUsage from './assets/HeatingUsage.svg'
 import HelpCircle from './assets/help-circle.svg'
+import NonHeatingUsage from './assets/NonHeatingUsage.svg'
+import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 
 import { tr } from '@faker-js/faker'
 
