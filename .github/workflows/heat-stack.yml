@@ -12,6 +12,7 @@ on:
 env:
   rules-engine-working-directory: python  
   heat-stack-working-directory: heat-stack
+  fly-io-working-directory: 
 
 defaults:
   run:
@@ -188,7 +189,7 @@ jobs:
         uses: SebRollen/toml-action@v1.0.2
         id: app_name
         with:
-          file: '${{ env.heat-stack-working-directory }}/fly.toml'
+          file: '${{ env.fly-io-working-directory }}/fly.toml'
           field: 'app'
 
       # move Dockerfile to root
@@ -209,7 +210,7 @@ jobs:
 
       - name: 🚀 Deploy Staging
         if: ${{ github.ref == 'refs/heads/dev' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
+        working-directory: ${{ env.fly-io-working-directory }} 
         run:
           flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
           --app ${{ steps.app_name.outputs.value }}-staging
@@ -218,7 +219,7 @@ jobs:
 
       - name: 🚀 Deploy Production
         if: ${{  github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gha-deployment' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
+        working-directory: ${{ env.fly-io-working-directory }} 
         run:
           flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
         env:
