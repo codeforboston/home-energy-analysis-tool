@@ -1,5 +1,6 @@
 import { type z } from 'zod';
 import { type UsageDataSchema } from '#/types/types.ts'; 
+import HelpCircle from './assets/help-circle.svg'
 
 export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Example usage_data
@@ -35,6 +36,8 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Extract the summary_output from usage_data
 	const summaryOutputs = usage_data?.summary_output;
 
+	const totalRecords = usage_data?.billing_records?.length || "-"
+
 	// Calculate the number of billing periods included in Heating calculations
 	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
 		(billingRecord) => billingRecord.analysis_type === 1,
@@ -58,40 +61,45 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 
 
 	return (
-		<div className="section-title">
-			<div className="item-group-title">Heat Load Analysis</div>
-			<div className="flex flex-row">
+		<div className="section-title mt-12">
+			<div className="flex flex-row gap-0.5 mb-4">
+				<div className="item-group-title font-semibold text-2xl">Heat Load Analysis</div>
+				{/* TODO: add help text here */}
+				{/* <img src={HelpCircle} alt='help text'/> */}
+			</div>
+
+			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
-						<div className="item">
+						<div className="item font-bold">
 							{summaryOutputs?.average_indoor_temperature} °F
 						</div>
 						<br />
 						Balance Point Temperature
 						<br />
-						<div className="item">
+						<div className="item font-bold">
 							{summaryOutputs?.estimated_balance_point} °F
 						</div>
 						<br />
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Number of Periods Included <br />
-						<div className="item">{numRecordsForHeatingCalculations}</div>
+						<div className="item font-bold">{numRecordsForHeatingCalculations} / {totalRecords}</div>
 						<br />
 						Daily non-heating Usage <br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
 						</div>
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Standard Deviation of UA <br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to two decimal places */}
 							{(
 								summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
@@ -101,7 +109,7 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 						<br />
 						Whole-home UA
 						<br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to zero decimal places */}
 							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
 						</div>
