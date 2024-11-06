@@ -65,7 +65,7 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 			<div className="flex flex-row gap-0.5 mb-4">
 				<div className="item-group-title font-semibold text-2xl">Heat Load Analysis</div>
 				{/* TODO: add help text here */}
-				<img src={HelpCircle} alt='help text'/>
+				{/* <img src={HelpCircle} alt='help text'/> */}
 			</div>
 
 			<div className="flex flex-row gap-x-4">

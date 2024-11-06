@@ -89,9 +89,9 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 					<TableHead className="text-center">#</TableHead>
 					<TableHead className='text-center'>
 						<div className="flex flex-row">
-							<div className='text-right'>Allowed Usage*</div>
+							<div className='text-right'>Allowed Usage</div>
 							{/* TODO: add help text */}
-							<img src={HelpCircle} alt='help text' className='pl-2'/>
+							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
 						</div>
 					</TableHead>
 					
@@ -104,7 +104,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 						<div className="flex flex-row">
 							<div className='text-right'>Override Default</div>
 							{/* TODO: add help text */}
-							<img src={HelpCircle} alt='help text' className='pl-2'/>
+							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
 						</div>
 					</TableHead>
 					
