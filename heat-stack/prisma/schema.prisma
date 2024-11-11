@@ -173,15 +173,19 @@ model Connection {
 
 // HEAT schema starts here
 model Analysis {
-  id               Int @id @default(autoincrement())
-  case             Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  caseId           Int
-  heatingOutput    HeatingOutput[]
-  analysisDataFile AnalysisDataFile[]
+  id                   Int @id @default(autoincrement())
+  case                 Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId               Int
+  heatingInput         HeatingInput[]
+  analysisDataFile     AnalysisDataFile[]
+  heatingOutput        HeatingOutput[]
+  rules_engine_version String
 }
 
 model HeatingInput {
   id                              Int @id @default(autoincrement())
+  analysis                        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisId                      Int
   caseUser                        CaseUser[]
   fuelType                        String
   designTemperatureOverride       Boolean
@@ -197,16 +201,16 @@ model HeatingInput {
 }
 
 model ProcessedEnergyBill {
-  id                    Int @id @default(autoincrement())
-  AnalysisInput         HeatingInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  analysisInputId       Int
-  periodStartDate       DateTime
-  periodEndDate         DateTime
-  usageTherms           Float
-  wholeHomeHeatLossRate Float
-  analysisType          Int
-  defaultInclusion      Boolean
-  inclusionOverride     Boolean
+  id                     Int @id @default(autoincrement())
+  AnalysisInput          HeatingInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId        Int
+  periodStartDate        DateTime
+  periodEndDate          DateTime
+  usageTherms            Float
+  wholeHomeHeatLossRate  Float
+  analysisType           Int
+  defaultInclusion       Boolean
+  invertDefaultInclusion Boolean
 }
 
 model HeatingOutput {
@@ -224,12 +228,12 @@ model HeatingOutput {
   maximumHeatLoad                 Float
 }
 
-model EnergyDataFile {
+model EnergyUsageFile {
   id                    Int @id @default(autoincrement())
   provider              String
   fuelType              String
   precedingDeliveryDate DateTime
-  filePath              String
+  content               String
   description           String
   analysisDataFile      AnalysisDataFile[]
 }
@@ -237,9 +241,9 @@ model EnergyDataFile {
 model AnalysisDataFile {
   analysis         Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   analysisId       Int
-  EnergyDataFile   EnergyDataFile @relation(fields: [energyDataFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  energyDataFileId Int
-  @@unique([analysisId, energyDataFileId])
+  EnergyUsageFile  EnergyUsageFile @relation(fields: [energyUsageFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  energyUsageFileId Int
+  @@unique([analysisId, energyUsageFileId])
 }
 
 model Case {
@@ -252,22 +256,27 @@ model Case {
 }
 
 model HomeOwner {
-  id                      Int @id @default(autoincrement())
-  case                    Case[]
-  name                    String
-  contact_1_name          String
-  contact_1_email_address String
-  contact_1_phone         String
-  contact_2_name          String
-  contact_2_email_address String
-  contact_2_phone         String
+  id          Int @id @default(autoincrement())
+  case        Case[]
+  firstName1  String
+  lastName1   String
+  email1      String
+  firstName2  String
+  lastName2   String
+  email2      String
 }
+
 model Location {
-  id                      Int @id @default(autoincrement())
-  case                    Case[]
-  contact_2_email_address String
-  contact_2_phone         String
-  address                 String
+  id                   Int @id @default(autoincrement())
+  case                 Case[]
+  address              String
+  city                 String
+  state                String
+  zipcode              String
+  country              String
+  livingAreaSquareFeet Int
+  latitude             Float
+  longitude            Float
 }
 
 model CaseUser {

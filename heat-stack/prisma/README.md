@@ -1,3 +1,8 @@
+# To Generate the Schema for the First Time
+```
+npx prisma generate
+```
+
 # To Change the Schema
 First, edit schema.prisma.
 
