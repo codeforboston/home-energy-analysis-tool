@@ -120,7 +120,7 @@ export const oneBillingRecordSchema = z.object({
 	 */
 	// analysis_type: z.enum(["ALLOWED_HEATING_USAGE", "ALLOWED_NON_HEATING_USAGE", "NOT_ALLOWED_IN_CALCULATIONS"]),
 	analysis_type: z.number(),
-	default_inclusion_by_calculation: z.boolean(),
+	default_inclusion: z.boolean(),
 	eliminated_as_outlier: z.boolean(),
 	whole_home_heat_loss_rate: z.number(),
 });
