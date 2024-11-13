@@ -46,13 +46,13 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion_by_calculation === true &&
+		billingRecord.default_inclusion === true &&
 		billingRecord.inclusion_override === false,
 	).length;
 
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion_by_calculation === false &&
+		billingRecord.default_inclusion === false &&
 		billingRecord.inclusion_override === true,
 	).length;
 
