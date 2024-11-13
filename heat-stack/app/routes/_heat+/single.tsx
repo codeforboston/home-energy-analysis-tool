@@ -168,6 +168,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const pyodide: any = await runPythonScript()
     //////////////////////
 
+    // TODO: Can we "cache" this type of stuff? (plocket)
     let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
     let {x, y} = coordinates ?? {x: 0, y: 0};
 
@@ -189,6 +190,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         setback_hours_per_day,
         design_temperature_override,
         // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
+        usage_data_with_user_adjustments
     })
 
     // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
@@ -219,26 +221,36 @@ export async function action({ request, params }: ActionFunctionArgs) {
         'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
     )
 
+    console.log("incoming usage_data_with_user_adjustments string length", usage_data_with_user_adjustments ? usage_data_with_user_adjustments?.length : "") 
+
     // console.log("uploadedTextFile", uploadedTextFile)
 
     /**
      * Need to parse the gas bill first to determine the start and end dates of the bill
      * so that we can request the weather for those dates.
      */
-    const executeParseGasBillPy = await pyodide.runPythonAsync(`
-        from rules_engine import parser
-        from rules_engine.pydantic_models import (
-            FuelType,
-            SummaryInput,
-            TemperatureInput
-        )
-        from rules_engine import engine
-    
-        def executeParse(csvDataJs):
-            naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
-            return naturalGasInputRecords.model_dump(mode="json")
-        executeParse
-    `)
+    async function get_gas_bill_pyodide() {
+        return pyodide.runPythonAsync(`
+            from rules_engine import parser
+            from rules_engine.pydantic_models import (
+                FuelType,
+                SummaryInput,
+                TemperatureInput
+            )
+            from rules_engine import engine
+        
+            def executeParse(csvDataJs):
+                naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+                return naturalGasInputRecords.model_dump(mode="json")
+            executeParse
+        `)
+    }
+
+    // if ( (usage_data_with_user_adjustments || ``).length > 0 ) {}
+
+    /** During the first proper load of the data, start creating the Pyodide Map */
+
+    const executeParseGasBillPy = await get_gas_bill_pyodide()
 
     /** Example:
      * records: [
@@ -335,9 +347,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
         executeGetAnalyticsFromForm
     `)
     // type Analytics = z.infer<typeof Analytics>;
-    const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
+    const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    //console.log("foo billing records [0]", foo.get('billing_records')[0] )
+    //console.log("gasBillDataWithUserAdjustments billing records [0]", gasBillDataWithUserAdjustments.get('billing_records')[0] )
 
     /**
      * second time and after, when table is modified, this becomes entrypoint
@@ -405,37 +417,54 @@ Traceback (most recent call last): File "<exec>", line 32,
       'whole_home_heat_loss_rate' => undefined
     }, */
 
-    const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
+    // const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
 
-    const billingRecords = foo.get('billing_records')
-    billingRecords.forEach((record: any) => {
-        record.set('inclusion_override', true);
-    });
-    // foo.set('billing_records', null)
-    // foo.set('billing_records', billingRecords)
+    // const billingRecords = gasBillDataWithUserAdjustments.get('billing_records')
+    // billingRecords.forEach((record: any) => {
+    //     record.set('inclusion_override', true);
+    // });
+    // gasBillDataWithUserAdjustments.set('billing_records', null)
+    // gasBillDataWithUserAdjustments.set('billing_records', billingRecords)
     //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
     /* why is inclusion_override still false after roundtrip */
 
-    console.log(usage_data_with_user_adjustments)
+    // console.log("after processing usage_data_with_user_adjustments", usage_data_with_user_adjustments)
 
-    const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
+    // inclusion_override\",true
+    // 12/03/2020
+    let gasBillData = gasBillDataWithUserAdjustments
+    if ((usage_data_with_user_adjustments || ``).length > 0) {
+        // console.log(`This is now usage_data_with_user_adjustments`)
+        gasBillData = JSON.parse(usage_data_with_user_adjustments, reviver)
+        // console.log(`gasBillData`, gasBillData);  // 11/12/24 this is correct
+    }
+    const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillData, state_id, county_id).toJs()
+    console.log(`calculatedData:`, calculatedData)
 
-    // console.log("foo2 billing records[0]", foo2.get('billing_records')[0]);
-    // console.log("foo2", foo2);
-    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
+    // console.log("calculatedData billing records[0]", calculatedData.get('billing_records')[0]);
+    // console.log("calculatedData", calculatedData);
+    // console.log("(after round trip) gasBillData billing records[0]", gasBillData.get('billing_records')[0])
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
-    const str_version = JSON.stringify(foo2, replacer);
-    // const json_version = JSON.parse(str_version);
-    // console.log("str_version", str_version);
+    const calculated_data_str = JSON.stringify(calculatedData, replacer);
+    // const json_version = JSON.parse(calculated_data_str);
+    // console.log("calculated_data_str", calculated_data_str);
 
     // Consider adding to form data
-    return json({data: str_version});
+    return json({data: calculated_data_str});
     // return redirect(`/single`)
 }
 
-// https://stackoverflow.com/a/56150320
+
+/** Pass this to JSON.stringify()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function replacer(key: any, value: any) {
     if(value instanceof Map) {
         return {
@@ -446,8 +475,17 @@ function replacer(key: any, value: any) {
         return value;
     }
 }
-    
-// https://stackoverflow.com/a/56150320
+
+
+/** Pass this to JSON.parse()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * const newValue = JSON.parse(str, reviver);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function reviver(key: any, value: any) {
     if(typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
@@ -574,6 +612,9 @@ export default function Inputs() {
             setback_temperature: 65,
             setback_hours_per_day: 8,
             // design_temperature_override: '',
+            // 2020-12-03 is true:
+            usage_data_with_user_adjustments: "{\"dataType\":\"Map\",\"value\":[[\"summary_output\",{\"dataType\":\"Map\",\"value\":[[\"estimated_balance_point\",61.5],[\"other_fuel_usage\",0.2857142857142857],[\"average_indoor_temperature\",67],[\"difference_between_ti_and_tbp\",5.5],[\"design_temperature\",1],[\"whole_home_heat_loss_rate\",48001.81184312083],[\"standard_deviation_of_heat_loss_rate\",0.08066745182677547],[\"average_heat_load\",3048115.0520381727],[\"maximum_heat_load\",3312125.0171753373]]}],[\"balance_point_graph\",{\"dataType\":\"Map\",\"value\":[[\"records\",[{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60],[\"heat_loss_rate\",51056.8007761249],[\"change_in_heat_loss_rate\",0],[\"percent_change_in_heat_loss_rate\",0],[\"standard_deviation\",0.17628334816871494]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60.5],[\"heat_loss_rate\",49641.09065667595],[\"change_in_heat_loss_rate\",-1415.7101194489514],[\"percent_change_in_heat_loss_rate\",-2.851891650085171],[\"standard_deviation\",0.17828325017380922]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59.5],[\"heat_loss_rate\",52531.668333800335],[\"change_in_heat_loss_rate\",1474.8675576754322],[\"percent_change_in_heat_loss_rate\",2.8075779895352406],[\"standard_deviation\",0.17443387685061057]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59.5],[\"heat_loss_rate\",52531.668333800335],[\"change_in_heat_loss_rate\",1474.8675576754322],[\"percent_change_in_heat_loss_rate\",2.8075779895352406],[\"standard_deviation\",0.17443387685061057]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59],[\"heat_loss_rate\",54071.908410221266],[\"change_in_heat_loss_rate\",1540.2400764209306],[\"percent_change_in_heat_loss_rate\",2.848503264829797],[\"standard_deviation\",0.17298594078724697]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59],[\"heat_loss_rate\",54071.908410221266],[\"change_in_heat_loss_rate\",1540.2400764209306],[\"percent_change_in_heat_loss_rate\",2.848503264829797],[\"standard_deviation\",0.17298594078724697]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",58.5],[\"heat_loss_rate\",55697.678832556725],[\"change_in_heat_loss_rate\",1625.7704223354594],[\"percent_change_in_heat_loss_rate\",2.9189195248566713],[\"standard_deviation\",0.17277383864097884]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",58.5],[\"heat_loss_rate\",55697.678832556725],[\"change_in_heat_loss_rate\",1625.7704223354594],[\"percent_change_in_heat_loss_rate\",2.9189195248566713],[\"standard_deviation\",0.17277383864097884]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",58],[\"heat_loss_rate\",57389.10146127484],[\"change_in_heat_loss_rate\",1691.4226287181154],[\"percent_change_in_heat_loss_rate\",2.9472889201087384],[\"standard_deviation\",0.1732541612054347]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59],[\"heat_loss_rate\",56768.56639074183],[\"change_in_heat_loss_rate\",-1633.1649217006925],[\"percent_change_in_heat_loss_rate\",-2.876882446633423],[\"standard_deviation\",0.11390817174664584]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59],[\"heat_loss_rate\",56768.56639074183],[\"change_in_heat_loss_rate\",-1633.1649217006925],[\"percent_change_in_heat_loss_rate\",-2.876882446633423],[\"standard_deviation\",0.11390817174664584]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59.5],[\"heat_loss_rate\",55229.19886484982],[\"change_in_heat_loss_rate\",-1539.3675258920048],[\"percent_change_in_heat_loss_rate\",-2.787234936467135],[\"standard_deviation\",0.11124427880653119]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",59.5],[\"heat_loss_rate\",55229.19886484982],[\"change_in_heat_loss_rate\",-1539.3675258920048],[\"percent_change_in_heat_loss_rate\",-2.787234936467135],[\"standard_deviation\",0.11124427880653119]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60],[\"heat_loss_rate\",53751.25155581334],[\"change_in_heat_loss_rate\",-1477.9473090364845],[\"percent_change_in_heat_loss_rate\",-2.7496053882612164],[\"standard_deviation\",0.10927575007028069]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60],[\"heat_loss_rate\",53751.25155581334],[\"change_in_heat_loss_rate\",-1477.9473090364845],[\"percent_change_in_heat_loss_rate\",-2.7496053882612164],[\"standard_deviation\",0.10927575007028069]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60.5],[\"heat_loss_rate\",52323.72128080989],[\"change_in_heat_loss_rate\",-1427.5302750034461],[\"percent_change_in_heat_loss_rate\",-2.728265956739211],[\"standard_deviation\",0.10801613348768026]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",60.5],[\"heat_loss_rate\",52323.72128080989],[\"change_in_heat_loss_rate\",-1427.5302750034461],[\"percent_change_in_heat_loss_rate\",-2.728265956739211],[\"standard_deviation\",0.10801613348768026]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",61],[\"heat_loss_rate\",50945.7751226953],[\"change_in_heat_loss_rate\",-1377.9461581145952],[\"percent_change_in_heat_loss_rate\",-2.7047309709117537],[\"standard_deviation\",0.10764428073606047]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",61],[\"heat_loss_rate\",50945.7751226953],[\"change_in_heat_loss_rate\",-1377.9461581145952],[\"percent_change_in_heat_loss_rate\",-2.7047309709117537],[\"standard_deviation\",0.10764428073606047]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",61.5],[\"heat_loss_rate\",49631.792545334356],[\"change_in_heat_loss_rate\",-1313.982577360941],[\"percent_change_in_heat_loss_rate\",-2.6474614555997174],[\"standard_deviation\",0.10811412177333496]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",61.5],[\"heat_loss_rate\",48001.81184312083],[\"change_in_heat_loss_rate\",-1294.1867605708176],[\"percent_change_in_heat_loss_rate\",-2.6961206481131783],[\"standard_deviation\",0.08066745182677547]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",61.5],[\"heat_loss_rate\",48001.81184312083],[\"change_in_heat_loss_rate\",-1294.1867605708176],[\"percent_change_in_heat_loss_rate\",-2.6961206481131783],[\"standard_deviation\",0.08066745182677547]]},{\"dataType\":\"Map\",\"value\":[[\"balance_point\",62],[\"heat_loss_rate\",46755.80641468955],[\"change_in_heat_loss_rate\",-1246.0054284312791],[\"percent_change_in_heat_loss_rate\",-2.6649212664201087],[\"standard_deviation\",0.0815069913122175]]}]]]}],[\"billing_records\",[{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2020-10-02\"],[\"period_end_date\",\"2020-11-04\"],[\"usage\",29],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2020-11-05\"],[\"period_end_date\",\"2020-12-03\"],[\"usage\",36],[\"analysis_type_override\",null],[\"inclusion_override\",true],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",48736.22736085496]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2020-12-04\"],[\"period_end_date\",\"2021-01-07\"],[\"usage\",97],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",41661.03299080584]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-01-08\"],[\"period_end_date\",\"2021-02-05\"],[\"usage\",105],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",46564.67671353479]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-02-06\"],[\"period_end_date\",\"2021-03-05\"],[\"usage\",98],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",46242.564920934274]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-03-06\"],[\"period_end_date\",\"2021-04-06\"],[\"usage\",66],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-04-07\"],[\"period_end_date\",\"2021-05-05\"],[\"usage\",22],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-05-06\"],[\"period_end_date\",\"2021-06-07\"],[\"usage\",19],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-06-08\"],[\"period_end_date\",\"2021-07-06\"],[\"usage\",7],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-07-07\"],[\"period_end_date\",\"2021-08-04\"],[\"usage\",10],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-08-05\"],[\"period_end_date\",\"2021-09-08\"],[\"usage\",11],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-09-09\"],[\"period_end_date\",\"2021-10-05\"],[\"usage\",8],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-10-06\"],[\"period_end_date\",\"2021-11-03\"],[\"usage\",13],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-11-04\"],[\"period_end_date\",\"2021-12-06\"],[\"usage\",41],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",true],[\"whole_home_heat_loss_rate\",36769.311473356196]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2021-12-07\"],[\"period_end_date\",\"2022-01-05\"],[\"usage\",86],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",50773.22541680993]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-01-06\"],[\"period_end_date\",\"2022-02-03\"],[\"usage\",132],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",54033.143655785156]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-02-04\"],[\"period_end_date\",\"2022-03-07\"],[\"usage\",116],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",true],[\"whole_home_heat_loss_rate\",60844.43423671721]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-03-08\"],[\"period_end_date\",\"2022-04-04\"],[\"usage\",49],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-04-05\"],[\"period_end_date\",\"2022-05-05\"],[\"usage\",39],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-05-06\"],[\"period_end_date\",\"2022-06-06\"],[\"usage\",20],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-06-07\"],[\"period_end_date\",\"2022-07-05\"],[\"usage\",9],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-07-06\"],[\"period_end_date\",\"2022-08-03\"],[\"usage\",7],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-08-04\"],[\"period_end_date\",\"2022-09-03\"],[\"usage\",8],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",-1],[\"default_inclusion_by_calculation\",true],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-09-04\"],[\"period_end_date\",\"2022-10-03\"],[\"usage\",8],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]},{\"dataType\":\"Map\",\"value\":[[\"period_start_date\",\"2022-10-04\"],[\"period_end_date\",\"2022-11-03\"],[\"usage\",19],[\"analysis_type_override\",null],[\"inclusion_override\",false],[\"analysis_type\",0],[\"default_inclusion_by_calculation\",false],[\"eliminated_as_outlier\",false],[\"whole_home_heat_loss_rate\",null]]}]]]}"
+
         } as SchemaZodFromFormType,
         shouldValidate: 'onBlur',
     })
