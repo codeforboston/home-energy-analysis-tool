@@ -3,7 +3,7 @@ Data models for input and output data in the rules engine.
 """
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from enum import Enum
 from functools import cached_property
 from typing import Annotated, Any, Literal, Optional, Sequence
@@ -97,8 +97,8 @@ class OilPropaneBillingInput(BaseModel):
 class NaturalGasBillingRecordInput(BaseModel):
     """From Natural Gas tab. A single row of the Billing input table."""
 
-    period_start_date: datetime = Field(description="Natural Gas!A")
-    period_end_date: datetime = Field(description="Natural Gas!B")
+    period_start: datetime = Field(description="Natural Gas!A")
+    period_end: datetime = Field(description="Natural Gas!B")
     usage_therms: float = Field(description="Natural Gas!D")
     inclusion_override: Optional[bool] = Field(description="Natural Gas!E")
 

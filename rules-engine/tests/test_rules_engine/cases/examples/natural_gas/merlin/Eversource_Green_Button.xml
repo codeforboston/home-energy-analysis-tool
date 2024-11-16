@@ -1,0 +1,253 @@
+<atom:feed xmlns:ns="http://naesb.org/espi"
+    xmlns:atom="http://www.w3.org/2005/Atom">
+    <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+    <atom:link href="/ThirdParty/de3cbe23/Batch" rel="self" />
+    <atom:title>ThirdPartyX Batch Feed</atom:title>
+    <atom:updated>2024-07-27T06:53:27</atom:updated>
+    <atom:entry>
+        <atom:content>
+            <ns:UsagePoint>
+                <ns:ServiceCategory>
+                    <ns:kind />
+                </ns:ServiceCategory>
+                <ns:status>1</ns:status>
+            </ns:UsagePoint>
+        </atom:content>
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="User/ab3c7123/UsagePoint/01" rel="self" />
+        <atom:link href="User/ab3c7123/UsagePoint" rel="up" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading" rel="related" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/ElectricPowerUsageSummary" rel="related" />
+        <atom:link href="LocalTimeParameters/01" rel="related" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:title>1 Main Street Boston MA US 01234-5678, </atom:title>
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+    <atom:entry>
+        <atom:content>
+            <ns:MeterReading />
+        </atom:content>
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading/01" rel="self" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading" rel="up" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading/01/IntervalBlock" rel="related" />
+        <atom:link href="ReadingType/07" rel="related" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+    <atom:entry>
+        <atom:content>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2592000</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>2491000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2592000</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>57000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2851200</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>7094000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2851200</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>233000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2419200</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>12770000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2419200</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>450000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2505600</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>19359000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2505600</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>702000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2592000</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>22918000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2592000</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>838000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2764800</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>34485000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2764800</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>1030000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2505600</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>19632000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2505600</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>571000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2592000</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>9288000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2592000</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>254000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2678400</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>1000000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2678400</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>-244000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+            <ns:IntervalBlock>
+                <ns:interval>
+                    <ns:duration>2678400</ns:duration>
+                    <ns:start>1722092007.25295</ns:start>
+                </ns:interval>
+                <ns:IntervalReading>
+                    <ns:cost>1000000</ns:cost>
+                    <ns:ReadingQuality>
+                        <ns:quality>0</ns:quality>
+                    </ns:ReadingQuality>
+                    <ns:timePeriod>
+                        <ns:duration>2678400</ns:duration>
+                        <ns:start>1722092007.25295</ns:start>
+                    </ns:timePeriod>
+                    <ns:value>-56000</ns:value>
+                </ns:IntervalReading>
+            </ns:IntervalBlock>
+        </atom:content>
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading/01/IntervalBlock/0173" rel="self" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/MeterReading/01/IntervalBlock" rel="up" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:title />
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+    <atom:entry>
+        <atom:content>
+            <ns:ReadingType />
+        </atom:content>
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="ReadingType/07" rel="self" />
+        <atom:link href="ReadingType" rel="up" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+    <atom:entry>
+        <atom:content />
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="User/ab3c7123/ElectricPowerUsageSummary/01" rel="self" />
+        <atom:link href="User/ab3c7123/UsagePoint/01/ElectricPowerUsageSummary" rel="up" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:title>Usage Summary</atom:title>
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+    <atom:entry>
+        <atom:content>
+            <ns:LocalTimeParameters>
+                <ns:dstEndRule>B40E2000</ns:dstEndRule>
+                <ns:dstOffset>3600</ns:dstOffset>
+                <ns:dstStartRule>360E2000</ns:dstStartRule>
+                <ns:tzOffset>18000</ns:tzOffset>
+            </ns:LocalTimeParameters>
+        </atom:content>
+        <atom:id>urn:uuid:046638c0-8701-2342-9d80-0800200c8a23</atom:id>
+        <atom:link href="LocalTimeParameters/01" rel="self" />
+        <atom:link href="LocalTimeParameters" rel="up" />
+        <atom:published>2024-07-27T06:53:27</atom:published>
+        <atom:title>DST For North America</atom:title>
+        <atom:updated>2024-07-27T06:53:27</atom:updated>
+    </atom:entry>
+</atom:feed>
