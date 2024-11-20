@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
-import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
+import { type UsageDataSchema, type BillingRecordsSchema, BillingRecordSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
@@ -18,9 +18,10 @@ import NonHeatingUsage from './assets/NonHeatingUsage.svg'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 
 import { tr } from '@faker-js/faker'
-import { FormMetadata, getInputProps } from '@conform-to/react'
+import { FormMetadata, getInputProps, SubmissionResult } from '@conform-to/react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '../../input.tsx'
+import { useActionData } from '@remix-run/react'
 
 // type NaturalGasBillRecord = z.infer<typeof NaturalGasBillRecordZod>
 // const naturalGasBillRecord01: NaturalGasBillRecord = {
@@ -60,6 +61,7 @@ import { Input } from '../../input.tsx'
 
 export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { usage_data: UsageDataSchema, conform_form: FormMetadata<any>, fields: any }) {
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
+	const lastResultAkaTheMap = useActionData<typeof action>()
 
 	useEffect(() => {
 		if (usage_data?.billing_records) {
@@ -68,18 +70,76 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 		}
 	}, [usage_data])
 
-	const handleOverrideCheckboxChange = (index: number) => {
+	const handleOverrideCheckboxChange = (new_index: number) => {
 		setBillingRecords((prevRecords) => {
 			const newRecords = structuredClone(prevRecords)
-			const period = newRecords[index]
+			const period = newRecords[new_index]
 			
 			if (period) {
 				const currentOverride = period.inclusion_override
 				// Toggle 'inclusion_override'
 				period.inclusion_override = !currentOverride
-				
-				newRecords[index] = { ...period } 
+				newRecords[new_index] = { ...period }	
 			}
+
+			type ActionResult = 
+			| SubmissionResult<string[]>
+			| { data: string }
+			| undefined;
+		  
+			/** typeguard for useAction between string[] and {data: string} */
+			function hasDataProperty(result: ActionResult): result is { data: string } {
+				return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
+			}  
+
+			/** Pass this to JSON.parse()
+			 * 
+			 * Usage:
+			 * const originalValue = new Map([['a', 1]]);
+			 * const str = JSON.stringify(originalValue, replacer);
+			 * const newValue = JSON.parse(str, reviver);
+			 * 
+			 * See https://stackoverflow.com/a/56150320
+			 */
+			function reviver(key: any, value: any) {
+				if(typeof value === 'object' && value !== null) {
+					if (value.dataType === 'Map') {
+					return new Map(value.value);
+					}
+				}
+				return value;
+			}
+
+			let newMap;
+
+			try {
+				// Parse the JSON string from lastResult.data
+				newMap = JSON.parse(lastResultAkaTheMap.data, reviver) as any;
+				const billingRecordsFromMap = newMap.get('billing_records') ?? [] as Array<any>
+				// TODO: try to do something more like this later, recognizing the outer is a Map, inner object is Array, and innermost is a Map.
+				// billingRecordsFromMap[ new_index ].set({ ...period })
+				billingRecordsFromMap.forEach((record: any, index: number) => {
+					console.log( index, new_index, period?.inclusion_override )
+					if ( index === new_index )
+						record.set('inclusion_override', period?.inclusion_override);
+				});
+				console.log("billingRecordsFromMap[new_index]", new_index, billingRecordsFromMap[new_index], newMap)
+
+			} catch (error) {
+				console.error('Error parsing billingRecordsFromMap[new_index] data:', error);
+			}
+
+
+			
+			// const billingRecords = gasBillDataWithUserAdjustments.get('billing_records')
+			// billingRecords[ new_index ].set()
+			// // billingRecords.forEach((record: any, index: number) => {
+			// // 	if ( index === new_index )
+			// // 	record.set('inclusion_override', true);
+			// // });
+			// gasBillDataWithUserAdjustments.set('billing_records', null)
+			// gasBillDataWithUserAdjustments.set('billing_records', billingRecords)
+			// //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
 
 			return newRecords
 		})
@@ -170,12 +230,13 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 									: '-'}
 							</TableCell>
 							<TableCell>
-								<Button type='submit' className={ `${ period.inclusion_override ? "bg-blue-100" : "bg-red-100" }` }>
 									<Checkbox
 										checked={period.inclusion_override}
 										disabled={overrideCheckboxDisabled}
-										
+										onClick={(e) => handleOverrideCheckboxChange(index)}
 									/>
+									<Button type='submit' className={ `${ period.inclusion_override ? "bg-blue-100" : "bg-red-100" }` }>
+Submit
 								</Button>
 							</TableCell>
 						</TableRow>
