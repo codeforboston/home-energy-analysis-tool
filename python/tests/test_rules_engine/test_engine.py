@@ -313,14 +313,12 @@ def test_get_average_indoor_temperature():
 
 
 def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
-    home = engine.Home(
+    home = engine.Home.calculate(
         sample_summary_inputs,
         sample_billing_periods,
         dhw_input=None,
         initial_balance_point=58,
     )
-
-    home.calculate()
 
     ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
 
@@ -333,14 +331,12 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
 
 
 def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
-    home = engine.Home(
+    home = engine.Home.calculate(
         sample_summary_inputs,
         sample_billing_periods_with_outlier,
         dhw_input=None,
         initial_balance_point=58,
     )
-
-    home.calculate()
 
     # expect that ua_1 is considered an outlier and not used in bills_winter
     ua_2, ua_3, ua_4 = [bill.ua for bill in home.bills_winter]

@@ -97,13 +97,12 @@ def get_outputs_normalized(
         fuel_type=summary_input.fuel_type,
     )
 
-    home = Home(
+    home = Home.calculate(
         summary_input=summary_input,
         billing_periods=intermediate_billing_periods,
         dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
     )
-    home.calculate()
 
     average_indoor_temperature = get_average_indoor_temperature(
         thermostat_set_point=summary_input.thermostat_set_point,
@@ -399,7 +398,7 @@ class Home:
     standard deviation of the UA values across them.
     """
 
-    def __init__(
+    def _init(
         self,
         summary_input: SummaryInput,
         billing_periods: list[ProcessedBill],
@@ -412,6 +411,7 @@ class Home:
         self.balance_point = initial_balance_point
         self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
+
 
     def _initialize_billing_periods(self, billing_periods: list[ProcessedBill]) -> None:
         self.bills_winter = []
@@ -621,8 +621,13 @@ class Home:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
+    @classmethod
     def calculate(
-        self,
+        cls,
+        summary_input: SummaryInput,
+        billing_periods: list[ProcessedBill],
+        dhw_input: Optional[DhwInput],
+        initial_balance_point: float = 60,
         initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
@@ -633,13 +638,22 @@ class Home:
         and UA coefficient for the home, removing UA outliers based on a normalized standard
         deviation threshold.
         """
-        self._calculate_avg_non_heating_usage()
-        self._calculate_balance_point_and_ua(
+        home_instance = object.__new__(cls)
+        home_instance._init(
+                summary_input = summary_input,
+                billing_periods = billing_periods,
+                dhw_input = dhw_input,
+                initial_balance_point = initial_balance_point,
+                )
+        home_instance._calculate_avg_non_heating_usage()
+        home_instance._calculate_balance_point_and_ua(
             initial_balance_point_sensitivity,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
         )
+
+        return home_instance
 
     def initialize_ua(self, billing_period: ProcessedBill) -> None:
         """
