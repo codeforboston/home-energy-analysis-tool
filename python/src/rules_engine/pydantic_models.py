@@ -56,7 +56,7 @@ def validate_fuel_type(value: Any) -> FuelType:
         )
 
 
-class SummaryInput(BaseModel):
+class HeatLoadInput(BaseModel):
     """From Summary Tab"""
 
     # design_temperature_override: float

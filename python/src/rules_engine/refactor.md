@@ -31,7 +31,7 @@ gets rid of the need for the class.
         )
 
     return get_outputs_normalized(
-        summary_input, None, temperature_input, billing_periods
+        heat_load_input, None, temperature_input, billing_periods
     )
 
     def get_outputs_normalized

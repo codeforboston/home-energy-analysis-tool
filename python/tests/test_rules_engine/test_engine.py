@@ -12,7 +12,7 @@ from rules_engine.pydantic_models import (
     FuelType,
     NaturalGasBillingInput,
     NormalizedBillingPeriodRecordBase,
-    SummaryInput,
+    HeatLoadInput,
     SummaryOutput,
     TemperatureInput,
 )
@@ -113,7 +113,7 @@ def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
 
 
 @pytest.fixture()
-def sample_summary_inputs() -> SummaryInput:
+def sample_summary_inputs() -> HeatLoadInput:
     heat_sys_efficiency = 0.88
 
     living_area = 1000
@@ -122,7 +122,7 @@ def sample_summary_inputs() -> SummaryInput:
     setback_hours_per_day = 8
     fuel_type = FuelType.GAS
     design_temperature = 60
-    summary_input = SummaryInput(
+    heat_load_input = HeatLoadInput(
         living_area=living_area,
         fuel_type=fuel_type,
         heating_system_efficiency=heat_sys_efficiency,
@@ -131,7 +131,7 @@ def sample_summary_inputs() -> SummaryInput:
         setback_hours_per_day=setback_hours_per_day,
         design_temperature=design_temperature,
     )
-    return summary_input
+    return heat_load_input
 
 
 @pytest.fixture()

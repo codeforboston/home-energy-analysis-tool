@@ -9,13 +9,13 @@ from rules_engine.pydantic_models import (
     NaturalGasBillingRecordInput,
     OilPropaneBillingInput,
     OilPropaneBillingRecordInput,
-    SummaryInput,
+    HeatLoadInput,
     SummaryOutput,
     TemperatureInput,
 )
 
 
-class Summary(SummaryInput, SummaryOutput):
+class Summary(HeatLoadInput, SummaryOutput):
     """
     Holds summary.json information alongside a string referring to a
     local weather station.

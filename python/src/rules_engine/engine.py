@@ -21,14 +21,14 @@ from rules_engine.pydantic_models import (
     NormalizedBillingPeriodRecordBase,
     OilPropaneBillingInput,
     RulesEngineResult,
-    SummaryInput,
+    HeatLoadInput,
     SummaryOutput,
     TemperatureInput,
 )
 
 
 def get_outputs_oil_propane(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
@@ -52,12 +52,12 @@ def get_outputs_oil_propane(
         last_date = input_val.period_end_date
 
     return get_outputs_normalized(
-        summary_input, dhw_input, temperature_input, billing_periods
+        heat_load_input, dhw_input, temperature_input, billing_periods
     )
 
 
 def get_outputs_natural_gas(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
@@ -77,12 +77,12 @@ def get_outputs_natural_gas(
         )
 
     return get_outputs_normalized(
-        summary_input, None, temperature_input, billing_periods
+        heat_load_input, None, temperature_input, billing_periods
     )
 
 
 def get_outputs_normalized(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     billing_periods: list[NormalizedBillingPeriodRecordBase],
@@ -94,31 +94,31 @@ def get_outputs_normalized(
     intermediate_billing_periods = convert_to_intermediate_billing_periods(
         temperature_input=temperature_input,
         billing_periods=billing_periods,
-        fuel_type=summary_input.fuel_type,
+        fuel_type=heat_load_input.fuel_type,
     )
 
     home = Home.calculate(
-        summary_input=summary_input,
+        heat_load_input=heat_load_input,
         billing_periods=intermediate_billing_periods,
         dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
     )
 
     average_indoor_temperature = get_average_indoor_temperature(
-        thermostat_set_point=summary_input.thermostat_set_point,
-        setback_temperature=summary_input.setback_temperature,
-        setback_hours_per_day=summary_input.setback_hours_per_day,
+        thermostat_set_point=heat_load_input.thermostat_set_point,
+        setback_temperature=heat_load_input.setback_temperature,
+        setback_hours_per_day=heat_load_input.setback_hours_per_day,
     )
     average_heat_load = get_average_heat_load(
         design_set_point=Constants.DESIGN_SET_POINT,
         avg_indoor_temp=average_indoor_temperature,
         balance_point=home.balance_point,
-        design_temp=summary_input.design_temperature,
+        design_temp=heat_load_input.design_temperature,
         ua=home.avg_ua,
     )
     maximum_heat_load = get_maximum_heat_load(
         design_set_point=Constants.DESIGN_SET_POINT,
-        design_temp=summary_input.design_temperature,
+        design_temp=heat_load_input.design_temperature,
         ua=home.avg_ua,
     )
 
@@ -127,7 +127,7 @@ def get_outputs_normalized(
         other_fuel_usage=home.avg_non_heating_usage,
         average_indoor_temperature=average_indoor_temperature,
         difference_between_ti_and_tbp=average_indoor_temperature - home.balance_point,
-        design_temperature=summary_input.design_temperature,
+        design_temperature=heat_load_input.design_temperature,
         whole_home_heat_loss_rate=home.avg_ua,
         standard_deviation_of_heat_loss_rate=home.stdev_pct,
         average_heat_load=average_heat_load,
@@ -400,14 +400,14 @@ class Home:
 
     def _init(
         self,
-        summary_input: SummaryInput,
+        heat_load_input: HeatLoadInput,
         billing_periods: list[ProcessedBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
     ):
-        self.fuel_type = summary_input.fuel_type
-        self.heat_sys_efficiency = summary_input.heating_system_efficiency
-        self.thermostat_set_point = summary_input.thermostat_set_point
+        self.fuel_type = heat_load_input.fuel_type
+        self.heat_sys_efficiency = heat_load_input.heating_system_efficiency
+        self.thermostat_set_point = heat_load_input.thermostat_set_point
         self.balance_point = initial_balance_point
         self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
@@ -624,7 +624,7 @@ class Home:
     @classmethod
     def calculate(
         cls,
-        summary_input: SummaryInput,
+        heat_load_input: HeatLoadInput,
         billing_periods: list[ProcessedBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
@@ -640,7 +640,7 @@ class Home:
         """
         home_instance = object.__new__(cls)
         home_instance._init(
-                summary_input = summary_input,
+                heat_load_input = heat_load_input,
                 billing_periods = billing_periods,
                 dhw_input = dhw_input,
                 initial_balance_point = initial_balance_point,

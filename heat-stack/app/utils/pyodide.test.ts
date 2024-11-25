@@ -142,7 +142,7 @@ test('pyodide solves climate change', async () => {
     // https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/parser.py#L60
 
     /* 2) get_outputs_natural_gas(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
         ) -> RulesEngineResult 
@@ -153,7 +153,7 @@ test('pyodide solves climate change', async () => {
     /**
      * TODO:
      * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/pydantic_models.py#L57
-     * - Use those to create summary_input (in the same file)
+     * - Use those to create heat_load_input (in the same file)
      * - Use those to create temperature_input (in the same file)
      * - Use those to create natural_gas_billing_input (in the same file)
      */
@@ -223,7 +223,7 @@ test('pyodide solves climate change', async () => {
     from rules_engine import parser
     from rules_engine.pydantic_models import (
         FuelType,
-        SummaryInput,
+        HeatLoadInput,
         TemperatureInput
     )
     from rules_engine import engine
@@ -236,7 +236,7 @@ test('pyodide solves climate change', async () => {
         naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
 
-        summaryInput = SummaryInput(**summaryInputFromJs)
+        summaryInput = HeatLoadInput(**summaryInputFromJs)
         temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
         outputs = engine.get_outputs_natural_gas(summaryInput,temperatureInput, naturalGasInputRecords)
@@ -352,7 +352,7 @@ test('pyodide solves climate change', async () => {
 // 	// https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/parser.py#L60
 
 // 	/* 2) get_outputs_natural_gas(
-//     summary_input: SummaryInput,
+//     heat_load_input: HeatLoadInput,
 //     temperature_input: TemperatureInput,
 //     natural_gas_billing_input: NaturalGasBillingInput,
 // 		) -> RulesEngineResult 
@@ -363,7 +363,7 @@ test('pyodide solves climate change', async () => {
 // 	/**
 // 	 * TODO:
 // 	 * - Match up our types with rules engine types at https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/src/rules_engine/pydantic_models.py#L57
-// 	 * - Use those to create summary_input (in the same file)
+// 	 * - Use those to create heat_load_input (in the same file)
 // 	 * - Use those to create temperature_input (in the same file)
 // 	 * - Use those to create natural_gas_billing_input (in the same file)
 // 	 */

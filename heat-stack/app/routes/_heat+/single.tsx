@@ -227,7 +227,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput
         )
         from rules_engine import engine
@@ -302,7 +302,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput
         )
         from rules_engine import engine, helpers
@@ -313,7 +313,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             # two new geocode parameters may be needed for design temp:
             # watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
             # in addition to latitude and longitude from GeocodeUtil.ts object .
-            # pack the get_design_temp output into summary_input
+            # pack the get_design_temp output into heat_load_input
             """
             
             summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
@@ -323,7 +323,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
+            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
@@ -344,14 +344,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput,
             NormalizedBillingPeriodRecordBase
         )
         from rules_engine import engine, helpers
 
         # def get_outputs_normalized(
-        #	summary_input: SummaryInput,
+        #	heat_load_input: HeatLoadInput,
         #	dhw_input: Optional[DhwInput],
         #	temperature_input: TemperatureInput,
         #	billing_periods: list[NormalizedBillingPeriodRecordBase],
@@ -367,7 +367,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
             # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
-            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
+            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
