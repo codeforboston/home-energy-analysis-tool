@@ -10,12 +10,12 @@ from rules_engine.pydantic_models import (
     OilPropaneBillingInput,
     OilPropaneBillingRecordInput,
     HeatLoadInput,
-    SummaryOutput,
+    HeatLoadOutput,
     TemperatureInput,
 )
 
 
-class Summary(HeatLoadInput, SummaryOutput):
+class Summary(HeatLoadInput, HeatLoadOutput):
     """
     Holds summary.json information alongside a string referring to a
     local weather station.
@@ -98,7 +98,7 @@ def load_fuel_billing_example_input(
 
             # Choose the correct billing period heat loss (aka "ua")
             # column based on the estimated balance point provided in
-            # SummaryOutput
+            # HeatLoadOutput
             ua_column_name = None
             # First we will look for an exact match to the value of
             # the estimated balance point

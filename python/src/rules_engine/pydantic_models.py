@@ -180,7 +180,7 @@ class TemperatureInput(BaseModel):
     temperatures: list[float]
 
 
-class SummaryOutput(BaseModel):
+class HeatLoadOutput(BaseModel):
     """From Summary tab"""
 
     estimated_balance_point: float = Field(
@@ -221,7 +221,7 @@ class BalancePointGraph(BaseModel):
 
 
 class RulesEngineResult(BaseModel):
-    summary_output: SummaryOutput
+    heat_load_output: HeatLoadOutput
     balance_point_graph: BalancePointGraph
     billing_records: list[NormalizedBillingPeriodRecord]
 

@@ -13,7 +13,7 @@ from rules_engine.pydantic_models import (
     NaturalGasBillingInput,
     NormalizedBillingPeriodRecordBase,
     HeatLoadInput,
-    SummaryOutput,
+    HeatLoadOutput,
     TemperatureInput,
 )
 
@@ -420,12 +420,12 @@ def test_get_outputs_normalized(
         sample_normalized_billing_periods,
     )
 
-    assert rules_engine_result.summary_output.estimated_balance_point == 60.5
-    assert rules_engine_result.summary_output.whole_home_heat_loss_rate == approx(
+    assert rules_engine_result.heat_load_output.estimated_balance_point == 60.5
+    assert rules_engine_result.heat_load_output.whole_home_heat_loss_rate == approx(
         1519.72, abs=1
     )
     assert (
-        rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
+        rules_engine_result.heat_load_output.standard_deviation_of_heat_loss_rate
         == approx(0.0463, abs=0.01)
     )
     assert rules_engine_result.billing_records[0].usage == 60

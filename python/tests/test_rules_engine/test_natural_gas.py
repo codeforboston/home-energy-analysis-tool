@@ -89,7 +89,7 @@ def test_balance_point_natural_gas(data: Example) -> None:
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert data.summary.estimated_balance_point == approx(
-        rules_engine_result.summary_output.estimated_balance_point, abs=0.1
+        rules_engine_result.heat_load_output.estimated_balance_point, abs=0.1
     )
 
 
@@ -97,7 +97,7 @@ def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.whole_home_heat_loss_rate == approx(
+    assert rules_engine_result.heat_load_output.whole_home_heat_loss_rate == approx(
         data.summary.whole_home_heat_loss_rate, abs=1
     )
 
@@ -107,7 +107,7 @@ def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert (
-        rules_engine_result.summary_output.standard_deviation_of_heat_loss_rate
+        rules_engine_result.heat_load_output.standard_deviation_of_heat_loss_rate
         == approx(data.summary.standard_deviation_of_heat_loss_rate, abs=0.01)
     )
 
@@ -116,7 +116,7 @@ def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.difference_between_ti_and_tbp == approx(
+    assert rules_engine_result.heat_load_output.difference_between_ti_and_tbp == approx(
         data.summary.difference_between_ti_and_tbp, abs=0.1
     )
 
@@ -125,7 +125,7 @@ def test_average_heat_load_natural_gas(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.average_heat_load == approx(
+    assert rules_engine_result.heat_load_output.average_heat_load == approx(
         data.summary.average_heat_load, abs=1
     )
 
@@ -134,7 +134,7 @@ def test_design_temperature_natural_gas(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.design_temperature == approx(
+    assert rules_engine_result.heat_load_output.design_temperature == approx(
         data.summary.design_temperature, abs=0.1
     )
 
@@ -143,7 +143,7 @@ def test_maximum_heat_load_natural_gas(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
-    assert rules_engine_result.summary_output.maximum_heat_load == approx(
+    assert rules_engine_result.heat_load_output.maximum_heat_load == approx(
         data.summary.maximum_heat_load, abs=1
     )
 

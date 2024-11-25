@@ -63,7 +63,7 @@ export const balancePointGraphSchema = z.object({
 	records: z.array(balancePointGraphRecordSchema),
 })
 
-// Define the schema for the 'summary_output' key
+// Define the schema for the 'heat_load_output' key
 export const summaryOutputSchema = z.object({
 	// rulesEngineVersion: z.string(), // TODO
 	estimated_balance_point: z.number(),
@@ -126,7 +126,7 @@ export const allBillingRecordsSchema = z.array(oneBillingRecordSchema);
 
 //   Define the schema for the 'usage_data' key
 export const usageDataSchema = z.object({
-	summary_output: summaryOutputSchema,
+	heat_load_output: summaryOutputSchema,
 	balance_point_graph: balancePointGraphSchema,
 	billing_records: allBillingRecordsSchema,
 })

@@ -33,8 +33,8 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// 		3312125.0171753373
 	// 	]])
 
-	// Extract the summary_output from usage_data
-	const summaryOutputs = usage_data?.summary_output;
+	// Extract the heat_load_output from usage_data
+	const summaryOutputs = usage_data?.heat_load_output;
 
 	const totalRecords = usage_data?.billing_records?.length || "-"
 

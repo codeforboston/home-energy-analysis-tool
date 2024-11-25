@@ -22,7 +22,7 @@ from rules_engine.pydantic_models import (
     OilPropaneBillingInput,
     RulesEngineResult,
     HeatLoadInput,
-    SummaryOutput,
+    HeatLoadOutput,
     TemperatureInput,
 )
 
@@ -122,7 +122,7 @@ def get_outputs_normalized(
         ua=home.avg_ua,
     )
 
-    summary_output = SummaryOutput(
+    heat_load_output = HeatLoadOutput(
         estimated_balance_point=home.balance_point,
         other_fuel_usage=home.avg_non_heating_usage,
         average_indoor_temperature=average_indoor_temperature,
@@ -151,7 +151,7 @@ def get_outputs_normalized(
         billing_records.append(billing_record)
 
     result = RulesEngineResult(
-        summary_output=summary_output,
+        heat_load_output=heat_load_output,
         balance_point_graph=balance_point_graph,
         billing_records=billing_records,
     )

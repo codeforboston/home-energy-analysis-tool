@@ -84,7 +84,7 @@ class PyodideUtil {
 			NormalizedBillingPeriodRecordInput,
 			OilPropaneBillingInput,
 			HeatLoadInput,
-			SummaryOutput,
+			HeatLoadOutput,
 			TemperatureInput,
 		)
 		
