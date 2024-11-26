@@ -26,9 +26,9 @@ dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
 
 
 @pytest.fixture()
-def sample_billing_periods() -> list[engine.ProcessedBill]:
+def sample_billing_periods() -> list[engine.ProcessedEnergyBillIntermediate]:
     billing_periods = [
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -36,7 +36,7 @@ def sample_billing_periods() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -44,7 +44,7 @@ def sample_billing_periods() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -52,7 +52,7 @@ def sample_billing_periods() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,
@@ -65,9 +65,9 @@ def sample_billing_periods() -> list[engine.ProcessedBill]:
 
 
 @pytest.fixture()
-def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
+def sample_billing_periods_with_outlier() -> list[engine.ProcessedEnergyBillIntermediate]:
     billing_periods = [
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -75,7 +75,7 @@ def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -83,7 +83,7 @@ def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -91,7 +91,7 @@ def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -99,7 +99,7 @@ def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
             True,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,
@@ -359,7 +359,7 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -367,7 +367,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -375,7 +375,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -383,7 +383,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -391,7 +391,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.ProcessedBill(
+        engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,
