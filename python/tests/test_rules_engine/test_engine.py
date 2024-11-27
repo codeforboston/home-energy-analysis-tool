@@ -10,10 +10,10 @@ from rules_engine.pydantic_models import (
     BalancePointGraph,
     DhwInput,
     FuelType,
-    NaturalGasBillingInput,
-    NormalizedBillingPeriodRecordBase,
     HeatLoadInput,
     HeatLoadOutput,
+    NaturalGasBillingInput,
+    NormalizedBillingPeriodRecordBase,
     TemperatureInput,
 )
 

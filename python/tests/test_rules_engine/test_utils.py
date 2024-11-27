@@ -5,12 +5,12 @@ from typing import Any, Sequence
 
 from rules_engine.pydantic_models import (
     FuelType,
+    HeatLoadInput,
+    HeatLoadOutput,
     NaturalGasBillingInput,
     NaturalGasBillingRecordInput,
     OilPropaneBillingInput,
     OilPropaneBillingRecordInput,
-    HeatLoadInput,
-    HeatLoadOutput,
     TemperatureInput,
 )
 

@@ -16,13 +16,13 @@ from rules_engine.pydantic_models import (
     Constants,
     DhwInput,
     FuelType,
+    HeatLoadInput,
+    HeatLoadOutput,
     NaturalGasBillingInput,
     NormalizedBillingPeriodRecord,
     NormalizedBillingPeriodRecordBase,
     OilPropaneBillingInput,
     RulesEngineResult,
-    HeatLoadInput,
-    HeatLoadOutput,
     TemperatureInput,
 )
 
