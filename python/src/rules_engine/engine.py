@@ -20,7 +20,7 @@ from rules_engine.pydantic_models import (
     HeatLoadOutput,
     NaturalGasBillingInput,
     NormalizedBillingPeriodRecord,
-    NormalizedBillingPeriodRecordBase,
+    ProcessedEnergyBillInput,
     OilPropaneBillingInput,
     RulesEngineResult,
     TemperatureInput,
@@ -36,13 +36,13 @@ def get_outputs_oil_propane(
     """
     Analyze the heat load for a home that is using oil or propane as its current heating system fuel.
     """
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    billing_periods: list[ProcessedEnergyBillInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
         start_date = last_date + timedelta(days=1)
         billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+            ProcessedEnergyBillInput(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
@@ -64,11 +64,11 @@ def get_outputs_natural_gas(
     """
     Analyze the heat load for a home that is using natural gas as its current heating system fuel.
     """
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    billing_periods: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
         billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
@@ -85,7 +85,7 @@ def get_outputs_normalized(
     heat_load_input: HeatLoadInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: list[NormalizedBillingPeriodRecordBase],
+    billing_periods: list[ProcessedEnergyBillInput],
 ) -> RulesEngineResult:
     """
     Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
@@ -160,7 +160,7 @@ def get_outputs_normalized(
 
 def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
-    billing_periods: list[NormalizedBillingPeriodRecordBase],
+    billing_periods: list[ProcessedEnergyBillInput],
     fuel_type: FuelType,
 ) -> list[ProcessedEnergyBillIntermediate]:
     """
@@ -690,7 +690,7 @@ class ProcessedEnergyBillIntermediate:
     period is calculated.
     """
 
-    input: NormalizedBillingPeriodRecordBase
+    input: ProcessedEnergyBillInput
     avg_heating_usage: float
     balance_point: float
     partial_ua: float
@@ -700,7 +700,7 @@ class ProcessedEnergyBillIntermediate:
 
     def __init__(
         self,
-        input: NormalizedBillingPeriodRecordBase,
+        input: ProcessedEnergyBillInput,
         avg_temps: list[float],
         usage: float,
         analysis_type: AnalysisType,

@@ -141,7 +141,7 @@ class NaturalGasBillingInput(BaseModel):
         return max_date
 
 
-class NormalizedBillingPeriodRecordBase(BaseModel):
+class ProcessedEnergyBillInput(BaseModel):
     """
     Base class for a normalized billing period record.
 
@@ -156,7 +156,7 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     inclusion_override: bool = Field(frozen=True)
 
 
-class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
+class NormalizedBillingPeriodRecord(ProcessedEnergyBillInput):
     """
     Derived class for holding a normalized billing period record.
 

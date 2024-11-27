@@ -18,11 +18,11 @@ home variables used
 gets rid of the need for the class.
 - Change
 ```
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    billing_periods: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
         billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
@@ -41,7 +41,7 @@ gets rid of the need for the class.
 to 
 ```
       inputBill = 
-            NormalizedBillingPeriodRecordBase(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,

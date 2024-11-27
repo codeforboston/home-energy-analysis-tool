@@ -13,11 +13,11 @@ from rules_engine.pydantic_models import (
     HeatLoadInput,
     HeatLoadOutput,
     NaturalGasBillingInput,
-    NormalizedBillingPeriodRecordBase,
+    ProcessedEnergyBillInput,
     TemperatureInput,
 )
 
-dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
+dummy_billing_period_record = ProcessedEnergyBillInput(
     period_start_date=datetime(2024, 1, 1),
     period_end_date=datetime(2024, 2, 1),
     usage=1.0,
@@ -192,7 +192,7 @@ def sample_temp_inputs() -> TemperatureInput:
 
 
 @pytest.fixture()
-def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBase]:
+def sample_normalized_billing_periods() -> list[ProcessedEnergyBillInput]:
     billing_periods_dict: Any = [
         {
             "period_start_date": "2022-12-01",
@@ -239,11 +239,11 @@ def sample_normalized_billing_periods() -> list[NormalizedBillingPeriodRecordBas
     ]
 
     # billing_periods = [
-    #     NormalizedBillingPeriodRecordBase(**x) for x in billing_periods_dict
+    #     ProcessedEnergyBillInput(**x) for x in billing_periods_dict
     # ]
 
     billing_periods = [
-        NormalizedBillingPeriodRecordBase(
+        ProcessedEnergyBillInput(
             period_start_date=datetime.fromisoformat(x["period_start_date"]),
             period_end_date=datetime.fromisoformat(x["period_end_date"]),
             usage=x["usage"],

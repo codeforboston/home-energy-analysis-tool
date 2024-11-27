@@ -346,7 +346,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             FuelType,
             HeatLoadInput,
             TemperatureInput,
-            NormalizedBillingPeriodRecordBase
+            ProcessedEnergyBillInput
         )
         from rules_engine import engine, helpers
 
@@ -354,7 +354,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         #	heat_load_input: HeatLoadInput,
         #	dhw_input: Optional[DhwInput],
         #	temperature_input: TemperatureInput,
-        #	billing_periods: list[NormalizedBillingPeriodRecordBase],
+        #	billing_periods: list[ProcessedEnergyBillInput],
         # )
 
         def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
@@ -372,7 +372,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
             # third step, re-run of the table data
-            userAdjustedDataFromJsToPython = [NormalizedBillingPeriodRecordBase(**record) for record in userAdjustedData['billing_records'] ]
+            userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['billing_records'] ]
             # print("py", userAdjustedDataFromJsToPython[0])
 
             outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
