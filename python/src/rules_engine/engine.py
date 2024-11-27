@@ -397,13 +397,14 @@ class Home:
     of fuel used, calculates the UA for different billing periods and the
     standard deviation of the UA values across them.
     """
+
     def _init(
         self,
         heat_load_input: HeatLoadInput,
         billing_periods: list[ProcessedEnergyBillIntermediate],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-    ) -> None: 
+    ) -> None:
         self.fuel_type = heat_load_input.fuel_type
         self.heat_sys_efficiency = heat_load_input.heating_system_efficiency
         self.thermostat_set_point = heat_load_input.thermostat_set_point
