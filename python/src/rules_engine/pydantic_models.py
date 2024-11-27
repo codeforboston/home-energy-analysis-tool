@@ -156,7 +156,7 @@ class ProcessedEnergyBillInput(BaseModel):
     inclusion_override: bool = Field(frozen=True)
 
 
-class NormalizedBillingPeriodRecord(ProcessedEnergyBillInput):
+class ProcessedEnergyBill(ProcessedEnergyBillInput):
     """
     Derived class for holding a normalized billing period record.
 
@@ -223,7 +223,7 @@ class BalancePointGraph(BaseModel):
 class RulesEngineResult(BaseModel):
     heat_load_output: HeatLoadOutput
     balance_point_graph: BalancePointGraph
-    billing_records: list[NormalizedBillingPeriodRecord]
+    billing_records: list[ProcessedEnergyBill]
 
 
 @dataclass

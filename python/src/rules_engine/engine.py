@@ -19,7 +19,7 @@ from rules_engine.pydantic_models import (
     HeatLoadInput,
     HeatLoadOutput,
     NaturalGasBillingInput,
-    NormalizedBillingPeriodRecord,
+    ProcessedEnergyBill,
     ProcessedEnergyBillInput,
     OilPropaneBillingInput,
     RulesEngineResult,
@@ -138,7 +138,7 @@ def get_outputs_normalized(
 
     billing_records = []
     for billing_period in intermediate_billing_periods:
-        billing_record = NormalizedBillingPeriodRecord(
+        billing_record = ProcessedEnergyBill(
             period_start_date=billing_period.input.period_start_date,
             period_end_date=billing_period.input.period_end_date,
             usage=billing_period.input.usage,
