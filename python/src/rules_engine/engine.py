@@ -19,9 +19,9 @@ from rules_engine.pydantic_models import (
     HeatLoadInput,
     HeatLoadOutput,
     NaturalGasBillingInput,
+    OilPropaneBillingInput,
     ProcessedEnergyBill,
     ProcessedEnergyBillInput,
-    OilPropaneBillingInput,
     RulesEngineResult,
     TemperatureInput,
 )
