@@ -397,6 +397,7 @@ class Home:
     of fuel used, calculates the UA for different billing periods and the
     standard deviation of the UA values across them.
     """
+    balance_point = 0
 
     def _init(
         self,
@@ -412,8 +413,9 @@ class Home:
         self.dhw_input = dhw_input
         self._initialize_billing_periods(billing_periods)
 
-
-    def _initialize_billing_periods(self, billing_periods: list[ProcessedEnergyBillIntermediate]) -> None:
+    def _initialize_billing_periods(
+        self, billing_periods: list[ProcessedEnergyBillIntermediate]
+    ) -> None:
         self.bills_winter = []
         self.bills_summer = []
         self.bills_shoulder = []
@@ -640,11 +642,11 @@ class Home:
         """
         home_instance = object.__new__(cls)
         home_instance._init(
-                heat_load_input = heat_load_input,
-                billing_periods = billing_periods,
-                dhw_input = dhw_input,
-                initial_balance_point = initial_balance_point,
-                )
+            heat_load_input=heat_load_input,
+            billing_periods=billing_periods,
+            dhw_input=dhw_input,
+            initial_balance_point=initial_balance_point,
+        )
         home_instance._calculate_avg_non_heating_usage()
         home_instance._calculate_balance_point_and_ua(
             initial_balance_point_sensitivity,
@@ -666,7 +668,9 @@ class Home:
         billing_period.partial_ua = self.calculate_partial_ua(billing_period)
         billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
 
-    def calculate_partial_ua(self, billing_period: ProcessedEnergyBillIntermediate) -> float:
+    def calculate_partial_ua(
+        self, billing_period: ProcessedEnergyBillIntermediate
+    ) -> float:
         """
         The portion of UA that is not dependent on the balance point
         """

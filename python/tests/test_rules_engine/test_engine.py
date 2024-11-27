@@ -65,7 +65,9 @@ def sample_billing_periods() -> list[engine.ProcessedEnergyBillIntermediate]:
 
 
 @pytest.fixture()
-def sample_billing_periods_with_outlier() -> list[engine.ProcessedEnergyBillIntermediate]:
+def sample_billing_periods_with_outlier() -> (
+    list[engine.ProcessedEnergyBillIntermediate]
+):
     billing_periods = [
         engine.ProcessedEnergyBillIntermediate(
             dummy_billing_period_record,
