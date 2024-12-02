@@ -64,10 +64,10 @@ def get_outputs_natural_gas(
     """
     Analyze the heat load for a home that is using natural gas as its current heating system fuel.
     """
-    billing_periods: list[ProcessedEnergyBillInput] = []
+    processed_energy_bill_inputs_bill_inputs: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
-        billing_periods.append(
+        processed_energy_bill_inputs_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
@@ -77,7 +77,7 @@ def get_outputs_natural_gas(
         )
 
     return get_outputs_normalized(
-        heat_load_input, None, temperature_input, billing_periods
+        heat_load_input, None, temperature_input, processed_energy_bill_inputs_bill_inputs
     )
 
 
