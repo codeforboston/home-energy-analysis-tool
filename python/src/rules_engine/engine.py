@@ -162,7 +162,7 @@ def convert_to_intermediate_billing_periods(
     temperature_input: TemperatureInput,
     billing_periods: list[ProcessedEnergyBillInput],
     fuel_type: FuelType,
-) -> list[ProcessedEnergyBillIntermediate]:
+) -> list[IntermediateProcessedEnergyBill]:
     """
     Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
 
@@ -194,7 +194,7 @@ def convert_to_intermediate_billing_periods(
         else:
             raise ValueError("Unsupported fuel type.")
 
-        intermediate_billing_period = ProcessedEnergyBillIntermediate(
+        intermediate_billing_period = IntermediateProcessedEnergyBill(
             input=billing_period,
             avg_temps=temperature_input.temperatures[start_idx:end_idx],
             usage=billing_period.usage,
@@ -401,7 +401,7 @@ class Home:
     def _init(
         self,
         heat_load_input: HeatLoadInput,
-        billing_periods: list[ProcessedEnergyBillIntermediate],
+        billing_periods: list[IntermediateProcessedEnergyBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
     ) -> None:
@@ -413,7 +413,7 @@ class Home:
         self._initialize_billing_periods(billing_periods)
 
     def _initialize_billing_periods(
-        self, billing_periods: list[ProcessedEnergyBillIntermediate]
+        self, billing_periods: list[IntermediateProcessedEnergyBill]
     ) -> None:
         self.bills_winter = []
         self.bills_summer = []
@@ -626,7 +626,7 @@ class Home:
     def calculate(
         cls,
         heat_load_input: HeatLoadInput,
-        billing_periods: list[ProcessedEnergyBillIntermediate],
+        billing_periods: list[IntermediateProcessedEnergyBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
         initial_balance_point_sensitivity: float = 0.5,
@@ -656,7 +656,7 @@ class Home:
 
         return home_instance
 
-    def initialize_ua(self, billing_period: ProcessedEnergyBillIntermediate) -> None:
+    def initialize_ua(self, billing_period: IntermediateProcessedEnergyBill) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
@@ -668,7 +668,7 @@ class Home:
         billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
 
     def calculate_partial_ua(
-        self, billing_period: ProcessedEnergyBillIntermediate
+        self, billing_period: IntermediateProcessedEnergyBill
     ) -> float:
         """
         The portion of UA that is not dependent on the balance point
@@ -684,7 +684,7 @@ class Home:
         )
 
 
-class ProcessedEnergyBillIntermediate:
+class IntermediateProcessedEnergyBill:
     """
     An internal class storing data whence heating usage per billing
     period is calculated.
