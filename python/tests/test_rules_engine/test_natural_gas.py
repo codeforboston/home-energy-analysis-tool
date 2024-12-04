@@ -148,13 +148,13 @@ def test_maximum_heat_load_natural_gas(data: Example) -> None:
     )
 
 
-def test_billing_records_whole_home_heat_loss_rate(data: Example) -> None:
+def test_processed_energy_bills_whole_home_heat_loss_rate(data: Example) -> None:
     rules_engine_result = engine.get_outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
 
     data_iter = iter(data.natural_gas_usage.records)
-    for result in rules_engine_result.billing_records:
+    for result in rules_engine_result.processed_energy_bills:
         example = next(data_iter)
         whole_home_heat_loss_rate = (
             example.whole_home_heat_loss_rate

@@ -335,7 +335,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // type Analytics = z.infer<typeof Analytics>;
     const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    //console.log("foo billing records [0]", foo.get('billing_records')[0] )
+    //console.log("foo billing records [0]", foo.get('processed_energy_bills')[0] )
 
     /**
      * second time and after, when table is modified, this becomes entrypoint
@@ -359,7 +359,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
             """
-            "billing_records" is the "roundtripping" parameter to be passed as userAdjustedData.
+            "processed_energy_bills" is the "roundtripping" parameter to be passed as userAdjustedData.
             """
             
             summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
@@ -372,12 +372,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
             # third step, re-run of the table data
-            userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['billing_records'] ]
+            userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['processed_energy_bills'] ]
             # print("py", userAdjustedDataFromJsToPython[0])
 
             outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
 
-            # print("py2", outputs2.billing_records[0])
+            # print("py2", outputs2.processed_energy_bills[0])
             return outputs2.model_dump(mode="json")
         executeRoundtripAnalyticsFromForm
     `)
@@ -390,7 +390,7 @@ Traceback (most recent call last): File "<exec>", line 32,
      */
     /*
     For
-      'billing_records' => [
+      'processed_energy_bills' => [
     Map(9) {
       'period_start_date' => '2020-10-02',
       'period_end_date' => '2020-11-04',
@@ -403,22 +403,22 @@ Traceback (most recent call last): File "<exec>", line 32,
       'whole_home_heat_loss_rate' => undefined
     }, */
 
-    const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
+    const gasBillDataWithUserAdjustments = foo; /* processed_energy_bills is untested here */
 
-    const billingRecords = foo.get('billing_records')
+    const billingRecords = foo.get('processed_energy_bills')
     billingRecords.forEach((record: any) => {
         record.set('inclusion_override', true);
     });
-    // foo.set('billing_records', null)
-    // foo.set('billing_records', billingRecords)
-    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
+    // foo.set('processed_energy_bills', null)
+    // foo.set('processed_energy_bills', billingRecords)
+    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
     /* why is inclusion_override still false after roundtrip */
 
     const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-    // console.log("foo2 billing records[0]", foo2.get('billing_records')[0]);
+    // console.log("foo2 billing records[0]", foo2.get('processed_energy_bills')[0]);
     // console.log("foo2", foo2);
-    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
+    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
@@ -503,15 +503,15 @@ export default function Inputs() {
     
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * temp1.get('billing_records')
+     * temp1.get('processed_energy_bills')
      * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * temp1.get('billing_records')[0]
+     * temp1.get('processed_energy_bills')[0]
      * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion_by_calculation → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * temp1.get('billing_records')[0].get('period_start_date')
+     * temp1.get('processed_energy_bills')[0].get('period_start_date')
     * "2020-10-02" 
      */
     /* @ts-ignore */
-    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
+    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
 
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).

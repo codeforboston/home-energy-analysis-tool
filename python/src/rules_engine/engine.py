@@ -136,9 +136,9 @@ def get_outputs_normalized(
 
     balance_point_graph = home.balance_point_graph
 
-    billing_records = []
+    processed_energy_bills = []
     for processed_energy_bill_input in intermediate_processed_energy_bill_inputs:
-        billing_record = ProcessedEnergyBill(
+        processed_energy_bill = ProcessedEnergyBill(
             period_start_date=processed_energy_bill_input.input.period_start_date,
             period_end_date=processed_energy_bill_input.input.period_end_date,
             usage=processed_energy_bill_input.input.usage,
@@ -148,12 +148,12 @@ def get_outputs_normalized(
             eliminated_as_outlier=processed_energy_bill_input.eliminated_as_outlier,
             whole_home_heat_loss_rate=processed_energy_bill_input.ua,
         )
-        billing_records.append(billing_record)
+        processed_energy_bills.append(processed_energy_bill)
 
     result = RulesEngineResult(
         heat_load_output=heat_load_output,
         balance_point_graph=balance_point_graph,
-        billing_records=billing_records,
+        processed_energy_bills=processed_energy_bills,
     )
     return result
 

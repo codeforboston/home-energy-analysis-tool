@@ -90,7 +90,7 @@ def generate_summary_json(workbook: Any, working_directory: Path) -> str:
     return fuel_type
 
 
-def generate_billing_record_input_csv(
+def generate_processed_energy_bill_input_csv(
     workbook: Any, fuel_type: str, working_directory: Path
 ) -> None:
     """
@@ -192,6 +192,6 @@ if __name__ == "__main__":
             continue
         print("Processing test directory:", working_directory)
         fuel_type = generate_summary_json(workbook, working_directory)
-        generate_billing_record_input_csv(workbook, fuel_type, working_directory)
+        generate_processed_energy_bill_input_csv(workbook, fuel_type, working_directory)
         workbook.close()
         del workbook

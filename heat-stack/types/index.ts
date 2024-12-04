@@ -121,12 +121,12 @@ export const oneBillingRecordSchema = z.object({
 	whole_home_heat_loss_rate: z.number(),
 });
 
-// Define the schema for the 'billing_records' list
+// Define the schema for the 'processed_energy_bills' list
 export const allBillingRecordsSchema = z.array(oneBillingRecordSchema);
 
 //   Define the schema for the 'usage_data' key
 export const usageDataSchema = z.object({
 	heat_load_output: summaryOutputSchema,
 	balance_point_graph: balancePointGraphSchema,
-	billing_records: allBillingRecordsSchema,
+	processed_energy_bills: allBillingRecordsSchema,
 })

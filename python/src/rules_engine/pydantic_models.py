@@ -223,7 +223,7 @@ class BalancePointGraph(BaseModel):
 class RulesEngineResult(BaseModel):
     heat_load_output: HeatLoadOutput
     balance_point_graph: BalancePointGraph
-    billing_records: list[ProcessedEnergyBill]
+    processed_energy_bills: list[ProcessedEnergyBill]
 
 
 @dataclass

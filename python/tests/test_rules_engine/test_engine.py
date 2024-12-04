@@ -430,9 +430,9 @@ def test_get_outputs_normalized(
         rules_engine_result.heat_load_output.standard_deviation_of_heat_loss_rate
         == approx(0.0463, abs=0.01)
     )
-    assert rules_engine_result.billing_records[0].usage == 60
-    assert rules_engine_result.billing_records[0].whole_home_heat_loss_rate != None
-    assert rules_engine_result.billing_records[5].whole_home_heat_loss_rate == None
+    assert rules_engine_result.processed_energy_bills[0].usage == 60
+    assert rules_engine_result.processed_energy_bills[0].whole_home_heat_loss_rate != None
+    assert rules_engine_result.processed_energy_bills[5].whole_home_heat_loss_rate == None
 
 
 @pytest.mark.parametrize(
