@@ -77,7 +77,10 @@ def get_outputs_natural_gas(
         )
 
     return get_outputs_normalized(
-        heat_load_input, None, temperature_input, processed_energy_bill_inputs_bill_inputs
+        heat_load_input,
+        None,
+        temperature_input,
+        processed_energy_bill_inputs_bill_inputs,
     )
 
 
@@ -91,10 +94,12 @@ def get_outputs_normalized(
     Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
     """
     initial_balance_point = 60
-    intermediate_processed_energy_bill_inputs = convert_to_intermediate_processed_energy_bill_inputs(
-        temperature_input=temperature_input,
-        processed_energy_bill_inputs=processed_energy_bill_inputs,
-        fuel_type=heat_load_input.fuel_type,
+    intermediate_processed_energy_bill_inputs = (
+        convert_to_intermediate_processed_energy_bill_inputs(
+            temperature_input=temperature_input,
+            processed_energy_bill_inputs=processed_energy_bill_inputs,
+            fuel_type=heat_load_input.fuel_type,
+        )
     )
 
     home = Home.calculate(
@@ -179,7 +184,9 @@ def convert_to_intermediate_processed_energy_bill_inputs(
             temperature_input.dates, processed_energy_bill_input.period_start_date
         )
         end_idx = (
-            bisect.bisect_left(temperature_input.dates, processed_energy_bill_input.period_end_date)
+            bisect.bisect_left(
+                temperature_input.dates, processed_energy_bill_input.period_end_date
+            )
             + 1
         )
 
@@ -189,7 +196,8 @@ def convert_to_intermediate_processed_energy_bill_inputs(
             )
         elif fuel_type == FuelType.OIL or fuel_type == FuelType.PROPANE:
             analysis_type, default_inclusion = _date_to_analysis_type_oil_propane(
-                processed_energy_bill_input.period_start_date, processed_energy_bill_input.period_end_date
+                processed_energy_bill_input.period_start_date,
+                processed_energy_bill_input.period_end_date,
             )
         else:
             raise ValueError("Unsupported fuel type.")
@@ -202,7 +210,9 @@ def convert_to_intermediate_processed_energy_bill_inputs(
             default_inclusion=default_inclusion,
             inclusion_override=processed_energy_bill_input.inclusion_override,
         )
-        intermediate_processed_energy_bill_inputs.append(intermediate_processed_energy_bill_input)
+        intermediate_processed_energy_bill_inputs.append(
+            intermediate_processed_energy_bill_input
+        )
 
     return intermediate_processed_energy_bill_inputs
 
@@ -516,7 +526,10 @@ class Home:
 
         self.balance_point_graph = BalancePointGraph(records=[])
 
-        self.uas = [processed_energy_bill_input.ua for processed_energy_bill_input in self.bills_winter]
+        self.uas = [
+            processed_energy_bill_input.ua
+            for processed_energy_bill_input in self.bills_winter
+        ]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
@@ -540,7 +553,10 @@ class Home:
                 biggest_outlier_idx
             )  # removes the biggest outlier
             outlier.eliminated_as_outlier = True
-            uas_i = [processed_energy_bill_input.ua for processed_energy_bill_input in self.bills_winter]
+            uas_i = [
+                processed_energy_bill_input.ua
+                for processed_energy_bill_input in self.bills_winter
+            ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
@@ -656,7 +672,9 @@ class Home:
 
         return home_instance
 
-    def initialize_ua(self, processed_energy_bill_input: IntermediateProcessedEnergyBill) -> None:
+    def initialize_ua(
+        self, processed_energy_bill_input: IntermediateProcessedEnergyBill
+    ) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
@@ -664,8 +682,13 @@ class Home:
         processed_energy_bill_input.avg_heating_usage = (
             processed_energy_bill_input.usage / processed_energy_bill_input.days
         ) - self.avg_non_heating_usage
-        processed_energy_bill_input.partial_ua = self.calculate_partial_ua(processed_energy_bill_input)
-        processed_energy_bill_input.ua = processed_energy_bill_input.partial_ua / processed_energy_bill_input.total_hdd
+        processed_energy_bill_input.partial_ua = self.calculate_partial_ua(
+            processed_energy_bill_input
+        )
+        processed_energy_bill_input.ua = (
+            processed_energy_bill_input.partial_ua
+            / processed_energy_bill_input.total_hdd
+        )
 
     def calculate_partial_ua(
         self, processed_energy_bill_input: IntermediateProcessedEnergyBill

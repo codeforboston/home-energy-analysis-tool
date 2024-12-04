@@ -26,7 +26,9 @@ dummy_processed_energy_bill_input_record = ProcessedEnergyBillInput(
 
 
 @pytest.fixture()
-def sample_processed_energy_bill_inputs() -> list[engine.IntermediateProcessedEnergyBill]:
+def sample_processed_energy_bill_inputs() -> (
+    list[engine.IntermediateProcessedEnergyBill]
+):
     processed_energy_bill_inputs = [
         engine.IntermediateProcessedEnergyBill(
             dummy_processed_energy_bill_input_record,
@@ -332,7 +334,9 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_processed_energy_bill_inp
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
-def test_bp_ua_with_outlier(sample_summary_inputs, sample_processed_energy_bill_inputs_with_outlier):
+def test_bp_ua_with_outlier(
+    sample_summary_inputs, sample_processed_energy_bill_inputs_with_outlier
+):
     home = engine.Home.calculate(
         sample_summary_inputs,
         sample_processed_energy_bill_inputs_with_outlier,
@@ -413,7 +417,9 @@ def test_convert_to_intermediate_processed_energy_bill_inputs(
 
 
 def test_get_outputs_normalized(
-    sample_summary_inputs, sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
+    sample_summary_inputs,
+    sample_temp_inputs,
+    sample_normalized_processed_energy_bill_inputs,
 ):
     rules_engine_result = engine.get_outputs_normalized(
         sample_summary_inputs,
@@ -431,8 +437,12 @@ def test_get_outputs_normalized(
         == approx(0.0463, abs=0.01)
     )
     assert rules_engine_result.processed_energy_bills[0].usage == 60
-    assert rules_engine_result.processed_energy_bills[0].whole_home_heat_loss_rate != None
-    assert rules_engine_result.processed_energy_bills[5].whole_home_heat_loss_rate == None
+    assert (
+        rules_engine_result.processed_energy_bills[0].whole_home_heat_loss_rate != None
+    )
+    assert (
+        rules_engine_result.processed_energy_bills[5].whole_home_heat_loss_rate == None
+    )
 
 
 @pytest.mark.parametrize(
