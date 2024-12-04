@@ -17,7 +17,7 @@ from rules_engine.pydantic_models import (
     TemperatureInput,
 )
 
-dummy_billing_period_record = ProcessedEnergyBillInput(
+dummy_processed_energy_bill_input_record = ProcessedEnergyBillInput(
     period_start_date=datetime(2024, 1, 1),
     period_end_date=datetime(2024, 2, 1),
     usage=1.0,
@@ -26,10 +26,10 @@ dummy_billing_period_record = ProcessedEnergyBillInput(
 
 
 @pytest.fixture()
-def sample_billing_periods() -> list[engine.IntermediateProcessedEnergyBill]:
-    billing_periods = [
+def sample_processed_energy_bill_inputs() -> list[engine.IntermediateProcessedEnergyBill]:
+    processed_energy_bill_inputs = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -37,7 +37,7 @@ def sample_billing_periods() -> list[engine.IntermediateProcessedEnergyBill]:
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -45,7 +45,7 @@ def sample_billing_periods() -> list[engine.IntermediateProcessedEnergyBill]:
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -53,7 +53,7 @@ def sample_billing_periods() -> list[engine.IntermediateProcessedEnergyBill]:
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
@@ -61,16 +61,16 @@ def sample_billing_periods() -> list[engine.IntermediateProcessedEnergyBill]:
             False,
         ),
     ]
-    return billing_periods
+    return processed_energy_bill_inputs
 
 
 @pytest.fixture()
-def sample_billing_periods_with_outlier() -> (
+def sample_processed_energy_bill_inputs_with_outlier() -> (
     list[engine.IntermediateProcessedEnergyBill]
 ):
-    billing_periods = [
+    processed_energy_bill_inputs = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [41.7, 41.6, 32, 25.4],
             60,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -78,7 +78,7 @@ def sample_billing_periods_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -86,7 +86,7 @@ def sample_billing_periods_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -94,7 +94,7 @@ def sample_billing_periods_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -102,7 +102,7 @@ def sample_billing_periods_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
@@ -111,7 +111,7 @@ def sample_billing_periods_with_outlier() -> (
         ),
     ]
 
-    return billing_periods
+    return processed_energy_bill_inputs
 
 
 @pytest.fixture()
@@ -192,8 +192,8 @@ def sample_temp_inputs() -> TemperatureInput:
 
 
 @pytest.fixture()
-def sample_normalized_billing_periods() -> list[ProcessedEnergyBillInput]:
-    billing_periods_dict: Any = [
+def sample_normalized_processed_energy_bill_inputs() -> list[ProcessedEnergyBillInput]:
+    processed_energy_bill_inputs_dict: Any = [
         {
             "period_start_date": "2022-12-01",
             "period_end_date": "2022-12-04",
@@ -238,21 +238,21 @@ def sample_normalized_billing_periods() -> list[ProcessedEnergyBillInput]:
         },
     ]
 
-    # billing_periods = [
-    #     ProcessedEnergyBillInput(**x) for x in billing_periods_dict
+    # processed_energy_bill_inputs = [
+    #     ProcessedEnergyBillInput(**x) for x in processed_energy_bill_inputs_dict
     # ]
 
-    billing_periods = [
+    processed_energy_bill_inputs = [
         ProcessedEnergyBillInput(
             period_start_date=datetime.fromisoformat(x["period_start_date"]),
             period_end_date=datetime.fromisoformat(x["period_end_date"]),
             usage=x["usage"],
             inclusion_override=x["inclusion_override"],
         )
-        for x in billing_periods_dict
+        for x in processed_energy_bill_inputs_dict
     ]
 
-    return billing_periods
+    return processed_energy_bill_inputs
 
 
 @pytest.mark.parametrize(
@@ -314,10 +314,10 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
+def test_bp_ua_estimates(sample_summary_inputs, sample_processed_energy_bill_inputs):
     home = engine.Home.calculate(
         sample_summary_inputs,
-        sample_billing_periods,
+        sample_processed_energy_bill_inputs,
         dhw_input=None,
         initial_balance_point=58,
     )
@@ -332,10 +332,10 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_billing_periods):
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
-def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_outlier):
+def test_bp_ua_with_outlier(sample_summary_inputs, sample_processed_energy_bill_inputs_with_outlier):
     home = engine.Home.calculate(
         sample_summary_inputs,
-        sample_billing_periods_with_outlier,
+        sample_processed_energy_bill_inputs_with_outlier,
         dhw_input=None,
         initial_balance_point=58,
     )
@@ -351,18 +351,18 @@ def test_bp_ua_with_outlier(sample_summary_inputs, sample_billing_periods_with_o
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
-def test_convert_to_intermediate_billing_periods(
-    sample_temp_inputs, sample_normalized_billing_periods
+def test_convert_to_intermediate_processed_energy_bill_inputs(
+    sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
 ):
-    results = engine.convert_to_intermediate_billing_periods(
+    results = engine.convert_to_intermediate_processed_energy_bill_inputs(
         sample_temp_inputs,
-        sample_normalized_billing_periods,
+        sample_normalized_processed_energy_bill_inputs,
         FuelType.GAS,
     )
 
     expected_results = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [41.7, 41.6, 32, 25.4],
             60,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -370,7 +370,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -378,7 +378,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -386,7 +386,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -394,7 +394,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_billing_period_record,
+            dummy_processed_energy_bill_input_record,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -413,13 +413,13 @@ def test_convert_to_intermediate_billing_periods(
 
 
 def test_get_outputs_normalized(
-    sample_summary_inputs, sample_temp_inputs, sample_normalized_billing_periods
+    sample_summary_inputs, sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
 ):
     rules_engine_result = engine.get_outputs_normalized(
         sample_summary_inputs,
         None,
         sample_temp_inputs,
-        sample_normalized_billing_periods,
+        sample_normalized_processed_energy_bill_inputs,
     )
 
     assert rules_engine_result.heat_load_output.estimated_balance_point == 60.5

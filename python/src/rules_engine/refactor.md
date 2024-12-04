@@ -13,15 +13,15 @@ home variables used
 1. Remove temporary_rules_engine.py
 2. Rename rules-engine to "python"
 3. Rename NormalizedBillingRecordBase class to BillingInput
-4. Rename BillingPeriod to IntermediateProcessedEnergyBill and billing_period to processed_energy_bill_intermediate
+4. Rename BillingPeriod to IntermediateProcessedEnergyBill and processed_energy_bill_input to processed_energy_bill_intermediate
 5. Combine get_outputs_normalized and convert_to_intermediate_billing_record and get rid of NormalizedBillingRecord. There is only one place NormalizedBillingRecord is used and combining code
 gets rid of the need for the class.
 - Change
 ```
-    billing_periods: list[ProcessedEnergyBillInput] = []
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
-        billing_periods.append(
+        processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
@@ -31,11 +31,11 @@ gets rid of the need for the class.
         )
 
     return get_outputs_normalized(
-        heat_load_input, None, temperature_input, billing_periods
+        heat_load_input, None, temperature_input, processed_energy_bill_inputs
     )
 
     def get_outputs_normalized
-      loops through billing_periods and does a bunch of stuff
+      loops through processed_energy_bill_inputs and does a bunch of stuff
   
 ```
 to 
@@ -93,12 +93,12 @@ avg_non_heating_usage = _get_avg_non_heating_usage (
 ```
 ==================
 - change 
-`for billing_period in billing_periods ...` =>
+`for processed_energy_bill_input in processed_energy_bill_inputs ...` =>
 to
 ```
-for billing_period in billing_periods
+for processed_energy_bill_input in processed_energy_bill_inputs
        { bills_summer, bills_winter, bills_shoulder }
-        =_categorize_bills_by_season (billing_periods)
+        =_categorize_bills_by_season (processed_energy_bill_inputs)
 ```
 ==================
 - Change
@@ -116,7 +116,7 @@ to
 ```
 ==================
 - Change
-`self.initialize_ua(billing_period)` => `_set_ua(billing_period,avg_non_heating_usage)`
+`self.initialize_ua(processed_energy_bill_input)` => `_set_ua(processed_energy_bill_input,avg_non_heating_usage)`
 
 - Change?? Parameters are never set
 ```

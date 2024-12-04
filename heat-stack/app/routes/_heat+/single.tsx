@@ -354,7 +354,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         #	heat_load_input: HeatLoadInput,
         #	dhw_input: Optional[DhwInput],
         #	temperature_input: TemperatureInput,
-        #	billing_periods: list[ProcessedEnergyBillInput],
+        #	processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
         # )
 
         def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
