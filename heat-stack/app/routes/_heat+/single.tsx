@@ -350,12 +350,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
         )
         from rules_engine import engine, helpers
 
-        # def get_outputs_normalized(
-        #	heat_load_input: HeatLoadInput,
-        #	dhw_input: Optional[DhwInput],
-        #	temperature_input: TemperatureInput,
-        #	processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
-        # )
 
         def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
             """
