@@ -324,7 +324,7 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_processed_energy_bill_inp
         initial_balance_point=58,
     )
 
-    ua_1, ua_2, ua_3 = [bill.ua for bill in home.bills_winter]
+    ua_1, ua_2, ua_3 = [bill.ua for bill in home.winter_processed_energy_bills]
 
     assert home.balance_point == 60.5
     assert ua_1 == approx(1455.03, abs=0.01)
@@ -344,8 +344,8 @@ def test_bp_ua_with_outlier(
         initial_balance_point=58,
     )
 
-    # expect that ua_1 is considered an outlier and not used in bills_winter
-    ua_2, ua_3, ua_4 = [bill.ua for bill in home.bills_winter]
+    # expect that ua_1 is considered an outlier and not used in winter_processed_energy_bills
+    ua_2, ua_3, ua_4 = [bill.ua for bill in home.winter_processed_energy_bills]
 
     assert home.balance_point == 60.5
     assert ua_2 == approx(1455.03, abs=0.01)
@@ -355,10 +355,10 @@ def test_bp_ua_with_outlier(
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
-def test_convert_to_intermediate_processed_energy_bill_inputs(
+def test_convert_to_intermediate_processed_energy_bills(
     sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
 ):
-    results = engine.convert_to_intermediate_processed_energy_bill_inputs(
+    results = engine.convert_to_intermediate_processed_energy_bills(
         sample_temp_inputs,
         sample_normalized_processed_energy_bill_inputs,
         FuelType.GAS,

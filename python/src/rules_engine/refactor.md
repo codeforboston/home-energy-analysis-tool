@@ -97,7 +97,7 @@ avg_non_heating_usage = _get_avg_non_heating_usage (
 to
 ```
 for processed_energy_bill_input in processed_energy_bill_inputs
-       { bills_summer, bills_winter, bills_shoulder }
+       { summer_processed_energy_bills, winter_processed_energy_bills, shoulder_processed_energy_bills }
         =_categorize_bills_by_season (processed_energy_bill_inputs)
 ```
 ==================
@@ -158,7 +158,7 @@ self._calculate_balance_point_and_ua(
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
-            bills_winter)
+            winter_processed_energy_bills)
 ```    
 ==================
 
