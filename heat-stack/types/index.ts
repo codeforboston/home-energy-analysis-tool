@@ -98,7 +98,7 @@ export const naturalGasUsageSchema = z.map(
 )
 
 // Define the schema for one billing record
-export const oneBillingRecordSchema = z.object({
+export const oneProcessedEnergyBillSchema = z.object({
 	period_start_date: z.string(),
 	period_end_date: z.string(),
 	usage: z.number(),
@@ -122,11 +122,11 @@ export const oneBillingRecordSchema = z.object({
 });
 
 // Define the schema for the 'processed_energy_bills' list
-export const allBillingRecordsSchema = z.array(oneBillingRecordSchema);
+export const allProcessedEnergyBillsSchema = z.array(oneProcessedEnergyBillSchema);
 
 //   Define the schema for the 'usage_data' key
 export const usageDataSchema = z.object({
 	heat_load_output: summaryOutputSchema,
 	balance_point_graph: balancePointGraphSchema,
-	processed_energy_bills: allBillingRecordsSchema,
+	processed_energy_bills: allProcessedEnergyBillsSchema,
 })
