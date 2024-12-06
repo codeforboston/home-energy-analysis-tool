@@ -673,32 +673,32 @@ class Home:
         return home_instance
 
     def initialize_ua(
-        self, processed_energy_bill: IntermediateProcessedEnergyBill
+        self, intermediate_processed_energy_bill: IntermediateProcessedEnergyBill
     ) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
         """
-        processed_energy_bill.avg_heating_usage = (
-            processed_energy_bill.usage / processed_energy_bill.days
+        intermediate_processed_energy_bill.avg_heating_usage = (
+            intermediate_processed_energy_bill.usage / intermediate_processed_energy_bill.days
         ) - self.avg_non_heating_usage
-        processed_energy_bill.partial_ua = self.calculate_partial_ua(
-            processed_energy_bill
+        intermediate_processed_energy_bill.partial_ua = self.calculate_partial_ua(
+            intermediate_processed_energy_bill
         )
-        processed_energy_bill.ua = (
-            processed_energy_bill.partial_ua
-            / processed_energy_bill.total_hdd
+        intermediate_processed_energy_bill.ua = (
+            intermediate_processed_energy_bill.partial_ua
+            / intermediate_processed_energy_bill.total_hdd
         )
 
     def calculate_partial_ua(
-        self, processed_energy_bill_input: IntermediateProcessedEnergyBill
+        self, intermediate_processed_energy_bill: IntermediateProcessedEnergyBill
     ) -> float:
         """
         The portion of UA that is not dependent on the balance point
         """
         return (
-            processed_energy_bill_input.days
-            * processed_energy_bill_input.avg_heating_usage  # gallons or therms
+            intermediate_processed_energy_bill.days
+            * intermediate_processed_energy_bill.avg_heating_usage  # gallons or therms
             * self.fuel_type.value  # therm or gallon to BTU
             * self.heat_sys_efficiency  # unitless
             / 24
