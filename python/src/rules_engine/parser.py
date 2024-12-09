@@ -9,8 +9,9 @@ import re
 from datetime import datetime, timedelta
 from enum import StrEnum
 
-from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 from greenbutton_objects import parse
+
+from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
 class NaturalGasCompany(StrEnum):
