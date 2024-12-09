@@ -111,9 +111,7 @@ def test_parse_gas_bill_national_grid():
 
 
 def test_parse_xml_natural_gas():
-    _validate_xml_natural_gas(
-        parser.parse_gas_bill_xml(_read_gas_bill_xml())
-    )
+    _validate_xml_natural_gas(parser.parse_gas_bill_xml(_read_gas_bill_xml()))
 
 
 def test_detect_natural_gas_company():
