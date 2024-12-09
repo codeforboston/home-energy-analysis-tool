@@ -26,9 +26,9 @@ dummy_billing_period_record = NormalizedBillingPeriodRecordBase(
 
 
 @pytest.fixture()
-def sample_billing_periods() -> list[engine.BillingPeriod]:
+def sample_billing_periods() -> list[engine.ProcessedBill]:
     billing_periods = [
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -36,7 +36,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -44,7 +44,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -52,7 +52,7 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,
@@ -65,9 +65,9 @@ def sample_billing_periods() -> list[engine.BillingPeriod]:
 
 
 @pytest.fixture()
-def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
+def sample_billing_periods_with_outlier() -> list[engine.ProcessedBill]:
     billing_periods = [
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -75,7 +75,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -83,7 +83,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -91,7 +91,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -99,7 +99,7 @@ def sample_billing_periods_with_outlier() -> list[engine.BillingPeriod]:
             True,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,
@@ -363,7 +363,7 @@ def test_convert_to_intermediate_billing_periods(
     )
 
     expected_results = [
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -371,7 +371,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [28, 29, 30, 29],
             50,
@@ -379,7 +379,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [32, 35, 35, 38],
             45,
@@ -387,7 +387,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [41, 43, 42, 42],
             30,
@@ -395,7 +395,7 @@ def test_convert_to_intermediate_billing_periods(
             False,
             False,
         ),
-        engine.BillingPeriod(
+        engine.ProcessedBill(
             dummy_billing_period_record,
             [72, 71, 70, 69],
             0.96,

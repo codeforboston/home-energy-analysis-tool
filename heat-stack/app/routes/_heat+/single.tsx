@@ -52,7 +52,8 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [ ] Will weather service take timestamp instead of timezone date data?
 
 // Ours
-import { Home, Location, Case, type NaturalGasUsageData, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
+import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
+import { type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -61,11 +62,11 @@ import HeatLoadAnalysis from './heatloadanalysis.tsx'
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
 
-const HomeFormSchema = Home.pick({ living_area: true })
-    .and(Location.pick({ address: true }))
-    .and(Case.pick({ name: true }))
+const HomeFormSchema = HomeSchema.pick({ living_area: true })
+    .and(LocationSchema.pick({ address: true }))
+    .and(CaseSchema.pick({ name: true }))
 
-const CurrentHeatingSystemSchema = Home.pick({
+const CurrentHeatingSystemSchema = HomeSchema.pick({
     fuel_type: true,
     heating_system_efficiency: true,
     design_temperature_override: true,
@@ -251,8 +252,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
      */
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
-    type NaturalGasUsageData = z.infer<typeof NaturalGasUsageData>;
-    const pyodideResultsFromTextFile: NaturalGasUsageData = executeParseGasBillPy(uploadedTextFile).toJs()
+    const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
 
     // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
     const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
@@ -453,10 +453,42 @@ function reviver(key: any, value: any) {
     return value;
 }
 
+/**
+ * Translates an already replaced (see https://stackoverflow.com/a/56150320) and then parsed Map from pyodide into a plain js Object.
+ * @param input {Map} 
+ * @returns {Object}
+ */
+function replacedMapToObject(input: any): any {
+	// Base case: if input is not an object or is null, return it as-is
+	if (typeof input !== 'object' || input === null) {
+		return input
+	}
+
+	// Handle case where input is a Map-like object (with "dataType" as "Map" and a "value" array)
+	if (input.dataType === 'Map' && Array.isArray(input.value)) {
+		const obj: Record<any, any> = {} // Initialize an empty object
+		for (const [key, value] of input.value) {
+			obj[key] = replacedMapToObject(value) // Recursively process nested Maps
+		}
+		return obj
+	}
+
+	// Handle case where input is an array
+	if (Array.isArray(input)) {
+		return input.map(replacedMapToObject) // Recursively process each array element
+	}
+
+	console.log('input', input)
+	// Return the input for any other types of objects
+	return input
+}
+
+
 export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
+    
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -504,9 +536,22 @@ export default function Inputs() {
   
     let usage_data = null;
     let show_usage_data = lastResult !== undefined;
+
     console.log('lastResult', lastResult)
-    if ( show_usage_data && hasDataProperty(lastResult)) {
-        usage_data = JSON.parse(lastResult?.data, reviver);
+    
+    // Ensure we handle the result properly
+    if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
+        try {
+            // Parse the JSON string from lastResult.data
+            const parsedData = JSON.parse(lastResult.data);
+
+            // Recursively transform any Maps in lastResult to objects
+            usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
+            console.log('usage_data', usage_data)
+            
+        } catch (error) {
+            console.error('Error parsing lastResult data:', error);
+        }
     }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>

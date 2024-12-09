@@ -1,9 +1,8 @@
-import { type z } from 'zod'
-import { type HeatLoadAnalysisZod } from '#types/index'
+import { type z } from 'zod';
+import { type UsageDataSchema } from '#/types/types.ts'; 
+import HelpCircle from './assets/help-circle.svg'
 
-type HeatLoadAnalysisZod = z.infer<typeof HeatLoadAnalysisZod>
-export function AnalysisHeader(props: { usage_data: any }) {
-
+export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// Example usage_data
 	// new Map([[
 	// 		"estimated_balance_point",
@@ -34,78 +33,86 @@ export function AnalysisHeader(props: { usage_data: any }) {
 	// 		3312125.0171753373
 	// 	]])
 
-	const summaryOutputs = props.usage_data?.get('summary_output')
+	// Extract the summary_output from usage_data
+	const summaryOutputs = usage_data?.summary_output;
+
+	const totalRecords = usage_data?.billing_records?.length || "-"
 
 	// Calculate the number of billing periods included in Heating calculations
-	const heatingAnalysisTypeRecords = props.usage_data
-		?.get('billing_records')
-		?.filter((billingRecord: any) => billingRecord.get('analysis_type') == 1)
+	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
+		(billingRecord) => billingRecord.analysis_type === 1,
+		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
+	);
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
-		(billingRecord: any) =>
-			billingRecord.get('default_inclusion_by_calculation') == true &&
-			billingRecord.get('inclusion_override') == false,
-	).length
+		(billingRecord) =>
+		billingRecord.default_inclusion_by_calculation === true &&
+		billingRecord.inclusion_override === false,
+	).length;
 
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
-		(billingRecord: any) =>
-			billingRecord.get('default_inclusion_by_calculation') == false &&
-			billingRecord.get('inclusion_override') == true,
-	).length
+		(billingRecord) =>
+		billingRecord.default_inclusion_by_calculation === false &&
+		billingRecord.inclusion_override === true,
+	).length;
 
 	const numRecordsForHeatingCalculations =
-		recordsIncludedByDefault + recordsIncludedByOverride
+		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
+
 
 	return (
-		<div className="section-title">
-			<div className="item-group-title">Heat Load Analysis</div>
-			<div className="flex flex-row">
+		<div className="section-title mt-12">
+			<div className="flex flex-row gap-0.5 mb-4">
+				<div className="item-group-title font-semibold text-2xl">Heat Load Analysis</div>
+				{/* TODO: add help text here */}
+				{/* <img src={HelpCircle} alt='help text'/> */}
+			</div>
+
+			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
-						<div className="item">
-							{summaryOutputs?.get('average_indoor_temperature')} °F
-						</div>{' '}
+						<div className="item font-bold">
+							{summaryOutputs?.average_indoor_temperature} °F
+						</div>
 						<br />
 						Balance Point Temperature
 						<br />
-						<div className="item">
-							{summaryOutputs?.get('estimated_balance_point')} °F
-						</div>{' '}
+						<div className="item font-bold">
+							{summaryOutputs?.estimated_balance_point} °F
+						</div>
 						<br />
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Number of Periods Included <br />
-						<div className="item">{numRecordsForHeatingCalculations}</div>
+						<div className="item font-bold">{numRecordsForHeatingCalculations} / {totalRecords}</div>
 						<br />
 						Daily non-heating Usage <br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to two decimal places */}
-							{summaryOutputs?.get('other_fuel_usage').toFixed(2)} therms
-						</div>{' '}
+							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
+						</div>
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small">
+					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Standard Deviation of UA <br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to two decimal places */}
 							{(
-								summaryOutputs?.get('standard_deviation_of_heat_loss_rate') *
-								100
-							).toFixed(2)}{' '}
+								summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
+							)?.toFixed(2)}{' '}
 							%
-						</div>{' '}
+						</div>
 						<br />
 						Whole-home UA
 						<br />
-						<div className="item">
+						<div className="item font-bold">
 							{/* Rounding to zero decimal places */}
-							{summaryOutputs?.get('whole_home_heat_loss_rate').toFixed(0)}{' '}
-							BTU/h-°F
-						</div>{' '}
+							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
+						</div>
 						<br />
 					</div>
 				</div>
