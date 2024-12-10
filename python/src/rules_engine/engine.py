@@ -416,7 +416,7 @@ class Home:
         initial_balance_point: float = 60,
     ) -> None:
         self.fuel_type = heat_load_input.fuel_type
-        self.heat_sys_efficiency = heat_load_input.heating_system_efficiency
+        self.heat_system_efficiency = heat_load_input.heating_system_efficiency
         self.thermostat_set_point = heat_load_input.thermostat_set_point
         self.balance_point = initial_balance_point
         self.dhw_input = dhw_input
@@ -506,7 +506,7 @@ class Home:
         elif self.dhw_input is not None and self.fuel_type == FuelType.OIL:
             # TODO: support non-heating usage for Propane in addition to fuel oil
             self.avg_non_heating_usage = calculate_dhw_usage(
-                self.dhw_input, self.heat_sys_efficiency
+                self.dhw_input, self.heat_system_efficiency
             )
         else:
             self.avg_non_heating_usage = 0
@@ -682,25 +682,30 @@ class Home:
         intermediate_energy_bill.avg_heating_usage = (
             intermediate_energy_bill.usage / intermediate_energy_bill.days
         ) - self.avg_non_heating_usage
-        intermediate_energy_bill.partial_ua = self.calculate_partial_ua(
-            intermediate_energy_bill
+        intermediate_energy_bill.partial_ua = Home.calculate_partial_ua(
+            intermediate_energy_bill, 
+            self.fuel_type, 
+            self.heat_system_efficiency
         )
         intermediate_energy_bill.ua = (
             intermediate_energy_bill.partial_ua
             / intermediate_energy_bill.total_hdd
         )
-
+    
+    @staticmethod
     def calculate_partial_ua(
-        self, intermediate_energy_bill: IntermediateEnergyBill
-    ) -> float:
+            intermediate_energy_bill: IntermediateEnergyBill, 
+            fuel_type, 
+            heat_system_efficiency
+        ) -> float:
         """
         The portion of UA that is not dependent on the balance point
         """
         return (
             intermediate_energy_bill.days
             * intermediate_energy_bill.avg_heating_usage  # gallons or therms
-            * self.fuel_type.value  # therm or gallon to BTU
-            * self.heat_sys_efficiency  # unitless
+            * fuel_type.value  # therm or gallon to BTU
+            * heat_system_efficiency  # unitless
             / 24
             # days * gallons/day * (BTU/gallon)/1 day (24 hours)
             # BTUs/hour
