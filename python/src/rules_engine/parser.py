@@ -96,8 +96,8 @@ def parse_gas_bill_xml(data_file: str) -> NaturalGasBillingInput:
         for interval_reading in meter_reading.interval_readings:
             records.append(
                 NaturalGasBillingRecordInput(
-                    period_start=interval_reading.time_period.start,  #  datetime.utcfromtimestamp(interval_reading.time_period.start).date(),
-                    period_end=interval_reading.time_period.start
+                    period_start_date=interval_reading.time_period.start,  #  datetime.utcfromtimestamp(interval_reading.time_period.start).date(),
+                    period_end_date=interval_reading.time_period.start
                     + interval_reading.time_period.duration,  # datetime.utcfromtimestamp(interval_reading.time_period.start + interval_reading.time_period.duration).date(),
                     usage_therms=interval_reading.value,
                     inclusion_override=None,
