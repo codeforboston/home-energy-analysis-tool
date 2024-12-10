@@ -483,7 +483,10 @@ class Home:
         self._calculate_avg_summer_usage()
         self._calculate_avg_non_heating_usage()
         for processed_energy_bill in self.winter_processed_energy_bills:
-            self.initialize_ua(processed_energy_bill)
+            self.initialize_ua(processed_energy_bill, 
+                               fuel_type = self.fuel_type, 
+                               heat_system_efficiency = self.heat_system_efficiency,
+                               avg_non_heating_usage = self.avg_non_heating_usage)
 
     def _calculate_avg_summer_usage(self) -> None:
         """
@@ -672,8 +675,12 @@ class Home:
 
         return home_instance
 
+    @staticmethod
     def initialize_ua(
-        self, intermediate_energy_bill: IntermediateEnergyBill
+        intermediate_energy_bill: IntermediateEnergyBill,
+        fuel_type, 
+        heat_system_efficiency,
+        avg_non_heating_usage
     ) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
@@ -681,11 +688,11 @@ class Home:
         """
         intermediate_energy_bill.avg_heating_usage = (
             intermediate_energy_bill.usage / intermediate_energy_bill.days
-        ) - self.avg_non_heating_usage
+        ) - avg_non_heating_usage
         intermediate_energy_bill.partial_ua = Home.calculate_partial_ua(
             intermediate_energy_bill, 
-            self.fuel_type, 
-            self.heat_system_efficiency
+            fuel_type, 
+            heat_system_efficiency
         )
         intermediate_energy_bill.ua = (
             intermediate_energy_bill.partial_ua
