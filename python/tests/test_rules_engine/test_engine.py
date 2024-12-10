@@ -17,7 +17,7 @@ from rules_engine.pydantic_models import (
     TemperatureInput,
 )
 
-dummy_processed_energy_bill_input_record = ProcessedEnergyBillInput(
+_dummy_processed_energy_bill_input = ProcessedEnergyBillInput(
     period_start_date=datetime(2024, 1, 1),
     period_end_date=datetime(2024, 2, 1),
     usage=1.0,
@@ -31,7 +31,7 @@ def sample_processed_energy_bill_inputs() -> (
 ):
     processed_energy_bill_inputs = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -39,7 +39,7 @@ def sample_processed_energy_bill_inputs() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -47,7 +47,7 @@ def sample_processed_energy_bill_inputs() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -55,7 +55,7 @@ def sample_processed_energy_bill_inputs() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
@@ -72,7 +72,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
 ):
     processed_energy_bill_inputs = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [41.7, 41.6, 32, 25.4],
             60,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -80,7 +80,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -88,7 +88,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -96,7 +96,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -104,7 +104,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
@@ -366,7 +366,7 @@ def test_convert_to_intermediate_processed_energy_bills(
 
     expected_results = [
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [41.7, 41.6, 32, 25.4],
             60,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -374,7 +374,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -382,7 +382,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -390,7 +390,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
             AnalysisType.ALLOWED_HEATING_USAGE,
@@ -398,7 +398,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
         ),
         engine.IntermediateProcessedEnergyBill(
-            dummy_processed_energy_bill_input_record,
+            _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
             AnalysisType.ALLOWED_HEATING_USAGE,
