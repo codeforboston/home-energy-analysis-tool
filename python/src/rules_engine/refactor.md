@@ -13,7 +13,7 @@ home variables used
 1. Remove temporary_rules_engine.py
 2. Rename rules-engine to "python"
 3. Rename NormalizedBillingRecordBase class to BillingInput
-4. Rename BillingPeriod to IntermediateProcessedEnergyBill and processed_energy_bill_input to processed_energy_bill_intermediate
+4. Rename BillingPeriod to IntermediateEnergyBill and processed_energy_bill_input to processed_energy_bill_intermediate
 5. Combine get_outputs_normalized and convert_to_intermediate_processed_energy_bill and get rid of NormalizedBillingRecord. There is only one place NormalizedBillingRecord is used and combining code
 gets rid of the need for the class.
 - Change
@@ -55,7 +55,7 @@ to
           inputBill.start_date,
           inputBill.end_date
         )
-      processedBill = IntermediateProcessedEnergyBill(
+      processedBill = IntermediateEnergyBill(
         input = inputBill,
         avg_temps = avg_temps,
         default_analysis_type = default_analysis_type

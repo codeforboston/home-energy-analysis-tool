@@ -26,11 +26,11 @@ _dummy_processed_energy_bill_input = ProcessedEnergyBillInput(
 
 
 @pytest.fixture()
-def sample_processed_energy_bill_inputs() -> (
-    list[engine.IntermediateProcessedEnergyBill]
+def sample_intermediate_energy_bill_inputs() -> (
+    list[engine.IntermediateEnergyBill]
 ):
-    processed_energy_bill_inputs = [
-        engine.IntermediateProcessedEnergyBill(
+    intermediate_energy_bill_inputs = [
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
@@ -38,7 +38,7 @@ def sample_processed_energy_bill_inputs() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
@@ -46,7 +46,7 @@ def sample_processed_energy_bill_inputs() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
@@ -54,7 +54,7 @@ def sample_processed_energy_bill_inputs() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
@@ -63,15 +63,15 @@ def sample_processed_energy_bill_inputs() -> (
             False,
         ),
     ]
-    return processed_energy_bill_inputs
+    return intermediate_energy_bill_inputs
 
 
 @pytest.fixture()
-def sample_processed_energy_bill_inputs_with_outlier() -> (
-    list[engine.IntermediateProcessedEnergyBill]
+def sample_intermediate_energy_bill_inputs_with_outlier() -> (
+    list[engine.IntermediateEnergyBill]
 ):
-    processed_energy_bill_inputs = [
-        engine.IntermediateProcessedEnergyBill(
+    intermediate_energy_bill_inputs = [
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -79,7 +79,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
@@ -87,7 +87,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
@@ -95,7 +95,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
@@ -103,7 +103,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
             True,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
@@ -113,7 +113,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
         ),
     ]
 
-    return processed_energy_bill_inputs
+    return intermediate_energy_bill_inputs
 
 
 @pytest.fixture()
@@ -316,10 +316,10 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates(sample_heat_load_inputs, sample_processed_energy_bill_inputs):
+def test_bp_ua_estimates(sample_heat_load_inputs, sample_intermediate_energy_bill_inputs):
     home = engine.Home.calculate(
         sample_heat_load_inputs,
-        sample_processed_energy_bill_inputs,
+        sample_intermediate_energy_bill_inputs,
         dhw_input=None,
         initial_balance_point=58,
     )
@@ -335,11 +335,11 @@ def test_bp_ua_estimates(sample_heat_load_inputs, sample_processed_energy_bill_i
 
 
 def test_bp_ua_with_outlier(
-    sample_heat_load_inputs, sample_processed_energy_bill_inputs_with_outlier
+    sample_heat_load_inputs, sample_intermediate_energy_bill_inputs_with_outlier
 ):
     home = engine.Home.calculate(
         sample_heat_load_inputs,
-        sample_processed_energy_bill_inputs_with_outlier,
+        sample_intermediate_energy_bill_inputs_with_outlier,
         dhw_input=None,
         initial_balance_point=58,
     )
@@ -365,7 +365,7 @@ def test_convert_to_intermediate_processed_energy_bills(
     )
 
     expected_results = [
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [41.7, 41.6, 32, 25.4],
             60,
@@ -373,7 +373,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [28, 29, 30, 29],
             50,
@@ -381,7 +381,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [32, 35, 35, 38],
             45,
@@ -389,7 +389,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [41, 43, 42, 42],
             30,
@@ -397,7 +397,7 @@ def test_convert_to_intermediate_processed_energy_bills(
             False,
             False,
         ),
-        engine.IntermediateProcessedEnergyBill(
+        engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
             [72, 71, 70, 69],
             0.96,
