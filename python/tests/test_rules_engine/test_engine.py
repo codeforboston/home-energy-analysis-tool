@@ -117,7 +117,7 @@ def sample_processed_energy_bill_inputs_with_outlier() -> (
 
 
 @pytest.fixture()
-def sample_summary_inputs() -> HeatLoadInput:
+def sample_heat_load_inputs() -> HeatLoadInput:
     heat_sys_efficiency = 0.88
 
     living_area = 1000
@@ -316,9 +316,9 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates(sample_summary_inputs, sample_processed_energy_bill_inputs):
+def test_bp_ua_estimates(sample_heat_load_inputs, sample_processed_energy_bill_inputs):
     home = engine.Home.calculate(
-        sample_summary_inputs,
+        sample_heat_load_inputs,
         sample_processed_energy_bill_inputs,
         dhw_input=None,
         initial_balance_point=58,
@@ -335,10 +335,10 @@ def test_bp_ua_estimates(sample_summary_inputs, sample_processed_energy_bill_inp
 
 
 def test_bp_ua_with_outlier(
-    sample_summary_inputs, sample_processed_energy_bill_inputs_with_outlier
+    sample_heat_load_inputs, sample_processed_energy_bill_inputs_with_outlier
 ):
     home = engine.Home.calculate(
-        sample_summary_inputs,
+        sample_heat_load_inputs,
         sample_processed_energy_bill_inputs_with_outlier,
         dhw_input=None,
         initial_balance_point=58,
@@ -417,12 +417,12 @@ def test_convert_to_intermediate_processed_energy_bills(
 
 
 def test_get_outputs_normalized(
-    sample_summary_inputs,
+    sample_heat_load_inputs,
     sample_temp_inputs,
     sample_normalized_processed_energy_bill_inputs,
 ):
     rules_engine_result = engine.get_outputs_normalized(
-        sample_summary_inputs,
+        sample_heat_load_inputs,
         None,
         sample_temp_inputs,
         sample_normalized_processed_energy_bill_inputs,
