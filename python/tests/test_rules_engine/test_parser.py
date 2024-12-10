@@ -23,12 +23,6 @@ def _read_gas_bill_national_grid() -> str:
         return f.read()
 
 
-def _read_gas_bill_xml() -> str:
-    """Read a test natural gas bill from a test National Grid CSV"""
-    # TODO: Pass the file as a string rather than passing the file name
-    return ROOT_DIR.parent / "parsing" / "xml" / "abridged" / "gas_direct.xml"
-
-
 def _validate_eversource(result):
     """Validate the result of reading an Eversource CSV."""
     assert len(result.records) == 36
@@ -63,23 +57,6 @@ def _validate_national_grid(result):
     assert second_row.inclusion_override == None
 
 
-def _validate_xml_natural_gas(result):
-    """Validate the result of reading a National Grid CSV."""
-    assert len(result.records) == 5
-    for row in result.records:
-        assert isinstance(row, NaturalGasBillingRecordInput)
-
-    # input: Natural gas billing,11/5/2020,12/3/2020,36,therms,$65.60 ,
-    # from excel: 11/6/2020,12/3/2020,28,36,,1,1.29,0.99
-
-    second_row = result.records[1]
-    assert second_row.period_start_date == date(2021, 6, 30)
-    assert second_row.period_end_date == date(2021, 7, 28)
-    assert isinstance(second_row.usage_therms, float)
-    assert second_row.usage_therms == 14
-    assert second_row.inclusion_override == None
-
-
 def test_parse_gas_bill():
     """
     Tests the logic of parse_gas_bill.
@@ -108,10 +85,6 @@ def test_parse_gas_bill_national_grid():
     _validate_national_grid(
         parser._parse_gas_bill_national_grid(_read_gas_bill_national_grid())
     )
-
-
-def test_parse_xml_natural_gas():
-    _validate_xml_natural_gas(parser.parse_gas_bill_xml(_read_gas_bill_xml()))
 
 
 def test_detect_natural_gas_company():

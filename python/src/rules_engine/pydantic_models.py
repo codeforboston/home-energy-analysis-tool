@@ -3,7 +3,7 @@ Data models for input and output data in the rules engine.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from functools import cached_property
 from typing import Annotated, Any, Literal, Optional, Sequence

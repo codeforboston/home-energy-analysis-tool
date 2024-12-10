@@ -9,8 +9,6 @@ import re
 from datetime import datetime, timedelta
 from enum import StrEnum
 
-from greenbutton_objects import parse
-
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
@@ -87,23 +85,6 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
             """Could not detect which company this bill was from:\n 
                            Regular expressions matched not."""
         )
-
-
-def parse_gas_bill_xml(data_file: str) -> NaturalGasBillingInput:
-    bill = parse.parse_feed(str(data_file))
-    records = []
-    for meter_reading in bill.usage_points[0].meter_readings:
-        for interval_reading in meter_reading.interval_readings:
-            records.append(
-                NaturalGasBillingRecordInput(
-                    period_start_date=interval_reading.time_period.start,  #  datetime.utcfromtimestamp(interval_reading.time_period.start).date(),
-                    period_end_date=interval_reading.time_period.start
-                    + interval_reading.time_period.duration,  # datetime.utcfromtimestamp(interval_reading.time_period.start + interval_reading.time_period.duration).date(),
-                    usage_therms=interval_reading.value,
-                    inclusion_override=None,
-                )
-            )
-    return NaturalGasBillingInput(records=records)
 
 
 def parse_gas_bill(

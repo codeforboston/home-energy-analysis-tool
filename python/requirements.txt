@@ -14,4 +14,3 @@ typing-extensions==4.8.0
     # via
     #   pydantic
     #   pydantic-core
-greenbutton_objects @ git+https://github.com/codeforboston/greenbutton_objects@main
