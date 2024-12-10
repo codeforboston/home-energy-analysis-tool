@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://naesb.org/espi espi.xsd">
+  <id>urn:uuid:5762c9e8-4e65-3b0c-83b3-7874683f3dbe</id>
+  <link href="/v1/espi_third_party_batch_feed" rel="self">
+  </link>
+  <title type="text">Opower ESPI Third Party Batch Feed v1</title>
+  <updated>2024-06-21</updated>
+  <entry>
+    <id>urn:uuid:db678d4d-d9fe-3c0c-96f9-c13142c295e1</id>
+    <link href="/v1/BillingAccount/1234567890/UsagePoint/NET_USAGE" rel="self">
+    </link>
+    <link href="/v1/User/1234567890/UsagePoint/NET_USAGE/MeterReading/1" rel="related">
+    </link>
+    <title type="text">1 MAIN ST, ANYTOWN ME 12345</title>
+    <updated>2024-06-21</updated>
+    <published>2011-11-30T12:00:00.000Z</published>
+    <content type="xml">
+      <UsagePoint xmlns="http://naesb.org/espi">
+        <ServiceCategory>
+          <kind>1</kind>
+        </ServiceCategory>
+      </UsagePoint>
+    </content>
+  </entry>
+  <entry>
+    <id>urn:uuid:cb36cc47-2cfb-3e47-abb9-7866f42cc194</id>
+    <link href="/v1/User/1234567890/UsagePoint/NET_USAGE/MeterReading/1" rel="self">
+    </link>
+    <link href="/v1/ReadingType/0" rel="related">
+    </link>
+    <link href="/v1/User/1234567890/UsagePoint/NET_USAGE/MeterReading/1/IntervalBlock/1" rel="related">
+    </link>
+    <updated>2024-06-21</updated>
+    <published>2011-11-30T12:00:00.000Z</published>
+    <content type="xml">
+      <MeterReading xmlns="http://naesb.org/espi">
+      </MeterReading>
+    </content>
+  </entry>
+  <entry>
+    <id>urn:uuid:e7c7cd10-5e47-3d9c-8684-bd9e7eb401d3</id>
+    <link href="/v1/ReadingType/0" rel="self">
+    </link>
+    <updated>2024-06-21</updated>
+    <published>2011-11-30T12:00:00.000Z</published>
+    <content type="xml">
+      <ReadingType xmlns="http://naesb.org/espi">
+        <currency>840</currency>
+        <powerOfTenMultiplier>-3</powerOfTenMultiplier>
+        <uom>169</uom>
+      </ReadingType>
+    </content>
+  </entry>
+  <entry>
+    <id>urn:uuid:1efd2ba9-8c1a-3937-b7c0-ae55733e9e5e</id>
+    <link href="/v1/User/1234567890/UsagePoint/NET_USAGE/MeterReading/1/IntervalBlock/1" rel="self">
+    </link>
+    <content type="xml">
+      <IntervalBlock xmlns="http://naesb.org/espi">
+        <interval>
+          <duration>92102400</duration>
+          <start>1622005200</start>
+        </interval>
+        <IntervalReading>
+          <cost>5100000</cost>
+          <timePeriod>
+            <duration>3024000</duration>
+            <start>1621987200</start>
+          </timePeriod>
+          <value>37000</value>
+        </IntervalReading>
+        <IntervalReading>
+          <cost>2493000</cost>
+          <timePeriod>
+            <duration>2419200</duration>
+            <start>1625011200</start>
+          </timePeriod>
+          <value>14000</value>
+        </IntervalReading>
+        <IntervalReading>
+          <cost>3281000</cost>
+          <timePeriod>
+            <duration>2592000</duration>
+            <start>1627430400</start>
+          </timePeriod>
+          <value>21000</value>
+        </IntervalReading>
+        <IntervalReading>
+          <cost>4207000</cost>
+          <timePeriod>
+            <duration>2851200</duration>
+            <start>1630022400</start>
+          </timePeriod>
+          <value>27000</value>
+        </IntervalReading>
+        <IntervalReading>
+          <cost>5543000</cost>
+          <timePeriod>
+            <duration>2332800</duration>
+            <start>1632873600</start>
+          </timePeriod>
+          <value>41000</value>
+        </IntervalReading>
+      </IntervalBlock>
+    </content>
+  </entry>
+</feed>
