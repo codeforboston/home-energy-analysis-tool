@@ -13,16 +13,16 @@ home variables used
 1. Remove temporary_rules_engine.py
 2. Rename rules-engine to "python"
 3. Rename NormalizedBillingRecordBase class to BillingInput
-4. Rename BillingPeriod to ProcessedBill and billing_period to processed_bill
-5. Combine get_outputs_normalized and convert_to_intermediate_billing_record and get rid of NormalizedBillingRecord. There is only one place NormalizedBillingRecord is used and combining code
+4. Rename BillingPeriod to IntermediateEnergyBill and processed_energy_bill_input to processed_energy_bill_intermediate
+5. Combine get_outputs_normalized and convert_to_intermediate_processed_energy_bill and get rid of NormalizedBillingRecord. There is only one place NormalizedBillingRecord is used and combining code
 gets rid of the need for the class.
 - Change
 ```
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
-        billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+        processed_energy_bill_inputs.append(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
@@ -31,17 +31,17 @@ gets rid of the need for the class.
         )
 
     return get_outputs_normalized(
-        summary_input, None, temperature_input, billing_periods
+        heat_load_input, None, temperature_input, processed_energy_bill_inputs
     )
 
     def get_outputs_normalized
-      loops through billing_periods and does a bunch of stuff
+      loops through processed_energy_bill_inputs and does a bunch of stuff
   
 ```
 to 
 ```
       inputBill = 
-            NormalizedBillingPeriodRecordBase(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
@@ -55,7 +55,7 @@ to
           inputBill.start_date,
           inputBill.end_date
         )
-      processedBill = ProcessedBill(
+      processedBill = IntermediateEnergyBill(
         input = inputBill,
         avg_temps = avg_temps,
         default_analysis_type = default_analysis_type
@@ -93,12 +93,12 @@ avg_non_heating_usage = _get_avg_non_heating_usage (
 ```
 ==================
 - change 
-`for billing_period in billing_periods ...` =>
+`for processed_energy_bill_input in processed_energy_bill_inputs ...` =>
 to
 ```
-for billing_period in billing_periods
-       { bills_summer, bills_winter, bills_shoulder }
-        =_categorize_bills_by_season (billing_periods)
+for processed_energy_bill_input in processed_energy_bill_inputs
+       { summer_processed_energy_bills, winter_processed_energy_bills, shoulder_processed_energy_bills }
+        =_categorize_bills_by_season (processed_energy_bill_inputs)
 ```
 ==================
 - Change
@@ -116,7 +116,7 @@ to
 ```
 ==================
 - Change
-`self.initialize_ua(billing_period)` => `_set_ua(billing_period,avg_non_heating_usage)`
+`self.initialize_ua(processed_energy_bill_input)` => `_set_ua(processed_energy_bill_input,avg_non_heating_usage)`
 
 - Change?? Parameters are never set
 ```
@@ -158,7 +158,7 @@ self._calculate_balance_point_and_ua(
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
-            bills_winter)
+            winter_processed_energy_bills)
 ```    
 ==================
 
