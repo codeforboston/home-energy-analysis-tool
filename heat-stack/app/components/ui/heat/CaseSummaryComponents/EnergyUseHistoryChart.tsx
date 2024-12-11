@@ -1,5 +1,8 @@
+import { type FormMetadata, getInputProps, type SubmissionResult } from '@conform-to/react'
+import { useActionData } from '@remix-run/react'
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
+import { Button } from '#/app/components/ui/button.tsx'
 import { type UsageDataSchema, type BillingRecordsSchema, BillingRecordSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
@@ -12,16 +15,13 @@ import {
 	TableRow,
 } from '../../../../components/ui/table.tsx'
 
+// import { tr } from '@faker-js/faker'
+import { Input } from '../../input.tsx'
+
 import HeatingUsage from './assets/HeatingUsage.svg'
 import HelpCircle from './assets/help-circle.svg'
 import NonHeatingUsage from './assets/NonHeatingUsage.svg'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
-
-import { tr } from '@faker-js/faker'
-import { FormMetadata, getInputProps, SubmissionResult } from '@conform-to/react'
-import { Button } from '#/app/components/ui/button.tsx'
-import { Input } from '../../input.tsx'
-import { useActionData } from '@remix-run/react'
 
 // type NaturalGasBillRecord = z.infer<typeof NaturalGasBillRecordZod>
 // const naturalGasBillRecord01: NaturalGasBillRecord = {

@@ -597,6 +597,7 @@ export default function Inputs() {
     }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
+    // TODO: log form and fields to see how they differ. We are currently not using `form`
     const [form, fields] = useForm({
         /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
         onValidate({ formData }) {
