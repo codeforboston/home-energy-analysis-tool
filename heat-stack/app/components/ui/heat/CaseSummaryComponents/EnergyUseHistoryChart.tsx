@@ -230,14 +230,16 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 									: '-'}
 							</TableCell>
 							<TableCell>
-									<Checkbox
+								<Input  {...getInputProps(fields.user_overrides[index], { type: "checkbox" })}/>
+
+									{/* <Checkbox
 										checked={period.inclusion_override}
 										disabled={overrideCheckboxDisabled}
 										onClick={(e) => handleOverrideCheckboxChange(index)}
 									/>
 									<Button type='submit' className={ `${ period.inclusion_override ? "bg-blue-100" : "bg-red-100" }` }>
 Submit
-								</Button>
+								</Button> */}
 							</TableCell>
 						</TableRow>
 					)

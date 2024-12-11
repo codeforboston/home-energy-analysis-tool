@@ -1,10 +1,10 @@
+import { type FormMetadata } from '@conform-to/react';
 import { Upload } from 'lucide-react'
 
 import { Button } from '#/app/components/ui/button.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
-import { FormMetadata } from '@conform-to/react';
 
 // import { FieldMetadata, useForm } from '@conform-to/react'
 // import { Form, useLocation } from '@remix-run/react'

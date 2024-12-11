@@ -29,6 +29,11 @@ export const TableSchema = z.object({
 	usage_data_with_user_adjustments: z.string().optional(),
 });
 
+const OneUserOverrideSchema = z.boolean().optional();
+export const UserOverridesSchema = z.object({
+	user_overrides: z.array(OneUserOverrideSchema).optional(),
+})
+
 export const LocationSchema = z.object({
 	address: z.string(),
 });
