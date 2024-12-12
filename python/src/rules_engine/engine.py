@@ -576,7 +576,7 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self._refine_balance_point(next_balance_point_sensitivity)
+            self._refine_balance_point(next_balance_point_sensitivity) 
 
     def _refine_balance_point(self, balance_point_sensitivity: float) -> None:
         """
@@ -723,6 +723,15 @@ class IntermediateEnergyBill:
     """
     An internal class storing data whence heating usage per billing
     period is calculated.
+self.avg_non_heating_usage = Home.
+            self.fuel_type, self.avg_summer_usage, self.dhw_input, 
+            self.heat_system_efficiency
+    @staticmethod
+            fuel_type, 
+            avg_summer_usage, 
+            dhw_input,
+            heat_system_efficiency
+        floaterae-return self.return return 
     """
 
     input: ProcessedEnergyBillInput
