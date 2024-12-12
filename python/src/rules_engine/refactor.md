@@ -79,7 +79,7 @@ home=Home.calculate(args)
     - Change
     `_calculate_avg_summer_usage()` => `avg_summer_usage = _get_avg_summer_usage(summer_bills)`
     - Change
- `_calculate_avg_non_heating_usage ()` =>
+ `_avg_non_heating_usage ()` =>
 to 
 ```
 avg_non_heating_usage = _get_avg_non_heating_usage (      
@@ -139,7 +139,7 @@ def calculate (
 ```
 ==================
 - calculate method
-`self._calculate_avg_non_heating_usage` - duplicated.  Remove one of the calls
+`self._avg_non_heating_usage` - duplicated.  Remove one of the calls
 ==================
 
 - Change
