@@ -3,7 +3,7 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { json, type ActionFunctionArgs, unstable_parseMultipartFormData } from '@remix-run/node'
 import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
@@ -84,10 +84,31 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     console.log('action started')
 
+    const dummyUploadHandler =   createMemoryUploadHandler({
+        maxPartSize: 1024 * 1024 * 5, // 5 MB
+    })
     const uploadHandler = createMemoryUploadHandler({
         maxPartSize: 1024 * 1024 * 5, // 5 MB
     })
-    const formData = await parseMultipartFormData(request, uploadHandler)
+    // const formData = await parseMultipartFormData(request, uploadHandler)
+    const rawFormData = await unstable_parseMultipartFormData(request, async (): Promise<undefined> => { undefined } );
+
+    // Inspect or manipulate rawFormData fields
+    const fields2 = Object.fromEntries(rawFormData.entries());
+    console.log("Fields without file handling:", fields2);
+
+
+
+    const formData = await unstable_parseMultipartFormData(request, uploadHandler);
+
+    // Inspect or process the complete form data, including files
+    const allData = Object.fromEntries(formData.entries())
+    console.log("all data", allData);
+
+
+
+
+    console.log("form data", formData)
 
     const file = formData.get('energy_use_upload') as File // fix as File?
 
@@ -601,6 +622,7 @@ export default function Inputs() {
     const [form, fields] = useForm({
         /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
         onValidate({ formData }) {
+            console.log(formData)
             return parseWithZod(formData, { schema: Schema })
         },
         defaultValue: {
@@ -639,6 +661,7 @@ export default function Inputs() {
                 <EnergyUseHistory usage_data={ usage_data } conform_form={form} fields={fields} />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
+                <div><pre>{ JSON.stringify(JSON.parse(form.value?.usage_data_with_user_adjustments||'{}'), null, 2)}</pre></div>
             </Form>
             {show_usage_data && <HeatLoadAnalysis /> }
         </>

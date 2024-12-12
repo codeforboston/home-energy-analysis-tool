@@ -231,6 +231,7 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 							</TableCell>
 							<TableCell>
 									<Checkbox
+										name={`periods[${index}][inclusion_override]`}
 										checked={period.inclusion_override}
 										disabled={overrideCheckboxDisabled}
 										onClick={(e) => handleOverrideCheckboxChange(index)}
