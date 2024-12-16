@@ -59,9 +59,9 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
 	useEffect(() => {
-		if (usage_data?.billing_records) {
+		if (usage_data?.processed_energy_bills) {
 			// Process the billing records directly without converting from Map
-			setBillingRecords(usage_data.billing_records)
+			setBillingRecords(usage_data.processed_energy_bills)
 		}
 	}, [usage_data])
 

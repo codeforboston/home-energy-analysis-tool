@@ -16,19 +16,19 @@ from rules_engine.pydantic_models import (
     Constants,
     DhwInput,
     FuelType,
+    HeatLoadInput,
+    HeatLoadOutput,
     NaturalGasBillingInput,
-    NormalizedBillingPeriodRecord,
-    NormalizedBillingPeriodRecordBase,
     OilPropaneBillingInput,
+    ProcessedEnergyBill,
+    ProcessedEnergyBillInput,
     RulesEngineResult,
-    SummaryInput,
-    SummaryOutput,
     TemperatureInput,
 )
 
 
 def get_outputs_oil_propane(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
     oil_propane_billing_input: OilPropaneBillingInput,
@@ -36,13 +36,13 @@ def get_outputs_oil_propane(
     """
     Analyze the heat load for a home that is using oil or propane as its current heating system fuel.
     """
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
     last_date = oil_propane_billing_input.preceding_delivery_date
     for input_val in oil_propane_billing_input.records:
         start_date = last_date + timedelta(days=1)
-        billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+        processed_energy_bill_inputs.append(
+            ProcessedEnergyBillInput(
                 period_start_date=start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.gallons,
@@ -52,23 +52,23 @@ def get_outputs_oil_propane(
         last_date = input_val.period_end_date
 
     return get_outputs_normalized(
-        summary_input, dhw_input, temperature_input, billing_periods
+        heat_load_input, dhw_input, temperature_input, processed_energy_bill_inputs
     )
 
 
 def get_outputs_natural_gas(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
     """
     Analyze the heat load for a home that is using natural gas as its current heating system fuel.
     """
-    billing_periods: list[NormalizedBillingPeriodRecordBase] = []
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
     for input_val in natural_gas_billing_input.records:
-        billing_periods.append(
-            NormalizedBillingPeriodRecordBase(
+        processed_energy_bill_inputs.append(
+            ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
                 period_end_date=input_val.period_end_date,
                 usage=input_val.usage_therms,
@@ -77,58 +77,62 @@ def get_outputs_natural_gas(
         )
 
     return get_outputs_normalized(
-        summary_input, None, temperature_input, billing_periods
+        heat_load_input,
+        None,
+        temperature_input,
+        processed_energy_bill_inputs,
     )
 
 
 def get_outputs_normalized(
-    summary_input: SummaryInput,
+    heat_load_input: HeatLoadInput,
     dhw_input: Optional[DhwInput],
     temperature_input: TemperatureInput,
-    billing_periods: list[NormalizedBillingPeriodRecordBase],
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
 ) -> RulesEngineResult:
     """
     Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
     """
     initial_balance_point = 60
-    intermediate_billing_periods = convert_to_intermediate_billing_periods(
-        temperature_input=temperature_input,
-        billing_periods=billing_periods,
-        fuel_type=summary_input.fuel_type,
+    intermediate_processed_energy_bills = (
+        convert_to_intermediate_processed_energy_bills(
+            temperature_input=temperature_input,
+            processed_energy_bill_inputs=processed_energy_bill_inputs,
+            fuel_type=heat_load_input.fuel_type,
+        )
     )
 
-    home = Home(
-        summary_input=summary_input,
-        billing_periods=intermediate_billing_periods,
+    home = Home.calculate(
+        heat_load_input=heat_load_input,
+        intermediate_energy_bills=intermediate_processed_energy_bills,
         dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
     )
-    home.calculate()
 
     average_indoor_temperature = get_average_indoor_temperature(
-        thermostat_set_point=summary_input.thermostat_set_point,
-        setback_temperature=summary_input.setback_temperature,
-        setback_hours_per_day=summary_input.setback_hours_per_day,
+        thermostat_set_point=heat_load_input.thermostat_set_point,
+        setback_temperature=heat_load_input.setback_temperature,
+        setback_hours_per_day=heat_load_input.setback_hours_per_day,
     )
     average_heat_load = get_average_heat_load(
         design_set_point=Constants.DESIGN_SET_POINT,
         avg_indoor_temp=average_indoor_temperature,
         balance_point=home.balance_point,
-        design_temp=summary_input.design_temperature,
+        design_temp=heat_load_input.design_temperature,
         ua=home.avg_ua,
     )
     maximum_heat_load = get_maximum_heat_load(
         design_set_point=Constants.DESIGN_SET_POINT,
-        design_temp=summary_input.design_temperature,
+        design_temp=heat_load_input.design_temperature,
         ua=home.avg_ua,
     )
 
-    summary_output = SummaryOutput(
+    heat_load_output = HeatLoadOutput(
         estimated_balance_point=home.balance_point,
         other_fuel_usage=home.avg_non_heating_usage,
         average_indoor_temperature=average_indoor_temperature,
         difference_between_ti_and_tbp=average_indoor_temperature - home.balance_point,
-        design_temperature=summary_input.design_temperature,
+        design_temperature=heat_load_input.design_temperature,
         whole_home_heat_loss_rate=home.avg_ua,
         standard_deviation_of_heat_loss_rate=home.stdev_pct,
         average_heat_load=average_heat_load,
@@ -137,33 +141,33 @@ def get_outputs_normalized(
 
     balance_point_graph = home.balance_point_graph
 
-    billing_records = []
-    for billing_period in intermediate_billing_periods:
-        billing_record = NormalizedBillingPeriodRecord(
-            period_start_date=billing_period.input.period_start_date,
-            period_end_date=billing_period.input.period_end_date,
-            usage=billing_period.input.usage,
-            inclusion_override=billing_period.input.inclusion_override,
-            analysis_type=billing_period.analysis_type,
-            default_inclusion=billing_period.default_inclusion,
-            eliminated_as_outlier=billing_period.eliminated_as_outlier,
-            whole_home_heat_loss_rate=billing_period.ua,
+    processed_energy_bills = []
+    for intermediate_energy_bill in intermediate_processed_energy_bills:
+        processed_energy_bill = ProcessedEnergyBill(
+            period_start_date=intermediate_energy_bill.input.period_start_date,
+            period_end_date=intermediate_energy_bill.input.period_end_date,
+            usage=intermediate_energy_bill.input.usage,
+            inclusion_override=intermediate_energy_bill.input.inclusion_override,
+            analysis_type=intermediate_energy_bill.analysis_type,
+            default_inclusion=intermediate_energy_bill.default_inclusion,
+            eliminated_as_outlier=intermediate_energy_bill.eliminated_as_outlier,
+            whole_home_heat_loss_rate=intermediate_energy_bill.ua,
         )
-        billing_records.append(billing_record)
+        processed_energy_bills.append(processed_energy_bill)
 
     result = RulesEngineResult(
-        summary_output=summary_output,
+        heat_load_output=heat_load_output,
         balance_point_graph=balance_point_graph,
-        billing_records=billing_records,
+        processed_energy_bills=processed_energy_bills,
     )
     return result
 
 
-def convert_to_intermediate_billing_periods(
+def convert_to_intermediate_processed_energy_bills(
     temperature_input: TemperatureInput,
-    billing_periods: list[NormalizedBillingPeriodRecordBase],
+    processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
     fuel_type: FuelType,
-) -> list[ProcessedBill]:
+) -> list[IntermediateEnergyBill]:
     """
     Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
 
@@ -171,41 +175,44 @@ def convert_to_intermediate_billing_periods(
     """
     # Build a list of lists of temperatures, where each list of temperatures contains all the temperatures
     # in the corresponding billing period
-    intermediate_billing_periods = []
+    intermediate_processed_energy_bill_inputs = []
     default_inclusion = False
 
-    for billing_period in billing_periods:
+    for processed_energy_bill_input in processed_energy_bill_inputs:
         # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
         start_idx = bisect.bisect_left(
-            temperature_input.dates, billing_period.period_start_date
+            temperature_input.dates, processed_energy_bill_input.period_start_date
         )
         end_idx = (
-            bisect.bisect_left(temperature_input.dates, billing_period.period_end_date)
+            bisect.bisect_left(
+                temperature_input.dates, processed_energy_bill_input.period_end_date
+            )
             + 1
         )
 
         if fuel_type == FuelType.GAS:
             analysis_type, default_inclusion = _date_to_analysis_type_natural_gas(
-                billing_period.period_end_date
+                processed_energy_bill_input.period_end_date
             )
         elif fuel_type == FuelType.OIL or fuel_type == FuelType.PROPANE:
             analysis_type, default_inclusion = _date_to_analysis_type_oil_propane(
-                billing_period.period_start_date, billing_period.period_end_date
+                processed_energy_bill_input.period_start_date,
+                processed_energy_bill_input.period_end_date,
             )
         else:
             raise ValueError("Unsupported fuel type.")
 
-        intermediate_billing_period = ProcessedBill(
-            input=billing_period,
+        intermediate_energy_bill = IntermediateEnergyBill(
+            input=processed_energy_bill_input,
             avg_temps=temperature_input.temperatures[start_idx:end_idx],
-            usage=billing_period.usage,
+            usage=processed_energy_bill_input.usage,
             analysis_type=analysis_type,
             default_inclusion=default_inclusion,
-            inclusion_override=billing_period.inclusion_override,
+            inclusion_override=processed_energy_bill_input.inclusion_override,
         )
-        intermediate_billing_periods.append(intermediate_billing_period)
+        intermediate_processed_energy_bill_inputs.append(intermediate_energy_bill)
 
-    return intermediate_billing_periods
+    return intermediate_processed_energy_bill_inputs
 
 
 def _date_to_analysis_type_oil_propane(
@@ -304,11 +311,11 @@ def get_average_indoor_temperature(
     Calculates the average indoor temperature.
 
     Args:
-        thermostat_set_point: the temp in F at which the home is normally set
-        setback_temperature: temp in F at which the home is set during off
-        hours
-        setback_hours_per_day: average # of hours per day the home is at
-        setback temp
+        thermostat_set_point: the temp in F at which the home is 
+        normally set setback_temperature: temp in F at which the home 
+        is set during off hours
+        setback_hours_per_day: average # of hours per day the home is 
+        at setback temp
     """
     if setback_temperature is None:
         setback_temperature = thermostat_set_point
@@ -391,56 +398,75 @@ def calculate_dhw_usage(dhw_input: DhwInput, heating_system_efficiency: float) -
 
 class Home:
     """
-    Defines attributes and methods for calculating home heat metrics.
+    Defines attributes and methods for calculating home heat metrics
 
-    The information associated with the energy usage of a single home owner
-    is used to instantiate this class.  Using that information and the type
-    of fuel used, calculates the UA for different billing periods and the
-    standard deviation of the UA values across them.
+    The information associated with the energy usage of a single home 
+    owner is used to instantiate this class.  Using that information 
+    and the type of fuel used, calculates the UA for different billing 
+    periods and the standard deviation of the UA values across them
     """
+    # TODO: re-evaluate below
+    avg_non_heating_usage = 0.0
 
-    def __init__(
+    def _init(
         self,
-        summary_input: SummaryInput,
-        billing_periods: list[ProcessedBill],
+        heat_load_input: HeatLoadInput,
+        intermediate_energy_bills: list[IntermediateEnergyBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-    ):
-        self.fuel_type = summary_input.fuel_type
-        self.heat_sys_efficiency = summary_input.heating_system_efficiency
-        self.thermostat_set_point = summary_input.thermostat_set_point
+    ) -> None:
+        self.fuel_type = heat_load_input.fuel_type
+        self.heat_system_efficiency = heat_load_input.heating_system_efficiency
+        self.thermostat_set_point = heat_load_input.thermostat_set_point
         self.balance_point = initial_balance_point
         self.dhw_input = dhw_input
-        self._initialize_billing_periods(billing_periods)
+        self._initialize_processed_energy_bill_inputs(intermediate_energy_bills)
 
-    def _initialize_billing_periods(self, billing_periods: list[ProcessedBill]) -> None:
-        self.bills_winter = []
-        self.bills_summer = []
-        self.bills_shoulder = []
+    def _initialize_processed_energy_bill_inputs(
+        self, intermediate_energy_bills: list[IntermediateEnergyBill]
+    ) -> None:
+        self.winter_processed_energy_bills = []
+        self.summer_processed_energy_bills = []
+        self.shoulder_processed_energy_bills = []
 
-        # winter months 1 (ALLOWED_HEATING_USAGE); summer months -1 (ALLOWED_NON_HEATING_USAGE); shoulder months 0 (NOT_ALLOWED...)
-        for billing_period in billing_periods:
-            billing_period.set_initial_balance_point(self.balance_point)
+        # winter months 1 (ALLOWED_HEATING_USAGE)
+        # summer months -1 (ALLOWED_NON_HEATING_USAGE)
+        # shoulder months 0 (NOT_ALLOWED...)
+        for processed_energy_bill in intermediate_energy_bills:
+            processed_energy_bill.set_initial_balance_point(self.balance_point)
 
             """
-            The UI depicts billing period usage as several distinctive icons on the left hand column of the screen; "analysis_type"
-            For winter "cusp" months, for example April and November in MA, the UI will show those rows grayed out; "default_inclusion"
-            The user has the ability to "include" those cusp months in calculations by checking a box on far right; "inclusion_override"
-            The user may also choose to "exclude" any other "allowed" month by checking a box on the far right; "inclusion_override"
-            The following code implements this algorithm and adds bills accordingly to winter, summer, or shoulder (i.e. excluded) lists
+            The UI depicts billing period usage as several distinctive 
+            icons on the left hand column of the screen; "analysis_type"
+
+            For winter "cusp" months, for example April and November 
+            in MA, the UI will show those rows grayed out:
+            "default_inclusion"
+
+            The user has the ability to "include" those cusp months in 
+            calculations by checking a box on far right:
+            "inclusion_override"
+
+            The user may also choose to "exclude" any other "allowed" 
+            month by checking a box on the far right:
+            "inclusion_override"
+
+            The following code implements this algorithm and adds bills 
+            accordingly to winter, summer, or shoulder (i.e. excluded) 
+            lists
             """
 
-            _analysis_type = billing_period.analysis_type
-            _default_inclusion = billing_period.default_inclusion
+            _analysis_type = processed_energy_bill.analysis_type
+            _default_inclusion = processed_energy_bill.default_inclusion
 
             # Only bills deemed ALLOWED by the AnalysisType algorithm can be included/excluded by the user
             # if (
             #     _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE
             #     or _analysis_type == AnalysisType.ALLOWED_NON_HEATING_USAGE
             # ):
-            #     if billing_period.inclusion_override:
+            #     if processed_energy_bill_input.inclusion_override:
             #         # The user has requested we override an inclusion algorithm decision
-            #         if billing_period.winter_cusp_month == True:
+            #         if processed_energy_bill_input.winter_cusp_month == True:
             #             # This bill is on the cusp of winter; the user has requested we include it
             #             _analysis_type = AnalysisType.ALLOWED_HEATING_USAGE
             #         else:
@@ -448,57 +474,70 @@ class Home:
             #             _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
             #     else:
             #         # The user has chosen to not override our automatic calculations, even for a winter cusp month
-            #         if billing_period.winter_cusp_month == True:
+            #         if processed_energy_bill_input.winter_cusp_month == True:
             #             _analysis_type = AnalysisType.NOT_ALLOWED_IN_CALCULATIONS
 
             # Assign the bill to the appropriate list for winter or summer calculations
 
-            if billing_period.inclusion_override:
+            if processed_energy_bill.inclusion_override:
                 _default_inclusion = not _default_inclusion
 
             if (
                 _analysis_type == AnalysisType.ALLOWED_HEATING_USAGE
                 and _default_inclusion
             ):
-                self.bills_winter.append(billing_period)
+                self.winter_processed_energy_bills.append(processed_energy_bill)
             elif (
                 _analysis_type == AnalysisType.ALLOWED_NON_HEATING_USAGE
                 and _default_inclusion
             ):
-                self.bills_summer.append(billing_period)
+                self.summer_processed_energy_bills.append(processed_energy_bill)
             else:  # the rest are excluded from calculations
-                self.bills_shoulder.append(billing_period)
+                self.shoulder_processed_energy_bills.append(processed_energy_bill)
 
         self._calculate_avg_summer_usage()
-        self._calculate_avg_non_heating_usage()
-        for billing_period in self.bills_winter:
-            self.initialize_ua(billing_period)
+        self.avg_non_heating_usage = Home._avg_non_heating_usage(
+            self.fuel_type,
+            self.avg_summer_usage,
+            self.dhw_input,
+            self.heat_system_efficiency,
+        )
+        for processed_energy_bill in self.winter_processed_energy_bills:
+            self.initialize_ua(
+                processed_energy_bill,
+                fuel_type=self.fuel_type,
+                heat_system_efficiency=self.heat_system_efficiency,
+                avg_non_heating_usage=self.avg_non_heating_usage,
+            )
 
     def _calculate_avg_summer_usage(self) -> None:
         """
-        Calculate average daily summer usage
+        Calculates average daily summer usage
         """
-        summer_usage_total = sum([bp.usage for bp in self.bills_summer])
-        summer_days = sum([bp.days for bp in self.bills_summer])
+        summer_usage_total = sum(
+            [bp.usage for bp in self.summer_processed_energy_bills]
+        )
+        summer_days = sum([bp.days for bp in self.summer_processed_energy_bills])
         if summer_days != 0:
             self.avg_summer_usage = summer_usage_total / summer_days
         else:
             self.avg_summer_usage = 0
 
-    def _calculate_avg_non_heating_usage(self) -> None:
-        """
-        Calculate avg non heating usage for this home
-        """
-
-        if self.fuel_type == FuelType.GAS:
-            self.avg_non_heating_usage = self.avg_summer_usage
-        elif self.dhw_input is not None and self.fuel_type == FuelType.OIL:
+    @staticmethod
+    def _avg_non_heating_usage(
+        fuel_type: FuelType,
+        avg_summer_usage: float,
+        dhw_input: Optional[DhwInput],
+        heat_system_efficiency: float,
+    ) -> float:
+        """Calculates avg non heating usage for this home"""
+        if fuel_type == FuelType.GAS:
+            return avg_summer_usage
+        elif dhw_input is not None and fuel_type == FuelType.OIL:
             # TODO: support non-heating usage for Propane in addition to fuel oil
-            self.avg_non_heating_usage = calculate_dhw_usage(
-                self.dhw_input, self.heat_sys_efficiency
-            )
+            return calculate_dhw_usage(dhw_input, heat_system_efficiency)
         else:
-            self.avg_non_heating_usage = 0
+            return 0.0
 
     def _calculate_balance_point_and_ua(
         self,
@@ -515,7 +554,10 @@ class Home:
 
         self.balance_point_graph = BalancePointGraph(records=[])
 
-        self.uas = [billing_period.ua for billing_period in self.bills_winter]
+        self.uas = [
+            processed_energy_bill.ua
+            for processed_energy_bill in self.winter_processed_energy_bills
+        ]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
@@ -532,14 +574,20 @@ class Home:
         self._refine_balance_point(initial_balance_point_sensitivity)
 
         while self.stdev_pct > stdev_pct_max:
-            outliers = [abs(bill.ua - self.avg_ua) for bill in self.bills_winter]
+            outliers = [
+                abs(bill.ua - self.avg_ua)
+                for bill in self.winter_processed_energy_bills
+            ]
             biggest_outlier = max(outliers)
             biggest_outlier_idx = outliers.index(biggest_outlier)
-            outlier = self.bills_winter.pop(
+            outlier = self.winter_processed_energy_bills.pop(
                 biggest_outlier_idx
             )  # removes the biggest outlier
             outlier.eliminated_as_outlier = True
-            uas_i = [billing_period.ua for billing_period in self.bills_winter]
+            uas_i = [
+                processed_energy_bill.ua
+                for processed_energy_bill in self.winter_processed_energy_bills
+            ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
             if (
@@ -548,7 +596,7 @@ class Home:
                 < max_stdev_pct_diff
             ):  # if it's a small enough change
                 # add the outlier back in
-                self.bills_winter.append(
+                self.winter_processed_energy_bills.append(
                     outlier
                 )  # then it's not worth removing it, and we exit
                 outlier.eliminated_as_outlier = False
@@ -575,11 +623,12 @@ class Home:
                 break  # may want to raise some kind of warning as well
 
             period_hdds_i = [
-                period_hdd(bill.avg_temps, bp_i) for bill in self.bills_winter
+                period_hdd(bill.avg_temps, bp_i)
+                for bill in self.winter_processed_energy_bills
             ]
             uas_i = [
                 bill.partial_ua / period_hdds_i[n]
-                for n, bill in enumerate(self.bills_winter)
+                for n, bill in enumerate(self.winter_processed_energy_bills)
             ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
@@ -614,66 +663,110 @@ class Home:
                 )
                 self.balance_point_graph.records.append(balance_point_graph_row)
 
-                for n, bill in enumerate(self.bills_winter):
+                for n, bill in enumerate(self.winter_processed_energy_bills):
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
+    @classmethod
     def calculate(
-        self,
+        cls,
+        heat_load_input: HeatLoadInput,
+        intermediate_energy_bills: list[IntermediateEnergyBill],
+        dhw_input: Optional[DhwInput],
+        initial_balance_point: float = 60,
         initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
-    ) -> None:
+    ) -> "Home":
         """
         For this Home, calculates avg non heating usage and then the estimated balance point
         and UA coefficient for the home, removing UA outliers based on a normalized standard
         deviation threshold.
         """
-        self._calculate_avg_non_heating_usage()
-        self._calculate_balance_point_and_ua(
+        home_instance = object.__new__(cls)
+        home_instance._init(
+            heat_load_input=heat_load_input,
+            intermediate_energy_bills=intermediate_energy_bills,
+            dhw_input=dhw_input,
+            initial_balance_point=initial_balance_point,
+        )
+        home_instance.avg_non_heating_usage = Home._avg_non_heating_usage(
+            home_instance.fuel_type,
+            home_instance.avg_summer_usage,
+            home_instance.dhw_input,
+            home_instance.heat_system_efficiency,
+        )
+
+        home_instance._calculate_balance_point_and_ua(
             initial_balance_point_sensitivity,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
         )
 
-    def initialize_ua(self, billing_period: ProcessedBill) -> None:
+        return home_instance
+
+    @staticmethod
+    def initialize_ua(
+        intermediate_energy_bill: IntermediateEnergyBill,
+        fuel_type: FuelType,
+        heat_system_efficiency: float,
+        avg_non_heating_usage: float,
+    ) -> None:
         """
         Average heating usage, partial UA, initial UA. requires that
         self.home have non heating usage calculated.
         """
-        billing_period.avg_heating_usage = (
-            billing_period.usage / billing_period.days
-        ) - self.avg_non_heating_usage
-        billing_period.partial_ua = self.calculate_partial_ua(billing_period)
-        billing_period.ua = billing_period.partial_ua / billing_period.total_hdd
+        intermediate_energy_bill.avg_heating_usage = (
+            intermediate_energy_bill.usage / intermediate_energy_bill.days
+        ) - avg_non_heating_usage
+        intermediate_energy_bill.partial_ua = Home.calculate_partial_ua(
+            intermediate_energy_bill, fuel_type, heat_system_efficiency
+        )
+        intermediate_energy_bill.ua = (
+            intermediate_energy_bill.partial_ua / intermediate_energy_bill.total_hdd
+        )
 
-    def calculate_partial_ua(self, billing_period: ProcessedBill) -> float:
+    @staticmethod
+    def calculate_partial_ua(
+        intermediate_energy_bill: IntermediateEnergyBill,
+        fuel_type: FuelType,
+        heat_system_efficiency: float,
+    ) -> float:
         """
         The portion of UA that is not dependent on the balance point
         """
         return (
-            billing_period.days
-            * billing_period.avg_heating_usage  # gallons or therms
-            * self.fuel_type.value  # therm or gallon to BTU
-            * self.heat_sys_efficiency  # unitless
+            intermediate_energy_bill.days
+            * intermediate_energy_bill.avg_heating_usage  # gallons or therms
+            * fuel_type.value  # therm or gallon to BTU
+            * heat_system_efficiency  # unitless
             / 24
             # days * gallons/day * (BTU/gallon)/1 day (24 hours)
             # BTUs/hour
         )
 
 
-class ProcessedBill:
+class IntermediateEnergyBill:
     """
-    An internal class storing data whence heating usage per billing
-    period is calculated.
+        An internal class storing data whence heating usage per billing
+        period is calculated.
+    self.avg_non_heating_usage = Home.
+                self.fuel_type, self.avg_summer_usage, self.dhw_input,
+                self.heat_system_efficiency
+        @staticmethod
+                fuel_type: FuelType,
+                avg_summer_usage: float,
+                dhw_input: DhwInput,
+                heat_system_efficiency: float
+            floaterae-return self.return return
     """
 
-    input: NormalizedBillingPeriodRecordBase
+    input: ProcessedEnergyBillInput
     avg_heating_usage: float
     balance_point: float
     partial_ua: float
@@ -683,7 +776,7 @@ class ProcessedBill:
 
     def __init__(
         self,
-        input: NormalizedBillingPeriodRecordBase,
+        input: ProcessedEnergyBillInput,
         avg_temps: list[float],
         usage: float,
         analysis_type: AnalysisType,

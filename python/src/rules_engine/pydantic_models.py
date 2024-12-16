@@ -56,7 +56,7 @@ def validate_fuel_type(value: Any) -> FuelType:
         )
 
 
-class SummaryInput(BaseModel):
+class HeatLoadInput(BaseModel):
     """From Summary Tab"""
 
     # design_temperature_override: float
@@ -141,7 +141,7 @@ class NaturalGasBillingInput(BaseModel):
         return max_date
 
 
-class NormalizedBillingPeriodRecordBase(BaseModel):
+class ProcessedEnergyBillInput(BaseModel):
     """
     Base class for a normalized billing period record.
 
@@ -156,7 +156,7 @@ class NormalizedBillingPeriodRecordBase(BaseModel):
     inclusion_override: bool = Field(frozen=True)
 
 
-class NormalizedBillingPeriodRecord(NormalizedBillingPeriodRecordBase):
+class ProcessedEnergyBill(ProcessedEnergyBillInput):
     """
     Derived class for holding a normalized billing period record.
 
@@ -180,7 +180,7 @@ class TemperatureInput(BaseModel):
     temperatures: list[float]
 
 
-class SummaryOutput(BaseModel):
+class HeatLoadOutput(BaseModel):
     """From Summary tab"""
 
     estimated_balance_point: float = Field(
@@ -221,9 +221,9 @@ class BalancePointGraph(BaseModel):
 
 
 class RulesEngineResult(BaseModel):
-    summary_output: SummaryOutput
+    heat_load_output: HeatLoadOutput
     balance_point_graph: BalancePointGraph
-    billing_records: list[NormalizedBillingPeriodRecord]
+    processed_energy_bills: list[ProcessedEnergyBill]
 
 
 @dataclass
