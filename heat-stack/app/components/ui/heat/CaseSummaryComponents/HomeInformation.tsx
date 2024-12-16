@@ -46,6 +46,7 @@ import { ErrorList } from "./ErrorList.tsx"
 type HomeInformationProps = {fields: any};
 
 export function HomeInformation(props: HomeInformationProps) {
+	console.log("props.fields.address", props.fields.address)
 
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -79,7 +80,8 @@ export function HomeInformation(props: HomeInformationProps) {
 					<div className="mt-4 flex space-x-4">
 						<div>
 							<Label htmlFor="address">Address</Label>
-							<Input {...getInputProps(props.fields.address, { type: "text" })} />
+						<Input {...getInputProps(props.fields.address, { type: "text" })} />
+						 <div>{JSON.stringify({ ...getInputProps( props.fields.address, { type: "text" }) }) } </div>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.address.errorId}

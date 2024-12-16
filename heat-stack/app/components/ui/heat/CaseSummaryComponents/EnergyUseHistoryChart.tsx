@@ -230,7 +230,8 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 									: '-'}
 							</TableCell>
 							<TableCell>
-								<Input  {...getInputProps(fields.user_overrides[index], { type: "checkbox" })}/>
+								<div>{ JSON.stringify({ ...getInputProps(fields.user_overrides[index], { type: "text" }) })} </div>
+								{/* <Input  {...getInputProps(fields.user_overrides[index], { type: "text" })}/> */}
 
 									{/* <Checkbox
 										checked={period.inclusion_override}
