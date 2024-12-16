@@ -70,6 +70,15 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 		}
 	}, [usage_data])
 
+	const handleOverrideChange = (index, checked) => {
+		setOverrides((prev) => ({
+			...prev,
+			[`user_override_${index}`]: checked, // Update the state for the specific override
+		}));
+
+		console.log(`user_override_${index} is now ${checked}`);
+	};
+
 	const handleOverrideCheckboxChange = (new_index: number) => {
 		setBillingRecords((prevRecords) => {
 			const newRecords = structuredClone(prevRecords)
@@ -145,7 +154,6 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 		})
 	}
 
-	let usage_data_with_user_adjustments = "none"
 
 
 	return (
@@ -216,7 +224,6 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 
 					return (
 						<TableRow key={index} variant={variant}>
-							<TableCell className="font-medium">{index + 1}</TableCell>
 							<TableCell className='justify-items-center'>
 								<img src={analysisType_Image} alt="Analysis Type" />
 							</TableCell>
@@ -230,18 +237,13 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 									: '-'}
 							</TableCell>
 							<TableCell>
-								<div>{ JSON.stringify({ ...getInputProps(fields.user_overrides[index], { type: "text" }) })} </div>
-								{/* <Input  {...getInputProps(fields.user_overrides[index], { type: "text" })}/> */}
-
-									{/* <Checkbox
-										checked={period.inclusion_override}
-										disabled={overrideCheckboxDisabled}
-										onClick={(e) => handleOverrideCheckboxChange(index)}
-									/>
-									<Button type='submit' className={ `${ period.inclusion_override ? "bg-blue-100" : "bg-red-100" }` }>
-Submit
-								</Button> */}
-							</TableCell>
+								<Input
+									{...getInputProps(fields[`user_override_${index}`], {
+										type: "checkbox",
+										value: period.default_inclusion, // Pass the value
+									})}
+								/>
+							</TableCell>q
 						</TableRow>
 					)
 				})}

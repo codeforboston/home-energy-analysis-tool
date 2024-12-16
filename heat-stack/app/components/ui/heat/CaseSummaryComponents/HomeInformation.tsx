@@ -81,7 +81,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						<div>
 							<Label htmlFor="address">Address</Label>
 						<Input {...getInputProps(props.fields.address, { type: "text" })} />
-						 <div>{JSON.stringify({ ...getInputProps( props.fields.address, { type: "text" }) }) } </div>
+						 {/* <div>{JSON.stringify({ ...getInputProps( props.fields.address, { type: "text" }) }) } </div> */}
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.address.errorId}
