@@ -14,6 +14,7 @@ from rules_engine.pydantic_models import (
     TemperatureInput,
 )
 
+
 # TODO: Need to be reviewed
 class Summary(HeatLoadInput, HeatLoadOutput):
     """
