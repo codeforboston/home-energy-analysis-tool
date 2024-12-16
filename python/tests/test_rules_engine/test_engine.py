@@ -26,9 +26,7 @@ _dummy_processed_energy_bill_input = ProcessedEnergyBillInput(
 
 
 @pytest.fixture()
-def sample_intermediate_energy_bill_inputs() -> (
-    list[engine.IntermediateEnergyBill]
-):
+def sample_intermediate_energy_bill_inputs() -> list[engine.IntermediateEnergyBill]:
     intermediate_energy_bill_inputs = [
         engine.IntermediateEnergyBill(
             _dummy_processed_energy_bill_input,
@@ -316,7 +314,9 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates(sample_heat_load_inputs, sample_intermediate_energy_bill_inputs):
+def test_bp_ua_estimates(
+    sample_heat_load_inputs, sample_intermediate_energy_bill_inputs
+):
     home = engine.Home.calculate(
         sample_heat_load_inputs,
         sample_intermediate_energy_bill_inputs,
