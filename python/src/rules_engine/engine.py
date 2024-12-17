@@ -34,7 +34,8 @@ def get_outputs_oil_propane(
     oil_propane_billing_input: OilPropaneBillingInput,
 ) -> RulesEngineResult:
     """
-    Analyze the heat load for a home that is using oil or propane as its current heating system fuel.
+    Analyze the heat load for a home that is using oil or propane as 
+    its current heating system fuel.
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
@@ -62,7 +63,8 @@ def get_outputs_natural_gas(
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
     """
-    Analyze the heat load for a home that is using natural gas as its current heating system fuel.
+    Analyze the heat load for a home that is using natural gas as its 
+    current heating system fuel.
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
@@ -91,7 +93,8 @@ def get_outputs_normalized(
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
 ) -> RulesEngineResult:
     """
-    Analyze the heat load for a home based on normalized, fuel-type-agnostic billing records.
+    Analyze the heat load for a home based on normalized, 
+    fuel-type-agnostic billing records.
     """
     initial_balance_point = 60
     intermediate_processed_energy_bills = (
@@ -169,7 +172,8 @@ def convert_to_intermediate_processed_energy_bills(
     fuel_type: FuelType,
 ) -> list[IntermediateEnergyBill]:
     """
-    Converts temperature data and billing period inputs into internal classes used for heat loss calculations.
+    Converts temperature data and billing period inputs into internal 
+    classes used for heat loss calculations.
 
     TODO: Extract this method to another class or make it private
     """
@@ -219,7 +223,8 @@ def _date_to_analysis_type_oil_propane(
     start_date: date, end_date: date
 ) -> tuple[AnalysisType, bool]:
     """
-    Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
+    Converts the dates from a billing period into an enum representing
+    the period's usage in the rules engine.
     """
     if (
         (end_date.month > 4 and end_date.month < 11)
@@ -237,7 +242,8 @@ def _date_to_analysis_type_oil_propane(
 
 def _date_to_analysis_type_natural_gas(d: date) -> tuple[AnalysisType, bool]:
     """
-    Converts the dates from a billing period into an enum representing the period's usage in the rules engine.
+    Converts the dates from a billing period into an enum representing 
+    the period's usage in the rules engine.
     """
     months = {
         1: AnalysisType.ALLOWED_HEATING_USAGE,
@@ -311,10 +317,10 @@ def get_average_indoor_temperature(
     Calculates the average indoor temperature.
 
     Args:
-        thermostat_set_point: the temp in F at which the home is 
-        normally set setback_temperature: temp in F at which the home 
+        thermostat_set_point: the temp in F at which the home is
+        normally set setback_temperature: temp in F at which the home
         is set during off hours
-        setback_hours_per_day: average # of hours per day the home is 
+        setback_hours_per_day: average # of hours per day the home is
         at setback temp
     """
     if setback_temperature is None:
@@ -400,11 +406,12 @@ class Home:
     """
     Defines attributes and methods for calculating home heat metrics
 
-    The information associated with the energy usage of a single home 
-    owner is used to instantiate this class.  Using that information 
-    and the type of fuel used, calculates the UA for different billing 
+    The information associated with the energy usage of a single home
+    owner is used to instantiate this class.  Using that information
+    and the type of fuel used, calculates the UA for different billing
     periods and the standard deviation of the UA values across them
     """
+
     # TODO: re-evaluate below
     avg_non_heating_usage = 0.0
 
@@ -434,28 +441,27 @@ class Home:
         # shoulder months 0 (NOT_ALLOWED...)
         for processed_energy_bill in intermediate_energy_bills:
             processed_energy_bill.set_initial_balance_point(self.balance_point)
-
             """
             The UI depicts billing period usage as several distinctive 
-            icons on the left hand column of the screen; "analysis_type"
+            icons on the left hand column of the screen:
+            "analysis_type".
 
             For winter "cusp" months, for example April and November 
             in MA, the UI will show those rows grayed out:
-            "default_inclusion"
+            "default_inclusion".
 
             The user has the ability to "include" those cusp months in 
             calculations by checking a box on far right:
-            "inclusion_override"
+            "inclusion_override".
 
             The user may also choose to "exclude" any other "allowed" 
             month by checking a box on the far right:
-            "inclusion_override"
+            "inclusion_override".
 
             The following code implements this algorithm and adds bills 
             accordingly to winter, summer, or shoulder (i.e. excluded) 
-            lists
+            lists.
             """
-
             _analysis_type = processed_energy_bill.analysis_type
             _default_inclusion = processed_energy_bill.default_inclusion
 
@@ -495,7 +501,9 @@ class Home:
             else:  # the rest are excluded from calculations
                 self.shoulder_processed_energy_bills.append(processed_energy_bill)
 
-        self._calculate_avg_summer_usage()
+        self.avg_summer_usage = Home._avg_summer_usage(
+            self.summer_processed_energy_bills
+        )
         self.avg_non_heating_usage = Home._avg_non_heating_usage(
             self.fuel_type,
             self.avg_summer_usage,
@@ -510,18 +518,19 @@ class Home:
                 avg_non_heating_usage=self.avg_non_heating_usage,
             )
 
-    def _calculate_avg_summer_usage(self) -> None:
+    @staticmethod
+    def _avg_summer_usage(
+        summer_processed_energy_bills: list[IntermediateEnergyBill],
+    ) -> float:
         """
         Calculates average daily summer usage
         """
-        summer_usage_total = sum(
-            [bp.usage for bp in self.summer_processed_energy_bills]
-        )
-        summer_days = sum([bp.days for bp in self.summer_processed_energy_bills])
+        summer_usage_total = sum([bp.usage for bp in summer_processed_energy_bills])
+        summer_days = sum([bp.days for bp in summer_processed_energy_bills])
         if summer_days != 0:
-            self.avg_summer_usage = summer_usage_total / summer_days
+            return summer_usage_total / summer_days
         else:
-            self.avg_summer_usage = 0
+            return 0
 
     @staticmethod
     def _avg_non_heating_usage(
@@ -683,9 +692,10 @@ class Home:
         next_balance_point_sensitivity: float = 0.5,
     ) -> "Home":
         """
-        For this Home, calculates avg non heating usage and then the estimated balance point
-        and UA coefficient for the home, removing UA outliers based on a normalized standard
-        deviation threshold.
+        For this Home, calculates avg non heating usage and then the
+        estimated balance point and UA coefficient for the home,
+        removing UA outliers based on a normalized standard deviation
+        threshold
         """
         home_instance = object.__new__(cls)
         home_instance._init(
