@@ -43,19 +43,30 @@ For more details, visit the
 
 ### Repository Setup
 
-1. Clone the repository:
+1. **Fork the repository**  
+   Go to the
+   [home-energy-analysis-tool repository](https://github.com/codeforboston/home-energy-analysis-tool)
+   and click the "Fork" button at the top right to create your own copy of the
+   repository.
+
+2. **Clone your forked repository**  
+   After forking, clone your fork to your local machine using the following
+   command (replace `your-username` with your GitHub username):
 
    ```bash
-   git clone git@github.com:codeforboston/home-energy-analysis-tool.git
+   git clone git@github.com:your-username/home-energy-analysis-tool.git
    ```
 
-2. Navigate to the project directory:
+3. **Navigate to the project directory**  
+   Change into the `heat-stack` directory within the project:
 
    ```bash
    cd home-energy-analysis-tool/heat-stack
    ```
 
-3. Copy the example environment file into a new `.env` file:
+4. **Copy the example environment file**  
+   Copy the example environment file into a new `.env` file:
+
    ```bash
    cp .env.example .env
    ```
