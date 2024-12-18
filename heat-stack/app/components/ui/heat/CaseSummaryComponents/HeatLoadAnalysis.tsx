@@ -2,9 +2,10 @@
 import React from 'react';
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
+import { HeatLoadGraphRecordSchema } from '../../../../../types/types.ts';
 
 interface GraphsProps {
-	heatLoadData: {x: number, y: number}[];
+	heatLoadData: HeatLoadGraphRecordSchema[];
 }
 
 export function Graphs({ heatLoadData }: GraphsProps) {

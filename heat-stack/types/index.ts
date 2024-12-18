@@ -49,6 +49,12 @@ export const LocationSchema = z.object({
 // 	inclusionOverride: z.enum(['Include', 'Do not include', 'Include in other analysis']),
 // });
 
+// Define the schema for heat load records
+export const heatLoadGraphRecordSchema = z.object({
+	balance_point: z.number(),
+	heat_loss_rate: z.number(),
+})
+
 // Define the schema for balance records
 export const balancePointGraphRecordSchema = z.object({
 	balance_point: z.number(),

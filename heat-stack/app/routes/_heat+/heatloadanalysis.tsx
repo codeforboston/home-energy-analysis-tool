@@ -1,5 +1,6 @@
 import React from 'react';
 import { Graphs } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx';
+import { HeatLoadGraphRecordSchema } from '../../../types/types.ts';
 
 type HeatLoadRecord = Map<
   'balance_point' | 'heat_loss_rate' | 'change_in_heat_loss_rate' | 'percent_change_in_heat_loss_rate' | 'standard_deviation',
@@ -11,23 +12,26 @@ interface HeatLoadAnalysisProps {
 }
 
 /**
- * Transforms raw heat load data into a format suitable for graphing.
- * Each record is mapped to an object with `x` and `y` coordinates.
+ * Transforms raw heat load data into a schema-compliant format suitable for graphing.
+ * Each record is mapped to an object adhering to the HeatLoadGraphRecordSchema.
  * 
  * @param {HeatLoadRecord[]} data - Array of heat load records as Maps.
- * @returns {{x: number, y: number}[]} Transformed data with `balance_point` as `x` and `heat_loss_rate` as `y`.
+ * @returns {HeatLoadGraphRecordSchema[]} Transformed data with `balance_point` and `heat_loss_rate`.
  */
-function transformHeatLoadData(data: HeatLoadRecord[]): { x: number; y: number }[] {
+function transformHeatLoadData(data: HeatLoadRecord[]): HeatLoadGraphRecordSchema[] {
   return data
     .map(record => {
       const balancePoint = record.get('balance_point');
       const heatLossRate = record.get('heat_loss_rate');
       if (typeof balancePoint === 'number' && typeof heatLossRate === 'number') {
-        return { x: balancePoint, y: heatLossRate };
+        return {
+          balance_point: balancePoint,
+          heat_loss_rate: heatLossRate,
+        };
       }
       return null;
     })
-    .filter(item => item !== null) as { x: number; y: number }[];
+    .filter((item): item is HeatLoadGraphRecordSchema => item !== null);
 }
 
 export default function HeatLoadAnalysis({ heatLoadData }: HeatLoadAnalysisProps) {
