@@ -1,3 +1,4 @@
+import React from 'react'
 import {
 	ScatterChart,
 	Scatter,
@@ -8,16 +9,11 @@ import {
 	ResponsiveContainer,
 } from 'recharts'
 
-// data from Karle Heat Load Analysis Beta 7 2023-07-11
-const data = [
-	{ x: 0, y: 74015 },
-	{ x: 60.5, y: 10045 },
-	{ x: 67, y: 3172 },
-	{ x: 70, y: 0 },
-	{ x: 8.4, y: 65133 },
-]
+interface HeatLoadProps {
+	data: { x: number, y: number}[];
+}
 
-export function HeatLoad() {
+export function HeatLoad({ data }: HeatLoadProps) {
 	return (
 		<div>
 			<div className="item-title">Heating System Demand</div>
