@@ -483,10 +483,10 @@ export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
-    const heatLoadData = hasDataProperty(lastResult)
-        ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records')
-        : undefined;
+    const parsedLastResult =  hasDataProperty(lastResult)
+    ? JSON.parse(lastResult.data, reviver) : undefined;
     
+    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -591,7 +591,7 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadData={heatLoadData}/> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
         </>
     )
 }

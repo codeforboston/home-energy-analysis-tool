@@ -2,13 +2,12 @@
 import React from 'react'
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
-import { HeatLoadGraphRecordSchema } from '../../../../../types/types.ts'
 
 interface GraphsProps {
-	heatLoadData: HeatLoadGraphRecordSchema[]
+	heatLoadSummaryOutput: any;
 }
 
-export function Graphs({ heatLoadData }: GraphsProps) {
+export function Graphs({ heatLoadSummaryOutput }: GraphsProps) {
 	const fuel_type = 'Natural Gas'
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const componentMargin = 'mt-10'
@@ -20,7 +19,7 @@ export function Graphs({ heatLoadData }: GraphsProps) {
 			Fuel Type
 			{fuel_type}
 			{/* <AnalysisHeader /> */}
-			<HeatLoad data={heatLoadData} />
+			<HeatLoad heatLoadSummaryOutput={heatLoadSummaryOutput} />
 			<WholeHomeUAComparison />
 		</div>
 	)
