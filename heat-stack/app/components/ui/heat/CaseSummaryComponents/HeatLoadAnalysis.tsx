@@ -1,11 +1,11 @@
 // import { AnalysisHeader } from './AnalysisHeader.tsx'
-import React from 'react';
+import React from 'react'
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
-import { HeatLoadGraphRecordSchema } from '../../../../../types/types.ts';
+import { HeatLoadGraphRecordSchema } from '../../../../../types/types.ts'
 
 interface GraphsProps {
-	heatLoadData: HeatLoadGraphRecordSchema[];
+	heatLoadData: HeatLoadGraphRecordSchema[]
 }
 
 export function Graphs({ heatLoadData }: GraphsProps) {

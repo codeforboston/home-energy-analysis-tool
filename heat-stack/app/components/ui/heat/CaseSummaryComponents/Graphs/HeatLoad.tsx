@@ -8,10 +8,10 @@ import {
 	Tooltip,
 	ResponsiveContainer,
 } from 'recharts'
-import { HeatLoadGraphRecordSchema } from '../../../../../../types/types';
+import { HeatLoadGraphRecordSchema } from '../../../../../../types/types'
 
 interface HeatLoadProps {
-	data: HeatLoadGraphRecordSchema[];
+	data: HeatLoadGraphRecordSchema[]
 }
 
 export function HeatLoad({ data }: HeatLoadProps) {
