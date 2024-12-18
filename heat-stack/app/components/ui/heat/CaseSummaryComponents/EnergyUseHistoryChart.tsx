@@ -224,6 +224,7 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 
 					return (
 						<TableRow key={index} variant={variant}>
+							<TableCell className="font-medium">{index + 1}</TableCell>
 							<TableCell className='justify-items-center'>
 								<img src={analysisType_Image} alt="Analysis Type" />
 							</TableCell>
@@ -243,7 +244,7 @@ export function EnergyUseHistoryChart({ usage_data, conform_form, fields }: { us
 										value: period.default_inclusion, // Pass the value
 									})}
 								/>
-							</TableCell>q
+							</TableCell>
 						</TableRow>
 					)
 				})}
