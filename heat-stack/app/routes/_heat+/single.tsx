@@ -50,6 +50,7 @@ import WeatherUtil from '#app/utils/WeatherUtil'
 // - [ ] Feature v2: How about a dropdown? census geocoder address form picker component to choose which address from several, if ambigous or bad.
 // - [ ] Treat design_temperature distinctly from design_temperature_override, and design_temperature_override should be kept in state like name or address
 // - [ ] Will weather service take timestamp instead of timezone date data?
+// - [ ] Have a file upload submission be separate from the form data submission.  How: Associate a value with the button and have action read the value
 
 // Ours
 import { HomeSchema, LocationSchema, CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ 
@@ -443,6 +444,16 @@ Traceback (most recent call last): File "<exec>", line 32,
         gasBillData = JSON.parse(usage_data_with_user_adjustments || ``, reviver)
         // console.log(`gasBillData`, gasBillData);  // 11/12/24 this is correct
     }
+    const billingRecordsFromMap = gasBillDataWithUserAdjustments.get('billing_records') ?? [] as Array<any>
+    // TODO: try to do something more like this later, recognizing the outer is a Map, inner object is Array, and innermost is a Map.
+    // billingRecordsFromMap[ new_index ].set({ ...period })
+    billingRecordsFromMap.forEach((record: any, index: number) => {
+        console.log(`previous billing records inclusion_override for item`, index, record?.inclusion_override)
+        console.log( `user_override_${ index }`, formData.get(`user_override_${ index }`))
+        let is_overriden = formData.get(`user_override_${ index }`) !== undefined;
+        record.set('inclusion_override', is_overriden);
+    });
+
     const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillData, state_id, county_id).toJs()
     console.log(`calculatedData:`, calculatedData)
 
