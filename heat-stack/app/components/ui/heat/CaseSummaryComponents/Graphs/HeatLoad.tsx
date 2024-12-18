@@ -31,11 +31,11 @@ export function HeatLoad({ data }: HeatLoadProps) {
 					<CartesianGrid />
 					<XAxis
 						type="number"
-						dataKey="x"
+						dataKey="balance_point"
 						name=" Outdoor Temperature"
 						unit="°F"
 					/>
-					<YAxis type="number" dataKey="y" name=" Heat Load" unit=" BTU/h" />
+					<YAxis type="number" dataKey="heat_loss_rate" name=" Heat Load" unit=" BTU/h" />
 					<Tooltip cursor={{ strokeDasharray: '3 3' }} />
 					<Scatter name="Heat Load" data={data} fill="#8884d8" />
 				</ScatterChart>
