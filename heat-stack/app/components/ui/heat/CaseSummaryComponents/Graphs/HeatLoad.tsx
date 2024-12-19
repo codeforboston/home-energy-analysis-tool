@@ -6,91 +6,101 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Scatter,
   ResponsiveContainer,
   Legend,
   Label,
+  Scatter,
 } from 'recharts';
 import { SummaryOutputSchema } from '../../../../../../types/types';
 
-const COLOR_ORANGE = "#FF5733 ";
+const COLOR_ORANGE = "#FF5733";
 const COLOR_BLUE = "#8884d8";
-const COLOR_GREY_DARK = "#d5d5d5";
 const COLOR_GREY_LIGHT = "#f5f5f5";
 const COLOR_WHITE = "#fff";
 
-interface ChartDataPoint {
-  temperature: number;     // Temperature value for the X-axis
-  maxLine?: number;        // Max heat load line value
-  avgLine?: number;        // Average heat load line value
-  maxPoint?: number;       // Max heat load at design temperature (scatter point)
-  avgPoint?: number;       // Average heat load at design temperature (scatter point)
-}
-
 interface HeatLoadProps {
   heatLoadSummaryOutput: SummaryOutputSchema;
+  heatLoadBalancePoints: any;
 }
 
-export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
-  // Generate the data points for the lines and scatter points
+export function HeatLoad({ heatLoadSummaryOutput, heatLoadBalancePoints }: HeatLoadProps) {
+  const designSetPoint = 70; // Design set point is 70°F
+  const { whole_home_heat_loss_rate, average_indoor_temperature, estimated_balance_point, design_temperature } = heatLoadSummaryOutput;
+
+  // Calculate the heat load values for average and max load lines
   const data = useMemo(() => {
-    const points: ChartDataPoint[] = [];
-    
-    for (let temp = heatLoadSummaryOutput.design_temperature; temp <= heatLoadSummaryOutput.estimated_balance_point; temp += 2) {
-      // Calculate the maximum heat load (without internal/solar gain)
-      const maxHeatLoad = heatLoadSummaryOutput.whole_home_heat_loss_rate * (heatLoadSummaryOutput.average_indoor_temperature - temp);
-      
-      // Calculate the average heat load (with internal/solar gain)
-      const avgHeatLoad = heatLoadSummaryOutput.whole_home_heat_loss_rate * 
-        (heatLoadSummaryOutput.average_indoor_temperature - (temp + heatLoadSummaryOutput.difference_between_ti_and_tbp));
+    const points = [];
 
-      // Add the calculated points to the array
-      points.push({
-        temperature: temp,
-        maxLine: Math.max(0, maxHeatLoad),
-        avgLine: Math.max(0, avgHeatLoad),
-      });
-    }
+    // Calculate heat load at -10°F from the design temperature (start point)
+    const startTemperature = design_temperature - 10;
+    const avgHeatLoadStart = Math.max(0, (designSetPoint - average_indoor_temperature + estimated_balance_point - startTemperature) * whole_home_heat_loss_rate);
+    const maxHeatLoadStart = Math.max(0, (designSetPoint - startTemperature) * whole_home_heat_loss_rate);
 
-    // Add the design temperature points (for the scatter points)
+    // Calculate heat load at design temperature
+    const avgHeatLoad = Math.max(0, (designSetPoint - average_indoor_temperature + estimated_balance_point - design_temperature) * whole_home_heat_loss_rate);
+    const maxHeatLoad = Math.max(0, (designSetPoint - design_temperature) * whole_home_heat_loss_rate);
+
+    // Calculate heat load at design set point (70°F)
+    const avgHeatLoadSetPoint = Math.max(0, (designSetPoint - average_indoor_temperature + estimated_balance_point - designSetPoint) * whole_home_heat_loss_rate);
+    const maxHeatLoadSetPoint = Math.max(0, (designSetPoint - designSetPoint) * whole_home_heat_loss_rate);
+
+    // Points for the average line
     points.push({
-      temperature: heatLoadSummaryOutput.design_temperature,
-      maxPoint: heatLoadSummaryOutput.maximum_heat_load,
-      avgPoint: heatLoadSummaryOutput.average_heat_load,
+      temperature: startTemperature,
+      avgLine: avgHeatLoadStart,
+    });
+    points.push({
+      temperature: design_temperature,
+      avgLine: avgHeatLoad,
+      avgPoint: avgHeatLoad, // Add the point for avg line at design temperature
+    });
+    points.push({
+      temperature: designSetPoint,
+      avgLine: avgHeatLoadSetPoint,
+    });
+
+    // Points for the max line
+    points.push({
+      temperature: startTemperature,
+      maxLine: maxHeatLoadStart,
+    });
+    points.push({
+      temperature: design_temperature,
+      maxLine: maxHeatLoad,
+      maxPoint: maxHeatLoad, // Add the point for max line at design temperature
+    });
+    points.push({
+      temperature: designSetPoint,
+      maxLine: maxHeatLoadSetPoint,
     });
 
     return points;
   }, [heatLoadSummaryOutput]);
 
-  // Calculate the minimum Y value, ensuring it doesn't go below 0
+  // Calculate Y-axis min and max values with buffers
   const minYValue = useMemo(() => {
     const minValue = Math.min(
       ...data.map(point => Math.min(
         point.maxLine || Infinity,
-        point.avgLine || Infinity,
-        point.maxPoint || Infinity,
-        point.avgPoint || Infinity
+        point.avgLine || Infinity
       ))
     );
-    return Math.max(0, Math.floor(minValue / 10000) * 10000);  // Round down to the nearest 10,000
+    return Math.max(0, Math.floor(minValue * 0.8 / 10000) * 10000); // Add 20% buffer below min Y value
   }, [data]);
 
-  // Calculate the maximum Y value with extra headroom (to add space above the maximum value)
   const maxYValue = useMemo(() => {
     const maxValue = Math.max(
       ...data.map(point => Math.max(
         point.maxLine || 0,
-        point.avgLine || 0,
-        point.maxPoint || 0,
-        point.avgPoint || 0
+        point.avgLine || 0
       ))
     );
-
-    // Add 10% headroom to the max value (rounded up to the nearest 10,000)
-    const headroom = Math.ceil(maxValue * 0.1 / 10000) * 10000;
-
-    return (Math.ceil(maxValue / 10000) * 10000) + headroom;
+    return Math.ceil(maxValue * 1.3 / 10000) * 10000; // Add 30% buffer above max Y value
   }, [data]);
+
+  // Calculate X-axis min and max values with buffers
+  const minXValue = useMemo(() => design_temperature - 10, [design_temperature]); // Start the X-axis 10°F below design temperature
+  const maxXValue = useMemo(() => designSetPoint, [designSetPoint]); // End at the design set point (70°F)
 
   return (
     <div>
@@ -106,16 +116,15 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
           }}
           data={data}
         >
-          {/* Grid lines for background */}
-          <CartesianGrid stroke={COLOR_GREY_LIGHT} />  
+          <CartesianGrid stroke={COLOR_GREY_LIGHT} />
           
-          {/* X-Axis: Outdoor Temperature */}
           <XAxis
             type="number"
             dataKey="temperature"
             name="Outdoor Temperature"
             unit="°F"
-            domain={['dataMin - 2', 'dataMax']}
+            domain={[minXValue, maxXValue]}
+            tickCount={maxXValue - minXValue + 1}  // Ensure whole numbers
           >
             <Label 
               value="Outdoor Temperature (°F)" 
@@ -124,12 +133,11 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
             />
           </XAxis>
 
-          {/* Y-Axis: Heat Load (with dynamic range) */}
           <YAxis 
             type="number" 
             name="Heat Load" 
             unit=" BTU/h"
-            domain={[() => minYValue, () => maxYValue]}
+            domain={[minYValue, maxYValue]}
           >
             <Label
               value="Heat Load (BTU/h)"
@@ -138,27 +146,46 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
               offset={30}
             />
           </YAxis>
+
+          <Tooltip
+  formatter={(value: any, name: string, props: any) => {
+    // Log the tooltip's payload to inspect the structure of the data
+    console.log('In tooltip with value:', value);
+    console.log('In tooltip with name:', name);
+    console.log('In tooltip with props:', props);
+
+    // Extract the temperature from the payload
+    const temperature = props.payload ? props.payload?.temperature : null;
+
+    if (temperature !== null) {
+      // Return formatted output, ensuring the temperature is shown in color below the heat load value
+      return [
+        `${Number(value).toLocaleString()} BTU/h`, // Heat load in BTU/h
+        `${temperature}°F ${name.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature')}` // Temperature in °F below the heat load value
+      ];
+    }
+
+    // Fallback in case the temperature is not available
+    return [
+      `${Number(value).toLocaleString()} BTU/h`,
+      name.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature'),
+    ];
+  }}
+/>
+
           
-          {/* Tooltip for displaying data on hover */}
-          <Tooltip 
-            formatter={(value: any, name: string) => [
-              `${Number(value).toLocaleString()} BTU/h`,
-              name.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature')
-            ]}
-          />
+          {/* `${temperature}°F ${name.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature')}` */}
           
-          {/* Legend for chart */}
           <Legend 
             wrapperStyle={{
               backgroundColor: COLOR_WHITE,
-              border: `1px solid ${COLOR_GREY_DARK}`,
+              border: `1px solid #ddd`,
               borderRadius: '3px',
               padding: '15px'
             }}
             align="right"
             verticalAlign="top"
             layout="middle"
-            formatter={(value: string) => value.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature')}
           />
           
           {/* Line for maximum heat load */}
@@ -178,7 +205,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
             dot={false}
             name="Average, with internal & solar gain"
           />
-          
+
           {/* Scatter point for maximum heat load at design temperature */}
           <Scatter
             dataKey="maxPoint"
@@ -187,7 +214,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
             shape="diamond"
             legendType="diamond"
           />
-          
+
           {/* Scatter point for average heat load at design temperature */}
           <Scatter
             dataKey="avgPoint"
@@ -201,5 +228,3 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
     </div>
   );
 }
-
-export default HeatLoad;
