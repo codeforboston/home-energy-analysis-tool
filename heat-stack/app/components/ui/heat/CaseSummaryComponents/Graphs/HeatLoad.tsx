@@ -12,6 +12,7 @@ import {
 	Scatter,
 } from 'recharts'
 import { SummaryOutputSchema } from '../../../../../../types/types'
+import { Icon } from '../../../icon'
 
 // Constants for chart styling
 const COLOR_ORANGE = '#FF5733'
@@ -172,7 +173,8 @@ const getAvgHeatLoadForTemperature = (temperature: number): number =>
 
 	return (
 		<div>
-			<div className="mb-4 text-lg font-semibold">Heating System Demand</div>
+			<span className="mb-4 text-lg font-semibold">Heating System Demand <Icon name="question-mark-circled" size="md" /> </span>
+      
 
 			<ResponsiveContainer width="100%" height={400}>
 				<ComposedChart
