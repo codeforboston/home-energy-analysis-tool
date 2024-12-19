@@ -73,6 +73,7 @@ type HeatLoadProps = {
  * @returns {JSX.Element} - The rendered chart component.
  */
 export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
+  console.log('heatLoadSummaryOutput: ', heatLoadSummaryOutput)
 	const designSetPoint = 70 // Design set point is 70°F as described in this document: https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0
 	const {
 		whole_home_heat_loss_rate,
@@ -237,7 +238,6 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 						type="number"
 						dataKey="temperature"
 						name="Outdoor Temperature"
-						unit="°F"
 						domain={[minXValue, maxXValue]}
 						tickCount={maxXValue - minXValue + 1} // Ensure whole numbers
 					>
@@ -251,7 +251,6 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 					<YAxis
 						type="number"
 						name="Heat Load"
-						unit=" BTU/h"
 						domain={[minYValue, maxYValue]}
 					>
 						<Label
@@ -337,8 +336,8 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 			</ResponsiveContainer>
 			<ChartGrid
 				setPoint={designSetPoint}
-				averageHeatLoad={getMaxHeatLoadForTemperature(design_temperature)}
-				maxHeatLoad={getAvgHeatLoadForTemperature(design_temperature)}
+				averageHeatLoad={getAvgHeatLoadForTemperature(design_temperature)}
+				maxHeatLoad={getMaxHeatLoadForTemperature(design_temperature)}
 			/>
 		</div>
 	)
