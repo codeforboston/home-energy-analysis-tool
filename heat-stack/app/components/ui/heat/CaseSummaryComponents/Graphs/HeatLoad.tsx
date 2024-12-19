@@ -17,11 +17,52 @@ import { Icon } from '../../../icon'
 // Constants for chart styling
 const COLOR_ORANGE = '#FF5733'
 const COLOR_BLUE = '#8884d8'
+const COLOR_GREY = '#999999'
 const COLOR_GREY_LIGHT = '#f5f5f5'
 const COLOR_WHITE = '#fff'
 
-// Props interface defining expected input structure for HeatLoad component
-interface HeatLoadProps {
+type ChartGridProps = {
+	setPoint: number
+	averageHeatLoad: number
+	maxHeatLoad: number
+}
+const ChartGrid = ({
+	setPoint,
+	averageHeatLoad,
+	maxHeatLoad,
+}: ChartGridProps) => {
+	return (
+		<div className="container mx-auto p-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+				{/* Grid Item 1 */}
+				<div className="flex items-center justify-center border-r-2 border-gray-300 p-6">
+					<div className="flex flex-col items-center">
+						<div className="text-gray-500">Set Point</div>
+						<div className="font-semibold">{`${setPoint} °F`}</div>
+					</div>
+				</div>
+
+				{/* Grid Item 2 */}
+				<div className="flex items-center justify-center border-r-2 border-gray-300 p-6">
+					<div className="flex flex-col items-center">
+						<div className="text-gray-500">Maximum Heat Load</div>
+						<div className="font-semibold">{`${maxHeatLoad} BTU/h`}</div>
+					</div>
+				</div>
+
+				{/* Grid Item 3 */}
+				<div className="flex items-center justify-center p-6">
+					<div className="flex flex-col items-center">
+						<div className="text-gray-500">Average Heat Load</div>
+						<div className="font-semibold">{`${averageHeatLoad} BTU/h`}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
 }
 
@@ -41,6 +82,40 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 	} = heatLoadSummaryOutput
 
 	/**
+	 * Calculates the maximum heat load for a given temperature.
+	 * The formula used is based on the design set point, the provided temperature, and the whole home heat loss rate.
+	 * If the result is negative, it returns 0 to avoid negative heat loads.
+	 *
+	 * @param {number} temperature - The outdoor temperature at which to calculate the heat load.
+	 * @returns {number} - The calculated maximum heat load in BTU/h for the given temperature.
+	 */
+	const getMaxHeatLoadForTemperature = (temperature: number): number =>
+		Math.round(
+			Math.max(0, (designSetPoint - temperature) * whole_home_heat_loss_rate),
+		)
+
+	/**
+	 * Calculates the average heat load for a given temperature considering internal and solar gain.
+	 * The formula incorporates the design set point, average indoor temperature, the estimated balance point,
+	 * and the outdoor temperature to compute the average heat load.
+	 * If the result is negative, it returns 0 to avoid negative heat loads.
+	 *
+	 * @param {number} temperature - The outdoor temperature at which to calculate the heat load.
+	 * @returns {number} - The calculated average heat load in BTU/h for the given temperature.
+	 */
+	const getAvgHeatLoadForTemperature = (temperature: number): number =>
+		Math.round(
+			Math.max(
+				0,
+				(designSetPoint -
+					average_indoor_temperature +
+					estimated_balance_point -
+					temperature) *
+					whole_home_heat_loss_rate,
+			),
+		)
+
+	/**
 	 * useMemo hook to calculate the heat load data points for max and avg lines.
 	 * The data is computed based on the provided heat load summary and the design temperature
 	 * using the calculations provided in this document: https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0
@@ -48,37 +123,6 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 	 */
 	const data = useMemo(() => {
 		const points = []
-
-/**
- * Calculates the maximum heat load for a given temperature.
- * The formula used is based on the design set point, the provided temperature, and the whole home heat loss rate.
- * If the result is negative, it returns 0 to avoid negative heat loads.
- * 
- * @param {number} temperature - The outdoor temperature at which to calculate the heat load.
- * @returns {number} - The calculated maximum heat load in BTU/h for the given temperature.
- */
-const getMaxHeatLoadForTemperature = (temperature: number): number =>
-  Math.max(0, (designSetPoint - temperature) * whole_home_heat_loss_rate);
-
-/**
- * Calculates the average heat load for a given temperature considering internal and solar gain.
- * The formula incorporates the design set point, average indoor temperature, the estimated balance point,
- * and the outdoor temperature to compute the average heat load.
- * If the result is negative, it returns 0 to avoid negative heat loads.
- * 
- * @param {number} temperature - The outdoor temperature at which to calculate the heat load.
- * @returns {number} - The calculated average heat load in BTU/h for the given temperature.
- */
-const getAvgHeatLoadForTemperature = (temperature: number): number =>
-  Math.max(
-    0,
-    (designSetPoint -
-      average_indoor_temperature +
-      estimated_balance_point -
-      temperature) *
-      whole_home_heat_loss_rate,
-  );
-
 
 		// Calculate heat load at -10°F from the design temperature (start point)
 		const startTemperature = design_temperature - 10
@@ -93,35 +137,35 @@ const getAvgHeatLoadForTemperature = (temperature: number): number =>
 		const avgHeatLoadSetPoint = getAvgHeatLoadForTemperature(designSetPoint)
 		const maxHeatLoadSetPoint = getMaxHeatLoadForTemperature(designSetPoint)
 
-		// Points for the average line
-
-    // point for avg line at start
+		// point for avg line at start
 		points.push({
 			temperature: startTemperature,
 			avgLine: avgHeatLoadStart,
 		})
-    // point for avg line at design temperature
+		// point for avg line at design temperature
 		points.push({
 			temperature: design_temperature,
 			avgLine: avgHeatLoad,
-			avgPoint: avgHeatLoad, 
+			avgPoint: avgHeatLoad,
 		})
-    // point for avg line at design set point
+		// point for avg line at design set point
 		points.push({
 			temperature: designSetPoint,
 			avgLine: avgHeatLoadSetPoint,
 		})
 
-		// Points for the max line
+		// Add the point for max line at start temperature
 		points.push({
 			temperature: startTemperature,
 			maxLine: maxHeatLoadStart,
 		})
+		// Add the point for max line at design temperature
 		points.push({
 			temperature: design_temperature,
 			maxLine: maxHeatLoad,
-			maxPoint: maxHeatLoad, // Add the point for max line at design temperature
+			maxPoint: maxHeatLoad,
 		})
+		// Add the point for max line at design set point
 		points.push({
 			temperature: designSetPoint,
 			maxLine: maxHeatLoadSetPoint,
@@ -172,9 +216,10 @@ const getAvgHeatLoadForTemperature = (temperature: number): number =>
 	const maxXValue = useMemo(() => designSetPoint, [designSetPoint]) // End at the design set point
 
 	return (
-		<div>
-			<span className="mb-4 text-lg font-semibold">Heating System Demand <Icon name="question-mark-circled" size="md" /> </span>
-      
+		<div className="rounded-lg shadow-lg">
+			<span className="mb-4 text-lg font-semibold">
+				Heating System Demand <Icon name="question-mark-circled" size="md" />{' '}
+			</span>
 
 			<ResponsiveContainer width="100%" height={400}>
 				<ComposedChart
@@ -218,9 +263,7 @@ const getAvgHeatLoadForTemperature = (temperature: number): number =>
 					</YAxis>
 
 					<Tooltip
-						label="F"
 						formatter={(value: any, name: string, props: any) => {
-							// Extract the temperature from the payload
 							const temperature = props.payload
 								? props.payload?.temperature
 								: null
@@ -292,6 +335,11 @@ const getAvgHeatLoadForTemperature = (temperature: number): number =>
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>
+			<ChartGrid
+				setPoint={designSetPoint}
+				averageHeatLoad={getMaxHeatLoadForTemperature(design_temperature)}
+				maxHeatLoad={getAvgHeatLoadForTemperature(design_temperature)}
+			/>
 		</div>
 	)
 }
