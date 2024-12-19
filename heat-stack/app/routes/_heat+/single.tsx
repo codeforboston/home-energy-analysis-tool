@@ -487,9 +487,6 @@ export default function Inputs() {
     ? JSON.parse(lastResult.data, reviver) : undefined;
 
     const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
-    const heatLoadBalancePoints = parsedLastResult ? parsedLastResult?.get('balance_point_graph')?.get('records') : undefined;
-
-    console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
 
 
     /* @ts-ignore */
@@ -595,7 +592,7 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} heatLoadBalancePoints={heatLoadBalancePoints} /> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
         </>
     )
 }
