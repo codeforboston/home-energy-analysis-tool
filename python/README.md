@@ -12,7 +12,7 @@ Simple steps for development setup:
 2. Navigate to python by typing `cd python`
 3. Type `source setup-python.sh`
 
-Then, you should be able to run `pytest`, also from any directory, and see tests run successfully.
+Then, you should be able to run `pytest` and see tests run successfully.
 
 ### Continuous Integration
 Type `make` to see lint, type errors, and more.  The terminal will reveal individual tests to run again.  
