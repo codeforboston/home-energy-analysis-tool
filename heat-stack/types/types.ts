@@ -6,7 +6,7 @@ import {
 	type oneProcessedEnergyBillSchema,
 	type allProcessedEnergyBillsSchema,
 	type usageDataSchema,
-	type naturalGasUsageSchema,
+	type naturalGasUsageSchema
 } from './index.ts'
 
 
