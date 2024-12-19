@@ -33,7 +33,7 @@ const ChartGrid = ({
 }: ChartGridProps) => {
 	return (
 		<div className="container mx-auto p-4">
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+			<div className="grid grid-cols-3 gap-4">
 				{/* Grid Item 1 */}
 				<div className="flex items-center justify-center border-r-2 border-gray-300 p-6">
 					<div className="flex flex-col items-center">
@@ -45,7 +45,7 @@ const ChartGrid = ({
 				{/* Grid Item 2 */}
 				<div className="flex items-center justify-center border-r-2 border-gray-300 p-6">
 					<div className="flex flex-col items-center">
-						<div className="text-gray-500">Maximum Heat Load</div>
+						<div className="text-gray-500">Max Heat Load</div>
 						<div className="font-semibold">{`${maxHeatLoad} BTU/h`}</div>
 					</div>
 				</div>
@@ -217,7 +217,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 	const maxXValue = useMemo(() => designSetPoint, [designSetPoint]) // End at the design set point
 
 	return (
-		<div className="rounded-lg shadow-lg">
+		<div className="rounded-lg shadow-lg min-w-[625px]">
 			<span className="mb-4 text-lg font-semibold">
 				Heating System Demand <Icon name="question-mark-circled" size="md" />{' '}
 			</span>
