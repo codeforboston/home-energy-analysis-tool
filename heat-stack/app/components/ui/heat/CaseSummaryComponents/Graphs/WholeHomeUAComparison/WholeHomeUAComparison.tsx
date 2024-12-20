@@ -5,6 +5,7 @@ import {
 	Tooltip,
 	Scatter,
 	Line,
+	Legend,
 	XAxis,
 	YAxis,
 	ResponsiveContainer,
@@ -161,7 +162,7 @@ export function WholeHomeUAComparison({
 
 					{/* Scatter plot for the points */}
 					<Scatter
-						name="Whole Home UA"
+						name="Whole-home UA (BTU/h - °F)"
 						data={data.combinedData}
 						shape={getScatterShape}
 						dataKey="y"
@@ -177,7 +178,18 @@ export function WholeHomeUAComparison({
 					/>
 
 					{/* Custom legend */}
-					<WholeHomeUAComparisonLegend />
+					<Legend
+						wrapperStyle={{
+							backgroundColor: 'white',
+							border: '1px solid #ddd',
+							borderRadius: '3px',
+							padding: '15px',
+						}}
+						align="right"
+						verticalAlign="top"
+						layout="vertical"
+						content={<WholeHomeUAComparisonLegend />}
+					/>
 				</ComposedChart>
 			</ResponsiveContainer>
 		</div>
