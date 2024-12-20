@@ -1,4 +1,4 @@
-import { SummaryOutputSchema } from '../../../../../../types/types'
+import { SummaryOutputSchema } from '../../../../../../../types/types'
 // Utility file for helper functions related to calculating heat load
 // calculations are based on documentation found here: https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0#heading=h.tl7o1hwvhavz
 

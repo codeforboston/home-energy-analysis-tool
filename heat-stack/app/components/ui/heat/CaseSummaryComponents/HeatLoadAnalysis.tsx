@@ -1,7 +1,7 @@
 // import { AnalysisHeader } from './AnalysisHeader.tsx'
 import React from 'react'
-import { HeatLoad } from './Graphs/HeatLoad.tsx'
-import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
+import { HeatLoad } from './Graphs/HeatLoad/HeatLoad'
+import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison/WholeHomeUAComparison'
 
 interface GraphsProps {
 	heatLoadSummaryOutput: any;

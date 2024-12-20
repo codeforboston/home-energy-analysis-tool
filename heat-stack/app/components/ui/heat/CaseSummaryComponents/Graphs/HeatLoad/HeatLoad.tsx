@@ -12,9 +12,9 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
-import { SummaryOutputSchema } from '../../../../../../types/types'
-import { Icon } from '../../../icon'
-import { HeatLoadGrid } from '../HeatLoadGrid'
+import { SummaryOutputSchema } from '../../../../../../../types/types'
+import { Icon } from '../../../../icon'
+import { HeatLoadGrid } from '../../HeatLoadGrid'
 import {
 	COLOR_GREY_LIGHT,
 	COLOR_WHITE,
@@ -24,10 +24,10 @@ import {
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
-} from '../utility/heat-load-calculations'
-import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
-import { CustomTooltip } from './CustomToolTip'
-import { DiamondShape } from './DiamondPoint'
+} from './heat-load-calculations'
+import { buildHeatLoadGraphData } from './build-heat-load-graph-data'
+import { CustomTooltip } from '../Shared/CustomToolTip'
+import { DiamondShape } from '../Shared/DiamondPoint'
 
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema

@@ -7,34 +7,55 @@ import {
 	Line,
 	XAxis,
 	YAxis,
-	Legend,
 	ResponsiveContainer,
+	TooltipProps,
+	ScatterPoint,
 	Label,
 } from 'recharts'
-import {
-	COLOR_BLUE,
-	COLOR_ORANGE,
-	COLOR_WHITE,
-	defaultComparisonData,
-} from '../constants'
-import { CustomTooltip } from './CustomToolTip'
-import { Icon } from '../../../icon'
+import { COLOR_BLUE, COLOR_ORANGE } from '../constants'
+import { CustomTooltip } from '../Shared/CustomToolTip'
+import { Icon } from '../../../../icon'
+import { defaultComparisonData, defaultLineData } from './home-comparison-data'
+import { SummaryOutputSchema } from '../../../../../../../types/types'
+import WholeHomeUAComparisonLegend from './WholeHomeUAComparisonLegend'
 
-// Default data for the line chart
-const defaultLineData = [
-	{ x: 0, yLine: 0 },
-	{ x: 5000, yLine: 1650 },
-]
-
-/**
- * Props for the WholeHomeUAComparison component
- * @interface
- */
-interface WholeHomeUAComparisonProps {
-	heatLoadSummaryOutput: any
-	livingArea: number
-	comparisonData: any
+type DataPoint = {
+	x: number // X-coordinate, representing living area in square feet.
+	y?: number // Y-coordinate, representing whole-home UA (optional for line chart).
+	yLine?: number // Y-coordinate for line chart (used in `lineData`).
+	color?: string // Color of the data point (used for scatter points).
+	label?: string // Label for tooltip and legend association.
 }
+
+type ChartData = {
+	combinedData: DataPoint[] // Array of data points for the scatter plot.
+	lineData: DataPoint[] // Array of data points for the line chart.
+}
+
+type WholeHomeUAComparisonProps = {
+	heatLoadSummaryOutput: SummaryOutputSchema
+	livingArea: number
+	comparisonData: { x: number; y: number }[]
+}
+
+const toolTipFormatter = (
+	value: number | string,
+	name: string,
+	props: TooltipProps,
+) => {
+	const { payload } = props
+	if (payload && payload.length) {
+		const point = payload[0]
+		if (point) {
+			return [`${value}`, point.label || name]
+		}
+	}
+	return null // Exclude line elements or multiple values
+}
+
+const getScatterShape = (
+	props: ScatterPoint & { payload: { color: string } },
+) => <circle cx={props.cx} cy={props.cy} r={6} fill={props.payload.color} />
 
 /**
  * Component that renders a comparison of whole-home heat loss with scatter and line chart
@@ -46,20 +67,17 @@ export function WholeHomeUAComparison({
 	heatLoadSummaryOutput,
 	livingArea,
 	comparisonData = defaultComparisonData,
-}: WholeHomeUAComparisonProps) {
-	// Extract heat loss rate from the provided output
+}: WholeHomeUAComparisonProps): JSX.Element {
 	const { whole_home_heat_loss_rate } = heatLoadSummaryOutput
 
-	// Prepare the data for the chart using useMemo to optimize recalculations
-	const data = useMemo(() => {
-		// Merge the "This Home" and "Comparison Homes" data into a single array
+	// Prepare the data for the chart
+	const data: ChartData = useMemo(() => {
 		const comparisonDataWithLabel = comparisonData.map((d: any) => ({
 			...d,
 			color: COLOR_BLUE,
 			label: 'Comparison Home',
 		}))
 
-		// Data for "This Home"
 		const thisHomeData = {
 			x: livingArea,
 			y: Math.round(whole_home_heat_loss_rate),
@@ -67,7 +85,6 @@ export function WholeHomeUAComparison({
 			label: 'This Home',
 		}
 
-		// Combine both sets of data for use in the chart
 		return {
 			combinedData: [...comparisonDataWithLabel, thisHomeData],
 			lineData: defaultLineData,
@@ -75,12 +92,13 @@ export function WholeHomeUAComparison({
 	}, [comparisonData, whole_home_heat_loss_rate, livingArea])
 
 	return (
-		<div className="mt-8 min-w-[625px] rounded-lg shadow-lg">
+		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
 			<span className="mb-4 text-lg font-semibold">
 				Whole-home heat loss comparison{' '}
 				<Icon name="question-mark-circled" size="md" />{' '}
 			</span>
+
 			{/* Responsive container to ensure chart resizes */}
 			<ResponsiveContainer width="100%" height={400}>
 				{/* Main composed chart component */}
@@ -108,17 +126,7 @@ export function WholeHomeUAComparison({
 								unitY=" BTU/h-°F"
 							/>
 						}
-						formatter={(value, name, props) => {
-							const { payload } = props
-							// Only show the tooltip for individual points
-							if (payload && payload.length) {
-								const point = payload[0] // Get the first point (since there's only one per hover)
-								if (point) {
-									return [`${value}`, point.label || name] // Show the name based on the label
-								}
-							}
-							return null // Exclude line elements or multiple values
-						}}
+						formatter={toolTipFormatter}
 					/>
 
 					{/* X-axis for the chart with Living Area label */}
@@ -128,7 +136,6 @@ export function WholeHomeUAComparison({
 						name="Living Area"
 						domain={[0, 'auto']}
 					>
-						{/* Label for the X-axis */}
 						<Label
 							value="Living Area (sf)"
 							position="bottom"
@@ -143,7 +150,6 @@ export function WholeHomeUAComparison({
 						name="Whole-home UA"
 						domain={[0, 'auto']}
 					>
-						{/* Label for the Y-axis */}
 						<Label
 							value="Whole-home UA (BTU/h - °F)"
 							position="left"
@@ -153,18 +159,11 @@ export function WholeHomeUAComparison({
 						/>
 					</YAxis>
 
-					{/* Scatter plot for the "This Home" and "Comparison Homes" data */}
+					{/* Scatter plot for the points */}
 					<Scatter
 						name="Whole Home UA"
 						data={data.combinedData}
-						shape={(props) => (
-							<circle
-								cx={props.cx}
-								cy={props.cy}
-								r={6}
-								fill={props.payload.color}
-							/>
-						)}
+						shape={getScatterShape}
 						dataKey="y"
 					/>
 
@@ -177,52 +176,8 @@ export function WholeHomeUAComparison({
 						legendType="none"
 					/>
 
-					{/* Hard-coded legend for this component */}
-					<Legend
-						wrapperStyle={{
-							backgroundColor: COLOR_WHITE,
-							border: `1px solid #ddd`,
-							borderRadius: '3px',
-							padding: '15px',
-						}}
-						align="right"
-						verticalAlign="top"
-						layout="middle"
-						content={() => (
-							<ul className="recharts-default-legend">
-								{/* Legend item for "This Home" */}
-								<li>
-									<span
-										className="recharts-symbol"
-										style={{
-											display: 'inline-block',
-											width: '12px',
-											height: '12px',
-											backgroundColor: COLOR_ORANGE,
-											borderRadius: '50%',
-											marginRight: '5px',
-										}}
-									></span>
-									This Home
-								</li>
-								{/* Legend item for "Comparison Homes" */}
-								<li>
-									<span
-										className="recharts-symbol"
-										style={{
-											display: 'inline-block',
-											width: '12px',
-											height: '12px',
-											backgroundColor: COLOR_BLUE,
-											borderRadius: '50%',
-											marginRight: '5px',
-										}}
-									></span>
-									Comparison Homes
-								</li>
-							</ul>
-						)}
-					/>
+					{/* Custom legend */}
+					<WholeHomeUAComparisonLegend />
 				</ComposedChart>
 			</ResponsiveContainer>
 		</div>

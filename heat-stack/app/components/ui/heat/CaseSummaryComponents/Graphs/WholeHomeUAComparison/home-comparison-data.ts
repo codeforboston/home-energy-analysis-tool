@@ -1,12 +1,4 @@
-// Constants for chart styling
-export const COLOR_ORANGE = '#FF5733'
-export const COLOR_BLUE = '#8884d8'
-export const COLOR_GREY = '#999999'
-export const COLOR_GREY_LIGHT = '#f5f5f5'
-export const COLOR_WHITE = '#fff'
-
-
-export const defaultComparisonData = [
+export const defaultComparisonData: { x: number; y: number }[] = [
 	{ x: 2702, y: 1092 },
 	{ x: 4000, y: 1155 },
 	{ x: 1851, y: 464 },
@@ -102,4 +94,9 @@ export const defaultComparisonData = [
 	{ x: 2093, y: 418 },
 	{ x: 2028, y: 651 },
 	{ x: 2849, y: 799 },
+]
+
+export const defaultLineData = [
+	{ x: 0, yLine: 0 },
+	{ x: 5000, yLine: 1650 },
 ]
