@@ -416,6 +416,7 @@ class Home:
     avg_non_heating_usage = 0.0
     avg_ua = 0.0
     stdev_pct = 0.0
+    balance_point_graph = BalancePointGraph(records=[])
 
     def _init(
         self,
@@ -558,19 +559,21 @@ class Home:
 
         self.balance_point_graph.records.append(balance_point_graph_row)
 
-        (
-            self.balance_point,
-            self.avg_ua,
-            self.stdev_pct,
-            balance_point_graph_records_extension,
-        ) = self._refine_balance_point(
+        results = self._refine_balance_point(
             balance_point=self.balance_point,
-            balance_point_sensitivity=initial_balance_point_sensitivity,
+            balance_point_sensitivity=next_balance_point_sensitivity,
             avg_ua=self.avg_ua,
             stdev_pct=self.stdev_pct,
             thermostat_set_point=self.thermostat_set_point,
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
+
+        self.balance_point = results["balance_point"]
+        self.avg_ua = results["avg_ua"]
+        self.stdev_pct = results["stdev_pct"]
+        balance_point_graph_records_extension = results[
+            "balance_point_graph_records_extension"
+        ]
 
         self.balance_point_graph.records.extend(balance_point_graph_records_extension)
 
@@ -607,12 +610,7 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            (
-                self.balance_point,
-                self.avg_ua,
-                self.stdev_pct,
-                balance_point_graph_records_extension,
-            ) = self._refine_balance_point(
+            results = self._refine_balance_point(
                 balance_point=self.balance_point,
                 balance_point_sensitivity=next_balance_point_sensitivity,
                 avg_ua=self.avg_ua,
@@ -620,6 +618,13 @@ class Home:
                 thermostat_set_point=self.thermostat_set_point,
                 winter_processed_energy_bills=self.winter_processed_energy_bills,
             )
+
+            self.balance_point = results["balance_point"]
+            self.avg_ua = results["avg_ua"]
+            self.stdev_pct = results["stdev_pct"]
+            balance_point_graph_records_extension = results[
+                "balance_point_graph_records_extension"
+            ]
 
             self.balance_point_graph.records.extend(
                 balance_point_graph_records_extension
@@ -634,7 +639,7 @@ class Home:
         stdev_pct: float,
         thermostat_set_point: float,
         winter_processed_energy_bills: list[IntermediateEnergyBill],
-    ) -> None:
+    ) -> dict[str, float | list[IntermediateEnergyBill]]:
         """
         Tries different balance points plus or minus a given number
         of degrees, choosing whichever one minimizes the standard
@@ -698,7 +703,12 @@ class Home:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
-        return balance_point, avg_ua, stdev_pct, balance_point_graph_records_extension
+        return {
+            "balance_point": balance_point,
+            "avg_ua": avg_ua,
+            "stdev_pct": stdev_pct,
+            "balance_point_graph_records_extension": balance_point_graph_records_extension,
+        }
 
     @classmethod
     def calculate(
