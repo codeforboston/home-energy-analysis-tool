@@ -558,11 +558,21 @@ class Home:
 
         self.balance_point_graph.records.append(balance_point_graph_row)
 
-        self.balance_point, self.avg_ua, self.stdev_pct = self._refine_balance_point(
-            balance_point=self.balance_point, 
-            balance_point_sensitivity=initial_balance_point_sensitivity, 
-            avg_ua=self.avg_ua, 
-            stdev_pct=self.stdev_pct)
+        (
+            self.balance_point,
+            self.avg_ua,
+            self.stdev_pct,
+            balance_point_graph_records_extension,
+        ) = self._refine_balance_point(
+            balance_point=self.balance_point,
+            balance_point_sensitivity=initial_balance_point_sensitivity,
+            avg_ua=self.avg_ua,
+            stdev_pct=self.stdev_pct,
+            thermostat_set_point=self.thermostat_set_point,
+            winter_processed_energy_bills=self.winter_processed_energy_bills,
+        )
+
+        self.balance_point_graph.records.extend(balance_point_graph_records_extension)
 
         while self.stdev_pct > stdev_pct_max:
             outliers = [
@@ -597,20 +607,34 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self.balance_point, self.avg_ua, self.stdev_pct = self._refine_balance_point(
-                balance_point=self.balance_point, 
-                balance_point_sensitivity=next_balance_point_sensitivity, 
-                avg_ua=self.avg_ua, 
-                stdev_pct=self.stdev_pct)
+            (
+                self.balance_point,
+                self.avg_ua,
+                self.stdev_pct,
+                balance_point_graph_records_extension,
+            ) = self._refine_balance_point(
+                balance_point=self.balance_point,
+                balance_point_sensitivity=next_balance_point_sensitivity,
+                avg_ua=self.avg_ua,
+                stdev_pct=self.stdev_pct,
+                thermostat_set_point=self.thermostat_set_point,
+                winter_processed_energy_bills=self.winter_processed_energy_bills,
+            )
 
+            self.balance_point_graph.records.extend(
+                balance_point_graph_records_extension
+            )
+
+    @staticmethod
     def _refine_balance_point(
-            self, 
-            *, 
-            balance_point: float, 
-            balance_point_sensitivity: float,
-            avg_ua: float,
-            stdev_pct: float
-        ) -> None:
+        *,
+        balance_point: float,
+        balance_point_sensitivity: float,
+        avg_ua: float,
+        stdev_pct: float,
+        thermostat_set_point: float,
+        winter_processed_energy_bills: list[IntermediateEnergyBill],
+    ) -> None:
         """
         Tries different balance points plus or minus a given number
         of degrees, choosing whichever one minimizes the standard
@@ -618,21 +642,21 @@ class Home:
         """
         directions_to_check = [1, -1]
 
-        while directions_to_check:
-            bp_i = (
-                balance_point + directions_to_check[0] * balance_point_sensitivity
-            )
+        balance_point_graph_records_extension = []
 
-            if bp_i > self.thermostat_set_point:
+        while directions_to_check:
+            bp_i = balance_point + directions_to_check[0] * balance_point_sensitivity
+
+            if bp_i > thermostat_set_point:
                 break  # may want to raise some kind of warning as well
 
             period_hdds_i = [
                 period_hdd(bill.avg_temps, bp_i)
-                for bill in self.winter_processed_energy_bills
+                for bill in winter_processed_energy_bills
             ]
             uas_i = [
                 bill.partial_ua / period_hdds_i[n]
-                for n, bill in enumerate(self.winter_processed_energy_bills)
+                for n, bill in enumerate(winter_processed_energy_bills)
             ]
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
@@ -647,7 +671,7 @@ class Home:
                 percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
                 standard_deviation=stdev_pct_i,
             )
-            self.balance_point_graph.records.append(balance_point_graph_row)
+            balance_point_graph_records_extension.append(balance_point_graph_row)
 
             if stdev_pct_i >= stdev_pct:
                 directions_to_check.pop(0)
@@ -665,16 +689,16 @@ class Home:
                     percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
                     standard_deviation=stdev_pct,
                 )
-                self.balance_point_graph.records.append(balance_point_graph_row)
+                balance_point_graph_records_extension.append(balance_point_graph_row)
 
-                for n, bill in enumerate(self.winter_processed_energy_bills):
+                for n, bill in enumerate(winter_processed_energy_bills):
                     bill.total_hdd = period_hdds_i[n]
                     bill.ua = uas_i[n]
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
-        return balance_point, avg_ua, stdev_pct
+        return balance_point, avg_ua, stdev_pct, balance_point_graph_records_extension
 
     @classmethod
     def calculate(
