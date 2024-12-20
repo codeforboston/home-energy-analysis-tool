@@ -547,14 +547,8 @@ class Home:
         the home, removing UA outliers based on a normalized standard
         deviation threshold
         """
-
         self.balance_point_graph = BalancePointGraph(records=[])
 
-        self.uas = [
-            processed_energy_bill.ua
-            for processed_energy_bill in self.winter_processed_energy_bills
-            if processed_energy_bill.ua is not None
-        ]
         self.avg_ua = sts.mean(self.uas)
         self.stdev_pct = sts.pstdev(self.uas) / self.avg_ua
 
@@ -700,6 +694,12 @@ class Home:
             home_instance.dhw_input,
             home_instance.heat_system_efficiency,
         )
+
+        home_instance.uas = [
+            processed_energy_bill.ua
+            for processed_energy_bill in home_instance.winter_processed_energy_bills
+            if processed_energy_bill.ua is not None
+        ]
 
         home_instance._calculate_balance_point_and_ua(
             initial_balance_point_sensitivity,
