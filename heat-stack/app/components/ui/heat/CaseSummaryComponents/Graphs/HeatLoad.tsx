@@ -25,6 +25,7 @@ import {
 	calculateMaxHeatLoad,
 } from '../utility/heat-load-calculations'
 import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
+import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
 
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
@@ -136,29 +137,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 						/>
 					</YAxis>
 
-					<Tooltip
-						formatter={(value: any, name: string, props: any) => {
-							const temperature = props.payload
-								? props.payload?.temperature
-								: null
-
-							if (temperature !== null) {
-								// Format tooltip with temperature and heat load values
-								return [
-									`${Number(value).toLocaleString()} BTU/h`, // Heat load in BTU/h
-									`${temperature}°F ${name.replace('Line', ' Heat Load').replace('Point', ' at Design Temperature')}`, // Temperature in °F below the heat load value
-								]
-							}
-
-							// Fallback in case the temperature is not available
-							return [
-								`${Number(value).toLocaleString()} BTU/h`,
-								name
-									.replace('Line', ' Heat Load')
-									.replace('Point', ' at Design Temperature'),
-							]
-						}}
-					/>
+					<Tooltip content={<HeatLoadGraphToolTip />} />
 
 					<Legend
 						wrapperStyle={{
