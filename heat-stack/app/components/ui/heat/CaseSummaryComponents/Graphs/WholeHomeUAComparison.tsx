@@ -1,14 +1,15 @@
 import React, { useMemo } from 'react'
 import {
 	ComposedChart,
-	Line,
-	XAxis,
-	YAxis,
 	CartesianGrid,
 	Tooltip,
 	Scatter,
+	Line,
+	XAxis,
+	YAxis,
 	Legend,
 	ResponsiveContainer,
+	Label,
 } from 'recharts'
 import {
 	COLOR_BLUE,
@@ -17,25 +18,39 @@ import {
 	defaultComparisonData,
 } from '../constants'
 import { CustomTooltip } from './CustomToolTip'
+import { Icon } from '../../../icon'
 
+// Default data for the line chart
 const defaultLineData = [
 	{ x: 0, yLine: 0 },
 	{ x: 5000, yLine: 1650 },
 ]
 
+/**
+ * Props for the WholeHomeUAComparison component
+ * @interface
+ */
 interface WholeHomeUAComparisonProps {
 	heatLoadSummaryOutput: any
 	livingArea: number
 	comparisonData: any
 }
 
+/**
+ * Component that renders a comparison of whole-home heat loss with scatter and line chart
+ * @function
+ * @param {WholeHomeUAComparisonProps} props - The component props
+ * @returns {JSX.Element} The rendered chart component
+ */
 export function WholeHomeUAComparison({
 	heatLoadSummaryOutput,
 	livingArea,
 	comparisonData = defaultComparisonData,
 }: WholeHomeUAComparisonProps) {
+	// Extract heat loss rate from the provided output
 	const { whole_home_heat_loss_rate } = heatLoadSummaryOutput
 
+	// Prepare the data for the chart using useMemo to optimize recalculations
 	const data = useMemo(() => {
 		// Merge the "This Home" and "Comparison Homes" data into a single array
 		const comparisonDataWithLabel = comparisonData.map((d: any) => ({
@@ -44,6 +59,7 @@ export function WholeHomeUAComparison({
 			label: 'Comparison Home',
 		}))
 
+		// Data for "This Home"
 		const thisHomeData = {
 			x: livingArea,
 			y: Math.round(whole_home_heat_loss_rate),
@@ -51,6 +67,7 @@ export function WholeHomeUAComparison({
 			label: 'This Home',
 		}
 
+		// Combine both sets of data for use in the chart
 		return {
 			combinedData: [...comparisonDataWithLabel, thisHomeData],
 			lineData: defaultLineData,
@@ -58,9 +75,15 @@ export function WholeHomeUAComparison({
 	}, [comparisonData, whole_home_heat_loss_rate, livingArea])
 
 	return (
-		<div>
-			<div className="item-title">Whole-home heat loss comparison</div>
+		<div className="mt-8 min-w-[625px] rounded-lg shadow-lg">
+			{/* Title and icon for the chart */}
+			<span className="mb-4 text-lg font-semibold">
+				Whole-home heat loss comparison{' '}
+				<Icon name="question-mark-circled" size="md" />{' '}
+			</span>
+			{/* Responsive container to ensure chart resizes */}
 			<ResponsiveContainer width="100%" height={400}>
+				{/* Main composed chart component */}
 				<ComposedChart
 					width={500}
 					height={400}
@@ -68,11 +91,14 @@ export function WholeHomeUAComparison({
 					margin={{
 						top: 20,
 						right: 80,
-						bottom: 20,
-						left: 100,
+						bottom: 30,
+						left: 80,
 					}}
 				>
+					{/* Grid lines for the chart */}
 					<CartesianGrid stroke="#f5f5f5" />
+
+					{/* Tooltip with custom content for heat loss information */}
 					<Tooltip
 						content={
 							<CustomTooltip
@@ -84,6 +110,7 @@ export function WholeHomeUAComparison({
 						}
 						formatter={(value, name, props) => {
 							const { payload } = props
+							// Only show the tooltip for individual points
 							if (payload && payload.length) {
 								const point = payload[0] // Get the first point (since there's only one per hover)
 								if (point) {
@@ -93,14 +120,40 @@ export function WholeHomeUAComparison({
 							return null // Exclude line elements or multiple values
 						}}
 					/>
-					<XAxis type="number" dataKey="x" name="Living Area" unit=" sf" />
+
+					{/* X-axis for the chart with Living Area label */}
+					<XAxis
+						type="number"
+						dataKey="x"
+						name="Living Area"
+						domain={[0, 'auto']}
+					>
+						{/* Label for the X-axis */}
+						<Label
+							value="Living Area (sf)"
+							position="bottom"
+							offset={15} // Adjusted offset for better visibility
+						/>
+					</XAxis>
+
+					{/* Y-axis for the chart with Whole-home UA label */}
 					<YAxis
 						type="number"
 						dataKey="y"
 						name="Whole-home UA"
-						unit="BTU/h-°F"
 						domain={[0, 'auto']}
-					/>
+					>
+						{/* Label for the Y-axis */}
+						<Label
+							value="Whole-home UA (BTU/h - °F)"
+							position="left"
+							angle={-90}
+							offset={20}
+							dy={-120} // Adjusted vertical offset for better alignment
+						/>
+					</YAxis>
+
+					{/* Scatter plot for the "This Home" and "Comparison Homes" data */}
 					<Scatter
 						name="Whole Home UA"
 						data={data.combinedData}
@@ -115,6 +168,7 @@ export function WholeHomeUAComparison({
 						dataKey="y"
 					/>
 
+					{/* Line chart for the comparison homes data */}
 					<Line
 						data={data.lineData}
 						dataKey="yLine"
@@ -122,7 +176,8 @@ export function WholeHomeUAComparison({
 						activeDot={false}
 						legendType="none"
 					/>
-					{/* Hard-coded Legend */}
+
+					{/* Hard-coded legend for this component */}
 					<Legend
 						wrapperStyle={{
 							backgroundColor: COLOR_WHITE,
@@ -135,6 +190,7 @@ export function WholeHomeUAComparison({
 						layout="middle"
 						content={() => (
 							<ul className="recharts-default-legend">
+								{/* Legend item for "This Home" */}
 								<li>
 									<span
 										className="recharts-symbol"
@@ -149,6 +205,7 @@ export function WholeHomeUAComparison({
 									></span>
 									This Home
 								</li>
+								{/* Legend item for "Comparison Homes" */}
 								<li>
 									<span
 										className="recharts-symbol"

@@ -101,7 +101,7 @@ export function HeatLoad({
 	const maxXValue = useMemo(() => designSetPoint, [designSetPoint])
 
 	return (
-		<div className="min-w-[625px] rounded-lg shadow-lg">
+		<div className="mt-8 min-w-[625px] rounded-lg shadow-lg">
 			<span className="mb-4 text-lg font-semibold">
 				Heating System Demand <Icon name="question-mark-circled" size="md" />{' '}
 			</span>
