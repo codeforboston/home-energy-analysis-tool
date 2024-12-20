@@ -558,7 +558,11 @@ class Home:
 
         self.balance_point_graph.records.append(balance_point_graph_row)
 
-        self._refine_balance_point(initial_balance_point_sensitivity)
+        self.balance_point, self.avg_ua, self.stdev_pct = self._refine_balance_point(
+            balance_point=self.balance_point, 
+            balance_point_sensitivity=initial_balance_point_sensitivity, 
+            avg_ua=self.avg_ua, 
+            stdev_pct=self.stdev_pct)
 
         while self.stdev_pct > stdev_pct_max:
             outliers = [
@@ -593,9 +597,20 @@ class Home:
             else:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-            self._refine_balance_point(next_balance_point_sensitivity)
+            self.balance_point, self.avg_ua, self.stdev_pct = self._refine_balance_point(
+                balance_point=self.balance_point, 
+                balance_point_sensitivity=next_balance_point_sensitivity, 
+                avg_ua=self.avg_ua, 
+                stdev_pct=self.stdev_pct)
 
-    def _refine_balance_point(self, balance_point_sensitivity: float) -> None:
+    def _refine_balance_point(
+            self, 
+            *, 
+            balance_point: float, 
+            balance_point_sensitivity: float,
+            avg_ua: float,
+            stdev_pct: float
+        ) -> None:
         """
         Tries different balance points plus or minus a given number
         of degrees, choosing whichever one minimizes the standard
@@ -605,7 +620,7 @@ class Home:
 
         while directions_to_check:
             bp_i = (
-                self.balance_point + directions_to_check[0] * balance_point_sensitivity
+                balance_point + directions_to_check[0] * balance_point_sensitivity
             )
 
             if bp_i > self.thermostat_set_point:
@@ -622,7 +637,7 @@ class Home:
             avg_ua_i = sts.mean(uas_i)
             stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
 
-            change_in_heat_loss_rate = avg_ua_i - self.avg_ua
+            change_in_heat_loss_rate = avg_ua_i - avg_ua
             percent_change_in_heat_loss_rate = 100 * change_in_heat_loss_rate / avg_ua_i
 
             balance_point_graph_row = BalancePointGraphRow(
@@ -634,21 +649,21 @@ class Home:
             )
             self.balance_point_graph.records.append(balance_point_graph_row)
 
-            if stdev_pct_i >= self.stdev_pct:
+            if stdev_pct_i >= stdev_pct:
                 directions_to_check.pop(0)
             else:
-                self.balance_point, self.avg_ua, self.stdev_pct = (
+                balance_point, avg_ua, stdev_pct = (
                     bp_i,
                     avg_ua_i,
                     stdev_pct_i,
                 )
 
                 balance_point_graph_row = BalancePointGraphRow(
-                    balance_point=self.balance_point,
-                    heat_loss_rate=self.avg_ua,
+                    balance_point=balance_point,
+                    heat_loss_rate=avg_ua,
                     change_in_heat_loss_rate=change_in_heat_loss_rate,
                     percent_change_in_heat_loss_rate=percent_change_in_heat_loss_rate,
-                    standard_deviation=self.stdev_pct,
+                    standard_deviation=stdev_pct,
                 )
                 self.balance_point_graph.records.append(balance_point_graph_row)
 
@@ -658,6 +673,8 @@ class Home:
 
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
+
+        return balance_point, avg_ua, stdev_pct
 
     @classmethod
     def calculate(
