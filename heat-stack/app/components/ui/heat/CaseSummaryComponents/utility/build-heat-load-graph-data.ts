@@ -1,15 +1,17 @@
 import { SummaryOutputSchema } from '../../../../../../types/types'
+import { COLOR_BLUE, COLOR_ORANGE } from '../constants'
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
 } from './heat-load-calculations'
 
 type HeatLoadGraphPoint = {
-	temperature: number
 	avgLine?: number
-	avgPoint?: number
 	maxLine?: number
-	maxPoint?: number
+	x: number
+	avg?: number
+	max?: number
+	color?: string
 }
 
 /**
@@ -68,36 +70,42 @@ export const buildHeatLoadGraphData = (
 
 	// point for avg line at start
 	points.push({
-		temperature: startTemperature,
+		x: startTemperature,
 		avgLine: avgHeatLoadStart,
+		color: COLOR_BLUE,
 	})
 	// point for avg line at design temperature
 	points.push({
-		temperature: design_temperature,
+		x: design_temperature,
 		avgLine: avgHeatLoad,
-		avgPoint: avgHeatLoad,
+		avg: avgHeatLoad,
+		color: COLOR_BLUE,
 	})
 	// point for avg line at design set point
 	points.push({
-		temperature: designSetPoint,
+		x: designSetPoint,
 		avgLine: avgHeatLoadSetPoint,
+		color: COLOR_BLUE,
 	})
 
 	// Add the point for max line at start temperature
 	points.push({
-		temperature: startTemperature,
+		x: startTemperature,
 		maxLine: maxHeatLoadStart,
+		color: COLOR_ORANGE,
 	})
 	// Add the point for max line at design temperature
 	points.push({
-		temperature: design_temperature,
+		x: design_temperature,
 		maxLine: maxHeatLoad,
-		maxPoint: maxHeatLoad,
+		max: maxHeatLoad,
+		color: COLOR_ORANGE,
 	})
 	// Add the point for max line at design set point
 	points.push({
-		temperature: designSetPoint,
+		x: designSetPoint,
 		maxLine: maxHeatLoadSetPoint,
+		color: COLOR_ORANGE,
 	})
 
 	return points

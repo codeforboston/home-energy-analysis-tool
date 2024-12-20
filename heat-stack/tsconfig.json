@@ -2,10 +2,11 @@
 	"include": ["**/*.ts", "**/*.tsx"],
 	"extends": ["@epic-web/config/typescript"],
 	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
 		// "lib": ["DOM", "DOM.Iterable", "ES2022"],
 		// "isolatedModules": true,
 		// "esModuleInterop": true,
-		// "jsx": "react-jsx",
+		"jsx": "react-jsx",
 		// "module": "ES2022",
 		// "target": "ES2022",
 		// "moduleResolution": "bundler",

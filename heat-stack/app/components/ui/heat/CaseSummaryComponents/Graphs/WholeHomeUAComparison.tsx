@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react'
 import {
 	ComposedChart,
 	Line,
@@ -6,119 +7,64 @@ import {
 	CartesianGrid,
 	Tooltip,
 	Scatter,
+	Legend,
 	ResponsiveContainer,
 } from 'recharts'
+import {
+	COLOR_BLUE,
+	COLOR_ORANGE,
+	COLOR_WHITE,
+	defaultComparisonData,
+} from '../constants'
+import { CustomTooltip } from './CustomToolTip'
 
-const data = [
-	{ x: 2702, y: 1092 },
-	{ x: 4000, y: 1155 },
-	{ x: 1851, y: 464 },
-	{ x: 1112, y: 218 },
-	{ x: 3000, y: 733 },
-	{ x: 2100, y: 798 },
-	{ x: 2454, y: 475 },
-	{ x: 1229, y: 341 },
-	{ x: 2000, y: 720 },
-	{ x: 3946, y: 648 },
-	{ x: 1960, y: 477 },
-	{ x: 1800, y: 551 },
-	{ x: 2992, y: 751 },
-	{ x: 2342, y: 698 },
-	{ x: 1728, y: 290 },
-	{ x: 2440, y: 977 },
-	{ x: 3891, y: 1300 },
-	{ x: 1906, y: 958 },
-	{ x: 2835, y: 967 },
-	{ x: 3459, y: 975 },
-	{ x: 3459, y: 809 },
-	{ x: 4230, y: 1684 },
-	{ x: 4250, y: 1265 },
-	{ x: 3604, y: 1422 },
-	{ x: 2033, y: 715 },
-	{ x: 4000, y: 1124 },
-	{ x: 3028, y: 1519 },
-	{ x: 3254.6, y: 872 },
-	{ x: 3514, y: 743 },
-	{ x: 1896, y: 728 },
-	{ x: 3878, y: 1011 },
-	{ x: 2760, y: 792 },
-	{ x: 3262, y: 1066 },
-	{ x: 3850, y: 1128 },
-	{ x: 1559, y: 528 },
-	{ x: 2133, y: 709 },
-	{ x: 2400, y: 994 },
-	{ x: 3370, y: 1072 },
-	{ x: 1662, y: 775 },
-	{ x: 1533, y: 645 },
-	{ x: 2600, y: 587 },
-	{ x: 2155, y: 654 },
-	{ x: 2200, y: 567 },
-	{ x: 1999, y: 716 },
-	{ x: 2400, y: 758 },
-	{ x: 2492, y: 858 },
-	{ x: 3120, y: 857 },
-	{ x: 3398, y: 1147 },
-	{ x: 4857, y: 1085 },
-	{ x: 3254, y: 723 },
-	{ x: 2584, y: 872 },
-	{ x: 2688, y: 670 },
-	{ x: 864, y: 479 },
-	{ x: 2110, y: 609 },
-	{ x: 1500, y: 767 },
-	{ x: 2803, y: 648 },
-	{ x: 1157, y: 340 },
-	{ x: 5000, y: 1485 },
-	{ x: 2228, y: 627 },
-	{ x: 1258, y: 417 },
-	{ x: 2500, y: 951 },
-	{ x: 1700, y: 721 },
-	{ x: 3066, y: 1622 },
-	{ x: 2485, y: 735 },
-	{ x: 1300, y: 435 },
-	{ x: 1600, y: 356 },
-	{ x: 2716, y: 820 },
-	{ x: 3000, y: 1207 },
-	{ x: 2000, y: 599 },
-	{ x: 1980, y: 513 },
-	{ x: 2500, y: 901 },
-	{ x: 2940, y: 1020 },
-	{ x: 2078, y: 699 },
-	{ x: 2824, y: 849 },
-	{ x: 2140, y: 913 },
-	{ x: 2765, y: 900 },
-	{ x: 3378, y: 944 },
-	{ x: 3111, y: 823 },
-	{ x: 2200, y: 680 },
-	{ x: 3800, y: 1057 },
-	{ x: 1638, y: 849 },
-	{ x: 2076, y: 992 },
-	{ x: 3740, y: 1207 },
-	{ x: 1566, y: 398 },
-	{ x: 2508, y: 867 },
-	{ x: 1518, y: 480 },
-	{ x: 1361, y: 565 },
-	{ x: 3886, y: 985 },
-	{ x: 2263, y: 1042 },
-	{ x: 1970, y: 479 },
-	{ x: 2133, y: 564 },
-	{ x: 1624, y: 571 },
-	{ x: 2093, y: 418 },
-	{ x: 2028, y: 651 },
-	{ x: 2849, y: 799 },
+const defaultLineData = [
 	{ x: 0, yLine: 0 },
 	{ x: 5000, yLine: 1650 },
 ]
 
-export function WholeHomeUAComparison() {
+interface WholeHomeUAComparisonProps {
+	heatLoadSummaryOutput: any
+	livingArea: number
+	comparisonData: any
+}
+
+export function WholeHomeUAComparison({
+	heatLoadSummaryOutput,
+	livingArea,
+	comparisonData = defaultComparisonData,
+}: WholeHomeUAComparisonProps) {
+	const { whole_home_heat_loss_rate } = heatLoadSummaryOutput
+
+	const data = useMemo(() => {
+		// Merge the "This Home" and "Comparison Homes" data into a single array
+		const comparisonDataWithLabel = comparisonData.map((d: any) => ({
+			...d,
+			color: COLOR_BLUE,
+			label: 'Comparison Home',
+		}))
+
+		const thisHomeData = {
+			x: livingArea,
+			y: Math.round(whole_home_heat_loss_rate),
+			color: COLOR_ORANGE,
+			label: 'This Home',
+		}
+
+		return {
+			combinedData: [...comparisonDataWithLabel, thisHomeData],
+			lineData: defaultLineData,
+		}
+	}, [comparisonData, whole_home_heat_loss_rate, livingArea])
+
 	return (
 		<div>
 			<div className="item-title">Whole-home heat loss comparison</div>
-
 			<ResponsiveContainer width="100%" height={400}>
 				<ComposedChart
 					width={500}
 					height={400}
-					data={data}
+					data={[...data.combinedData, ...data.lineData]}
 					margin={{
 						top: 20,
 						right: 80,
@@ -127,20 +73,98 @@ export function WholeHomeUAComparison() {
 					}}
 				>
 					<CartesianGrid stroke="#f5f5f5" />
-					<Tooltip />
+					<Tooltip
+						content={
+							<CustomTooltip
+								xLabel="Living Area"
+								yLabel="Whole-home UA"
+								unitX=" sf"
+								unitY=" BTU/h-°F"
+							/>
+						}
+						formatter={(value, name, props) => {
+							const { payload } = props
+							if (payload && payload.length) {
+								const point = payload[0] // Get the first point (since there's only one per hover)
+								if (point) {
+									return [`${value}`, point.label || name] // Show the name based on the label
+								}
+							}
+							return null // Exclude line elements or multiple values
+						}}
+					/>
 					<XAxis type="number" dataKey="x" name="Living Area" unit=" sf" />
 					<YAxis
 						type="number"
 						dataKey="y"
 						name="Whole-home UA"
 						unit="BTU/h-°F"
+						domain={[0, 'auto']}
 					/>
-					<Scatter name="BTU/h-°F" dataKey="y" fill="#8884d8" />
+					<Scatter
+						name="Whole Home UA"
+						data={data.combinedData}
+						shape={(props) => (
+							<circle
+								cx={props.cx}
+								cy={props.cy}
+								r={6}
+								fill={props.payload.color}
+							/>
+						)}
+						dataKey="y"
+					/>
+
 					<Line
+						data={data.lineData}
 						dataKey="yLine"
 						dot={false}
 						activeDot={false}
 						legendType="none"
+					/>
+					{/* Hard-coded Legend */}
+					<Legend
+						wrapperStyle={{
+							backgroundColor: COLOR_WHITE,
+							border: `1px solid #ddd`,
+							borderRadius: '3px',
+							padding: '15px',
+						}}
+						align="right"
+						verticalAlign="top"
+						layout="middle"
+						content={() => (
+							<ul className="recharts-default-legend">
+								<li>
+									<span
+										className="recharts-symbol"
+										style={{
+											display: 'inline-block',
+											width: '12px',
+											height: '12px',
+											backgroundColor: COLOR_ORANGE,
+											borderRadius: '50%',
+											marginRight: '5px',
+										}}
+									></span>
+									This Home
+								</li>
+								<li>
+									<span
+										className="recharts-symbol"
+										style={{
+											display: 'inline-block',
+											width: '12px',
+											height: '12px',
+											backgroundColor: COLOR_BLUE,
+											borderRadius: '50%',
+											marginRight: '5px',
+										}}
+									></span>
+									Comparison Homes
+								</li>
+							</ul>
+						)}
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>

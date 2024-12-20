@@ -3,10 +3,12 @@ import { Graphs } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadA
 
 interface HeatLoadAnalysisProps {
 	heatLoadSummaryOutput: any;
+	livingArea: number;
 }
 
 export default function HeatLoadAnalysis({
 	heatLoadSummaryOutput,
+	livingArea
 }: HeatLoadAnalysisProps) {
-	return <Graphs heatLoadSummaryOutput={heatLoadSummaryOutput} />
+	return <Graphs heatLoadSummaryOutput={heatLoadSummaryOutput} livingArea={livingArea} />
 }

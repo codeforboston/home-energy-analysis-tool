@@ -5,6 +5,7 @@ import {
 	XAxis,
 	YAxis,
 	CartesianGrid,
+	CustomSymbolProps,
 	Tooltip,
 	ResponsiveContainer,
 	Legend,
@@ -25,7 +26,8 @@ import {
 	calculateMaxHeatLoad,
 } from '../utility/heat-load-calculations'
 import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
-import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
+import { CustomTooltip } from './CustomToolTip'
+import { DiamondShape } from './DiamondPoint'
 
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
@@ -38,7 +40,9 @@ type HeatLoadProps = {
  * @param {HeatLoadProps} props - The props containing heat load data to render the chart.
  * @returns {JSX.Element} - The rendered chart component.
  */
-export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
+export function HeatLoad({
+	heatLoadSummaryOutput,
+}: HeatLoadProps): JSX.Element {
 	const designSetPoint = 70 // Design set point (70°F), defined in external documentation
 	const { design_temperature } = heatLoadSummaryOutput
 
@@ -116,7 +120,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 
 					<XAxis
 						type="number"
-						dataKey="temperature"
+						dataKey="x"
 						name="Outdoor Temperature"
 						domain={[minXValue, maxXValue]}
 						tickCount={maxXValue - minXValue + 1} // Ensure whole number ticks
@@ -137,7 +141,17 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 						/>
 					</YAxis>
 
-					<Tooltip content={<HeatLoadGraphToolTip />} />
+					<Tooltip
+						content={
+							<CustomTooltip
+								xLabel="Temperature"
+								yLabel="Heat Load"
+								unitX="°F"
+								unitY=" BTU/h"
+								valueFormatter={(value: number | string) => `${value}`}
+							/>
+						}
+					/>
 
 					<Legend
 						wrapperStyle={{
@@ -169,22 +183,34 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 						name="Average, with internal & solar gain"
 					/>
 
-					{/* Scatter point for maximum heat load at design temperature */}
-					<Scatter
-						dataKey="maxPoint"
-						fill={COLOR_ORANGE}
-						name="Maximum at design temperature"
-						shape="diamond"
-						legendType="diamond"
-					/>
-
 					{/* Scatter point for average heat load at design temperature */}
 					<Scatter
-						dataKey="avgPoint"
+						dataKey="avg"
+						name="Avg at Design Temperature"
+						shape={(props: CustomSymbolProps) => {
+							const { cx, cy, payload } = props
+							const fillColor = payload.color || 'black' // Fallback to black if no color is defined
+
+							return <DiamondShape cx={cx} cy={cy} fillColor={fillColor} />
+						}}
 						fill={COLOR_BLUE}
-						name="Average at design temperature"
-						shape="diamond"
 						legendType="diamond"
+						isAnimationActive={false} // Optional: Disable animation for better performance
+					/>
+
+					{/* Scatter point for maximum heat load at design temperature */}
+					<Scatter
+						dataKey="max"
+						name="Max at Design Temperature"
+						shape={(props: CustomSymbolProps) => {
+							const { cx, cy, payload } = props
+							const fillColor = payload.color || 'black' // Fallback to black if no color is defined
+
+							return <DiamondShape cx={cx} cy={cy} fillColor={fillColor} />
+						}}
+						fill={COLOR_ORANGE}
+						legendType="diamond"
+						isAnimationActive={false} // Optional: Disable animation for better performance
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>

@@ -592,7 +592,7 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} livingArea={3000} /> }
         </>
     )
 }
