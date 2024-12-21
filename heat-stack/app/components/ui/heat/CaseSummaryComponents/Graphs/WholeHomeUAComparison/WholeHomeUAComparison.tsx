@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import {
 	ComposedChart,
 	CartesianGrid,
@@ -9,15 +9,13 @@ import {
 	XAxis,
 	YAxis,
 	ResponsiveContainer,
-	TooltipProps,
-	ScatterPoint,
 	Label,
 } from 'recharts'
+import type { SummaryOutputSchema } from '../../../../../../../types/types'
+import { Icon } from '../../../../icon'
 import { COLOR_BLUE, COLOR_ORANGE } from '../constants'
 import { CustomTooltip } from '../Shared/CustomToolTip'
-import { Icon } from '../../../../icon'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
-import { SummaryOutputSchema } from '../../../../../../../types/types'
 import WholeHomeUAComparisonLegend from './WholeHomeUAComparisonLegend'
 
 type DataPoint = {
@@ -29,8 +27,16 @@ type DataPoint = {
 }
 
 type ChartData = {
-	combinedData: DataPoint[] // Array of data points for the scatter plot.
-	lineData: DataPoint[] // Array of data points for the line chart.
+	combinedData: DataPoint[]
+	lineData: DataPoint[]
+}
+
+type ScatterShapeProps = {
+	cx: number
+	cy: number
+	payload: {
+		color: string
+	}
 }
 
 type WholeHomeUAComparisonProps = {
@@ -39,24 +45,29 @@ type WholeHomeUAComparisonProps = {
 	comparisonData: { x: number; y: number }[]
 }
 
-const toolTipFormatter = (
-	value: number | string,
-	name: string,
-	props: TooltipProps,
-) => {
-	const { payload } = props
-	if (payload && payload.length) {
-		const point = payload[0]
-		if (point) {
-			return [`${value}`, point.label || name]
-		}
-	}
-	return null // Exclude line elements or multiple values
-}
+/**
+ * Custom scatter shape renderer for Recharts' Scatter component.
+ * This function is used to render a custom color for each point
+ * so we can display the selected home in orange rather than blue
+ *
+ * @param {unknown} props - The properties passed to the custom scatter shape function.
+ *                          These properties are typecast to `ScatterShapeProps` since
+ * 													Recharts expects props to be 'unknown' due to dynamic data
+ *
+ * @returns {JSX.Element} A JSX element
+ */
+const getScatterShape = (props: unknown): JSX.Element => {
+	const scatterProps = props as ScatterShapeProps
 
-const getScatterShape = (
-	props: ScatterPoint & { payload: { color: string } },
-) => <circle cx={props.cx} cy={props.cy} r={6} fill={props.payload.color} />
+	return (
+		<circle
+			cx={scatterProps.cx}
+			cy={scatterProps.cy}
+			r={6}
+			fill={scatterProps.payload.color}
+		/>
+	)
+}
 
 /**
  * Component that renders a comparison of whole-home heat loss with scatter and line chart
@@ -73,13 +84,15 @@ export function WholeHomeUAComparison({
 
 	// Prepare the data for the chart
 	const data: ChartData = useMemo(() => {
-		const comparisonDataWithLabel = comparisonData.map((d: any) => ({
-			...d,
-			color: COLOR_BLUE,
-			label: 'Comparison Home',
-		}))
+		const comparisonDataWithLabel: DataPoint[] = comparisonData.map(
+			(d: any) => ({
+				...d,
+				color: COLOR_BLUE,
+				label: 'Comparison Home',
+			}),
+		)
 
-		const thisHomeData = {
+		const thisHomeData: DataPoint = {
 			x: livingArea,
 			y: Math.round(whole_home_heat_loss_rate),
 			color: COLOR_ORANGE,
@@ -118,25 +131,10 @@ export function WholeHomeUAComparison({
 					<CartesianGrid stroke="#f5f5f5" />
 
 					{/* Tooltip with custom content for heat loss information */}
-					<Tooltip
-						content={
-							<CustomTooltip
-								xLabel="Living Area"
-								yLabel="Whole-home UA"
-								unitX=" sf"
-								unitY=" BTU/h-°F"
-							/>
-						}
-						formatter={toolTipFormatter}
-					/>
+					<Tooltip content={<CustomTooltip />} />
 
 					{/* X-axis for the chart with Living Area label */}
-					<XAxis
-						type="number"
-						dataKey="x"
-						name="Living Area"
-						domain={[0, 'auto']}
-					>
+					<XAxis type="number" dataKey="x" name="Living Area">
 						<Label
 							value="Living Area (sf)"
 							position="bottom"
@@ -145,12 +143,7 @@ export function WholeHomeUAComparison({
 					</XAxis>
 
 					{/* Y-axis for the chart with Whole-home UA label */}
-					<YAxis
-						type="number"
-						dataKey="y"
-						name="Whole-home UA"
-						domain={[0, 'auto']}
-					>
+					<YAxis type="number" dataKey="y" name="Whole-home UA">
 						<Label
 							value="Whole-home UA (BTU/h - °F)"
 							position="left"

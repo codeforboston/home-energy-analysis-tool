@@ -1,4 +1,4 @@
-import { SummaryOutputSchema } from '../../../../../../../types/types'
+import type { SummaryOutputSchema } from '../../../../../../../types/types'
 import { COLOR_BLUE, COLOR_ORANGE } from '../constants'
 import {
 	calculateAvgHeatLoad,

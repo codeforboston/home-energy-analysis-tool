@@ -1,18 +1,17 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import {
 	ComposedChart,
 	Line,
 	XAxis,
 	YAxis,
 	CartesianGrid,
-	CustomSymbolProps,
 	Tooltip,
 	ResponsiveContainer,
 	Legend,
 	Label,
 	Scatter,
 } from 'recharts'
-import { SummaryOutputSchema } from '../../../../../../../types/types'
+import type { SummaryOutputSchema } from '../../../../../../../types/types'
 import { Icon } from '../../../../icon'
 import { HeatLoadGrid } from '../../HeatLoadGrid'
 import {
@@ -21,13 +20,12 @@ import {
 	COLOR_ORANGE,
 	COLOR_BLUE,
 } from '../constants'
+import { CustomTooltip } from '../Shared/CustomToolTip'
+import { buildHeatLoadGraphData } from './build-heat-load-graph-data'
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
 } from './heat-load-calculations'
-import { buildHeatLoadGraphData } from './build-heat-load-graph-data'
-import { CustomTooltip } from '../Shared/CustomToolTip'
-import { DiamondShape } from '../Shared/DiamondPoint'
 
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
@@ -141,17 +139,7 @@ export function HeatLoad({
 						/>
 					</YAxis>
 
-					<Tooltip
-						content={
-							<CustomTooltip
-								xLabel="Temperature"
-								yLabel="Heat Load"
-								unitX="°F"
-								unitY=" BTU/h"
-								valueFormatter={(value: number | string) => `${value}`}
-							/>
-						}
-					/>
+					<Tooltip content={<CustomTooltip />} />
 
 					<Legend
 						wrapperStyle={{
@@ -162,7 +150,7 @@ export function HeatLoad({
 						}}
 						align="right"
 						verticalAlign="top"
-						layout="middle"
+						layout="vertical"
 					/>
 
 					{/* Line for maximum heat load */}
@@ -187,12 +175,7 @@ export function HeatLoad({
 					<Scatter
 						dataKey="avg"
 						name="Avg at Design Temperature"
-						shape={(props: CustomSymbolProps) => {
-							const { cx, cy, payload } = props
-							const fillColor = payload.color || 'black' // Fallback to black if no color is defined
-
-							return <DiamondShape cx={cx} cy={cy} fillColor={fillColor} />
-						}}
+						shape="diamond"
 						fill={COLOR_BLUE}
 						legendType="diamond"
 						isAnimationActive={false} // Optional: Disable animation for better performance
@@ -202,12 +185,7 @@ export function HeatLoad({
 					<Scatter
 						dataKey="max"
 						name="Max at Design Temperature"
-						shape={(props: CustomSymbolProps) => {
-							const { cx, cy, payload } = props
-							const fillColor = payload.color || 'black' // Fallback to black if no color is defined
-
-							return <DiamondShape cx={cx} cy={cy} fillColor={fillColor} />
-						}}
+						shape="diamond"
 						fill={COLOR_ORANGE}
 						legendType="diamond"
 						isAnimationActive={false} // Optional: Disable animation for better performance
