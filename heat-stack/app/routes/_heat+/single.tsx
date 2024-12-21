@@ -11,8 +11,8 @@ import * as pyodideModule from 'pyodide'
 import { type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import GeocodeUtil from '#app/utils/GeocodeUtil'
-import WeatherUtil from '#app/utils/WeatherUtil'
+import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 
 
