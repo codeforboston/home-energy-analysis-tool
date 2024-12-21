@@ -42,7 +42,7 @@ type ScatterShapeProps = {
 type WholeHomeUAComparisonProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
 	livingArea: number
-	comparisonData: { x: number; y: number }[]
+	comparisonData?: { x: number; y: number }[]
 }
 
 /**

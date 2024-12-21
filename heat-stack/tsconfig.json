@@ -2,7 +2,7 @@
 	"include": ["**/*.ts", "**/*.tsx"],
 	"extends": ["@epic-web/config/typescript"],
 	"compilerOptions": {
-		"target": "ES6",
+		"target": "es2018",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -10,7 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
+    "module": "esnext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
