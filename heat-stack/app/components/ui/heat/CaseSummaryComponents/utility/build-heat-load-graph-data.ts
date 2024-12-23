@@ -1,8 +1,8 @@
-import { SummaryOutputSchema } from '../../../../../../types/types'
+import { SummaryOutputSchema } from '../../../../../../types/types';
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
-} from './heat-load-calculations'
+} from './heat-load-calculations';
 
 type HeatLoadGraphPoint = {
 	temperature: number
@@ -10,7 +10,7 @@ type HeatLoadGraphPoint = {
 	avgPoint?: number
 	maxLine?: number
 	maxPoint?: number
-}
+};
 
 /**
  * Calculate the heat load data points for max and avg lines.
@@ -25,80 +25,81 @@ export const buildHeatLoadGraphData = (
 	heatLoadSummaryOutput: SummaryOutputSchema,
 	designSetPoint: number,
 ): HeatLoadGraphPoint[] => {
-	const { design_temperature } = heatLoadSummaryOutput
-	const points: HeatLoadGraphPoint[] = []
+	const { design_temperature } = heatLoadSummaryOutput;
+	const points: HeatLoadGraphPoint[] = [];
 
-	// Calculate heat load at -10°F from the design temperature (start point)
-	const startTemperature = design_temperature - 10
-	const avgHeatLoadStart = calculateAvgHeatLoad(
-		heatLoadSummaryOutput,
-		startTemperature,
-		designSetPoint,
-	)
-	const maxHeatLoadStart = calculateMaxHeatLoad(
-		heatLoadSummaryOutput,
-		startTemperature,
-		designSetPoint,
-	)
+	const startTemperature = design_temperature - 10; // Start line 10f below design temperature
+	const endTemperature = designSetPoint; 	// Line will end at design set point)
 
-	// Calculate heat load at design temperature
 	const avgHeatLoad = calculateAvgHeatLoad(
 		heatLoadSummaryOutput,
 		design_temperature,
 		designSetPoint,
-	)
+	);
 	const maxHeatLoad = calculateMaxHeatLoad(
 		heatLoadSummaryOutput,
 		design_temperature,
 		designSetPoint,
-	)
+	);
 
-	// Calculate heat load at design set point (70°F)
-	const endTemperature = designSetPoint
-	const avgHeatLoadSetPoint = calculateAvgHeatLoad(
-		heatLoadSummaryOutput,
-		endTemperature,
-		designSetPoint,
-	)
-	const maxHeatLoadSetPoint = calculateMaxHeatLoad(
-		heatLoadSummaryOutput,
-		endTemperature,
-		designSetPoint,
-	)
-
-	// point for avg line at start
-	points.push({
+	// Set points for Avg line
+	const avgLineStartPoint = {
 		temperature: startTemperature,
-		avgLine: avgHeatLoadStart,
-	})
-	// point for avg line at design temperature
-	points.push({
+		avgLine: calculateAvgHeatLoad(
+			heatLoadSummaryOutput,
+			startTemperature,
+			designSetPoint,
+		),
+	};
+
+	const avgLineDesignTemperaturePoint = {
 		temperature: design_temperature,
 		avgLine: avgHeatLoad,
 		avgPoint: avgHeatLoad,
-	})
-	// point for avg line at design set point
-	points.push({
-		temperature: designSetPoint,
-		avgLine: avgHeatLoadSetPoint,
-	})
+	};
 
-	// Add the point for max line at start temperature
-	points.push({
+	const avgLineDesignSetPoint = {
+		temperature: designSetPoint,
+		avgLine: calculateAvgHeatLoad(
+			heatLoadSummaryOutput,
+			endTemperature,
+			designSetPoint,
+		),
+	};
+
+	// Set points for Max line
+	const maxLineStartPoint = {
 		temperature: startTemperature,
-		maxLine: maxHeatLoadStart,
-	})
-	// Add the point for max line at design temperature
-	points.push({
+		maxLine: calculateMaxHeatLoad(
+			heatLoadSummaryOutput,
+			startTemperature,
+			designSetPoint,
+		),
+	};
+
+	const maxLineDesignTemperaturePoint = {
 		temperature: design_temperature,
 		maxLine: maxHeatLoad,
 		maxPoint: maxHeatLoad,
-	})
-	// Add the point for max line at design set point
-	points.push({
+	};
+	
+	const maxLineDesignSetPoint = {
 		temperature: designSetPoint,
-		maxLine: maxHeatLoadSetPoint,
-	})
+		maxLine: calculateMaxHeatLoad(
+			heatLoadSummaryOutput,
+			endTemperature,
+			designSetPoint,
+		),
+	};
+
+	points.push(
+		avgLineStartPoint,
+		avgLineDesignTemperaturePoint,
+		avgLineDesignSetPoint,
+		maxLineStartPoint,
+		maxLineDesignTemperaturePoint,
+		maxLineDesignSetPoint
+	);
 
 	return points
 }

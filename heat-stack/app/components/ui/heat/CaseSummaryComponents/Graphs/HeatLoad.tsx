@@ -42,22 +42,10 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 	const designSetPoint = 70 // Design set point (70°F), defined in external documentation
 	const { design_temperature } = heatLoadSummaryOutput
 
-	/**
-	 * useMemo hook to calculate the heat load data for the maximum and average lines.
-	 * This data is built from the heat load summary and design temperature.
-	 *
-	 * @returns {Array} - Array of data points for the lines and scatter points.
-	 */
 	const data = useMemo(() => {
 		return buildHeatLoadGraphData(heatLoadSummaryOutput, designSetPoint)
 	}, [heatLoadSummaryOutput])
 
-	/**
-	 * useMemo hook to calculate the minimum Y-axis value.
-	 * Includes a 20% buffer below the minimum heat load value to ensure some space in the chart.
-	 *
-	 * @returns {number} - The calculated minimum Y-axis value.
-	 */
 	const minYValue = useMemo(() => {
 		const minValue = Math.min(
 			...data.map((point) =>
@@ -67,12 +55,6 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 		return Math.max(0, Math.floor((minValue * 0.8) / 10000) * 10000) // 20% buffer
 	}, [data])
 
-	/**
-	 * useMemo hook to calculate the maximum Y-axis value.
-	 * Includes a 30% buffer above the maximum heat load value to ensure space above the line.
-	 *
-	 * @returns {number} - The calculated maximum Y-axis value.
-	 */
 	const maxYValue = useMemo(() => {
 		const maxValue = Math.max(
 			...data.map((point) => Math.max(point.maxLine || 0, point.avgLine || 0)),
@@ -80,20 +62,8 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 		return Math.ceil((maxValue * 1.3) / 10000) * 10000 // 30% buffer
 	}, [data])
 
-	/**
-	 * useMemo hook to calculate the minimum X-axis value.
-	 * Set 10°F below the design temperature to provide some space before the design point.
-	 *
-	 * @returns {number} - The calculated minimum X-axis value.
-	 */
 	const minXValue = useMemo(() => design_temperature - 10, [design_temperature])
 
-	/**
-	 * useMemo hook to calculate the maximum X-axis value.
-	 * Set to the design set point (70°F) to end the chart at the design temperature.
-	 *
-	 * @returns {number} - The calculated maximum X-axis value.
-	 */
 	const maxXValue = useMemo(() => designSetPoint, [designSetPoint])
 
 	return (
@@ -188,6 +158,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps) {
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>
+			
 			<HeatLoadGrid
 				setPoint={designSetPoint}
 				averageHeatLoad={calculateAvgHeatLoad(
