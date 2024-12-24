@@ -23,12 +23,11 @@ type HeatLoadGraphPoint = {
  */
 export const buildHeatLoadGraphData = (
 	heatLoadSummaryOutput: SummaryOutputSchema,
+	startTemperature: number,
 	designSetPoint: number,
+	endTemperature: number,
 ): HeatLoadGraphPoint[] => {
 	const { design_temperature } = heatLoadSummaryOutput;
-
-	const startTemperature = design_temperature - 10; // Start line 10f below design temperature for clarity
-	const endTemperature = designSetPoint;
 
 	const avgHeatLoad = calculateAvgHeatLoad(
 		heatLoadSummaryOutput,

@@ -38,42 +38,46 @@ type HeatLoadProps = {
  * @param {HeatLoadProps} props - The props containing heat load data to render the chart.
  * @returns {JSX.Element} - The rendered chart component.
  */
-export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps): JSX.Element {
+export function HeatLoad({
+	heatLoadSummaryOutput,
+}: HeatLoadProps): JSX.Element {
 	const designSetPoint = 70 // Design set point (70°F), defined in external documentation
 	const { design_temperature } = heatLoadSummaryOutput
+	const startTemperature = design_temperature - 10 // Start line 10f below design temperature for clarity
+	const endTemperature = designSetPoint // end the X axis at the designSetPoint
 
 	/**
- 	 * useMemo to build the HeatLoad graph data.
- 	 */
+	 * useMemo to build the HeatLoad graph data.
+	 */
 	const data = useMemo(() => {
-		return buildHeatLoadGraphData(heatLoadSummaryOutput, designSetPoint)
+		return buildHeatLoadGraphData(
+			heatLoadSummaryOutput,
+			startTemperature,
+			designSetPoint,
+			endTemperature,
+		)
 	}, [heatLoadSummaryOutput])
 
 	/**
- 	 * useMemo to map through the data and calculate the min and max values for the Y axis.
- 	 */
+	 * useMemo to iterate through the data and calculate the min and max values for the Y axis.
+	 */
 	const { minYValue, maxYValue } = useMemo(() => {
-    let minValue = Infinity;
-    let maxValue = 0;
+		let minValue = Infinity
+		let maxValue = 0
 
-    data.forEach((point) => {
-        const maxLine = point.maxLine || 0;
-        const avgLine = point.avgLine || 0;
+		for (const point of data) {
+			const maxLine = point.maxLine || 0
+			const avgLine = point.avgLine || 0
 
-        minValue = Math.min(minValue, maxLine || Infinity, avgLine || Infinity);
-        maxValue = Math.max(maxValue, maxLine, avgLine);
-    });
+			minValue = Math.min(minValue, maxLine || Infinity, avgLine || Infinity)
+			maxValue = Math.max(maxValue, maxLine, avgLine)
+		}
 
-    const minY = Math.max(0, Math.floor((minValue * 0.8) / 10000) * 10000); // 20% buffer
-    const maxY = Math.ceil((maxValue * 1.3) / 10000) * 10000; // 30% buffer
+		const minY = Math.max(0, Math.floor((minValue * 0.8) / 10000) * 10000) // 20% buffer
+		const maxY = Math.ceil((maxValue * 1.3) / 10000) * 10000 // 30% buffer
 
-    return { minYValue: minY, maxYValue: maxY };
-}, [data]);
-
-
-	const minXValue = useMemo(() => design_temperature - 10, [design_temperature])
-
-	const maxXValue = useMemo(() => designSetPoint, [designSetPoint])
+		return { minYValue: minY, maxYValue: maxY }
+	}, [data])
 
 	return (
 		<div className="min-w-[625px] rounded-lg shadow-lg">
@@ -97,8 +101,8 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps): JSX.Element 
 						type="number"
 						dataKey="temperature"
 						name="Outdoor Temperature"
-						domain={[minXValue, maxXValue]}
-						tickCount={maxXValue - minXValue + 1} // Ensure whole number ticks
+						domain={[startTemperature, endTemperature]}
+						tickCount={endTemperature - startTemperature + 1} // Ensure whole number ticks
 					>
 						<Label
 							value="Outdoor Temperature (°F)"
@@ -167,7 +171,7 @@ export function HeatLoad({ heatLoadSummaryOutput }: HeatLoadProps): JSX.Element 
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>
-			
+
 			<HeatLoadGrid
 				setPoint={designSetPoint}
 				averageHeatLoad={calculateAvgHeatLoad(
