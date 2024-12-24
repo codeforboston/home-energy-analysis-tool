@@ -44,7 +44,7 @@ export function HeatLoad({
 	const designSetPoint = 70 // Design set point (70°F), defined in external documentation
 	const { design_temperature } = heatLoadSummaryOutput
 	const startTemperature = design_temperature - 10 // Start line 10f below design temperature for clarity
-	const endTemperature = designSetPoint // end the X axis at the designSetPoint
+	const endTemperature = designSetPoint + 2 // end the X axis at the designSetPoint plus 2f for clarity
 
 	/**
 	 * useMemo to build the HeatLoad graph data.
