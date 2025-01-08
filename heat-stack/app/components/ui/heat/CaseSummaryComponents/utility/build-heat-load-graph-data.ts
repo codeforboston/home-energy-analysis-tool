@@ -1,6 +1,7 @@
 import { SummaryOutputSchema } from '../../../../../../types/types';
 import {
 	calculateAvgHeatLoad,
+	calculateAvgHeatLoadEndPoint,
 	calculateMaxHeatLoad,
 } from './heat-load-calculations';
 
@@ -27,7 +28,7 @@ export const buildHeatLoadGraphData = (
 	designSetPoint: number,
 	endTemperature: number,
 ): HeatLoadGraphPoint[] => {
-	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput;
+	const { design_temperature, whole_home_heat_loss_rate, average_indoor_temperature, estimated_balance_point } = heatLoadSummaryOutput;
 
 	const avgHeatLoad = calculateAvgHeatLoad(
 		heatLoadSummaryOutput,
@@ -58,12 +59,8 @@ export const buildHeatLoadGraphData = (
 	};
 
 	const avgLineEndPoint = {
-		temperature: designSetPoint,
-		avgLine: calculateAvgHeatLoad(
-			heatLoadSummaryOutput,
-			endTemperature,
-			designSetPoint,
-		),
+		temperature: calculateAvgHeatLoadEndPoint(estimated_balance_point, designSetPoint, average_indoor_temperature),
+		avgLine: 0,
 	};
 
 	// Points for Max line

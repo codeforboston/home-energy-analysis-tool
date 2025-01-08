@@ -47,3 +47,7 @@ export function calculateAvgHeatLoad(
 				whole_home_heat_loss_rate,
 		)
 }
+
+export function calculateAvgHeatLoadEndPoint(balancePointTemperature: number, designSetPoint: number, averageIndoorTemperature: number): number {
+return balancePointTemperature + designSetPoint - averageIndoorTemperature;
+}
