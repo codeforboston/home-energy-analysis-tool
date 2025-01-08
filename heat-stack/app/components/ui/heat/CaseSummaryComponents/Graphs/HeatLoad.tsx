@@ -27,6 +27,32 @@ import {
 import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
 
+// Custom legend component
+const CustomLegend = () => {
+  const legendItems = [
+    { name: "Maximum, no internal or solar gain", color: "#FFA500", type: "line" },
+    { name: "Average, with internal & solar gain", color: "#0000FF", type: "line" },
+    { name: "Maximum at design temperature", color: "#FFA500", type: "diamond" },
+    { name: "Average at design temperature", color: "#0000FF", type: "diamond" }
+  ];
+
+  return (
+    <div className="absolute top-6 right-6 bg-white border border-gray-200 rounded p-4 shadow-sm">
+      {legendItems.map((item, index) => (
+        <div key={index} className="flex items-center gap-2 mb-2 last:mb-0">
+          {item.type === 'line' ? (
+            <div className="w-8 h-0.5" style={{ backgroundColor: item.color }} />
+          ) : (
+            <div className="w-3 h-3 rotate-45" style={{ backgroundColor: item.color }} />
+          )}
+          <span className="text-sm">{item.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
 const BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
 const Y_AXIS_MIN_VALUE = 0; // Always start the Y axis at 0
@@ -94,6 +120,7 @@ export function HeatLoad({
 				<Icon name="question-mark-circled" className="ps-1" size="md" />
 			</span>
 
+			<div className="relative w-full h-[400px]">
 			<ResponsiveContainer width="100%" height={400}>
 				<ComposedChart
 					margin={{
@@ -130,20 +157,6 @@ export function HeatLoad({
 					</YAxis>
 
 					<Tooltip content={<HeatLoadGraphToolTip />} />
-
-					<Legend
-						wrapperStyle={{
-							position: 'absolute',
-							backgroundColor: COLOR_WHITE,
-							border: `1px solid #ddd`,
-							borderRadius: '3px',
-							padding: '15px',
-							zIndex: 10,
-						}}
-						align="right"
-						verticalAlign="top"
-						layout="vertical" 
-					/>
 
 					{/* Line for maximum heat load */}
 					<Line
@@ -182,6 +195,8 @@ export function HeatLoad({
 					/>
 				</ComposedChart>
 			</ResponsiveContainer>
+			<CustomLegend />
+			</div>
 
 			<HeatLoadGrid
 				setPoint={designSetPoint}
