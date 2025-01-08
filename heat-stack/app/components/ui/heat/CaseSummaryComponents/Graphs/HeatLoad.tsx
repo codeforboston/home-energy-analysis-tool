@@ -27,6 +27,12 @@ import {
 import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
 
+const BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
+const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
+const Y_AXIS_MIN_VALUE = 0; // Always start the Y axis at 0
+
+const roundDownToNearestTen = (n: number) => Math.floor(n / 10) * 10;
+
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
 }
@@ -41,10 +47,10 @@ type HeatLoadProps = {
 export function HeatLoad({
 	heatLoadSummaryOutput,
 }: HeatLoadProps): JSX.Element {
-	const designSetPoint = 70 // Design set point (70°F), defined in external documentation
+	const designSetPoint = 70 // Design set point (70°F), defined in external documentation - https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0
 	const { design_temperature } = heatLoadSummaryOutput
-	const startTemperature = design_temperature - 10 // Start line 10f below design temperature for clarity
-	const endTemperature = designSetPoint + 2 // end the X axis at the designSetPoint plus 2f for clarity
+	const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
+	const maxTemperature = designSetPoint + 2 // end the X axis at the designSetPoint plus 2f for visual clarity
 
 	/**
 	 * useMemo to build the HeatLoad graph data.
@@ -52,9 +58,9 @@ export function HeatLoad({
 	const data = useMemo(() => {
 		return buildHeatLoadGraphData(
 			heatLoadSummaryOutput,
-			startTemperature,
+			minTemperature,
 			designSetPoint,
-			endTemperature,
+			maxTemperature,
 		)
 	}, [heatLoadSummaryOutput])
 
@@ -73,8 +79,10 @@ export function HeatLoad({
 			maxValue = Math.max(maxValue, maxLine, avgLine)
 		}
 
-		const minY = Math.max(0, Math.floor((minValue * 0.8) / 10000) * 10000) // 20% buffer
-		const maxY = Math.ceil((maxValue * 1.3) / 10000) * 10000 // 30% buffer
+		// seet min and max Y axis values
+		const minY = Y_AXIS_MIN_VALUE
+		const adjustedMaxYValue = maxValue * BUFFER_PERCENTAGE_MAX;
+		const maxY = Math.ceil(adjustedMaxYValue / Y_AXIS_ROUNDING_UNIT) * Y_AXIS_ROUNDING_UNIT
 
 		return { minYValue: minY, maxYValue: maxY }
 	}, [data])
@@ -82,7 +90,8 @@ export function HeatLoad({
 	return (
 		<div className="min-w-[625px] rounded-lg shadow-lg">
 			<span className="mb-4 text-lg font-semibold">
-				Heating System Demand <Icon name="question-mark-circled" size="md" />{' '}
+				Heating System Demand
+				<Icon name="question-mark-circled" className="ps-1" size="md" />
 			</span>
 
 			<ResponsiveContainer width="100%" height={400}>
@@ -101,8 +110,8 @@ export function HeatLoad({
 						type="number"
 						dataKey="temperature"
 						name="Outdoor Temperature"
-						domain={[startTemperature, endTemperature]}
-						tickCount={endTemperature - startTemperature + 1} // Ensure whole number ticks
+						domain={[minTemperature, maxTemperature]}
+						tickCount={maxTemperature - minTemperature + 1} // Ensure whole number ticks
 					>
 						<Label
 							value="Outdoor Temperature (°F)"
