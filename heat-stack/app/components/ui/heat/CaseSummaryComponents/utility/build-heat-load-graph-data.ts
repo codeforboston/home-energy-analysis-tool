@@ -27,7 +27,7 @@ export const buildHeatLoadGraphData = (
 	designSetPoint: number,
 	endTemperature: number,
 ): HeatLoadGraphPoint[] => {
-	const { design_temperature } = heatLoadSummaryOutput;
+	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput;
 
 	const avgHeatLoad = calculateAvgHeatLoad(
 		heatLoadSummaryOutput,
@@ -36,7 +36,7 @@ export const buildHeatLoadGraphData = (
 	);
 
 	const maxHeatLoad = calculateMaxHeatLoad(
-		heatLoadSummaryOutput,
+		whole_home_heat_loss_rate,
 		design_temperature,
 		designSetPoint,
 	);
@@ -70,7 +70,7 @@ export const buildHeatLoadGraphData = (
 	const maxLineStartPoint = {
 		temperature: startTemperature,
 		maxLine: calculateMaxHeatLoad(
-			heatLoadSummaryOutput,
+			whole_home_heat_loss_rate,
 			startTemperature,
 			designSetPoint,
 		),
@@ -85,7 +85,7 @@ export const buildHeatLoadGraphData = (
 	const maxLineEndPoint = {
 		temperature: designSetPoint,
 		maxLine: calculateMaxHeatLoad(
-			heatLoadSummaryOutput,
+			whole_home_heat_loss_rate,
 			endTemperature,
 			designSetPoint,
 		),

@@ -6,20 +6,17 @@ import { SummaryOutputSchema } from '../../../../../../types/types'
  * Calculates the maximum heat load based on the given temperature and heat load summary.
  * The result is rounded to the nearest integer.
  *
- * @param {SummaryOutputSchema} heatLoadSummary - The summary data that includes heat loss rates.
+ * @param {number} whole_home_heat_loss_rate - The heat loss rate for the whole home.
  * @param {number} temperature - The current temperature to use in the calculation.
  * @param {number} [designSetPoint] - The design set point temperature.
  * @returns {number} - The calculated maximum heat load.
  */
 export function calculateMaxHeatLoad(
-	heatLoadSummary: SummaryOutputSchema,
+	whole_home_heat_loss_rate: number,
 	temperature: number,
 	designSetPoint: number,
 ): number {
-	const { whole_home_heat_loss_rate } = heatLoadSummary
-	return Math.round(
-		Math.max(0, (designSetPoint - temperature) * whole_home_heat_loss_rate),
-	)
+	return Math.max(0, (designSetPoint - temperature) * whole_home_heat_loss_rate)
 }
 
 /**
@@ -41,14 +38,12 @@ export function calculateAvgHeatLoad(
 		average_indoor_temperature,
 		estimated_balance_point,
 	} = heatLoadSummary
-	return Math.round(
-		Math.max(
+	return Math.max(
 			0,
 			(designSetPoint -
 				average_indoor_temperature +
 				estimated_balance_point -
 				temperature) *
 				whole_home_heat_loss_rate,
-		),
-	)
+		)
 }

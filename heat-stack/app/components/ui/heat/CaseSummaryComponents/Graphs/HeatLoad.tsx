@@ -48,7 +48,7 @@ export function HeatLoad({
 	heatLoadSummaryOutput,
 }: HeatLoadProps): JSX.Element {
 	const designSetPoint = 70 // Design set point (70°F), defined in external documentation - https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0
-	const { design_temperature } = heatLoadSummaryOutput
+	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
 	const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
 	const maxTemperature = designSetPoint + 2 // end the X axis at the designSetPoint plus 2f for visual clarity
 
@@ -133,14 +133,16 @@ export function HeatLoad({
 
 					<Legend
 						wrapperStyle={{
+							position: 'absolute',
 							backgroundColor: COLOR_WHITE,
 							border: `1px solid #ddd`,
 							borderRadius: '3px',
 							padding: '15px',
+							zIndex: 10,
 						}}
 						align="right"
 						verticalAlign="top"
-						layout="middle"
+						layout="vertical" 
 					/>
 
 					{/* Line for maximum heat load */}
@@ -189,7 +191,7 @@ export function HeatLoad({
 					designSetPoint,
 				)}
 				maxHeatLoad={calculateMaxHeatLoad(
-					heatLoadSummaryOutput,
+					whole_home_heat_loss_rate,
 					design_temperature,
 					designSetPoint,
 				)}
