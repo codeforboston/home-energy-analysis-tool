@@ -1,5 +1,4 @@
 {
-	"include": ["**/*.ts", "**/*.tsx"],	//Include all TypeScript (.ts) and TypeScript with JSX (.tsx) files in the project directory and its subdirectories.
 	"extends": ["@epic-web/config/typescript"],	// Uses a shared TypeScript configuration provided by the @epic-web package as the base.
 	"compilerOptions": {
 		"target": "ES2018",	// Compile TypeScript code to ECMAScript 2018.
