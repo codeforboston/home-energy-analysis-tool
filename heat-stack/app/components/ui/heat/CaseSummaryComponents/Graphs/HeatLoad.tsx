@@ -25,12 +25,13 @@ import {
 import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
 import { CustomLegend } from './HeatLoadGraphLegend'
+import { DESIGN_SET_POINT } from '../../../../../global_constants'
 
-const BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
+const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
 const Y_AXIS_MIN_VALUE = 0; // Always start the Y axis at 0
 
-const roundDownToNearestTen = (n: number) => Math.floor(n / 10) * 10;
+const roundDownToNearestTen = (n: number) => Math.floor(n / 10) * 10; // Used for determining the start temperature on the X axis
 
 type HeatLoadProps = {
 	heatLoadSummaryOutput: SummaryOutputSchema
@@ -46,10 +47,9 @@ type HeatLoadProps = {
 export function HeatLoad({
 	heatLoadSummaryOutput,
 }: HeatLoadProps): JSX.Element {
-	const designSetPoint = 70 // Design set point (70°F), defined in external documentation - https://docs.google.com/document/d/16WlqY3ofq4xpalsfwRuYBWMbeUHfXRvbWU69xxVNCGM/edit?tab=t.0
 	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
 	const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
-	const maxTemperature = designSetPoint + 2 // end the X axis at the designSetPoint plus 2f for visual clarity
+	const maxTemperature = DESIGN_SET_POINT + 2 // end the X axis at the DESIGN_SET_POINT plus 2f for visual clarity
 
 	/**
 	 * useMemo to build the HeatLoad graph data.
@@ -58,7 +58,7 @@ export function HeatLoad({
 		return buildHeatLoadGraphData(
 			heatLoadSummaryOutput,
 			minTemperature,
-			designSetPoint,
+			DESIGN_SET_POINT,
 			maxTemperature,
 		)
 	}, [heatLoadSummaryOutput])
@@ -80,7 +80,7 @@ export function HeatLoad({
 
 		// seet min and max Y axis values
 		const minY = Y_AXIS_MIN_VALUE
-		const adjustedMaxYValue = maxValue * BUFFER_PERCENTAGE_MAX;
+		const adjustedMaxYValue = maxValue * X_AXIS_BUFFER_PERCENTAGE_MAX;
 		const maxY = Math.ceil(adjustedMaxYValue / Y_AXIS_ROUNDING_UNIT) * Y_AXIS_ROUNDING_UNIT
 
 		return { minYValue: minY, maxYValue: maxY }
@@ -104,14 +104,14 @@ export function HeatLoad({
 					}}
 					data={data}
 				>
-					<CartesianGrid stroke={COLOR_GREY_LIGHT} />
+					<CartesianGrid stroke={COLOR_GREY_LIGHT} strokeDasharray="3 3"/>
 
 					<XAxis
 						type="number"
 						dataKey="temperature"
 						name="Outdoor Temperature"
 						domain={[minTemperature, maxTemperature]}
-						tickCount={maxTemperature - minTemperature + 1} // Ensure whole number ticks
+						tickCount={(maxTemperature - minTemperature) / 4 } // Ensure whole number ticks
 					>
 						<Label
 							value="Outdoor Temperature (°F)"
@@ -172,16 +172,16 @@ export function HeatLoad({
 			</div>
 
 			<HeatLoadGrid
-				setPoint={designSetPoint}
+				setPoint={DESIGN_SET_POINT}
 				averageHeatLoad={calculateAvgHeatLoad(
 					heatLoadSummaryOutput,
 					design_temperature,
-					designSetPoint,
+					DESIGN_SET_POINT,
 				)}
 				maxHeatLoad={calculateMaxHeatLoad(
 					whole_home_heat_loss_rate,
 					design_temperature,
-					designSetPoint,
+					DESIGN_SET_POINT,
 				)}
 			/>
 		</div>

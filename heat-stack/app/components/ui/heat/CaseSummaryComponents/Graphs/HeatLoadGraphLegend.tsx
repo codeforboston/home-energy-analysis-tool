@@ -1,4 +1,3 @@
-import React from 'react'
 import {
 	COLOR_ORANGE,
 	COLOR_BLUE,
