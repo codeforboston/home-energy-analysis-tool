@@ -486,31 +486,7 @@ export default function Inputs() {
     const parsedLastResult =  hasDataProperty(lastResult)
     ? JSON.parse(lastResult.data, reviver) : undefined;
 
-    // const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
-    const heatLoadSummaryOutput = {
-        "local_weather_station": "KBVY-Beverly",
-        "design_temperature_override": null,
-        "living_area": 2155,
-        "fuel_type": "GAS",
-        "heating_system_efficiency": 0.97,
-        "other_fuel_usage": 0.3,
-        "other_fuel_usage_override": null,
-        "thermostat_set_point": 68,
-        "setback_temperature": null,
-        "setback_hours_per_day": null,
-        "estimated_balance_point": 51.5,
-        "balance_point_sensitivity": 1,
-        "average_indoor_temperature": 68,
-        "difference_between_ti_and_tbp": 16.5,
-        "design_temperature": 9.5,
-        "whole_home_heat_loss_rate": 654.0,
-        "standard_deviation_of_heat_loss_rate": 0.0519,
-        "average_heat_load": 28788.0,
-        "maximum_heat_load": 39584.0
-    }
-
-    console.log('headLoadSummaryOutput', heatLoadSummaryOutput)
-
+    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
