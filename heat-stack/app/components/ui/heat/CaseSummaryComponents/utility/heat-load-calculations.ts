@@ -48,6 +48,22 @@ export function calculateAvgHeatLoad(
 		)
 }
 
-export function calculateAvgHeatLoadEndPoint(balancePointTemperature: number, designSetPoint: number, averageIndoorTemperature: number): number {
-return balancePointTemperature + designSetPoint - averageIndoorTemperature;
+/**
+ * Calculates the average heat load endpoint based on the balance point temperature,
+ * design set point, and average indoor temperature.
+ *
+ * This function computes the endpoint of the average heat load calculation, which can
+ * be used as part of broader heat load analyses.
+ *
+ * @param {number} balancePointTemperature - The balance point temperature used in the calculation.
+ * @param {number} designSetPoint - The design set point temperature.
+ * @param {number} averageIndoorTemperature - The average indoor temperature.
+ * @returns {number} - The calculated average heat load endpoint.
+ */
+export function calculateAvgHeatLoadEndPoint(
+	balancePointTemperature: number,
+	designSetPoint: number,
+	averageIndoorTemperature: number,
+): number {
+	return balancePointTemperature + designSetPoint - averageIndoorTemperature;
 }
