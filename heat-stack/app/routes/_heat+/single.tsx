@@ -484,7 +484,7 @@ export default function Inputs() {
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
     const parsedLastResult =  hasDataProperty(lastResult)
-    ? JSON.parse(lastResult.data, reviver) : undefined;
+        ? JSON.parse(lastResult.data, reviver) as Map<any, any>: undefined;
 
     const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 

@@ -12,7 +12,7 @@ type HeatLoadGridProps = {
  * and average heat load values.
  *
  * @component
- * @param {ChartGridProps} props - The props for the HeatLoadGrid component.
+ * @param {HeatLoadGridProps} props - The props for the HeatLoadGrid component.
  * @param {number} props.setPoint - The set point temperature in degrees Fahrenheit.
  * @param {number} props.averageHeatLoad - The average heat load in BTU/h.
  * @param {number} props.maxHeatLoad - The maximum heat load in BTU/h.
@@ -22,7 +22,7 @@ export const HeatLoadGrid = ({
 	setPoint,
 	averageHeatLoad,
 	maxHeatLoad,
-}: ChartGridProps) => {
+}: HeatLoadGridProps) => {
 	return (
 		<div className="container mx-auto p-4">
 			<div className="grid grid-cols-3 gap-4">
