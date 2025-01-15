@@ -1,8 +1,13 @@
 // import { AnalysisHeader } from './AnalysisHeader.tsx'
+import React from 'react'
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
-export function Graphs() {
+interface GraphsProps {
+	heatLoadSummaryOutput: any;
+}
+
+export function Graphs({ heatLoadSummaryOutput }: GraphsProps) {
 	const fuel_type = 'Natural Gas'
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const componentMargin = 'mt-10'
@@ -14,7 +19,7 @@ export function Graphs() {
 			Fuel Type
 			{fuel_type}
 			{/* <AnalysisHeader /> */}
-			<HeatLoad />
+			<HeatLoad heatLoadSummaryOutput={heatLoadSummaryOutput} />
 			<WholeHomeUAComparison />
 		</div>
 	)
