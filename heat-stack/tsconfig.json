@@ -6,6 +6,7 @@
     "allowJs": true,	// Enables the inclusion of .js files in the project.
     "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).q
 		"esModuleInterop": true,	// Enables compatibility with CommonJS modules.
+    "noUncheckedIndexedAccess": true, // https://www.totaltypescript.com/tips/make-accessing-objects-safer-by-enabling-nouncheckedindexedaccess-in-tsconfig
     "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export.
     "strict": true, // Enables all strict type-checking options.
     "forceConsistentCasingInFileNames": true, // Enforces a consistent casing in file names.
