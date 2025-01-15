@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import {
 	ComposedChart,
 	Line,
@@ -10,22 +10,22 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
-import { SummaryOutputSchema } from '../../../../../../types/types'
-import { Icon } from '../../../icon'
-import { HeatLoadGrid } from '../HeatLoadGrid'
+import { SummaryOutputSchema } from '../../../../../../types/types.ts'
+import { Icon } from '../../../icon.tsx'
+import { HeatLoadGrid } from '../HeatLoadGrid.tsx'
 import {
 	COLOR_GREY_LIGHT,
 	COLOR_ORANGE,
 	COLOR_BLUE,
-} from '../constants'
+} from '../constants.ts'
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
-} from '../utility/heat-load-calculations'
-import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data'
-import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip'
-import { CustomLegend } from './HeatLoadGraphLegend'
-import { DESIGN_SET_POINT } from '../../../../../global_constants'
+} from '../utility/heat-load-calculations.ts'
+import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data.ts'
+import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
+import { CustomLegend } from './HeatLoadGraphLegend.tsx'
+import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
