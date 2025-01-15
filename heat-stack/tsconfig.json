@@ -1,30 +1,30 @@
 {
-  "extends": ["@epic-web/config/typescript"],
-  "compilerOptions": {
-    "target": "ES2018",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "paths": {
-      "#*": ["./*"],
-      "#app/*": ["./app/*"],
-      "#tests/*": ["./tests/*"],
-      "@/icon-name": [
-        "./app/components/ui/icons/name.d.ts",
-        "./types/icon-name.d.ts"
-      ]
-    }
-  },
+	"extends": ["@epic-web/config/typescript"],	// Uses a shared TypeScript configuration provided by the @epic-web package as the base.
+	"compilerOptions": {
+		"target": "ES2018",	// Compile TypeScript code to ECMAScript 2018.
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],	// Includes type definitions for the DOM, DOM iterables, and modern ECMAScript features.
+    "allowJs": true,	// Enables the inclusion of .js files in the project.
+    "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).q
+		"esModuleInterop": true,	// Enables compatibility with CommonJS modules.
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export.
+    "strict": true, // Enables all strict type-checking options.
+    "forceConsistentCasingInFileNames": true, // Enforces a consistent casing in file names.
+    "module": "NodeNext", // Uses Node.js-style ES Module resolution for compatibility with modern Node.js versions.
+    "moduleResolution": "nodenext", // Uses Node.js ES Module resolution logic.
+    "resolveJsonModule": true, // Allows importing JSON files as modules.
+    "isolatedModules": true, // Disallows the use of global modules and global side-effects.
+    "noEmit": true, // Disables emitting output files.
+    "jsx": "react-jsx", // Enables JSX support with React JSX.
+		"paths": { // Maps paths to different directories or files.
+			"#*": ["./*"], // Maps all paths starting with # to the root directory.
+			"#app/*": ["./app/*"], // Maps all paths starting with #app to the app directory.
+			"#tests/*": ["./tests/*"], // Maps all paths starting with #tests to the tests directory.
+			"@/icon-name": [ // Maps the @/icon-name path to the icon-name.d.ts file.
+				"./app/components/ui/icons/name.d.ts", // Maps the @/icon-name path to the
+				"./types/icon-name.d.ts" //	icon-name.d.ts file in the types directory.
+			]
+		}
+	},
   "include": [
     "**/*.ts",
     "**/*.tsx"
