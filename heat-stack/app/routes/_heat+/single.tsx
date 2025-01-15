@@ -400,10 +400,10 @@ Traceback (most recent call last): File "<exec>", line 32,
 
     const gasBillDataWithUserAdjustments = foo; /* processed_energy_bills is untested here */
 
-    const billingRecords = foo.get('processed_energy_bills')
-    billingRecords.forEach((record: any) => {
-        record.set('inclusion_override', true);
-    });
+    // const billingRecords = foo.get('processed_energy_bills')
+    // billingRecords.forEach((record: any) => {
+    //     record.set('inclusion_override', true);
+    // });
     // foo.set('processed_energy_bills', null)
     // foo.set('processed_energy_bills', billingRecords)
     //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
