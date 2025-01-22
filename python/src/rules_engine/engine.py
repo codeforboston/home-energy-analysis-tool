@@ -568,18 +568,20 @@ class Home:
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
 
-        if (isinstance(results["balance_point"], float)):
+        if isinstance(results["balance_point"], float):
             self.balance_point = results["balance_point"]
-        if (isinstance(results["avg_ua"], float)):
+        if isinstance(results["avg_ua"], float):
             self.avg_ua = results["avg_ua"]
-        if (isinstance(results["stdev_pct"], float)):
+        if isinstance(results["stdev_pct"], float):
             self.stdev_pct = results["stdev_pct"]
         balance_point_graph_records_extension = results[
             "balance_point_graph_records_extension"
         ]
 
         if isinstance(balance_point_graph_records_extension, list):
-            self.balance_point_graph.records.extend(balance_point_graph_records_extension)
+            self.balance_point_graph.records.extend(
+                balance_point_graph_records_extension
+            )
 
         while self.stdev_pct > stdev_pct_max:
             outliers = [
@@ -632,7 +634,7 @@ class Home:
             balance_point_graph_records_extension = results[
                 "balance_point_graph_records_extension"
             ]
-            
+
             if isinstance(balance_point_graph_records_extension, list):
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
