@@ -138,7 +138,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 					}
 
 					// Adjust inclusion for user input
-					let calculatedInclusion = period.default_inclusion_by_calculation
+					let calculatedInclusion = period.default_inclusion
 					if (period.inclusion_override) {
 						calculatedInclusion = !calculatedInclusion
 					}

@@ -16,7 +16,7 @@ export const HomeSchema = z.object({
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
-	heating_system_efficiency: z.number().min(60).max(100),
+	heating_system_efficiency: z.number().min(0.6).max(1),
 	thermostat_set_point: z.number(),
 	setback_temperature: z.number().optional(),
 	setback_hours_per_day: z.number().optional(),
@@ -116,7 +116,7 @@ export const oneProcessedEnergyBillSchema = z.object({
 	 */
 	// analysis_type: z.enum(["ALLOWED_HEATING_USAGE", "ALLOWED_NON_HEATING_USAGE", "NOT_ALLOWED_IN_CALCULATIONS"]),
 	analysis_type: z.number(),
-	default_inclusion_by_calculation: z.boolean(),
+	default_inclusion: z.boolean(),
 	eliminated_as_outlier: z.boolean(),
 	whole_home_heat_loss_rate: z.number(),
 });

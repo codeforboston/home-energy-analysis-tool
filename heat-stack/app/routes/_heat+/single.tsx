@@ -334,9 +334,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
         executeGetAnalyticsFromForm
     `)
     // type Analytics = z.infer<typeof Analytics>;
-    const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
+    const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    //console.log("foo billing records [0]", foo.get('processed_energy_bills')[0] )
+    //console.log("gasBillDataWithUserAdjustments billing records [0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0] )
 
     /**
      * second time and after, when table is modified, this becomes entrypoint
@@ -393,31 +393,29 @@ Traceback (most recent call last): File "<exec>", line 32,
       'analysis_type_override' => undefined,
       'inclusion_override' => false,
       'analysis_type' => 0,
-      'default_inclusion_by_calculation' => false,
+      'default_inclusion' => false,
       'eliminated_as_outlier' => false,
       'whole_home_heat_loss_rate' => undefined
     }, */
 
-    const gasBillDataWithUserAdjustments = foo; /* processed_energy_bills is untested here */
 
-    // const billingRecords = foo.get('processed_energy_bills')
+    // const billingRecords = gasBillDataWithUserAdjustments.get('processed_energy_bills')
     // billingRecords.forEach((record: any) => {
     //     record.set('inclusion_override', true);
     // });
-    // foo.set('processed_energy_bills', null)
-    // foo.set('processed_energy_bills', billingRecords)
+    // gasBillDataWithUserAdjustments.set('processed_energy_bills', null)
+    // gasBillDataWithUserAdjustments.set('processed_energy_bills', billingRecords)
     //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
     /* why is inclusion_override still false after roundtrip */
+    const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-    const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
-    // console.log("foo2 billing records[0]", foo2.get('processed_energy_bills')[0]);
-    // console.log("foo2", foo2);
+    // console.log("calculatedData billing records[0]", calculatedData.get('processed_energy_bills')[0]);
+    // console.log("calculatedData", calculatedData);
     // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
-    const str_version = JSON.stringify(foo2, replacer);
+    const str_version = JSON.stringify(calculatedData, replacer);
     // const json_version = JSON.parse(str_version);
     // console.log("str_version", str_version);
 
@@ -426,7 +424,14 @@ Traceback (most recent call last): File "<exec>", line 32,
     // return redirect(`/single`)
 }
 
-// https://stackoverflow.com/a/56150320
+/** Pass this to JSON.stringify()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function replacer(key: any, value: any) {
     if(value instanceof Map) {
         return {
@@ -438,11 +443,19 @@ function replacer(key: any, value: any) {
     }
 }
     
-// https://stackoverflow.com/a/56150320
+/** Pass this to JSON.parse()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * const newValue = JSON.parse(str, reviver);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function reviver(key: any, value: any) {
     if(typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
-        return new Map(value.value);
+            return new Map(value.value);
         }
     }
     return value;
@@ -504,7 +517,7 @@ export default function Inputs() {
      * temp1.get('processed_energy_bills')
      * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
      * temp1.get('processed_energy_bills')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion_by_calculation → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
      * temp1.get('processed_energy_bills')[0].get('period_start_date')
     * "2020-10-02" 
      */
@@ -558,14 +571,14 @@ export default function Inputs() {
             return parseWithZod(formData, { schema: Schema })
         },
         defaultValue: {
-            living_area: 3000,
-            address: '1 Broadway, Cambridge, MA 02142',
+            living_area: 2155,
+            address: '15 Dale Ave Gloucester, MA  01930',
             name: 'CIC',
             fuel_type: 'GAS',
-            heating_system_efficiency: 85,
+            heating_system_efficiency: 0.97,
             thermostat_set_point: 68,
-            setback_temperature: 65,
-            setback_hours_per_day: 8,
+            // setback_temperature: 65,
+            // setback_hours_per_day: 8,
             // design_temperature_override: '',
         } as SchemaZodFromFormType,
         shouldValidate: 'onBlur',
