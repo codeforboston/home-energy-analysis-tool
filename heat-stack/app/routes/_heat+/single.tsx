@@ -11,8 +11,8 @@ import * as pyodideModule from 'pyodide'
 import { type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import GeocodeUtil from '#app/utils/GeocodeUtil'
-import WeatherUtil from '#app/utils/WeatherUtil'
+import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 
 
@@ -58,6 +58,7 @@ import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryCompon
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
+import React from 'react'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -399,10 +400,10 @@ Traceback (most recent call last): File "<exec>", line 32,
 
     const gasBillDataWithUserAdjustments = foo; /* processed_energy_bills is untested here */
 
-    const billingRecords = foo.get('processed_energy_bills')
-    billingRecords.forEach((record: any) => {
-        record.set('inclusion_override', true);
-    });
+    // const billingRecords = foo.get('processed_energy_bills')
+    // billingRecords.forEach((record: any) => {
+    //     record.set('inclusion_override', true);
+    // });
     // foo.set('processed_energy_bills', null)
     // foo.set('processed_energy_bills', billingRecords)
     //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
@@ -482,7 +483,10 @@ export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
-    
+    const parsedLastResult =  hasDataProperty(lastResult)
+        ? JSON.parse(lastResult.data, reviver) as Map<any, any>: undefined;
+
+    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -516,8 +520,7 @@ export default function Inputs() {
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      *//* @ts-ignore */
      
-    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
- 
+    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
     type ActionResult = 
     | SubmissionResult<string[]>
     | { data: string }
@@ -588,7 +591,7 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis /> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
         </>
     )
 }
