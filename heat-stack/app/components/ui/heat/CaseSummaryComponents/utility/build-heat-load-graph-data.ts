@@ -1,9 +1,9 @@
-import { SummaryOutputSchema } from '../../../../../../types/types';
+import { SummaryOutputSchema } from '../../../../../../types/types.ts';
 import {
 	calculateAvgHeatLoad,
 	calculateAvgHeatLoadEndPoint,
 	calculateMaxHeatLoad,
-} from './heat-load-calculations';
+} from './heat-load-calculations.ts';
 
 type HeatLoadGraphPoint = {
 	temperature: number

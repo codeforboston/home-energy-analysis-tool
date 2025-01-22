@@ -1,5 +1,4 @@
 // import { AnalysisHeader } from './AnalysisHeader.tsx'
-import React from 'react'
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 

@@ -1,5 +1,3 @@
-import React from 'react'
-
 type HeatLoadGridProps = {
 	setPoint: number
 	averageHeatLoad: number
@@ -22,7 +20,7 @@ export const HeatLoadGrid = ({
 	setPoint,
 	averageHeatLoad,
 	maxHeatLoad,
-}: HeatLoadGridProps) => {
+}: HeatLoadGridProps): JSX.Element => {
 	return (
 		<div className="container mx-auto p-4">
 			<div className="grid grid-cols-3 gap-4">
