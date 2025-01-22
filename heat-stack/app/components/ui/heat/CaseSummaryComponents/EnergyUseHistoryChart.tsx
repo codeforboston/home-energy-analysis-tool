@@ -1,3 +1,4 @@
+import { tr } from '@faker-js/faker'
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
 import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
@@ -16,8 +17,6 @@ import HeatingUsage from './assets/HeatingUsage.svg'
 import HelpCircle from './assets/help-circle.svg'
 import NonHeatingUsage from './assets/NonHeatingUsage.svg'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
-
-import { tr } from '@faker-js/faker'
 
 // type NaturalGasBillRecord = z.infer<typeof NaturalGasBillRecordZod>
 // const naturalGasBillRecord01: NaturalGasBillRecord = {

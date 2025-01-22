@@ -1,7 +1,7 @@
 import {
 	COLOR_ORANGE,
 	COLOR_BLUE,
-} from '../constants'
+} from '../constants.ts'
 
 export const CustomLegend = () => {
   const legendItems = [
