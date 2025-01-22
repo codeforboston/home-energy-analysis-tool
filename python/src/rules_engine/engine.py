@@ -314,12 +314,13 @@ def get_average_indoor_temperature(
     setback_hours_per_day: Optional[float],
 ) -> float:
     """
-    Calculates the average indoor temperature.
+    Calculates the average indoor temperature
 
     Args:
         thermostat_set_point: the temp in F at which the home is
-        normally set setback_temperature: temp in F at which the home
-        is set during off hours
+        normally set
+        setback_temperature: temp in F at which the home is set during
+        off hours
         setback_hours_per_day: average # of hours per day the home is
         at setback temp
     """
