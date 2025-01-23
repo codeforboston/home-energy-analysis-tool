@@ -116,7 +116,7 @@ def sample_intermediate_energy_bill_inputs_with_outlier() -> (
 
 @pytest.fixture()
 def sample_heat_load_inputs() -> HeatLoadInput:
-    heat_sys_efficiency = 0.88
+    heat_system_efficiency = 0.88
 
     living_area = 1000
     thermostat_set_point = 68
@@ -127,7 +127,7 @@ def sample_heat_load_inputs() -> HeatLoadInput:
     heat_load_input = HeatLoadInput(
         living_area=living_area,
         fuel_type=fuel_type,
-        heating_system_efficiency=heat_sys_efficiency,
+        heating_system_efficiency=heat_system_efficiency,
         thermostat_set_point=thermostat_set_point,
         setback_temperature=setback_temperature,
         setback_hours_per_day=setback_hours_per_day,
