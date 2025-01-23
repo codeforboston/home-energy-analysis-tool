@@ -3,6 +3,7 @@ TODO: Add module description
 """
 
 from __future__ import annotations
+from dataclasses import dataclass
 
 import bisect
 import statistics as sts
@@ -569,15 +570,11 @@ class Home:
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
 
-        if isinstance(results["balance_point"], float):
-            self.balance_point = results["balance_point"]
-        if isinstance(results["avg_ua"], float):
-            self.avg_ua = results["avg_ua"]
-        if isinstance(results["stdev_pct"], float):
-            self.stdev_pct = results["stdev_pct"]
-        balance_point_graph_records_extension = results[
-            "balance_point_graph_records_extension"
-        ]
+        self.balance_point = results.balance_point
+        self.avg_ua = results.avg_ua
+        self.stdev_pct = results.stdev_pct
+        balance_point_graph_records_extension = results.balance_point_graph_records_extension
+
 
         if isinstance(balance_point_graph_records_extension, list):
             self.balance_point_graph.records.extend(
@@ -626,20 +623,29 @@ class Home:
                 winter_processed_energy_bills=self.winter_processed_energy_bills,
             )
 
-            if isinstance(results["balance_point"], float):
-                self.balance_point = results["balance_point"]
-            if isinstance(results["avg_ua"], float):
-                self.avg_ua = results["avg_ua"]
-            if isinstance(results["stdev_pct"], float):
-                self.stdev_pct = results["stdev_pct"]
-            balance_point_graph_records_extension = results[
-                "balance_point_graph_records_extension"
-            ]
+
+            self.balance_point = results.balance_point
+            self.avg_ua = results.avg_ua
+            self.stdev_pct = results.stdev_pct
+            balance_point_graph_records_extension = results.balance_point_graph_records_extension
+
 
             if isinstance(balance_point_graph_records_extension, list):
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
+ 
+    @dataclass
+    class RefineBalancePointResults:
+        balance_point: float
+        avg_ua: float
+        stdev_pct: float
+        balance_point_graph_records_extension: list[BalancePointGraphRow]
+        def __init__(self, balance_point,avg_ua,stdev_pct,balance_point_graph_records_extension):
+            self.balance_point = balance_point
+            self.avg_ua = avg_ua
+            self.stdev_pct = stdev_pct
+            self.balance_point_graph_records_extension = balance_point_graph_records_extension 
 
     @staticmethod
     def _refine_balance_point(
@@ -650,7 +656,7 @@ class Home:
         stdev_pct: float,
         thermostat_set_point: float,
         winter_processed_energy_bills: list[IntermediateEnergyBill],
-    ) -> dict[str, float | list[BalancePointGraphRow]]:
+    ) -> RefineBalancePointResults:
         """
         Tries different balance points plus or minus a given number
         of degrees, choosing whichever one minimizes the standard
@@ -714,12 +720,12 @@ class Home:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
-        return {
-            "balance_point": balance_point,
-            "avg_ua": avg_ua,
-            "stdev_pct": stdev_pct,
-            "balance_point_graph_records_extension": balance_point_graph_records_extension,
-        }
+        return Home.RefineBalancePointResults(
+            balance_point= balance_point,
+            avg_ua = avg_ua,
+            stdev_pct = stdev_pct,
+            balance_point_graph_records_extension = balance_point_graph_records_extension,
+        )
 
     @classmethod
     def calculate(
