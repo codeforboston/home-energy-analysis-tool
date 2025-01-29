@@ -11,11 +11,11 @@ interface ArchiveApiResponse {
     elevation: number;
     daily_units: {
         time: string;
-        temperature_2m_max: string;
+        temperature_2m_mean: string;
     };
     daily: {
         time: string[];
-        temperature_2m_max: (number | null)[];
+        temperature_2m_mean: (number | null)[];
     };
 }
 
@@ -37,7 +37,7 @@ class WeatherUtil {
         
         params.append("latitude",`${ latitude }`);
         params.append("longitude",`${ longitude }`);
-        params.append("daily","temperature_2m_max");
+        params.append("daily","temperature_2m_mean");
         params.append("timezone","America/New_York");
         params.append("start_date",startDate);
         params.append("end_date",endDate);
@@ -50,7 +50,7 @@ class WeatherUtil {
         jrez.daily.time.forEach((timeStr: string) => {
             dates.push(new Date(timeStr));
         });
-        let temperatures: (number | null)[] = jrez.daily.temperature_2m_max
+        let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean
         // console.log({dates,temperatures});
         return {dates,temperatures};
     }
