@@ -496,10 +496,44 @@ export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
-    const parsedLastResult =  hasDataProperty(lastResult)
-        ? JSON.parse(lastResult.data, reviver) as Map<any, any>: undefined;
+    console.log('lastResult', lastResult)
 
-    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
+    let show_usage_data = lastResult !== undefined;
+
+    ////////////////////////
+    // TODO: 
+    // - use the UsageDataSchema type here?
+    // - use processed_energy_bills in Checkbox behavior
+    // 
+    let currentUsageData = {
+        heat_load_output: undefined,
+        balance_point_graph: undefined,
+        processed_energy_bills: undefined,
+    }
+
+    if (show_usage_data && hasDataProperty(lastResult)) {
+        try {
+            // Parse the JSON string from lastResult.data
+            const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+            console.log('parsedLastResult', parsedLastResult)
+
+            // TODO: Parsing without reviver to get processed_energy_bills with Objects instead of maps
+            // Figure out how to use parsedLastResult instead
+            const parsedLastResultObject = JSON.parse(lastResult.data)
+
+            currentUsageData.heat_load_output = Object.fromEntries(parsedLastResult?.get('heat_load_output'));
+            currentUsageData.balance_point_graph = Object.fromEntries(parsedLastResult?.get('balance_point_graph'));
+
+            currentUsageData.processed_energy_bills = replacedMapToObject(parsedLastResultObject).processed_energy_bills
+
+        } catch (error) {
+            // console.error('Error parsing lastResult data:', error);
+        }
+    }
+
+    console.log('currentUsageData', currentUsageData)
+   
+
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -543,26 +577,28 @@ export default function Inputs() {
     function hasDataProperty(result: ActionResult): result is { data: string } {
         return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
     }  
-  
-    let usage_data = null;
-    let show_usage_data = lastResult !== undefined;
 
-    console.log('lastResult', lastResult)
+    ////////////////////////
+    // TO BE DELETED
+    // Old way of handing results
+
+    // let usage_data = null;
     
-    // Ensure we handle the result properly
-    if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
-        try {
-            // Parse the JSON string from lastResult.data
-            const parsedData = JSON.parse(lastResult.data);
+    // // Ensure we handle the result properly
+    // if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
+    //     try {
+    //         // Parse the JSON string from lastResult.data
+    //         const parsedData = JSON.parse(lastResult.data);
 
-            // Recursively transform any Maps in lastResult to objects
-            usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
-            console.log('usage_data', usage_data)
+    //         // Recursively transform any Maps in lastResult to objects
+    //         usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
+    //         console.log('usage_data', usage_data)
             
-        } catch (error) {
-            console.error('Error parsing lastResult data:', error);
-        }
-    }
+    //     } catch (error) {
+    //         console.error('Error parsing lastResult data:', error);
+    //     }
+    // }
+    ////////////////////////
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
@@ -600,11 +636,11 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory usage_data={ usage_data } />
+                <EnergyUseHistory usage_data={ currentUsageData } />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData.heat_load_output} /> }
         </>
     )
 }
