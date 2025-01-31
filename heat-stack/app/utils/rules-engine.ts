@@ -142,3 +142,24 @@ export const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(
         return outputs2.model_dump(mode="json")
     executeRoundtripAnalyticsFromForm
 `)
+
+ /**
+     * Ask Alan, issue with list comprehension:
+Traceback (most recent call last): File "<exec>", line 32,
+ in executeRoundtripAnalyticsFromForm TypeError: 
+ list indices must be integers or slices, not str 
+     */
+    /*
+    For
+      'processed_energy_bills' => [
+    Map(9) {
+      'period_start_date' => '2020-10-02',
+      'period_end_date' => '2020-11-04',
+      'usage' => 29,
+      'analysis_type_override' => undefined,
+      'inclusion_override' => false,
+      'analysis_type' => 0,
+      'default_inclusion' => false,
+      'eliminated_as_outlier' => false,
+      'whole_home_heat_loss_rate' => undefined
+    }, */
