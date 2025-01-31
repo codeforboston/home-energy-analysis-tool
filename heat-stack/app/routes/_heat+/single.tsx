@@ -11,6 +11,7 @@ import { type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacedMapToObject, replacer, reviver } from '#app/utils/data-parser.ts'
+import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { 
     executeGetAnalyticsFromFormJs, 
@@ -18,8 +19,6 @@ import {
     executeRoundtripAnalyticsFromFormJs 
 } from '#app/utils/rules-engine.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
-
-
 
 // THESE ARE OLD NOTES, please someone go through and clean these up :)
 // - [x] Server side error checking/handling
@@ -86,29 +85,11 @@ const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAn
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
-
     console.log('action started')
 
-    const uploadHandler = createMemoryUploadHandler({
-        maxPartSize: 1024 * 1024 * 5, // 5 MB
-    })
     const formData = await parseMultipartFormData(request, uploadHandler)
+    const uploadedTextFile: string = await fileUploadHandler(formData)
 
-    const file = formData.get('energy_use_upload') as File // fix as File?
-
-    async function handleFile(file: File) {
-        try {
-            const fileContent = await file.text()
-            return fileContent
-        } catch (error) {
-            console.error('Error reading file:', error)
-            return ''
-        }
-    }
-
-    // TODO: think about the edge cases and handle the bad user input here:
-    const uploadedTextFile: string = file !== null ? await handleFile(file) : ''
-    
     const submission = parseWithZod(formData, {
         schema: Schema,
     })
@@ -146,11 +127,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     // await updateNote({ id: params.noteId, title, content })
     //code snippet from - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L180
-
-    // const formData = await parseMultipartFormData(
-    // 	request,
-    // 	createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
-    // )
 
     console.log('loading geocodeUtil/weatherUtil')
 
