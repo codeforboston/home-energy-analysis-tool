@@ -21,7 +21,7 @@ import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 
 
-// TODO NEXT WEEK
+// THESE ARE OLD NOTES, please someone go through and clean these up :)
 // - [x] Server side error checking/handling
 // - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
 // - [x] - Get zod and Typescript to play nice
@@ -246,58 +246,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     /** Main form entrypoint
      */
-
-    // type Analytics = z.infer<typeof Analytics>;
     const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    //console.log("gasBillDataWithUserAdjustments billing records [0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0] )
-
-    /**
-     * second time and after, when table is modified, this becomes entrypoint
-     */
-
-
-    /**
-     * Ask Alan, issue with list comprehension:
-Traceback (most recent call last): File "<exec>", line 32,
- in executeRoundtripAnalyticsFromForm TypeError: 
- list indices must be integers or slices, not str 
-     */
-    /*
-    For
-      'processed_energy_bills' => [
-    Map(9) {
-      'period_start_date' => '2020-10-02',
-      'period_end_date' => '2020-11-04',
-      'usage' => 29,
-      'analysis_type_override' => undefined,
-      'inclusion_override' => false,
-      'analysis_type' => 0,
-      'default_inclusion' => false,
-      'eliminated_as_outlier' => false,
-      'whole_home_heat_loss_rate' => undefined
-    }, */
-
-
-    // const billingRecords = gasBillDataWithUserAdjustments.get('processed_energy_bills')
-    // billingRecords.forEach((record: any) => {
-    //     record.set('inclusion_override', true);
-    // });
-    // gasBillDataWithUserAdjustments.set('processed_energy_bills', null)
-    // gasBillDataWithUserAdjustments.set('processed_energy_bills', billingRecords)
-    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
-    /* why is inclusion_override still false after roundtrip */
     const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-    // console.log("calculatedData billing records[0]", calculatedData.get('processed_energy_bills')[0]);
-    // console.log("calculatedData", calculatedData);
-    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
-
-    // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
-
     const str_version = JSON.stringify(calculatedData, replacer);
-    // const json_version = JSON.parse(str_version);
-    // console.log("str_version", str_version);
 
     // Consider adding to form data
     return json({data: str_version});
@@ -306,8 +259,54 @@ Traceback (most recent call last): File "<exec>", line 32,
 
 
 export default function Inputs() {
-    // const location = useLocation();
-    // console.log(`location:`, location);  // `.state` is `null`
+    /* @ts-ignore */
+    // USAGE OF lastResult
+    // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
+
+    /**
+     * Example Data Returned
+     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+     * 
+     * 1 of 3: heat_load_output
+     * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
+     * 
+     * temp1.get('heat_load_output'): Map(9) { 
+        * estimated_balance_point → 61.5, 
+        * other_fuel_usage → 0.2857142857142857, 
+        * average_indoor_temperature → 67, 
+        * difference_between_ti_and_tbp → 5.5, 
+        * design_temperature → 1, 
+        * whole_home_heat_loss_rate → 48001.81184312083, 
+        * standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
+        * average_heat_load → 3048115.0520381727, 
+        * maximum_heat_load → 3312125.0171753373 
+     * }
+     * 
+     * 
+     * 2 of 3: processed_energy_bills
+     * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
+     *
+     * temp1.get('processed_energy_bills')
+     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+     * 
+     * temp1.get('processed_energy_bills')[0]
+     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+     * 
+     * temp1.get('processed_energy_bills')[0].get('period_start_date')
+     * "2020-10-02" 
+     * 
+     * 
+     * 3 of 3: balance_point_graph
+     * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+     * 
+     * temp1.get('balance_point_graph').get('records')
+        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
+        temp1.get('balance_point_graph').get('records')[0]
+        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
+        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
+     */
+    /* @ts-ignore */
+
     const lastResult = useActionData<typeof action>()
     console.log('lastResult', lastResult)
 
@@ -343,44 +342,8 @@ export default function Inputs() {
             // console.error('Error parsing lastResult data:', error);
         }
     }
-
     console.log('currentUsageData', currentUsageData)
    
-
-
-    /* @ts-ignore */
-    // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
-
-    /**
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     *
-     * temp1.get('heat_load_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
-     */
-    /* @ts-ignore */
-    // console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
-    
-    /**
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * temp1.get('processed_energy_bills')
-     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * temp1.get('processed_energy_bills')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * temp1.get('processed_energy_bills')[0].get('period_start_date')
-    * "2020-10-02" 
-     */
-    /* @ts-ignore */
-    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
-
-    /**
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     *  temp1.get('balance_point_graph').get('records')
-        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
-        temp1.get('balance_point_graph').get('records')[0]
-        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
-        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
-     *//* @ts-ignore */
-     
-    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
     type ActionResult = 
     | SubmissionResult<string[]>
     | { data: string }
@@ -390,28 +353,6 @@ export default function Inputs() {
     function hasDataProperty(result: ActionResult): result is { data: string } {
         return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
     }  
-
-    ////////////////////////
-    // TO BE DELETED
-    // Old way of handing results
-
-    // let usage_data = null;
-    
-    // // Ensure we handle the result properly
-    // if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
-    //     try {
-    //         // Parse the JSON string from lastResult.data
-    //         const parsedData = JSON.parse(lastResult.data);
-
-    //         // Recursively transform any Maps in lastResult to objects
-    //         usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
-    //         console.log('usage_data', usage_data)
-            
-    //     } catch (error) {
-    //         console.error('Error parsing lastResult data:', error);
-    //     }
-    // }
-    ////////////////////////
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
