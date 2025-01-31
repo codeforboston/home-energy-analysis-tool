@@ -54,8 +54,18 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // 	naturalGasBillRecord04,
 // ]
 
-export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSchema }) {
+interface EngergyUseHistoryChartProps {
+	usage_data: UsageDataSchema
+	recalculateFn: (billingRecords: BillingRecordsSchema) => void;
+}
+
+export function EnergyUseHistoryChart({ usage_data, recalculateFn }: EngergyUseHistoryChartProps) {
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
+
+	useEffect(() => {
+		console.log('billing records changed, should trigger recalculation: ', billingRecords)
+		recalculateFn(billingRecords)
+	}, [billingRecords])
 
 	useEffect(() => {
 		if (usage_data?.processed_energy_bills) {
