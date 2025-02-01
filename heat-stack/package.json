@@ -22,6 +22,7 @@
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
     "test": "cd ../python && python3 -m venv venv && . venv/bin/activate && pip install -q build && python3 -m build && cd ../heat-stack && vitest && rm -rf ../python/dist ",
+    "test-pyodide": "cd ../python && python3 -m venv venv && . venv/bin/activate && pip install -q build && python3 -m build && cd ../heat-stack && vitest app/utils/pyodide.test.ts -- && rm -rf ../python/dist ",
     "buildpy": "cd ../python && python3 -m venv venv && . venv/bin/activate && pip install -q build && python3 -m build  && cp dist/rules_engine-0.0.1-py3-none-any.whl ../heat-stack/public/pyodide-env",
     "coverage": "vitest run --coverage",
     "test:e2e": "npm run test:e2e:dev --silent",
