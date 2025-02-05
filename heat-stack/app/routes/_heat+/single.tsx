@@ -63,6 +63,7 @@ import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import React, { useState } from 'react'
+import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -128,16 +129,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // await updateNote({ id: params.noteId, title, content })
     //code snippet from - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L180
 
-    console.log('loading geocodeUtil/weatherUtil')
-
-    const geocodeUtil = new GeocodeUtil()
-    const weatherUtil = new WeatherUtil()
-
-    let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
-    let {x, y} = coordinates ?? {x: 0, y: 0};
-
-    console.log('geocoded', x, y)
-
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
     // Main form entrypoint
 
@@ -156,12 +147,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
         // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
     })
 
-    // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
-
-
-    // console.log("uploadedTextFile", uploadedTextFile)
-
-
     /** Example:
      * records: [
      *   Map(4) {
@@ -176,49 +161,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
      */
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
-    const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
 
-    // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
-    const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
-    const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
-    
-    if (typeof startDateString !== 'string' || typeof endDateString !== 'string') {
-        throw new Error('Start date or end date is missing or invalid');
-    }
-    
-    // Get today's date
-    const today = new Date();
-    // Calculate the date 2 years ago from today
-    const twoYearsAgo = new Date(today);
-    twoYearsAgo.setFullYear(today.getFullYear() - 2);
-    
-    let start_date = new Date(startDateString);
-    let end_date = new Date(endDateString);
-    
-    // Use default dates if parsing fails
-    if (isNaN(start_date.getTime())) {
-        console.warn('Invalid start date, using date from 2 years ago');
-        start_date = twoYearsAgo;
-    }
-    if (isNaN(end_date.getTime())) {
-        console.warn('Invalid end date, using today\'s date');
-        end_date = today;
-    }
-    
-    // Function to ensure we always return a valid date string
-    const formatDateString = (date: Date): string => {
-        return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10);
-    };
-    
-    const weatherData = await weatherUtil.getThatWeathaData(
-        x,
-        y,
-        formatDateString(start_date),
-        formatDateString(end_date)
-    );
+    const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(uploadedTextFile, address)
 
-    const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
-    const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
 
     /** Main form entrypoint
      */
