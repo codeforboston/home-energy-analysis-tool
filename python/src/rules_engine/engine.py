@@ -563,7 +563,7 @@ class Home:
 
         balance_point_graph.records.append(balance_point_graph_row)
 
-        results = self._refine_balance_point(
+        results = Home._refine_balance_point(
             balance_point=balance_point,
             balance_point_sensitivity=next_balance_point_sensitivity,
             avg_ua=avg_ua,
@@ -736,7 +736,6 @@ class Home:
         intermediate_energy_bills: list[IntermediateEnergyBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-        initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
