@@ -542,7 +542,8 @@ class Home:
         balance_point: float,
         avg_ua: float,
         stdev_pct: float,
-        uas,
+        uas: float,
+        balance_point_graph: BalancePointGraph,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -554,13 +555,13 @@ class Home:
         """
         balance_point_graph_row = BalancePointGraphRow(
             balance_point=balance_point,
-            heat_loss_rate=self.avg_ua,
+            heat_loss_rate=avg_ua,
             change_in_heat_loss_rate=0,
             percent_change_in_heat_loss_rate=0,
-            standard_deviation=self.stdev_pct,
+            standard_deviation=stdev_pct,
         )
 
-        self.balance_point_graph.records.append(balance_point_graph_row)
+        balance_point_graph.records.append(balance_point_graph_row)
 
         results = self._refine_balance_point(
             balance_point=balance_point,
@@ -576,9 +577,8 @@ class Home:
         new_stdev_pct = results.stdev_pct
         balance_point_graph_records_extension = results.balance_point_graph_records_extension
 
-
         if isinstance(balance_point_graph_records_extension, list):
-            self.balance_point_graph.records.extend(
+            balance_point_graph.records.extend(
                 balance_point_graph_records_extension
             )
 
@@ -615,7 +615,6 @@ class Home:
             else:
                 uas, avg_ua, stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
-
             results = self._refine_balance_point(
                 balance_point = balance_point,
                 balance_point_sensitivity=next_balance_point_sensitivity,
@@ -625,18 +624,17 @@ class Home:
                 winter_processed_energy_bills=self.winter_processed_energy_bills,
             )
 
-
             new_balance_point = results.balance_point
             new_avg_ua = results.avg_ua
             new_stdev_pct = results.stdev_pct
             balance_point_graph_records_extension = results.balance_point_graph_records_extension
 
-
             if isinstance(balance_point_graph_records_extension, list):
-                self.balance_point_graph.records.extend(
+                balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
-        return new_balance_point, new_avg_ua, new_stdev_pct, uas
+        return (new_balance_point, new_avg_ua, new_stdev_pct, uas, 
+                balance_point_graph)
 
 
     @dataclass
@@ -774,11 +772,13 @@ class Home:
         home.avg_ua = sts.mean(home.uas)
         home.stdev_pct = sts.pstdev(home.uas) / home.avg_ua
 
-        home.balance_point, home.avg_ua, home.stdev_pct, home.uas = home._calculate_balance_point_and_ua(
+        (home.balance_point, home.avg_ua, home.stdev_pct, 
+         home.uas, home.balance_point_graph) = home._calculate_balance_point_and_ua(
             home.balance_point,
             home.avg_ua,
             home.stdev_pct,
             home.uas,
+            home.balance_point_graph,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
