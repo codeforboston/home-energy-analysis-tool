@@ -403,7 +403,6 @@ def calculate_dhw_usage(dhw_input: DhwInput, heating_system_efficiency: float) -
 
     return daily_fuel_oil_use_for_dhw
 
-
 class Home:
     """
     Defines attributes and methods for calculating home heat metrics
@@ -540,6 +539,7 @@ class Home:
 
     def _calculate_balance_point_and_ua(
         self,
+        balance_point: float,
         initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
@@ -552,7 +552,7 @@ class Home:
         """
 
         balance_point_graph_row = BalancePointGraphRow(
-            balance_point=self.balance_point,
+            balance_point=balance_point,
             heat_loss_rate=self.avg_ua,
             change_in_heat_loss_rate=0,
             percent_change_in_heat_loss_rate=0,
@@ -562,7 +562,7 @@ class Home:
         self.balance_point_graph.records.append(balance_point_graph_row)
 
         results = self._refine_balance_point(
-            balance_point=self.balance_point,
+            balance_point=balance_point,
             balance_point_sensitivity=next_balance_point_sensitivity,
             avg_ua=self.avg_ua,
             stdev_pct=self.stdev_pct,
@@ -615,7 +615,7 @@ class Home:
                 self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
             results = self._refine_balance_point(
-                balance_point=self.balance_point,
+                balance_point = balance_point,
                 balance_point_sensitivity=next_balance_point_sensitivity,
                 avg_ua=self.avg_ua,
                 stdev_pct=self.stdev_pct,
@@ -624,7 +624,7 @@ class Home:
             )
 
 
-            self.balance_point = results.balance_point
+            new_balance_point = results.balance_point
             self.avg_ua = results.avg_ua
             self.stdev_pct = results.stdev_pct
             balance_point_graph_records_extension = results.balance_point_graph_records_extension
@@ -634,7 +634,10 @@ class Home:
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
- 
+            self.balance_point = new_balance_point
+
+
+
     @dataclass
     class RefineBalancePointResults:
         balance_point: float
@@ -771,6 +774,7 @@ class Home:
         home_instance.stdev_pct = sts.pstdev(home_instance.uas) / home_instance.avg_ua
 
         home_instance._calculate_balance_point_and_ua(
+            home_instance.balance_point,
             initial_balance_point_sensitivity,
             stdev_pct_max,
             max_stdev_pct_diff,
