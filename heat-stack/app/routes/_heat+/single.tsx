@@ -162,6 +162,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
 
+
+    /** This function takes a CSV string and an address
+     * and returns date and weather data,
+     * and geolocation information 
+    */ 
     const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(uploadedTextFile, address)
 
 
@@ -348,7 +353,7 @@ export default function SubmitAnalysis() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-               <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange}/>
+               <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
