@@ -62,7 +62,7 @@ import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryCompon
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import React from 'react'
+import React, { useState } from 'react'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -225,22 +225,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
     const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
+    console.log('calculatedData: ', calculatedData)
     const str_version = JSON.stringify(calculatedData, replacer);
 
-    // Consider adding to form data
-    return json({data: str_version});
+    // Consider adding to form data, 
+    return json({data: str_version, parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id});
     // return redirect(`/single`)
 }
 
-/** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
-const recalculateFromBillingRecordsChange = (billingRecords: BillingRecordsSchema) => {
-    // do something with billing records
-    console.log('recalculating with billing records: ', billingRecords)
-}
 
 
-export default function Inputs() {
+
+export default function SubmitAnalysis() {
     /* @ts-ignore */
     // USAGE OF lastResult
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -299,7 +295,35 @@ export default function Inputs() {
     // - use the UsageDataSchema type here?
     // - use processed_energy_bills in Checkbox behavior
     // 
-    let currentUsageData;
+    let currentUsageData; // maybe initialize state here instead of a variable
+
+    const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
+
+    // @TODO: left off here
+    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
+    const recalculateFromBillingRecordsChange = (
+        parsedLastResult: Map<any, any>,
+         billingRecords: BillingRecordsSchema
+         ) => {
+        // setUsageData(buildCurrentMapOfUsageData(parsedLastResult, billingRecords));
+
+        // JSON API or pyodide running on client side
+        // utils/rules-engine.ts executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id)
+
+        // do something with billing records
+        console.log('recalculating with billing records: ', billingRecords)
+    }
+
+
+    // @TODO implement
+    const buildCurrentMapOfUsageData = (parsedLastResult: Map<any, any>, processedEnergyBills: BillingRecordsSchema) => {
+        // make a copy of parsedLastResult
+
+        // const processedEnergyBillsWithMaps = change records from objects to maps in processedEnergyBills using the same key values, and order matters (maybe)
+
+        // parsedLastResultCopy.set("processed_energy_bills", processedEnergyBillsWithMaps)
+        // return parsedLastResultCopy
+    }
 
     /**
      * Builds the current usage data based on the parsed last result.
@@ -383,7 +407,14 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
+            <Form
+                id={"temp"}
+                method="post"
+                onSubmit={form.onSubmit}
+                action="/userAdjustment"
+            >
             {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> }
+            </Form>
         </>
     )
 }
