@@ -550,7 +550,6 @@ class Home:
         the home, removing UA outliers based on a normalized standard
         deviation threshold
         """
-
         balance_point_graph_row = BalancePointGraphRow(
             balance_point=balance_point,
             heat_loss_rate=self.avg_ua,
@@ -570,7 +569,7 @@ class Home:
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
 
-        self.balance_point = results.balance_point
+        new_balance_point = results.balance_point
         self.avg_ua = results.avg_ua
         self.stdev_pct = results.stdev_pct
         balance_point_graph_records_extension = results.balance_point_graph_records_extension
@@ -634,8 +633,7 @@ class Home:
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
-            self.balance_point = new_balance_point
-
+        return new_balance_point
 
 
     @dataclass
@@ -773,7 +771,7 @@ class Home:
         home_instance.avg_ua = sts.mean(home_instance.uas)
         home_instance.stdev_pct = sts.pstdev(home_instance.uas) / home_instance.avg_ua
 
-        home_instance._calculate_balance_point_and_ua(
+        home_instance.balance_point = home_instance._calculate_balance_point_and_ua(
             home_instance.balance_point,
             initial_balance_point_sensitivity,
             stdev_pct_max,
