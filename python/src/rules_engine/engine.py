@@ -537,6 +537,7 @@ class Home:
         else:
             return 0.0
 
+    # @staticmethod
     def _calculate_balance_point_and_ua(
         self,
         balance_point: float,
@@ -544,6 +545,7 @@ class Home:
         stdev_pct: float,
         uas: float,
         balance_point_graph: BalancePointGraph,
+        thermostat_set_point: float,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -568,7 +570,7 @@ class Home:
             balance_point_sensitivity=next_balance_point_sensitivity,
             avg_ua=avg_ua,
             stdev_pct=stdev_pct,
-            thermostat_set_point=self.thermostat_set_point,
+            thermostat_set_point=thermostat_set_point,
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
 
@@ -778,6 +780,7 @@ class Home:
             home.stdev_pct,
             home.uas,
             home.balance_point_graph,
+            home.thermostat_set_point,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
