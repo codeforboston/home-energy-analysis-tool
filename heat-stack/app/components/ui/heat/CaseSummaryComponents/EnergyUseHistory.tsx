@@ -14,11 +14,13 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 interface EnergyUseHistoryProps {
 	usage_data: UsageDataSchema;
 	recalculateFn: (billingRecords: BillingRecordsSchema) => void;
+	show_usage_data: boolean
 }
 
 export function EnergyUseHistory({
 	usage_data,
-	recalculateFn
+	recalculateFn,
+	show_usage_data
 }: EnergyUseHistoryProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -45,7 +47,7 @@ export function EnergyUseHistory({
 				Get example file here
 			</a>
 
-			{usage_data && (
+			{show_usage_data && (
 				<>
 					<AnalysisHeader usage_data={usage_data} />
 					<EnergyUseHistoryChart usage_data={usage_data} recalculateFn={recalculateFn}/>
