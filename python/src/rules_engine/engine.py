@@ -540,6 +540,7 @@ class Home:
     def _calculate_balance_point_and_ua(
         self,
         balance_point: float,
+        avg_ua: float,
         initial_balance_point_sensitivity: float = 0.5,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
@@ -563,14 +564,14 @@ class Home:
         results = self._refine_balance_point(
             balance_point=balance_point,
             balance_point_sensitivity=next_balance_point_sensitivity,
-            avg_ua=self.avg_ua,
+            avg_ua=avg_ua,
             stdev_pct=self.stdev_pct,
             thermostat_set_point=self.thermostat_set_point,
             winter_processed_energy_bills=self.winter_processed_energy_bills,
         )
 
         new_balance_point = results.balance_point
-        self.avg_ua = results.avg_ua
+        new_avg_ua = results.avg_ua
         self.stdev_pct = results.stdev_pct
         balance_point_graph_records_extension = results.balance_point_graph_records_extension
 
@@ -611,12 +612,12 @@ class Home:
                 outlier.eliminated_as_outlier = False
                 break  # may want some kind of warning to be raised as well
             else:
-                self.uas, self.avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
+                self.uas, avg_ua, self.stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
             results = self._refine_balance_point(
                 balance_point = balance_point,
                 balance_point_sensitivity=next_balance_point_sensitivity,
-                avg_ua=self.avg_ua,
+                avg_ua=avg_ua,
                 stdev_pct=self.stdev_pct,
                 thermostat_set_point=self.thermostat_set_point,
                 winter_processed_energy_bills=self.winter_processed_energy_bills,
@@ -624,7 +625,7 @@ class Home:
 
 
             new_balance_point = results.balance_point
-            self.avg_ua = results.avg_ua
+            new_avg_ua = results.avg_ua
             self.stdev_pct = results.stdev_pct
             balance_point_graph_records_extension = results.balance_point_graph_records_extension
 
@@ -633,7 +634,7 @@ class Home:
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
-        return new_balance_point
+        return new_balance_point, new_avg_ua
 
 
     @dataclass
@@ -771,13 +772,15 @@ class Home:
         home_instance.avg_ua = sts.mean(home_instance.uas)
         home_instance.stdev_pct = sts.pstdev(home_instance.uas) / home_instance.avg_ua
 
-        home_instance.balance_point = home_instance._calculate_balance_point_and_ua(
+        home_instance.balance_point, home_instance.avg_ua = home_instance._calculate_balance_point_and_ua(
             home_instance.balance_point,
+            home_instance.avg_ua,
             initial_balance_point_sensitivity,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
         )
+
 
         return home_instance
 
