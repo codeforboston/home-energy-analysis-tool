@@ -542,7 +542,7 @@ class Home:
         balance_point: float,
         avg_ua: float,
         stdev_pct: float,
-        initial_balance_point_sensitivity: float = 0.5,
+        uas,
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -613,7 +613,7 @@ class Home:
                 outlier.eliminated_as_outlier = False
                 break  # may want some kind of warning to be raised as well
             else:
-                self.uas, avg_ua, stdev_pct = uas_i, avg_ua_i, stdev_pct_i
+                uas, avg_ua, stdev_pct = uas_i, avg_ua_i, stdev_pct_i
 
 
             results = self._refine_balance_point(
@@ -636,7 +636,7 @@ class Home:
                 self.balance_point_graph.records.extend(
                     balance_point_graph_records_extension
                 )
-        return new_balance_point, new_avg_ua, new_stdev_pct
+        return new_balance_point, new_avg_ua, new_stdev_pct, uas
 
 
     @dataclass
@@ -749,43 +749,42 @@ class Home:
         removing UA outliers based on a normalized standard deviation
         threshold
         """
-        home_instance = object.__new__(cls)
-        home_instance._init(
+        home = object.__new__(cls)
+        home._init(
             heat_load_input=heat_load_input,
             intermediate_energy_bills=intermediate_energy_bills,
             dhw_input=dhw_input,
             initial_balance_point=initial_balance_point,
         )
-        home_instance.avg_non_heating_usage = Home._avg_non_heating_usage(
-            home_instance.fuel_type,
-            home_instance.avg_summer_usage,
-            home_instance.dhw_input,
-            home_instance.heat_system_efficiency,
+        home.avg_non_heating_usage = Home._avg_non_heating_usage(
+            home.fuel_type,
+            home.avg_summer_usage,
+            home.dhw_input,
+            home.heat_system_efficiency,
         )
 
-        home_instance.uas = [
+        home.uas = [
             processed_energy_bill.ua
-            for processed_energy_bill in home_instance.winter_processed_energy_bills
+            for processed_energy_bill in home.winter_processed_energy_bills
             if processed_energy_bill.ua is not None
         ]
 
-        home_instance.balance_point_graph = BalancePointGraph(records=[])
+        home.balance_point_graph = BalancePointGraph(records=[])
 
-        home_instance.avg_ua = sts.mean(home_instance.uas)
-        home_instance.stdev_pct = sts.pstdev(home_instance.uas) / home_instance.avg_ua
+        home.avg_ua = sts.mean(home.uas)
+        home.stdev_pct = sts.pstdev(home.uas) / home.avg_ua
 
-        home_instance.balance_point, home_instance.avg_ua, home_instance.stdev_pct = home_instance._calculate_balance_point_and_ua(
-            home_instance.balance_point,
-            home_instance.avg_ua,
-            home_instance.stdev_pct,
-            initial_balance_point_sensitivity,
+        home.balance_point, home.avg_ua, home.stdev_pct, home.uas = home._calculate_balance_point_and_ua(
+            home.balance_point,
+            home.avg_ua,
+            home.stdev_pct,
+            home.uas,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
         )
 
-
-        return home_instance
+        return home
 
     @staticmethod
     def initialize_ua(
