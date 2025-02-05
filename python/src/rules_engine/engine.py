@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import bisect
 import statistics as sts
 from datetime import date, timedelta
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from rules_engine.pydantic_models import (
     AnalysisType,
@@ -546,6 +546,7 @@ class Home:
         uas: float,
         balance_point_graph: BalancePointGraph,
         thermostat_set_point: float,
+        winter_processed_energy_bills: List[IntermediateEnergyBill],
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
@@ -571,7 +572,7 @@ class Home:
             avg_ua=avg_ua,
             stdev_pct=stdev_pct,
             thermostat_set_point=thermostat_set_point,
-            winter_processed_energy_bills=self.winter_processed_energy_bills,
+            winter_processed_energy_bills=winter_processed_energy_bills,
         )
 
         new_balance_point = results.balance_point
@@ -636,7 +637,7 @@ class Home:
                     balance_point_graph_records_extension
                 )
         return (new_balance_point, new_avg_ua, new_stdev_pct, uas, 
-                balance_point_graph)
+                balance_point_graph, winter_processed_energy_bills)
 
 
     @dataclass
@@ -773,14 +774,18 @@ class Home:
         home.avg_ua = sts.mean(home.uas)
         home.stdev_pct = sts.pstdev(home.uas) / home.avg_ua
 
-        (home.balance_point, home.avg_ua, home.stdev_pct, 
-         home.uas, home.balance_point_graph) = home._calculate_balance_point_and_ua(
+        (
+            home.balance_point, home.avg_ua, home.stdev_pct, 
+            home.uas, home.balance_point_graph, 
+            home.winter_processed_energy_bills
+        ) = home._calculate_balance_point_and_ua(
             home.balance_point,
             home.avg_ua,
             home.stdev_pct,
             home.uas,
             home.balance_point_graph,
             home.thermostat_set_point,
+            home.winter_processed_energy_bills,
             stdev_pct_max,
             max_stdev_pct_diff,
             next_balance_point_sensitivity,
