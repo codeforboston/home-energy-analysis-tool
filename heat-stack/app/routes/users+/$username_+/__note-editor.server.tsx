@@ -14,7 +14,7 @@ import {
 	MAX_UPLOAD_SIZE,
 	NoteEditorSchema,
 	type ImageFieldset,
-} from './__note-editor'
+} from './__note-editor.tsx'
 
 function imageHasFile(
 	image: ImageFieldset,

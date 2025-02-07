@@ -34,16 +34,16 @@ test('prevents default on the first click, and does not on the second', async ()
 	const status = screen.getByRole('status')
 	const button = screen.getByRole('button')
 
-	expect(status).toHaveTextContent('Default Prevented: idle')
-	expect(button).toHaveTextContent('Click me')
+	expect(status.textContent).toBe('Default Prevented: idle')
+	expect(button.textContent).toBe('Click me')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(button.textContent).toBe('You sure?')
+	expect(status.textContent).toBe('Default Prevented: yes')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: no')
+	expect(button.textContent).toBe('You sure?')
+	expect(status.textContent).toBe('Default Prevented: no')
 })
 
 test('blurring the button starts things over', async () => {
@@ -54,14 +54,14 @@ test('blurring the button starts things over', async () => {
 	const button = screen.getByRole('button')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(button.textContent).toBe('You sure?')
+	expect(status.textContent).toBe('Default Prevented: yes')
 
 	await user.click(document.body)
 	// button goes back to click me
-	expect(button).toHaveTextContent('Click me')
+	expect(button.textContent).toBe('Click me')
 	// our callback wasn't called, so the status doesn't change
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(status.textContent).toBe('Default Prevented: yes')
 })
 
 test('hitting "escape" on the input starts things over', async () => {
@@ -72,12 +72,12 @@ test('hitting "escape" on the input starts things over', async () => {
 	const button = screen.getByRole('button')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(button.textContent).toBe('You sure?')
+	expect(status.textContent).toBe('Default Prevented: yes')
 
 	await user.keyboard('{Escape}')
 	// button goes back to click me
-	expect(button).toHaveTextContent('Click me')
+	expect(button.textContent).toBe('Click me')
 	// our callback wasn't called, so the status doesn't change
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(status.textContent).toBe('Default Prevented: yes')
 })

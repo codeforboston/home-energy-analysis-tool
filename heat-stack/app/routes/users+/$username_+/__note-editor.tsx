@@ -22,7 +22,7 @@ import { Label } from '#app/components/ui/label.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
 import { cn, getNoteImgSrc, useIsPending } from '#app/utils/misc.tsx'
-import { type action } from './__note-editor.server'
+import { type action } from './__note-editor.server.tsx'
 
 const titleMinLength = 1
 const titleMaxLength = 100

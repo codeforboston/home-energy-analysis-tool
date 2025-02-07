@@ -1,12 +1,13 @@
 import { createId as cuid } from '@paralleldrive/cuid2'
 import { redirect } from '@remix-run/node'
-import { GitHubStrategy } from 'remix-auth-github'
+import { type Strategy } from 'remix-auth'
+import { GitHubStrategy, type GitHubStrategyOptions } from 'remix-auth-github'
 import { z } from 'zod'
 import { cache, cachified } from '../cache.server.ts'
 import { connectionSessionStorage } from '../connections.server.ts'
 import { type Timings } from '../timing.server.ts'
 import { MOCK_CODE_GITHUB_HEADER, MOCK_CODE_GITHUB } from './constants.ts'
-import { type AuthProvider } from './provider.ts'
+import { type ProviderUser, type AuthProvider } from './provider.ts'
 
 const GitHubUserSchema = z.object({ login: z.string() })
 const GitHubUserParseResult = z
@@ -25,20 +26,20 @@ const shouldMock =
 	process.env.NODE_ENV === 'test'
 
 export class GitHubProvider implements AuthProvider {
-	getAuthStrategy() {
+	getAuthStrategy(): Strategy<ProviderUser, any> { // @TODO double check the types here
 		return new GitHubStrategy(
 			{
 				clientID: process.env.GITHUB_CLIENT_ID,
 				clientSecret: process.env.GITHUB_CLIENT_SECRET,
 				callbackURL: '/auth/github/callback',
-			},
+			} as unknown as GitHubStrategyOptions, // @TODO fix types here, clientID and callbackURL do not exist on GitHubStrategyOptions
 			async ({ profile }) => {
 				const email = profile.emails[0]?.value.trim().toLowerCase()
 				if (!email) {
 					throw new Error('Email not found')
 				}
 				const username = profile.displayName
-				const imageUrl = profile.photos[0].value
+				const imageUrl = profile.photos?.[0]?.value || '';
 				return {
 					email,
 					id: profile.id,

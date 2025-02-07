@@ -78,8 +78,8 @@ jobs:
       - name: 🖼 Build icons
         run: npm run build:icons
 
-      - name: ⚡ Run vitest
-        run: npm run test -- --coverage
+      - name: ⚡ Run vitest-pyodide (restore to run test after epic-web v7 upgrade)
+        run: npm run test-pyodide -- --coverage
 
   playwright:
     name: 🎭 Playwright

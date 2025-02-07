@@ -167,9 +167,9 @@ jobs:
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
-      - name: ⚡ Run vitest
+      - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
         working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run test app/utils/pyodide.test.ts --  
+        run: npm run test-pyodide  
         # --coverage
 
   deploy-to-servers:

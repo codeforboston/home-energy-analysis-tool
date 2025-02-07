@@ -11,8 +11,8 @@ import * as pyodideModule from 'pyodide'
 import { type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import GeocodeUtil from '#app/utils/GeocodeUtil'
-import WeatherUtil from '#app/utils/WeatherUtil'
+import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 
 
@@ -58,6 +58,7 @@ import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryCompon
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
+import React from 'react'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -227,7 +228,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput
         )
         from rules_engine import engine
@@ -302,7 +303,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput
         )
         from rules_engine import engine, helpers
@@ -313,7 +314,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             # two new geocode parameters may be needed for design temp:
             # watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
             # in addition to latitude and longitude from GeocodeUtil.ts object .
-            # pack the get_design_temp output into summary_input
+            # pack the get_design_temp output into heat_load_input
             """
             
             summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
@@ -323,7 +324,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
+            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
@@ -333,9 +334,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
         executeGetAnalyticsFromForm
     `)
     // type Analytics = z.infer<typeof Analytics>;
-    const foo: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
+    const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-    //console.log("foo billing records [0]", foo.get('billing_records')[0] )
+    //console.log("gasBillDataWithUserAdjustments billing records [0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0] )
 
     /**
      * second time and after, when table is modified, this becomes entrypoint
@@ -344,22 +345,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
         from rules_engine import parser
         from rules_engine.pydantic_models import (
             FuelType,
-            SummaryInput,
+            HeatLoadInput,
             TemperatureInput,
-            NormalizedBillingPeriodRecordBase
+            ProcessedEnergyBillInput
         )
         from rules_engine import engine, helpers
 
-        # def get_outputs_normalized(
-        #	summary_input: SummaryInput,
-        #	dhw_input: Optional[DhwInput],
-        #	temperature_input: TemperatureInput,
-        #	billing_periods: list[NormalizedBillingPeriodRecordBase],
-        # )
 
         def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
             """
-            "billing_records" is the "roundtripping" parameter to be passed as userAdjustedData.
+            "processed_energy_bills" is the "roundtripping" parameter to be passed as userAdjustedData.
             """
             
             summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
@@ -367,17 +362,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
             design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
             # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
-            summaryInput = SummaryInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
+            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
 
             temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
             # third step, re-run of the table data
-            userAdjustedDataFromJsToPython = [NormalizedBillingPeriodRecordBase(**record) for record in userAdjustedData['billing_records'] ]
+            userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['processed_energy_bills'] ]
             # print("py", userAdjustedDataFromJsToPython[0])
 
             outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
 
-            # print("py2", outputs2.billing_records[0])
+            # print("py2", outputs2.processed_energy_bills[0])
             return outputs2.model_dump(mode="json")
         executeRoundtripAnalyticsFromForm
     `)
@@ -390,7 +385,7 @@ Traceback (most recent call last): File "<exec>", line 32,
      */
     /*
     For
-      'billing_records' => [
+      'processed_energy_bills' => [
     Map(9) {
       'period_start_date' => '2020-10-02',
       'period_end_date' => '2020-11-04',
@@ -398,31 +393,29 @@ Traceback (most recent call last): File "<exec>", line 32,
       'analysis_type_override' => undefined,
       'inclusion_override' => false,
       'analysis_type' => 0,
-      'default_inclusion_by_calculation' => false,
+      'default_inclusion' => false,
       'eliminated_as_outlier' => false,
       'whole_home_heat_loss_rate' => undefined
     }, */
 
-    const gasBillDataWithUserAdjustments = foo; /* billing_records is untested here */
 
-    const billingRecords = foo.get('billing_records')
-    billingRecords.forEach((record: any) => {
-        record.set('inclusion_override', true);
-    });
-    // foo.set('billing_records', null)
-    // foo.set('billing_records', billingRecords)
-    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
+    // const billingRecords = gasBillDataWithUserAdjustments.get('processed_energy_bills')
+    // billingRecords.forEach((record: any) => {
+    //     record.set('inclusion_override', true);
+    // });
+    // gasBillDataWithUserAdjustments.set('processed_energy_bills', null)
+    // gasBillDataWithUserAdjustments.set('processed_energy_bills', billingRecords)
+    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
     /* why is inclusion_override still false after roundtrip */
+    const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-    const foo2: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
-    // console.log("foo2 billing records[0]", foo2.get('billing_records')[0]);
-    // console.log("foo2", foo2);
-    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('billing_records')[0])
+    // console.log("calculatedData billing records[0]", calculatedData.get('processed_energy_bills')[0]);
+    // console.log("calculatedData", calculatedData);
+    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
 
     // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
 
-    const str_version = JSON.stringify(foo2, replacer);
+    const str_version = JSON.stringify(calculatedData, replacer);
     // const json_version = JSON.parse(str_version);
     // console.log("str_version", str_version);
 
@@ -431,7 +424,14 @@ Traceback (most recent call last): File "<exec>", line 32,
     // return redirect(`/single`)
 }
 
-// https://stackoverflow.com/a/56150320
+/** Pass this to JSON.stringify()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function replacer(key: any, value: any) {
     if(value instanceof Map) {
         return {
@@ -443,11 +443,19 @@ function replacer(key: any, value: any) {
     }
 }
     
-// https://stackoverflow.com/a/56150320
+/** Pass this to JSON.parse()
+ * 
+ * Usage:
+ * const originalValue = new Map([['a', 1]]);
+ * const str = JSON.stringify(originalValue, replacer);
+ * const newValue = JSON.parse(str, reviver);
+ * 
+ * See https://stackoverflow.com/a/56150320
+ */
 function reviver(key: any, value: any) {
     if(typeof value === 'object' && value !== null) {
         if (value.dataType === 'Map') {
-        return new Map(value.value);
+            return new Map(value.value);
         }
     }
     return value;
@@ -488,7 +496,10 @@ export default function Inputs() {
     // const location = useLocation();
     // console.log(`location:`, location);  // `.state` is `null`
     const lastResult = useActionData<typeof action>()
-    
+    const parsedLastResult =  hasDataProperty(lastResult)
+        ? JSON.parse(lastResult.data, reviver) as Map<any, any>: undefined;
+
+    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 
     /* @ts-ignore */
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -496,22 +507,22 @@ export default function Inputs() {
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
      *
-     * temp1.get('summary_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
+     * temp1.get('heat_load_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
      */
     /* @ts-ignore */
-    // console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('summary_output'): undefined)
+    // console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
     
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * temp1.get('billing_records')
+     * temp1.get('processed_energy_bills')
      * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * temp1.get('billing_records')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion_by_calculation → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * temp1.get('billing_records')[0].get('period_start_date')
+     * temp1.get('processed_energy_bills')[0]
+     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+     * temp1.get('processed_energy_bills')[0].get('period_start_date')
     * "2020-10-02" 
      */
     /* @ts-ignore */
-    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('billing_records'): undefined)
+    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
 
     /**
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
@@ -522,8 +533,7 @@ export default function Inputs() {
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      *//* @ts-ignore */
      
-    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined)
- 
+    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
     type ActionResult = 
     | SubmissionResult<string[]>
     | { data: string }
@@ -561,14 +571,14 @@ export default function Inputs() {
             return parseWithZod(formData, { schema: Schema })
         },
         defaultValue: {
-            living_area: 3000,
-            address: '1 Broadway, Cambridge, MA 02142',
+            living_area: 2155,
+            address: '15 Dale Ave Gloucester, MA  01930',
             name: 'CIC',
             fuel_type: 'GAS',
-            heating_system_efficiency: 85,
+            heating_system_efficiency: 0.97,
             thermostat_set_point: 68,
-            setback_temperature: 65,
-            setback_hours_per_day: 8,
+            // setback_temperature: 65,
+            // setback_hours_per_day: 8,
             // design_temperature_override: '',
         } as SchemaZodFromFormType,
         shouldValidate: 'onBlur',
@@ -594,7 +604,7 @@ export default function Inputs() {
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis /> }
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
         </>
     )
 }

@@ -33,26 +33,26 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// 		3312125.0171753373
 	// 	]])
 
-	// Extract the summary_output from usage_data
-	const summaryOutputs = usage_data?.summary_output;
+	// Extract the heat_load_output from usage_data
+	const summaryOutputs = usage_data?.heat_load_output;
 
-	const totalRecords = usage_data?.billing_records?.length || "-"
+	const totalRecords = usage_data?.processed_energy_bills?.length || "-"
 
 	// Calculate the number of billing periods included in Heating calculations
-	const heatingAnalysisTypeRecords = usage_data?.billing_records?.filter(
+	const heatingAnalysisTypeRecords = usage_data?.processed_energy_bills?.filter(
 		(billingRecord) => billingRecord.analysis_type === 1,
 		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
 	);
 
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion_by_calculation === true &&
+		billingRecord.default_inclusion === true &&
 		billingRecord.inclusion_override === false,
 	).length;
 
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion_by_calculation === false &&
+		billingRecord.default_inclusion === false &&
 		billingRecord.inclusion_override === true,
 	).length;
 
