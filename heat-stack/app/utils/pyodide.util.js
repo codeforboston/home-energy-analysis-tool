@@ -48,7 +48,7 @@ class PyodideUtil {
 		console.log("Makin SI name:"+ si.name);
 		let f = this.pyodideModule.runPython(`
 		def f(s):
-			return SummaryInput(**s)
+			return HeatLoadInput(**s)
 		f
 		`);
 		let fr = f(si);
@@ -58,10 +58,10 @@ class PyodideUtil {
 
 	getSIO() {
 		let r = this.pyodideModule.runPython(`
-		from rules_engine.pydantic_models import SummaryInput
+		from rules_engine.pydantic_models import HeatLoadInput
 		from pyodide.ffi import to_js
 		import js
-		SummaryInput`);
+		HeatLoadInput`);
 		return r;
 	}
 
@@ -83,8 +83,8 @@ class PyodideUtil {
 			NaturalGasBillingInput,
 			NormalizedBillingPeriodRecordInput,
 			OilPropaneBillingInput,
-			SummaryInput,
-			SummaryOutput,
+			HeatLoadInput,
+			HeatLoadOutput,
 			TemperatureInput,
 		)
 		
@@ -105,7 +105,7 @@ class PyodideUtil {
 
 			t = t.to_py(default_converter=default_converter)
 
-			summa_inpoot = SummaryInput(**svm)
+			summa_inpoot = HeatLoadInput(**svm)
 			tempinz = TemperatureInput(**t)
 
 
