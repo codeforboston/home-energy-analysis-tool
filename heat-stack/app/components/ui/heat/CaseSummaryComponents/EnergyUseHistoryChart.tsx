@@ -1,3 +1,4 @@
+import { tr } from '@faker-js/faker'
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
 import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
@@ -16,8 +17,6 @@ import HeatingUsage from './assets/HeatingUsage.svg'
 import HelpCircle from './assets/help-circle.svg'
 import NonHeatingUsage from './assets/NonHeatingUsage.svg'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
-
-import { tr } from '@faker-js/faker'
 
 // type NaturalGasBillRecord = z.infer<typeof NaturalGasBillRecordZod>
 // const naturalGasBillRecord01: NaturalGasBillRecord = {
@@ -59,9 +58,9 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
 	useEffect(() => {
-		if (usage_data?.billing_records) {
+		if (usage_data?.processed_energy_bills) {
 			// Process the billing records directly without converting from Map
-			setBillingRecords(usage_data.billing_records)
+			setBillingRecords(usage_data.processed_energy_bills)
 		}
 	}, [usage_data])
 
@@ -139,7 +138,7 @@ export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSch
 					}
 
 					// Adjust inclusion for user input
-					let calculatedInclusion = period.default_inclusion_by_calculation
+					let calculatedInclusion = period.default_inclusion
 					if (period.inclusion_override) {
 						calculatedInclusion = !calculatedInclusion
 					}

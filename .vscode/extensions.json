@@ -7,6 +7,9 @@
     "qwtel.sqlite-viewer",
     "yoavbls.pretty-ts-errors",
     "github.vscode-github-actions",
-    "ms-vsliveshare.vsliveshare"
+    "ms-vsliveshare.vsliveshare",
+    "ms-python.python",
+    "eamodio.gitlens",
+    "MS-vsliveshare.vsliveshare"
   ]
 }
