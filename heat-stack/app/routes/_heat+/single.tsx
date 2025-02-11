@@ -64,6 +64,7 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import React, { useState } from 'react'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { EnergyUseUpload } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -369,17 +370,22 @@ export default function SubmitAnalysis() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-               <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
+                <EnergyUseUpload />
+                
                 <ErrorList id={form.errorId} errors={form.errors} />
-                <Button type="submit">Submit</Button>
-            </Form>
+            {/* </Form>
             <Form
                 id={"temp"}
                 method="post"
                 onSubmit={form.onSubmit}
                 action="/userAdjustment"
-            >
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> }
+            > */}
+                {show_usage_data && (
+                    <>
+                        <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
+                        <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> 
+                    </>
+                )}
             </Form>
         </>
     )
