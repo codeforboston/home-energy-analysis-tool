@@ -57,12 +57,12 @@ import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 // Ours
 import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
-import { type NaturalGasUsageDataSchema} from '../../../types/types.ts'
+import { BillingRecordsSchema, UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import React from 'react'
+import React, { useState } from 'react'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 
 /** Modeled off the conform example at
@@ -168,23 +168,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
      * and geolocation information 
     */ 
     const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(uploadedTextFile, address)
-    
+
 
     /** Main form entrypoint
      */
     const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
     const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
+    console.log('calculatedData: ', calculatedData)
     const str_version = JSON.stringify(calculatedData, replacer);
 
-    // Consider adding to form data
-    return json({data: str_version});
+    // Consider adding to form data, 
+    return json({data: str_version, parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id});
     // return redirect(`/single`)
 }
 
 
-export default function Inputs() {
+
+
+export default function SubmitAnalysis() {
     /* @ts-ignore */
     // USAGE OF lastResult
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
@@ -243,10 +245,51 @@ export default function Inputs() {
     // - use the UsageDataSchema type here?
     // - use processed_energy_bills in Checkbox behavior
     // 
-    let currentUsageData = {
-        heat_load_output: undefined,
-        balance_point_graph: undefined,
-        processed_energy_bills: undefined,
+    let currentUsageData; // maybe initialize state here instead of a variable
+
+    const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
+
+    // @TODO: left off here
+    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
+    const recalculateFromBillingRecordsChange = (
+        parsedLastResult: Map<any, any>,
+         billingRecords: BillingRecordsSchema
+         ) => {
+        // setUsageData(buildCurrentMapOfUsageData(parsedLastResult, billingRecords));
+
+        // JSON API or pyodide running on client side
+        // utils/rules-engine.ts executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id)
+
+        // do something with billing records
+        console.log('recalculating with billing records: ', billingRecords)
+    }
+
+
+    // @TODO implement
+    const buildCurrentMapOfUsageData = (parsedLastResult: Map<any, any>, processedEnergyBills: BillingRecordsSchema) => {
+        // make a copy of parsedLastResult
+
+        // const processedEnergyBillsWithMaps = change records from objects to maps in processedEnergyBills using the same key values, and order matters (maybe)
+
+        // parsedLastResultCopy.set("processed_energy_bills", processedEnergyBillsWithMaps)
+        // return parsedLastResultCopy
+    }
+
+    /**
+     * Builds the current usage data based on the parsed last result.
+     * @param parsedLastResult - The parsed last result.
+     * @returns The current usage data.
+     */
+    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
+        const currentUsageData = {
+            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
+            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
+            processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
+        }
+
+        // typecasting as UsageDataSchema because the types here do not quite line up coming from parsedLastResult as Map<any, any> - might need to think about how to handle typing the results from the python output more strictly
+        // Type '{ heat_load_output: { [k: string]: any; }; balance_point_graph: { [k: string]: any; }; processed_energy_bills: any; }' is not assignable to type '{ heat_load_output: { estimated_balance_point: number; other_fuel_usage: number; average_indoor_temperature: number; difference_between_ti_and_tbp: number; design_temperature: number; whole_home_heat_loss_rate: number; standard_deviation_of_heat_loss_rate: number; average_heat_load: number; maximum_heat_load: number...'.
+        return currentUsageData as UsageDataSchema;
     }
 
     if (show_usage_data && hasDataProperty(lastResult)) {
@@ -255,14 +298,7 @@ export default function Inputs() {
             const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
             console.log('parsedLastResult', parsedLastResult)
 
-            // TODO: Parsing without reviver to get processed_energy_bills with Objects instead of maps
-            // Figure out how to use parsedLastResult instead
-            const parsedLastResultObject = JSON.parse(lastResult.data)
-
-            currentUsageData.heat_load_output = Object.fromEntries(parsedLastResult?.get('heat_load_output'));
-            currentUsageData.balance_point_graph = Object.fromEntries(parsedLastResult?.get('balance_point_graph'));
-
-            currentUsageData.processed_energy_bills = replacedMapToObject(parsedLastResultObject).processed_energy_bills
+            currentUsageData = buildCurrentUsageData(parsedLastResult);
 
         } catch (error) {
             // console.error('Error parsing lastResult data:', error);
@@ -300,6 +336,7 @@ export default function Inputs() {
         shouldValidate: 'onBlur',
     })
 
+    // @TODO: we might need to guarantee that currentUsageData exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
         <>
         <pre>{JSON.stringify(lastResult, null, 2)}</pre>
@@ -316,11 +353,18 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory usage_data={ currentUsageData } />
+               <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
                 <ErrorList id={form.errorId} errors={form.errors} />
                 <Button type="submit">Submit</Button>
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData.heat_load_output} /> }
+            <Form
+                id={"temp"}
+                method="post"
+                onSubmit={form.onSubmit}
+                action="/userAdjustment"
+            >
+            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> }
+            </Form>
         </>
     )
 }
