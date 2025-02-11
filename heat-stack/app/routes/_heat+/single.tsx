@@ -361,8 +361,10 @@ export default function SubmitAnalysis() {
                 id={form.id}
                 method="post"
                 onSubmit={form.onSubmit}
-                action="/single"
-                encType="multipart/form-data"
+                // if there is no usage data, hit the action on this page (/single),
+                // if usage data exists, hit the action to /recalculate 
+                action={show_usage_data ? "/recalculate" : "/single"}
+                encType= {show_usage_data ? "text/plain" : "multipart/form-data"}
             >
                 {' '}
                 {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
@@ -370,16 +372,10 @@ export default function SubmitAnalysis() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseUpload />
+                {/* if no usage data, show the file upload functionality */}
+                {!show_usage_data && <EnergyUseUpload />}
                 
                 <ErrorList id={form.errorId} errors={form.errors} />
-            {/* </Form>
-            <Form
-                id={"temp"}
-                method="post"
-                onSubmit={form.onSubmit}
-                action="/userAdjustment"
-            > */}
                 {show_usage_data && (
                     <>
                         <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
