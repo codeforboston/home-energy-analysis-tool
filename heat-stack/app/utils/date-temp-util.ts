@@ -5,10 +5,9 @@
 
 import { type NaturalGasUsageDataSchema } from "#types/index.ts";
 import GeocodeUtil from "./GeocodeUtil.ts";
-import { executeParseGasBillPy } from "./rules-engine.ts";
 import WeatherUtil from "./WeatherUtil.ts";
 
-export default async function getConvertedDatesTIWD(uploadedTextFile: string, address: string,) {
+export default async function getConvertedDatesTIWD(pyodideResultsFromTextFile: NaturalGasUsageDataSchema, address: string,) {
     
     console.log('loading geocodeUtil/weatherUtil')
 
@@ -20,23 +19,6 @@ export default async function getConvertedDatesTIWD(uploadedTextFile: string, ad
 
     console.log('geocoded', x, y)
 
-    /** Example:
-     * records: [
-     *   Map(4) {
-     *     'period_start_date' => '2022-10-04',
-     *     'period_end_date' => '2022-11-03',
-     *     'usage_therms' => 19,
-     *     'inclusion_override' => undefined
-     *   }
-     * ],
-     * 'overall_start_date' => '2020-10-02',
-     * 'overall_end_date' => '2022-11-03'
-     */
-    // This assignment of the same name is a special thing. We don't remember the name right now.
-    // It's not necessary, but it is possible.
-    const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
-
-    // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
     const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
     const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
 

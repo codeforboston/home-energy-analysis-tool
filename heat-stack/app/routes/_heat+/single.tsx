@@ -83,10 +83,14 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
+let actionCounter = 1
+
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
-    console.log('action started')
+    console.log('action run #', actionCounter)
+    actionCounter = actionCounter + 1
+    console.log('request:',request)
 
     const formData = await parseMultipartFormData(request, uploadHandler)
     const uploadedTextFile: string = await fileUploadHandler(formData)
@@ -161,27 +165,38 @@ export async function action({ request, params }: ActionFunctionArgs) {
      */
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
+    const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
 
 
     /** This function takes a CSV string and an address
      * and returns date and weather data,
      * and geolocation information 
     */ 
-    const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(uploadedTextFile, address)
+    const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
 
 
     /** Main form entrypoint
      */
-    const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
+    // Call to the rules-engine with raw text file
+    const gasBillDataFromTextFile: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
+
+    console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
+
+
+    //TODO: adjust below on user input (click a checkbox)
+    const gasBillDataWithUserAdjustments = gasBillDataFromTextFile
+
+    // Call to the rules-engine with adjusted data
     const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-    console.log('calculatedData: ', calculatedData)
+
+    // console.log('calculatedData: ', calculatedData)
     const str_version = JSON.stringify(calculatedData, replacer);
 
     // Consider adding to form data, 
     return json({data: str_version, parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id});
     // return redirect(`/single`)
-}
+} //END OF action
 
 
 
@@ -299,6 +314,7 @@ export default function SubmitAnalysis() {
             console.log('parsedLastResult', parsedLastResult)
 
             currentUsageData = buildCurrentUsageData(parsedLastResult);
+            // setUsageData(currentUsageData)
 
         } catch (error) {
             // console.error('Error parsing lastResult data:', error);
