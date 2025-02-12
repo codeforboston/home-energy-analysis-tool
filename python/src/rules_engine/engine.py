@@ -668,7 +668,7 @@ class Home:
     ) -> Home:
         """
         Creates a Home, calculating avg non heating usage and then the
-        estimated balance point and UA coefficient for the home
+        estimated balance point and UA coefficient for the home,
         """
         home = object.__new__(Home)
         home.fuel_type = heat_load_input.fuel_type
@@ -692,7 +692,7 @@ class Home:
             home.heat_system_efficiency,
         )
         for processed_energy_bill in home.winter_processed_energy_bills:
-            home.initialize_ua(
+            home.process_intermediate_energy_bill(
                 processed_energy_bill,
                 fuel_type=home.fuel_type,
                 heat_system_efficiency=home.heat_system_efficiency,
@@ -743,7 +743,7 @@ class Home:
         return home
 
     @staticmethod
-    def initialize_ua(
+    def process_intermediate_energy_bill(
         intermediate_energy_bill: IntermediateEnergyBill,
         fuel_type: FuelType,
         heat_system_efficiency: float,
