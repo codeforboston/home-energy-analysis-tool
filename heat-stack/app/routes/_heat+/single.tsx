@@ -275,7 +275,7 @@ export default function SubmitAnalysis() {
     // @TODO: left off here
     /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
     const recalculateFromBillingRecordsChange = async (
-        parsedLastResult: Map<any, any>,
+        parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
         parsedAndValidatedFormSchema: any,
         convertedDatesTIWD: any,

@@ -13,7 +13,7 @@ async function handleFile(file: File) {
         return ''
     }
 }
-export async function fileUploadHandler(formData) {
+export async function fileUploadHandler(formData: any) {
     const file = formData.get('energy_use_upload') as File // fix as File?
 
     // TODO: think about the edge cases and handle the bad user input here:

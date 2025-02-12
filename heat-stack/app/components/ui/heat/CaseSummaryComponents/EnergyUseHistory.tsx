@@ -17,7 +17,14 @@ interface EnergyUseHistoryProps
 	lastResult: any;
 	parsedLastResult: Map<any, any> | undefined;
 	usage_data: UsageDataSchema;
-	recalculateFn: (billingRecords: BillingRecordsSchema) => void;
+	recalculateFn: (
+		parsedLastResult: Map<any, any> | undefined,
+		billingRecords: BillingRecordsSchema,
+		parsedAndValidatedFormSchema: any,
+        convertedDatesTIWD: any,
+        state_id: any,
+        county_id: any
+	) => void;
 	show_usage_data: boolean
 }
 

@@ -81,7 +81,8 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data
 		console.log('billing records changed, should trigger recalculation: ', billingRecords)
 		recalculateFn(
 			parsedLastResult,
-			billingRecords, 		parsedAndValidatedFormSchema,
+			billingRecords, 		
+			parsedAndValidatedFormSchema,
 			convertedDatesTIWD,
 			state_id,
 			county_id)
