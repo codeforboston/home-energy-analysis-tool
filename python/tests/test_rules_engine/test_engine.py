@@ -65,56 +65,6 @@ def sample_intermediate_energy_bill_inputs() -> list[engine.IntermediateEnergyBi
 
 
 @pytest.fixture()
-def sample_intermediate_energy_bill_inputs_with_outlier() -> (
-    list[engine.IntermediateEnergyBill]
-):
-    intermediate_energy_bill_inputs = [
-        engine.IntermediateEnergyBill(
-            _dummy_processed_energy_bill_input,
-            [41.7, 41.6, 32, 25.4],
-            60,
-            AnalysisType.ALLOWED_HEATING_USAGE,
-            True,
-            False,
-        ),
-        engine.IntermediateEnergyBill(
-            _dummy_processed_energy_bill_input,
-            [28, 29, 30, 29],
-            50,
-            AnalysisType.ALLOWED_HEATING_USAGE,
-            True,
-            False,
-        ),
-        engine.IntermediateEnergyBill(
-            _dummy_processed_energy_bill_input,
-            [32, 35, 35, 38],
-            45,
-            AnalysisType.ALLOWED_HEATING_USAGE,
-            True,
-            False,
-        ),
-        engine.IntermediateEnergyBill(
-            _dummy_processed_energy_bill_input,
-            [41, 43, 42, 42],
-            30,
-            AnalysisType.ALLOWED_HEATING_USAGE,
-            True,
-            False,
-        ),
-        engine.IntermediateEnergyBill(
-            _dummy_processed_energy_bill_input,
-            [72, 71, 70, 69],
-            0.96,
-            AnalysisType.NOT_ALLOWED_IN_CALCULATIONS,
-            False,
-            False,
-        ),
-    ]
-
-    return intermediate_energy_bill_inputs
-
-
-@pytest.fixture()
 def sample_heat_load_inputs() -> HeatLoadInput:
     heat_system_efficiency = 0.88
 
@@ -334,27 +284,6 @@ def test_bp_ua_estimates(
     assert home.stdev_pct == approx(0.0463, abs=0.01)
 
 
-def test_bp_ua_with_outlier(
-    sample_heat_load_inputs, sample_intermediate_energy_bill_inputs_with_outlier
-):
-    home = engine.Home.calculate(
-        sample_heat_load_inputs,
-        sample_intermediate_energy_bill_inputs_with_outlier,
-        dhw_input=None,
-        initial_balance_point=58,
-    )
-
-    # expect that ua_1 is considered an outlier and not used in winter_processed_energy_bills
-    ua_2, ua_3, ua_4 = [bill.ua for bill in home.winter_processed_energy_bills]
-
-    assert home.balance_point == 60.5
-    assert ua_2 == approx(1455.03, abs=0.01)
-    assert ua_3 == approx(1617.65, abs=0.01)
-    assert ua_4 == approx(1486.49, abs=0.01)
-    assert home.avg_ua == approx(1519.72, abs=1)
-    assert home.stdev_pct == approx(0.0463, abs=0.01)
-
-
 def test_convert_to_intermediate_processed_energy_bills(
     sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
 ):
@@ -428,13 +357,13 @@ def test_get_outputs_normalized(
         sample_normalized_processed_energy_bill_inputs,
     )
 
-    assert rules_engine_result.heat_load_output.estimated_balance_point == 60.5
+    assert rules_engine_result.heat_load_output.estimated_balance_point == 56.5
     assert rules_engine_result.heat_load_output.whole_home_heat_loss_rate == approx(
-        1519.72, abs=1
+        2015.2, abs=1
     )
     assert (
         rules_engine_result.heat_load_output.standard_deviation_of_heat_loss_rate
-        == approx(0.0463, abs=0.01)
+        == approx(0.17, abs=0.01)
     )
     assert rules_engine_result.processed_energy_bills[0].usage == 60
     assert (

@@ -595,60 +595,6 @@ class Home:
         if isinstance(balance_point_graph_records_extension, list):
             balance_point_graph.records.extend(balance_point_graph_records_extension)
 
-        while new_stdev_pct > stdev_pct_max:
-            outliers = [
-                abs(bill.ua - avg_ua)
-                for bill in winter_processed_energy_bills
-                if bill.ua is not None
-            ]
-            biggest_outlier = max(outliers)
-            biggest_outlier_idx = outliers.index(biggest_outlier)
-            outlier = winter_processed_energy_bills.pop(
-                biggest_outlier_idx
-            )  # removes the biggest outlier
-            outlier.eliminated_as_outlier = True
-            uas_i = [
-                processed_energy_bill.ua
-                for processed_energy_bill in winter_processed_energy_bills
-                if processed_energy_bill.ua is not None
-            ]
-            avg_ua_i = sts.mean(uas_i)
-            stdev_pct_i = sts.pstdev(uas_i) / avg_ua_i
-            if (
-                # the outlier has been removed
-                new_stdev_pct - stdev_pct_i
-                < max_stdev_pct_diff
-            ):  # if it's a small enough change
-                # add the outlier back in
-                winter_processed_energy_bills.append(
-                    outlier
-                )  # then it's not worth removing it, and we exit
-                outlier.eliminated_as_outlier = False
-                break  # may want some kind of warning to be raised as well
-            else:
-                uas, avg_ua, stdev_pct = uas_i, avg_ua_i, stdev_pct_i
-
-            results = Home._refine_balance_point(
-                balance_point=balance_point,
-                balance_point_sensitivity=next_balance_point_sensitivity,
-                avg_ua=avg_ua,
-                stdev_pct=stdev_pct,
-                thermostat_set_point=thermostat_set_point,
-                winter_processed_energy_bills=winter_processed_energy_bills,
-            )
-
-            new_balance_point = results.balance_point
-            new_avg_ua = results.avg_ua
-            new_stdev_pct = results.stdev_pct
-            balance_point_graph_records_extension = (
-                results.balance_point_graph_records_extension
-            )
-
-            if isinstance(balance_point_graph_records_extension, list):
-                balance_point_graph.records.extend(
-                    balance_point_graph_records_extension
-                )
-
         return Home.CalculateBalancePointAndUaResult(
             new_balance_point,
             new_avg_ua,
