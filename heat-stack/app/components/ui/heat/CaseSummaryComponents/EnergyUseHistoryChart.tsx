@@ -55,17 +55,37 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // ]
 
 interface EngergyUseHistoryChartProps {
+	lastResult: any;
+	parsedLastResult: Map<any, any> | undefined;
 	usage_data: UsageDataSchema
-	recalculateFn: (billingRecords: BillingRecordsSchema) => void;
+	recalculateFn: (
+		parsedLastResult: Map<any, any> | undefined,
+		billingRecords: BillingRecordsSchema,
+		parsedAndValidatedFormSchema: any,
+        convertedDatesTIWD: any,
+        state_id: any,
+        county_id: any
+	) => void;
 }
 
-export function EnergyUseHistoryChart({ usage_data, recalculateFn }: EngergyUseHistoryChartProps) {
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data, recalculateFn }: EngergyUseHistoryChartProps) {
 	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
 	useEffect(() => {
+		const {
+			parsedAndValidatedFormSchema,
+			convertedDatesTIWD,
+			state_id,
+			county_id} = {...lastResult}
+
 		console.log('billing records changed, should trigger recalculation: ', billingRecords)
-		recalculateFn(billingRecords)
-	}, [billingRecords])
+		recalculateFn(
+			parsedLastResult,
+			billingRecords, 		parsedAndValidatedFormSchema,
+			convertedDatesTIWD,
+			state_id,
+			county_id)
+	}, [billingRecords, lastResult, parsedLastResult])
 
 	useEffect(() => {
 		if (usage_data?.processed_energy_bills) {

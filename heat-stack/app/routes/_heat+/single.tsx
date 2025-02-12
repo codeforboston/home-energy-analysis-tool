@@ -186,16 +186,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 
     //TODO: adjust below on user input (click a checkbox)
-    const gasBillDataWithUserAdjustments = gasBillDataFromTextFile
+    // const gasBillDataWithUserAdjustments = gasBillDataFromTextFile
 
     // Call to the rules-engine with adjusted data
-    const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
+    // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
     // console.log('calculatedData: ', calculatedData)
-    const str_version = JSON.stringify(calculatedData, replacer);
+    const str_version = JSON.stringify(gasBillDataFromTextFile, replacer);
 
     // Consider adding to form data, 
-    return json({data: str_version, parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id});
+    return json({
+        data: str_version,
+        parsedAndValidatedFormSchema,
+        convertedDatesTIWD,
+        state_id,
+        county_id
+        });
     // return redirect(`/single`)
 } //END OF action
 
@@ -262,19 +268,30 @@ export default function SubmitAnalysis() {
     // - use processed_energy_bills in Checkbox behavior
     // 
     let currentUsageData; // maybe initialize state here instead of a variable
+    let parsedLastResult: Map<any, any>| undefined;
 
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
 
     // @TODO: left off here
     /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
-    const recalculateFromBillingRecordsChange = (
+    const recalculateFromBillingRecordsChange = async (
         parsedLastResult: Map<any, any>,
-         billingRecords: BillingRecordsSchema
+        billingRecords: BillingRecordsSchema,
+        parsedAndValidatedFormSchema: any,
+        convertedDatesTIWD: any,
+        state_id: any,
+        county_id: any
          ) => {
+            console.log("recalculateFromBillingRecordsChange")
         // setUsageData(buildCurrentMapOfUsageData(parsedLastResult, billingRecords));
-
-        // JSON API or pyodide running on client side
-        // utils/rules-engine.ts executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id)
+        // wire up usageData useState hook instead of variable.
+        console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
+        // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
+    
+        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedLastResult, state_id, county_id).toJs()
+)
+// how do we modify usageData afterwards?
+        
 
         // do something with billing records
         console.log('recalculating with billing records: ', billingRecords)
@@ -311,10 +328,13 @@ export default function SubmitAnalysis() {
     if (show_usage_data && hasDataProperty(lastResult)) {
         try {
             // Parse the JSON string from lastResult.data
-            const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+            // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+            parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+
+
             console.log('parsedLastResult', parsedLastResult)
 
-            currentUsageData = buildCurrentUsageData(parsedLastResult);
+            currentUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult);
             // setUsageData(currentUsageData)
 
         } catch (error) {
@@ -346,8 +366,8 @@ export default function SubmitAnalysis() {
             fuel_type: 'GAS',
             heating_system_efficiency: 0.97,
             thermostat_set_point: 68,
-            // setback_temperature: 65,
-            // setback_hours_per_day: 8,
+            setback_temperature: 65,
+            setback_hours_per_day: 8,
             // design_temperature_override: '',
         } as SchemaZodFromFormType,
         shouldValidate: 'onBlur',
@@ -373,12 +393,12 @@ export default function SubmitAnalysis() {
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
                 {/* if no usage data, show the file upload functionality */}
-                {!show_usage_data && <EnergyUseUpload />}
+                <EnergyUseUpload />
                 
                 <ErrorList id={form.errorId} errors={form.errors} />
                 {show_usage_data && (
                     <>
-                        <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
+                        <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
                         <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> 
                     </>
                 )}

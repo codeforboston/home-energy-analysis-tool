@@ -12,13 +12,18 @@ import { EnergyUseUpload } from './EnergyUseUpload.tsx';
 // import { Input } from '#/app/components/ui/input.tsx'
 // import { Label } from '#/app/components/ui/label.tsx'
 
-interface EnergyUseHistoryProps {
+interface EnergyUseHistoryProps 
+{
+	lastResult: any;
+	parsedLastResult: Map<any, any> | undefined;
 	usage_data: UsageDataSchema;
 	recalculateFn: (billingRecords: BillingRecordsSchema) => void;
 	show_usage_data: boolean
 }
 
 export function EnergyUseHistory({
+	lastResult,
+	parsedLastResult,
 	usage_data,
 	recalculateFn,
 	show_usage_data
@@ -35,7 +40,7 @@ export function EnergyUseHistory({
 			{show_usage_data && (
 				<>
 					<AnalysisHeader usage_data={usage_data} />
-					<EnergyUseHistoryChart usage_data={usage_data} recalculateFn={recalculateFn}/>
+					<EnergyUseHistoryChart usage_data={usage_data} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
 					<Button type="submit">Re-calculate</Button>
 				</>
 			)}
