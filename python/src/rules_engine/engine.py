@@ -64,7 +64,7 @@ def get_outputs_natural_gas(
     natural_gas_billing_input: NaturalGasBillingInput,
 ) -> RulesEngineResult:
     """
-    Analyze the heat load for a home that is using natural gas as its
+    Returns the heat load for a home that is using natural gas as its
     current heating system fuel.
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
@@ -94,8 +94,9 @@ def get_outputs_normalized(
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
 ) -> RulesEngineResult:
     """
-    Analyze the heat load for a home based on normalized, fuel-type-
-    agnostic billing records.
+    Returns a RulesEngineResult containing, for a home, normalized, 
+    fuel-type-agnostic billing records, the heat load based on them, 
+    and a balance-point graph.
     """
     initial_balance_point = 60
     intermediate_processed_energy_bills = (
@@ -522,14 +523,10 @@ class Home:
         balance_point_graph: BalancePointGraph,
         thermostat_set_point: float,
         winter_processed_energy_bills: List[IntermediateEnergyBill],
-        stdev_pct_max: float = 0.10,
-        max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
     ) -> CalculateBalancePointAndUaResult:
         """
-        Calculates the estimated balance point and UA coefficient for
-        the home, removing UA outliers based on a normalized standard
-        deviation threshold
+        Returns the estimated balance point and UA coefficient
         """
         balance_point_graph_row = BalancePointGraphRow(
             balance_point=balance_point,
@@ -711,8 +708,6 @@ class Home:
             if processed_energy_bill.ua is not None
         ]
 
-        home.balance_point_graph = BalancePointGraph(records=[])
-
         home.avg_ua = sts.mean(home.uas)
         home.stdev_pct = sts.pstdev(home.uas) / home.avg_ua
 
@@ -724,8 +719,6 @@ class Home:
             home.balance_point_graph,
             home.thermostat_set_point,
             home.winter_processed_energy_bills,
-            stdev_pct_max,
-            max_stdev_pct_diff,
             next_balance_point_sensitivity,
         )
 
