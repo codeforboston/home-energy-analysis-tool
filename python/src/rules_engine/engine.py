@@ -421,45 +421,10 @@ class Home:
     balance_point_graph = BalancePointGraph(records=[])
     uas: list[float] = []
 
-    def _init(
-        self,
-        heat_load_input: HeatLoadInput,
-        intermediate_energy_bills: list[IntermediateEnergyBill],
-        dhw_input: Optional[DhwInput],
-        initial_balance_point: float = 60,
-    ) -> None:
-        self.fuel_type = heat_load_input.fuel_type
-        self.heat_system_efficiency = heat_load_input.heating_system_efficiency
-        self.thermostat_set_point = heat_load_input.thermostat_set_point
-        self.balance_point = initial_balance_point
-        self.dhw_input = dhw_input
-
-        (
-            self.winter_processed_energy_bills,
-            self.summer_processed_energy_bills,
-        ) = Home._processed_energy_bill_inputs(
-            intermediate_energy_bills, self.balance_point
-        )
-        self.avg_summer_usage = Home._avg_summer_usage(
-            self.summer_processed_energy_bills
-        )
-        self.avg_non_heating_usage = Home._avg_non_heating_usage(
-            self.fuel_type,
-            self.avg_summer_usage,
-            self.dhw_input,
-            self.heat_system_efficiency,
-        )
-        for processed_energy_bill in self.winter_processed_energy_bills:
-            self.initialize_ua(
-                processed_energy_bill,
-                fuel_type=self.fuel_type,
-                heat_system_efficiency=self.heat_system_efficiency,
-                avg_non_heating_usage=self.avg_non_heating_usage,
-            )
-
     @staticmethod
     def _processed_energy_bill_inputs(
-        intermediate_energy_bills: list[IntermediateEnergyBill], balance_point: float
+        intermediate_energy_bills: list[IntermediateEnergyBill], 
+        balance_point: float
     ) -> tuple[list[IntermediateEnergyBill], list[IntermediateEnergyBill]]:
         winter_processed_energy_bills = []
         summer_processed_energy_bills = []
@@ -691,9 +656,8 @@ class Home:
             balance_point_graph_records_extension=balance_point_graph_records_extension,
         )
 
-    @classmethod
+    @staticmethod
     def calculate(
-        cls,
         heat_load_input: HeatLoadInput,
         intermediate_energy_bills: list[IntermediateEnergyBill],
         dhw_input: Optional[DhwInput],
@@ -703,18 +667,37 @@ class Home:
         next_balance_point_sensitivity: float = 0.5,
     ) -> Home:
         """
-        For this Home, calculates avg non heating usage and then the
-        estimated balance point and UA coefficient for the home,
-        removing UA outliers based on a normalized standard deviation
-        threshold
+        Creates a Home, calculating avg non heating usage and then the
+        estimated balance point and UA coefficient for the home
         """
-        home = object.__new__(cls)
-        home._init(
-            heat_load_input=heat_load_input,
-            intermediate_energy_bills=intermediate_energy_bills,
-            dhw_input=dhw_input,
-            initial_balance_point=initial_balance_point,
+        home = object.__new__(Home)
+        home.fuel_type = heat_load_input.fuel_type
+        home.heat_system_efficiency = heat_load_input.heating_system_efficiency
+        home.thermostat_set_point = heat_load_input.thermostat_set_point
+        home.balance_point = initial_balance_point
+        home.dhw_input = dhw_input
+        (
+            home.winter_processed_energy_bills,
+            home.summer_processed_energy_bills,
+        ) = Home._processed_energy_bill_inputs(
+            intermediate_energy_bills, home.balance_point
         )
+        home.avg_summer_usage = Home._avg_summer_usage(
+            home.summer_processed_energy_bills
+        )
+        home.avg_non_heating_usage = Home._avg_non_heating_usage(
+            home.fuel_type,
+            home.avg_summer_usage,
+            home.dhw_input,
+            home.heat_system_efficiency,
+        )
+        for processed_energy_bill in home.winter_processed_energy_bills:
+            home.initialize_ua(
+                processed_energy_bill,
+                fuel_type=home.fuel_type,
+                heat_system_efficiency=home.heat_system_efficiency,
+                avg_non_heating_usage=home.avg_non_heating_usage,
+            )
         home.avg_non_heating_usage = Home._avg_non_heating_usage(
             home.fuel_type,
             home.avg_summer_usage,
@@ -767,8 +750,8 @@ class Home:
         avg_non_heating_usage: float,
     ) -> None:
         """
-        Average heating usage, partial UA, initial UA. requires that
-        self.home have non heating usage calculated.
+        Averages heating usage, partial UA, and initial UA of an
+        IntermediateEnergyBill
         """
         intermediate_energy_bill.avg_heating_usage = (
             intermediate_energy_bill.usage / intermediate_energy_bill.days
@@ -802,17 +785,8 @@ class Home:
 
 class IntermediateEnergyBill:
     """
-        An internal class storing data whence heating usage per billing
-        period is calculated.
-    self.avg_non_heating_usage = Home.
-                self.fuel_type, self.avg_summer_usage, self.dhw_input,
-                self.heat_system_efficiency
-        @staticmethod
-                fuel_type: FuelType,
-                avg_summer_usage: float,
-                dhw_input: DhwInput,
-                heat_system_efficiency: float
-            floaterae-return self.return return
+    An internal class storing data whence heating usage per billing
+    period is calculated
     """
 
     input: ProcessedEnergyBillInput
