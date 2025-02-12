@@ -701,7 +701,7 @@ class Home:
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
-    ) -> "Home":
+    ) -> Home:
         """
         For this Home, calculates avg non heating usage and then the
         estimated balance point and UA coefficient for the home,
