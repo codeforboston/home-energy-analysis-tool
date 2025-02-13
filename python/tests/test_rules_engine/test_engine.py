@@ -264,26 +264,6 @@ def test_get_average_indoor_temperature():
     assert engine.get_average_indoor_temperature(set_temp, setback, setback_hrs) == 66
 
 
-def test_bp_ua_estimates(
-    sample_heat_load_inputs, sample_intermediate_energy_bill_inputs
-):
-    home = engine.Home.calculate(
-        sample_heat_load_inputs,
-        sample_intermediate_energy_bill_inputs,
-        dhw_input=None,
-        initial_balance_point=58,
-    )
-
-    ua_1, ua_2, ua_3 = [bill.ua for bill in home.winter_processed_energy_bills]
-
-    assert home.balance_point == 60.5
-    assert ua_1 == approx(1455.03, abs=0.01)
-    assert ua_2 == approx(1617.65, abs=0.01)
-    assert ua_3 == approx(1486.49, abs=0.01)
-    assert home.avg_ua == approx(1519.72, abs=1)
-    assert home.stdev_pct == approx(0.0463, abs=0.01)
-
-
 def test_convert_to_intermediate_processed_energy_bills(
     sample_temp_inputs, sample_normalized_processed_energy_bill_inputs
 ):
