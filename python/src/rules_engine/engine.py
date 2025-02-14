@@ -107,7 +107,7 @@ def get_outputs_normalized(
         )
     )
 
-    home = Home2.calculate(
+    home = Home.calculate(
         heat_load_input=heat_load_input,
         intermediate_energy_bills=intermediate_processed_energy_bills,
         dhw_input=dhw_input,
@@ -405,7 +405,7 @@ def calculate_dhw_usage(dhw_input: DhwInput, heating_system_efficiency: float) -
     return daily_fuel_oil_use_for_dhw
 
 
-class Home:
+class HomeResult:
     """
     Defines attributes and methods for calculating home heat metrics
 
@@ -422,7 +422,7 @@ class Home:
     balance_point = 0.0
     balance_point_graph = BalancePointGraph(records=[])
 
-class Home2:
+class Home:
 
     @staticmethod
     def _processed_energy_bill_inputs(
@@ -540,7 +540,7 @@ class Home2:
 
         balance_point_graph.records.append(balance_point_graph_row)
 
-        results = Home2._refine_balance_point(
+        results = Home._refine_balance_point(
             balance_point=balance_point,
             balance_point_sensitivity=next_balance_point_sensitivity,
             avg_ua=avg_ua,
@@ -559,7 +559,7 @@ class Home2:
         if isinstance(balance_point_graph_records_extension, list):
             balance_point_graph.records.extend(balance_point_graph_records_extension)
 
-        return Home2.CalculateBalancePointAndUaResult(
+        return Home.CalculateBalancePointAndUaResult(
             new_balance_point,
             new_avg_ua,
             new_stdev_pct,
@@ -648,7 +648,7 @@ class Home2:
                 if len(directions_to_check) == 2:
                     directions_to_check.pop(-1)
 
-        return Home2.RefineBalancePointResults(
+        return Home.RefineBalancePointResults(
             balance_point=balance_point,
             avg_ua=avg_ua,
             stdev_pct=stdev_pct,
@@ -664,12 +664,12 @@ class Home2:
         stdev_pct_max: float = 0.10,
         max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
-    ) -> Home:
+    ) -> HomeResult:
         """
         Creates a Home, calculating avg non heating usage and then the
         estimated balance point and UA coefficient for the home,
         """
-        home = object.__new__(Home)
+        home = object.__new__(HomeResult)
         # heat_load_input.fuel_type = heat_load_input.fuel_type
         # heat_load_input.heating_system_efficiency = heat_load_input.heating_system_efficiency
         # heat_load_input.thermostat_set_point = heat_load_input.thermostat_set_point
@@ -677,26 +677,26 @@ class Home2:
         (
             winter_processed_energy_bills,
             summer_processed_energy_bills,
-        ) = Home2._processed_energy_bill_inputs(
+        ) = Home._processed_energy_bill_inputs(
             intermediate_energy_bills, home.balance_point
         )
-        avg_summer_usage = Home2._avg_summer_usage(
+        avg_summer_usage = Home._avg_summer_usage(
             summer_processed_energy_bills
         )
-        home.avg_non_heating_usage = Home2._avg_non_heating_usage(
+        home.avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
             dhw_input,
             heat_load_input.heating_system_efficiency,
         )
         for processed_energy_bill in winter_processed_energy_bills:
-            Home2.process_intermediate_energy_bill(
+            Home.process_intermediate_energy_bill(
                 processed_energy_bill,
                 fuel_type=heat_load_input.fuel_type,
                 heat_system_efficiency=heat_load_input.heating_system_efficiency,
                 avg_non_heating_usage=home.avg_non_heating_usage,
             )
-        home.avg_non_heating_usage = Home2._avg_non_heating_usage(
+        home.avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
             dhw_input,
@@ -712,7 +712,7 @@ class Home2:
         home.avg_ua = sts.mean(uas)
         home.stdev_pct = sts.pstdev(uas) / home.avg_ua
 
-        calculate_balance_point_and_ua_result = Home2._calculate_balance_point_and_ua(
+        calculate_balance_point_and_ua_result = Home._calculate_balance_point_and_ua(
             home.balance_point,
             home.avg_ua,
             home.stdev_pct,
@@ -750,7 +750,7 @@ class Home2:
         intermediate_energy_bill.avg_heating_usage = (
             intermediate_energy_bill.usage / intermediate_energy_bill.days
         ) - avg_non_heating_usage
-        intermediate_energy_bill.partial_ua = Home2.calculate_partial_ua(
+        intermediate_energy_bill.partial_ua = Home.calculate_partial_ua(
             intermediate_energy_bill, fuel_type, heat_system_efficiency
         )
         intermediate_energy_bill.ua = (
