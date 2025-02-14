@@ -422,6 +422,13 @@ class HomeResult:
     balance_point = 0.0
     balance_point_graph = BalancePointGraph(records=[])
 
+    def __init__(self):
+        self.avg_non_heating_usage = 0.0
+        self.avg_ua = 0.0
+        self.stdev_pct = 0.0
+        self.balance_point = 0.0
+        self.balance_point_graph = BalancePointGraph(records=[])
+
 class Home:
 
     @staticmethod
@@ -696,6 +703,7 @@ class Home:
                 heat_system_efficiency=heat_load_input.heating_system_efficiency,
                 avg_non_heating_usage=avg_non_heating_usage,
             )
+
         avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
