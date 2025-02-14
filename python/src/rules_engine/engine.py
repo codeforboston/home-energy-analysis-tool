@@ -669,21 +669,21 @@ class Home:
         Creates a Home, calculating avg non heating usage and then the
         estimated balance point and UA coefficient for the home,
         """
-        home = object.__new__(HomeResult)
+        home = HomeResult()
         # heat_load_input.fuel_type = heat_load_input.fuel_type
         # heat_load_input.heating_system_efficiency = heat_load_input.heating_system_efficiency
         # heat_load_input.thermostat_set_point = heat_load_input.thermostat_set_point
-        home.balance_point = initial_balance_point
+        balance_point = initial_balance_point
         (
             winter_processed_energy_bills,
             summer_processed_energy_bills,
         ) = Home._processed_energy_bill_inputs(
-            intermediate_energy_bills, home.balance_point
+            intermediate_energy_bills, balance_point
         )
         avg_summer_usage = Home._avg_summer_usage(
             summer_processed_energy_bills
         )
-        home.avg_non_heating_usage = Home._avg_non_heating_usage(
+        avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
             dhw_input,
@@ -694,9 +694,9 @@ class Home:
                 processed_energy_bill,
                 fuel_type=heat_load_input.fuel_type,
                 heat_system_efficiency=heat_load_input.heating_system_efficiency,
-                avg_non_heating_usage=home.avg_non_heating_usage,
+                avg_non_heating_usage=avg_non_heating_usage,
             )
-        home.avg_non_heating_usage = Home._avg_non_heating_usage(
+        avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
             dhw_input,
@@ -709,13 +709,13 @@ class Home:
             if processed_energy_bill.ua is not None
         ]
 
-        home.avg_ua = sts.mean(uas)
-        home.stdev_pct = sts.pstdev(uas) / home.avg_ua
+        avg_ua = sts.mean(uas)
+        stdev_pct = sts.pstdev(uas) / avg_ua
 
         calculate_balance_point_and_ua_result = Home._calculate_balance_point_and_ua(
-            home.balance_point,
-            home.avg_ua,
-            home.stdev_pct,
+            balance_point,
+            avg_ua,
+            stdev_pct,
             uas,
             home.balance_point_graph,
             heat_load_input.thermostat_set_point,
@@ -726,12 +726,8 @@ class Home:
         home.balance_point = calculate_balance_point_and_ua_result.new_balance_point
         home.avg_ua = calculate_balance_point_and_ua_result.new_avg_ua
         home.stdev_pct = calculate_balance_point_and_ua_result.new_stdev_pct
-        uas = calculate_balance_point_and_ua_result.uas
         home.balance_point_graph = (
             calculate_balance_point_and_ua_result.balance_point_graph
-        )
-        winter_processed_energy_bills = (
-            calculate_balance_point_and_ua_result.winter_processed_energy_bills
         )
 
         return home
