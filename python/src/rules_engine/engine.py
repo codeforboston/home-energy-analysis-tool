@@ -94,8 +94,8 @@ def get_outputs_normalized(
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
 ) -> RulesEngineResult:
     """
-    Returns a RulesEngineResult containing, for a home, normalized, 
-    fuel-type-agnostic billing records, the heat load based on them, 
+    Returns a RulesEngineResult containing, for a home, normalized,
+    fuel-type-agnostic billing records, the heat load based on them,
     and a balance-point graph.
     """
     initial_balance_point = 60
@@ -429,12 +429,11 @@ class HomeResult:
         self.balance_point = 0.0
         self.balance_point_graph = BalancePointGraph(records=[])
 
-class Home:
 
+class Home:
     @staticmethod
     def _processed_energy_bill_inputs(
-        intermediate_energy_bills: list[IntermediateEnergyBill], 
-        balance_point: float
+        intermediate_energy_bills: list[IntermediateEnergyBill], balance_point: float
     ) -> tuple[list[IntermediateEnergyBill], list[IntermediateEnergyBill]]:
         winter_processed_energy_bills = []
         summer_processed_energy_bills = []
@@ -684,12 +683,8 @@ class Home:
         (
             winter_processed_energy_bills,
             summer_processed_energy_bills,
-        ) = Home._processed_energy_bill_inputs(
-            intermediate_energy_bills, balance_point
-        )
-        avg_summer_usage = Home._avg_summer_usage(
-            summer_processed_energy_bills
-        )
+        ) = Home._processed_energy_bill_inputs(intermediate_energy_bills, balance_point)
+        avg_summer_usage = Home._avg_summer_usage(summer_processed_energy_bills)
         avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
@@ -697,8 +692,14 @@ class Home:
             heat_load_input.heating_system_efficiency,
         )
         for processed_energy_bill in winter_processed_energy_bills:
-            Home.process_intermediate_energy_bill(
-                processed_energy_bill,
+            (
+                processed_energy_bill.avg_heating_usage,
+                processed_energy_bill.partial_ua,
+                processed_energy_bill.ua,
+            ) = Home.process_intermediate_energy_bill(
+                processed_energy_bill.days,
+                processed_energy_bill.usage,
+                processed_energy_bill.total_hdd,
                 fuel_type=heat_load_input.fuel_type,
                 heat_system_efficiency=heat_load_input.heating_system_efficiency,
                 avg_non_heating_usage=avg_non_heating_usage,
@@ -742,28 +743,28 @@ class Home:
 
     @staticmethod
     def process_intermediate_energy_bill(
-        intermediate_energy_bill: IntermediateEnergyBill,
+        days: int,
+        usage: float,
+        total_hdd: float,
         fuel_type: FuelType,
         heat_system_efficiency: float,
         avg_non_heating_usage: float,
-    ) -> None:
+    ) -> tuple[float, float, float]:
         """
-        Averages heating usage, partial UA, and initial UA of an
+        Returns average heating usage, partial UA, and initial UA of an
         IntermediateEnergyBill
         """
-        intermediate_energy_bill.avg_heating_usage = (
-            intermediate_energy_bill.usage / intermediate_energy_bill.days
-        ) - avg_non_heating_usage
-        intermediate_energy_bill.partial_ua = Home.calculate_partial_ua(
-            intermediate_energy_bill, fuel_type, heat_system_efficiency
+        avg_heating_usage = (usage / days) - avg_non_heating_usage
+        partial_ua = Home.calculate_partial_ua(
+            days, avg_heating_usage, fuel_type, heat_system_efficiency
         )
-        intermediate_energy_bill.ua = (
-            intermediate_energy_bill.partial_ua / intermediate_energy_bill.total_hdd
-        )
+        ua = partial_ua / total_hdd
+        return avg_heating_usage, partial_ua, ua
 
     @staticmethod
     def calculate_partial_ua(
-        intermediate_energy_bill: IntermediateEnergyBill,
+        days: int,
+        avg_heating_usage: float,
         fuel_type: FuelType,
         heat_system_efficiency: float,
     ) -> float:
@@ -771,8 +772,8 @@ class Home:
         The portion of UA that is not dependent on the balance point
         """
         return (
-            intermediate_energy_bill.days
-            * intermediate_energy_bill.avg_heating_usage  # gallons or therms
+            days
+            * avg_heating_usage  # gallons or therms
             * fuel_type.value  # therm or gallon to BTU
             * heat_system_efficiency  # unitless
             / 24
