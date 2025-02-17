@@ -673,10 +673,7 @@ class Home:
         Creates a Home, calculating avg non heating usage and then the
         estimated balance point and UA coefficient for the home,
         """
-        home = HomeResult()
-        # heat_load_input.fuel_type = heat_load_input.fuel_type
-        # heat_load_input.heating_system_efficiency = heat_load_input.heating_system_efficiency
-        # heat_load_input.thermostat_set_point = heat_load_input.thermostat_set_point
+        home_result = HomeResult()
         balance_point = initial_balance_point
         (
             winter_processed_energy_bills,
@@ -724,20 +721,22 @@ class Home:
             avg_ua,
             stdev_pct,
             uas,
-            home.balance_point_graph,
+            home_result.balance_point_graph,
             heat_load_input.thermostat_set_point,
             winter_processed_energy_bills,
             next_balance_point_sensitivity,
         )
 
-        home.balance_point = calculate_balance_point_and_ua_result.new_balance_point
-        home.avg_ua = calculate_balance_point_and_ua_result.new_avg_ua
-        home.stdev_pct = calculate_balance_point_and_ua_result.new_stdev_pct
-        home.balance_point_graph = (
+        home_result.balance_point = (
+            calculate_balance_point_and_ua_result.new_balance_point
+        )
+        home_result.avg_ua = calculate_balance_point_and_ua_result.new_avg_ua
+        home_result.stdev_pct = calculate_balance_point_and_ua_result.new_stdev_pct
+        home_result.balance_point_graph = (
             calculate_balance_point_and_ua_result.balance_point_graph
         )
 
-        return home
+        return home_result
 
     @staticmethod
     def calculate_partial_ua(
