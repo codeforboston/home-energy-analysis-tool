@@ -3,12 +3,12 @@ TODO: Add module description
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
 
 import bisect
 import statistics as sts
+from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Any, Optional, List
+from typing import Any, List, Optional
 
 from rules_engine.pydantic_models import (
     AnalysisType,
