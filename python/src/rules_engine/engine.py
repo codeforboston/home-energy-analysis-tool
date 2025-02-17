@@ -692,17 +692,17 @@ class Home:
             heat_load_input.heating_system_efficiency,
         )
         for processed_energy_bill in winter_processed_energy_bills:
-            (
-                processed_energy_bill.avg_heating_usage,
-                processed_energy_bill.partial_ua,
-                processed_energy_bill.ua,
-            ) = Home.process_intermediate_energy_bill(
+            processed_energy_bill.avg_heating_usage = (
+                processed_energy_bill.usage / processed_energy_bill.days
+            ) - avg_non_heating_usage
+            processed_energy_bill.partial_ua = Home.calculate_partial_ua(
                 processed_energy_bill.days,
-                processed_energy_bill.usage,
-                processed_energy_bill.total_hdd,
-                fuel_type=heat_load_input.fuel_type,
-                heat_system_efficiency=heat_load_input.heating_system_efficiency,
-                avg_non_heating_usage=avg_non_heating_usage,
+                processed_energy_bill.avg_heating_usage,
+                heat_load_input.fuel_type,
+                heat_load_input.heating_system_efficiency,
+            )
+            processed_energy_bill.ua = (
+                processed_energy_bill.partial_ua / processed_energy_bill.total_hdd
             )
 
         avg_non_heating_usage = Home._avg_non_heating_usage(
@@ -740,26 +740,6 @@ class Home:
         )
 
         return home
-
-    @staticmethod
-    def process_intermediate_energy_bill(
-        days: int,
-        usage: float,
-        total_hdd: float,
-        fuel_type: FuelType,
-        heat_system_efficiency: float,
-        avg_non_heating_usage: float,
-    ) -> tuple[float, float, float]:
-        """
-        Returns average heating usage, partial UA, and initial UA of an
-        IntermediateEnergyBill
-        """
-        avg_heating_usage = (usage / days) - avg_non_heating_usage
-        partial_ua = Home.calculate_partial_ua(
-            days, avg_heating_usage, fuel_type, heat_system_efficiency
-        )
-        ua = partial_ua / total_hdd
-        return avg_heating_usage, partial_ua, ua
 
     @staticmethod
     def calculate_partial_ua(
