@@ -7,16 +7,20 @@ import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
-import * as pyodideModule from 'pyodide'
 import { type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { replacedMapToObject, replacer, reviver } from '#app/utils/data-parser.ts'
+import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import { 
+    executeGetAnalyticsFromFormJs, 
+    executeParseGasBillPy, 
+    executeRoundtripAnalyticsFromFormJs 
+} from '#app/utils/rules-engine.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
-
-
-// TODO NEXT WEEK
+// THESE ARE OLD NOTES, please someone go through and clean these up :)
 // - [x] Server side error checking/handling
 // - [x] ~Save to cookie and redirect to next form~ Put everything on the same page
 // - [x] - Get zod and Typescript to play nice
@@ -53,12 +57,14 @@ import WeatherUtil from '#app/utils/WeatherUtil.ts'
 
 // Ours
 import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
-import { type NaturalGasUsageDataSchema} from '../../../types/types.ts'
+import { BillingRecordsSchema, UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import HeatLoadAnalysis from './heatloadanalysis.tsx'
-import React from 'react'
+import React, { useState } from 'react'
+import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { EnergyUseUpload } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -78,32 +84,18 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 
 const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
+let actionCounter = 1
+
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
+    console.log('action run #', actionCounter)
+    actionCounter = actionCounter + 1
+    console.log('request:',request)
 
-    console.log('action started')
-
-    const uploadHandler = createMemoryUploadHandler({
-        maxPartSize: 1024 * 1024 * 5, // 5 MB
-    })
     const formData = await parseMultipartFormData(request, uploadHandler)
+    const uploadedTextFile: string = await fileUploadHandler(formData)
 
-    const file = formData.get('energy_use_upload') as File // fix as File?
-
-    async function handleFile(file: File) {
-        try {
-            const fileContent = await file.text()
-            return fileContent
-        } catch (error) {
-            console.error('Error reading file:', error)
-            return ''
-        }
-    }
-
-    // TODO: think about the edge cases and handle the bad user input here:
-    const uploadedTextFile: string = file !== null ? await handleFile(file) : ''
-    
     const submission = parseWithZod(formData, {
         schema: Schema,
     })
@@ -142,36 +134,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // await updateNote({ id: params.noteId, title, content })
     //code snippet from - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L180
 
-    // const formData = await parseMultipartFormData(
-    // 	request,
-    // 	createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
-    // )
-
-    console.log('loading geocodeUtil/weatherUtil')
-
-    const geocodeUtil = new GeocodeUtil()
-    const weatherUtil = new WeatherUtil()
-    ////////////////////////
-    const getPyodide = async () => {
-        return await pyodideModule.loadPyodide({
-            // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
-            // TODO: figure out how to determine if we're in browser or remix server and use ternary.
-            indexURL: 'public/pyodide-env/',
-        })
-    }
-    const runPythonScript = async () => {
-        const pyodide: any = await getPyodide()
-        return pyodide
-    }
-    // consider running https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/tests/test_rules_engine/test_engine.py
-    const pyodide: any = await runPythonScript()
-    //////////////////////
-
-    let {coordinates, state_id, county_id}  = await geocodeUtil.getLL(address)
-    let {x, y} = coordinates ?? {x: 0, y: 0};
-
-    console.log('geocoded', x, y)
-
     // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
     // Main form entrypoint
 
@@ -190,55 +152,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
         // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
     })
 
-    // console.log('parsedAndValidatedFormSchema', parsedAndValidatedFormSchema)
-
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-    )
-
-    /* NOTES for pydantic, typing-extensions, annotated_types: 
-        pyodide should match pyodide-core somewhat. 
-        typing-extensions needs specific version per https://github.com/pyodide/pyodide/issues/4234#issuecomment-1771735148
-        try getting it from 
-           - https://pypi.org/project/pydantic/#files
-           - https://pypi.org/project/typing-extensions/
-           - https://pypi.org/project/annotated-types/#files
-    */
-    await pyodide.loadPackage(
-        'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
-    )
-    await pyodide.loadPackage(
-        'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
-    )
-
-    await pyodide.loadPackage(
-        'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
-    )
-
-    // console.log("uploadedTextFile", uploadedTextFile)
-
-    /**
-     * Need to parse the gas bill first to determine the start and end dates of the bill
-     * so that we can request the weather for those dates.
-     */
-    const executeParseGasBillPy = await pyodide.runPythonAsync(`
-        from rules_engine import parser
-        from rules_engine.pydantic_models import (
-            FuelType,
-            HeatLoadInput,
-            TemperatureInput
-        )
-        from rules_engine import engine
-    
-        def executeParse(csvDataJs):
-            naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
-            return naturalGasInputRecords.model_dump(mode="json")
-        executeParse
-    `)
-
     /** Example:
      * records: [
      *   Map(4) {
@@ -255,285 +168,181 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // It's not necessary, but it is possible.
     const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = executeParseGasBillPy(uploadedTextFile).toJs()
 
-    // console.log('result', pyodideResultsFromTextFile )//, validateNaturalGasUsageData(pyodideResultsFromTextFile))
-    const startDateString = pyodideResultsFromTextFile.get('overall_start_date');
-    const endDateString = pyodideResultsFromTextFile.get('overall_end_date');
-    
-    if (typeof startDateString !== 'string' || typeof endDateString !== 'string') {
-        throw new Error('Start date or end date is missing or invalid');
-    }
-    
-    // Get today's date
-    const today = new Date();
-    // Calculate the date 2 years ago from today
-    const twoYearsAgo = new Date(today);
-    twoYearsAgo.setFullYear(today.getFullYear() - 2);
-    
-    let start_date = new Date(startDateString);
-    let end_date = new Date(endDateString);
-    
-    // Use default dates if parsing fails
-    if (isNaN(start_date.getTime())) {
-        console.warn('Invalid start date, using date from 2 years ago');
-        start_date = twoYearsAgo;
-    }
-    if (isNaN(end_date.getTime())) {
-        console.warn('Invalid end date, using today\'s date');
-        end_date = today;
-    }
-    
-    // Function to ensure we always return a valid date string
-    const formatDateString = (date: Date): string => {
-        return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10);
-    };
-    
-    const weatherData = await weatherUtil.getThatWeathaData(
-        x,
-        y,
-        formatDateString(start_date),
-        formatDateString(end_date)
-    );
 
-    const datesFromTIWD = weatherData.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
-    const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: weatherData.temperatures}
+    /** This function takes a CSV string and an address
+     * and returns date and weather data,
+     * and geolocation information 
+    */ 
+    const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
+
 
     /** Main form entrypoint
      */
-    const executeGetAnalyticsFromFormJs = await pyodide.runPythonAsync(`
-        from rules_engine import parser
-        from rules_engine.pydantic_models import (
-            FuelType,
-            HeatLoadInput,
-            TemperatureInput
-        )
-        from rules_engine import engine, helpers
 
-        def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id):
-            """
-            second step: this will be the first time to draw the table
-            # two new geocode parameters may be needed for design temp:
-            # watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
-            # in addition to latitude and longitude from GeocodeUtil.ts object .
-            # pack the get_design_temp output into heat_load_input
-            """
-            
-            summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-            temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+    // Call to the rules-engine with raw text file
+    const gasBillDataFromTextFile: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
 
-            # We will just pass in this data
-            naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
-
-            design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
-
-            temperatureInput = TemperatureInput(**temperatureInputFromJs)
-
-            outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
-
-            return outputs.model_dump(mode="json")
-        executeGetAnalyticsFromForm
-    `)
-    // type Analytics = z.infer<typeof Analytics>;
-    const gasBillDataWithUserAdjustments: any = executeGetAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, uploadedTextFile, state_id, county_id).toJs()
-
-    //console.log("gasBillDataWithUserAdjustments billing records [0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0] )
-
-    /**
-     * second time and after, when table is modified, this becomes entrypoint
-     */
-    const executeRoundtripAnalyticsFromFormJs = await pyodide.runPythonAsync(`
-        from rules_engine import parser
-        from rules_engine.pydantic_models import (
-            FuelType,
-            HeatLoadInput,
-            TemperatureInput,
-            ProcessedEnergyBillInput
-        )
-        from rules_engine import engine, helpers
+    console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
 
 
-        def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
-            """
-            "processed_energy_bills" is the "roundtripping" parameter to be passed as userAdjustedData.
-            """
-            
-            summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-            temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+    //TODO: adjust below on user input (click a checkbox)
+    // const gasBillDataWithUserAdjustments = gasBillDataFromTextFile
 
-            design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-            # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
-            summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
+    // Call to the rules-engine with adjusted data
+    // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
 
-            temperatureInput = TemperatureInput(**temperatureInputFromJs)
+    // console.log('calculatedData: ', calculatedData)
+    const str_version = JSON.stringify(gasBillDataFromTextFile, replacer);
 
-            # third step, re-run of the table data
-            userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['processed_energy_bills'] ]
-            # print("py", userAdjustedDataFromJsToPython[0])
-
-            outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
-
-            # print("py2", outputs2.processed_energy_bills[0])
-            return outputs2.model_dump(mode="json")
-        executeRoundtripAnalyticsFromForm
-    `)
-
-    /**
-     * Ask Alan, issue with list comprehension:
-Traceback (most recent call last): File "<exec>", line 32,
- in executeRoundtripAnalyticsFromForm TypeError: 
- list indices must be integers or slices, not str 
-     */
-    /*
-    For
-      'processed_energy_bills' => [
-    Map(9) {
-      'period_start_date' => '2020-10-02',
-      'period_end_date' => '2020-11-04',
-      'usage' => 29,
-      'analysis_type_override' => undefined,
-      'inclusion_override' => false,
-      'analysis_type' => 0,
-      'default_inclusion' => false,
-      'eliminated_as_outlier' => false,
-      'whole_home_heat_loss_rate' => undefined
-    }, */
-
-
-    // const billingRecords = gasBillDataWithUserAdjustments.get('processed_energy_bills')
-    // billingRecords.forEach((record: any) => {
-    //     record.set('inclusion_override', true);
-    // });
-    // gasBillDataWithUserAdjustments.set('processed_energy_bills', null)
-    // gasBillDataWithUserAdjustments.set('processed_energy_bills', billingRecords)
-    //console.log("(after customization) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
-    /* why is inclusion_override still false after roundtrip */
-    const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
-    // console.log("calculatedData billing records[0]", calculatedData.get('processed_energy_bills')[0]);
-    // console.log("calculatedData", calculatedData);
-    // console.log("(after round trip) gasBillDataWithUserAdjustments billing records[0]", gasBillDataWithUserAdjustments.get('processed_energy_bills')[0])
-
-    // const otherResult = executePy(summaryInput, convertedDatesTIWD, exampleNationalGridCSV);
-
-    const str_version = JSON.stringify(calculatedData, replacer);
-    // const json_version = JSON.parse(str_version);
-    // console.log("str_version", str_version);
-
-    // Consider adding to form data
-    return json({data: str_version});
+    // Consider adding to form data, 
+    return json({
+        data: str_version,
+        parsedAndValidatedFormSchema,
+        convertedDatesTIWD,
+        state_id,
+        county_id
+        });
     // return redirect(`/single`)
-}
-
-/** Pass this to JSON.stringify()
- * 
- * Usage:
- * const originalValue = new Map([['a', 1]]);
- * const str = JSON.stringify(originalValue, replacer);
- * 
- * See https://stackoverflow.com/a/56150320
- */
-function replacer(key: any, value: any) {
-    if(value instanceof Map) {
-        return {
-            dataType: 'Map',
-            value: Array.from(value.entries()), // or with spread: value: [...value]
-        };
-    } else {
-        return value;
-    }
-}
-    
-/** Pass this to JSON.parse()
- * 
- * Usage:
- * const originalValue = new Map([['a', 1]]);
- * const str = JSON.stringify(originalValue, replacer);
- * const newValue = JSON.parse(str, reviver);
- * 
- * See https://stackoverflow.com/a/56150320
- */
-function reviver(key: any, value: any) {
-    if(typeof value === 'object' && value !== null) {
-        if (value.dataType === 'Map') {
-            return new Map(value.value);
-        }
-    }
-    return value;
-}
-
-/**
- * Translates an already replaced (see https://stackoverflow.com/a/56150320) and then parsed Map from pyodide into a plain js Object.
- * @param input {Map} 
- * @returns {Object}
- */
-function replacedMapToObject(input: any): any {
-	// Base case: if input is not an object or is null, return it as-is
-	if (typeof input !== 'object' || input === null) {
-		return input
-	}
-
-	// Handle case where input is a Map-like object (with "dataType" as "Map" and a "value" array)
-	if (input.dataType === 'Map' && Array.isArray(input.value)) {
-		const obj: Record<any, any> = {} // Initialize an empty object
-		for (const [key, value] of input.value) {
-			obj[key] = replacedMapToObject(value) // Recursively process nested Maps
-		}
-		return obj
-	}
-
-	// Handle case where input is an array
-	if (Array.isArray(input)) {
-		return input.map(replacedMapToObject) // Recursively process each array element
-	}
-
-	console.log('input', input)
-	// Return the input for any other types of objects
-	return input
-}
+} //END OF action
 
 
-export default function Inputs() {
-    // const location = useLocation();
-    // console.log(`location:`, location);  // `.state` is `null`
-    const lastResult = useActionData<typeof action>()
-    const parsedLastResult =  hasDataProperty(lastResult)
-        ? JSON.parse(lastResult.data, reviver) as Map<any, any>: undefined;
 
-    const heatLoadSummaryOutput = parsedLastResult ? Object.fromEntries(parsedLastResult?.get('heat_load_output')) : undefined;
 
+export default function SubmitAnalysis() {
     /* @ts-ignore */
+    // USAGE OF lastResult
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
     /**
+     * Example Data Returned
      * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+     * 
+     * 1 of 3: heat_load_output
+     * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
+     * 
+     * temp1.get('heat_load_output'): Map(9) { 
+        * estimated_balance_point → 61.5, 
+        * other_fuel_usage → 0.2857142857142857, 
+        * average_indoor_temperature → 67, 
+        * difference_between_ti_and_tbp → 5.5, 
+        * design_temperature → 1, 
+        * whole_home_heat_loss_rate → 48001.81184312083, 
+        * standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
+        * average_heat_load → 3048115.0520381727, 
+        * maximum_heat_load → 3312125.0171753373 
+     * }
+     * 
+     * 
+     * 2 of 3: processed_energy_bills
+     * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
      *
-     * temp1.get('heat_load_output'): Map(9) { estimated_balance_point → 61.5, other_fuel_usage → 0.2857142857142857, average_indoor_temperature → 67, difference_between_ti_and_tbp → 5.5, design_temperature → 1, whole_home_heat_loss_rate → 48001.81184312083, standard_deviation_of_heat_loss_rate → 0.08066745182677547, average_heat_load → 3048115.0520381727, maximum_heat_load → 3312125.0171753373 }
-     */
-    /* @ts-ignore */
-    // console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
-    
-    /**
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
      * temp1.get('processed_energy_bills')
      * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+     * 
      * temp1.get('processed_energy_bills')[0]
      * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+     * 
      * temp1.get('processed_energy_bills')[0].get('period_start_date')
-    * "2020-10-02" 
-     */
-    /* @ts-ignore */
-    // console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
-
-    /**
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     *  temp1.get('balance_point_graph').get('records')
+     * "2020-10-02" 
+     * 
+     * 
+     * 3 of 3: balance_point_graph
+     * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+     * 
+     * temp1.get('balance_point_graph').get('records')
         Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
         temp1.get('balance_point_graph').get('records')[0]
         Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
-     *//* @ts-ignore */
-     
-    // console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+     */
+    /* @ts-ignore */
+
+    const lastResult = useActionData<typeof action>()
+    console.log('lastResult', lastResult)
+
+    let show_usage_data = lastResult !== undefined;
+
+    ////////////////////////
+    // TODO: 
+    // - use the UsageDataSchema type here?
+    // - use processed_energy_bills in Checkbox behavior
+    // 
+    let currentUsageData; // maybe initialize state here instead of a variable
+    let parsedLastResult: Map<any, any>| undefined;
+
+    // const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
+
+    // @TODO: left off here
+    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
+    const recalculateFromBillingRecordsChange = async (
+        parsedLastResult: Map<any, any> | undefined,
+        billingRecords: BillingRecordsSchema,
+        parsedAndValidatedFormSchema: any,
+        convertedDatesTIWD: any,
+        state_id: any,
+        county_id: any
+         ) => {
+            console.log("recalculateFromBillingRecordsChange")
+        // setUsageData(buildCurrentMapOfUsageData(parsedLastResult, billingRecords));
+        // wire up usageData useState hook instead of variable.
+        console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
+        // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
+    
+        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedLastResult, state_id, county_id).toJs()
+)
+// how do we modify usageData afterwards?
+        
+
+        // do something with billing records
+        console.log('recalculating with billing records: ', billingRecords)
+    }
+
+
+    // @TODO implement
+    const buildCurrentMapOfUsageData = (parsedLastResult: Map<any, any>, processedEnergyBills: BillingRecordsSchema) => {
+        // make a copy of parsedLastResult
+
+        // const processedEnergyBillsWithMaps = change records from objects to maps in processedEnergyBills using the same key values, and order matters (maybe)
+
+        // parsedLastResultCopy.set("processed_energy_bills", processedEnergyBillsWithMaps)
+        // return parsedLastResultCopy
+    }
+
+    /**
+     * Builds the current usage data based on the parsed last result.
+     * @param parsedLastResult - The parsed last result.
+     * @returns The current usage data.
+     */
+    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
+        const currentUsageData = {
+            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
+            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
+            processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
+        }
+
+        // typecasting as UsageDataSchema because the types here do not quite line up coming from parsedLastResult as Map<any, any> - might need to think about how to handle typing the results from the python output more strictly
+        // Type '{ heat_load_output: { [k: string]: any; }; balance_point_graph: { [k: string]: any; }; processed_energy_bills: any; }' is not assignable to type '{ heat_load_output: { estimated_balance_point: number; other_fuel_usage: number; average_indoor_temperature: number; difference_between_ti_and_tbp: number; design_temperature: number; whole_home_heat_loss_rate: number; standard_deviation_of_heat_loss_rate: number; average_heat_load: number; maximum_heat_load: number...'.
+        return currentUsageData as UsageDataSchema;
+    }
+
+    if (show_usage_data && hasDataProperty(lastResult)) {
+        try {
+            // Parse the JSON string from lastResult.data
+            // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+            parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+
+
+            console.log('parsedLastResult', parsedLastResult)
+
+            currentUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult);
+            // setUsageData(currentUsageData)
+
+        } catch (error) {
+            // console.error('Error parsing lastResult data:', error);
+        }
+    }
+    console.log('currentUsageData', currentUsageData)
+   
     type ActionResult = 
     | SubmissionResult<string[]>
     | { data: string }
@@ -543,26 +352,6 @@ export default function Inputs() {
     function hasDataProperty(result: ActionResult): result is { data: string } {
         return result !== undefined && 'data' in result && typeof (result as any).data === 'string';
     }  
-  
-    let usage_data = null;
-    let show_usage_data = lastResult !== undefined;
-
-    console.log('lastResult', lastResult)
-    
-    // Ensure we handle the result properly
-    if (show_usage_data && lastResult && hasDataProperty(lastResult)) {
-        try {
-            // Parse the JSON string from lastResult.data
-            const parsedData = JSON.parse(lastResult.data);
-
-            // Recursively transform any Maps in lastResult to objects
-            usage_data = replacedMapToObject(parsedData); // Get the relevant part of the transformed result
-            console.log('usage_data', usage_data)
-            
-        } catch (error) {
-            console.error('Error parsing lastResult data:', error);
-        }
-    }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     const [form, fields] = useForm({
@@ -577,13 +366,14 @@ export default function Inputs() {
             fuel_type: 'GAS',
             heating_system_efficiency: 0.97,
             thermostat_set_point: 68,
-            // setback_temperature: 65,
-            // setback_hours_per_day: 8,
+            setback_temperature: 65,
+            setback_hours_per_day: 8,
             // design_temperature_override: '',
         } as SchemaZodFromFormType,
         shouldValidate: 'onBlur',
     })
 
+    // @TODO: we might need to guarantee that currentUsageData exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
         <>
         <pre>{JSON.stringify(lastResult, null, 2)}</pre>
@@ -591,8 +381,10 @@ export default function Inputs() {
                 id={form.id}
                 method="post"
                 onSubmit={form.onSubmit}
-                action="/single"
-                encType="multipart/form-data"
+                // if there is no usage data, hit the action on this page (/single),
+                // if usage data exists, hit the action to /recalculate 
+                action={show_usage_data ? "/recalculate" : "/single"}
+                encType= {show_usage_data ? "text/plain" : "multipart/form-data"}
             >
                 {' '}
                 {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
@@ -600,11 +392,17 @@ export default function Inputs() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory usage_data={ usage_data } />
+                {/* if no usage data, show the file upload functionality */}
+                <EnergyUseUpload />
+                
                 <ErrorList id={form.errorId} errors={form.errors} />
-                <Button type="submit">Submit</Button>
+                {show_usage_data && (
+                    <>
+                        <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
+                        <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> 
+                    </>
+                )}
             </Form>
-            {show_usage_data && <HeatLoadAnalysis heatLoadSummaryOutput={heatLoadSummaryOutput} /> }
         </>
     )
 }

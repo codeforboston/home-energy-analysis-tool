@@ -5,12 +5,12 @@ import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.t
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '../../../../components/ui/table.tsx'
 
 import HeatingUsage from './assets/HeatingUsage.svg'
@@ -54,123 +54,154 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // 	naturalGasBillRecord04,
 // ]
 
-export function EnergyUseHistoryChart({ usage_data }: { usage_data: UsageDataSchema }) {
-	const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
+interface EnergyUseHistoryChartProps {
+    lastResult: any;
+    parsedLastResult: Map<any, any> | undefined;
+    usage_data: UsageDataSchema
+    recalculateFn: (
+        parsedLastResult: Map<any, any> | undefined,
+        billingRecords: BillingRecordsSchema,
+        parsedAndValidatedFormSchema: any,
+        convertedDatesTIWD: any,
+        state_id: any,
+        county_id: any
+    ) => void;
+}
 
-	useEffect(() => {
-		if (usage_data?.processed_energy_bills) {
-			// Process the billing records directly without converting from Map
-			setBillingRecords(usage_data.processed_energy_bills)
-		}
-	}, [usage_data])
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data, recalculateFn }: EnergyUseHistoryChartProps) {
+    const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
 
-	const handleOverrideCheckboxChange = (index: number) => {
-		setBillingRecords((prevRecords) => {
-			const newRecords = structuredClone(prevRecords)
-			const period = newRecords[index]
-			
-			if (period) {
-				const currentOverride = period.inclusion_override
-				// Toggle 'inclusion_override'
-				period.inclusion_override = !currentOverride
-				
-				newRecords[index] = { ...period } 
-			}
+    useEffect(() => {
+        const {
+            parsedAndValidatedFormSchema,
+            convertedDatesTIWD,
+            state_id,
+            county_id} = {...lastResult}
 
-			return newRecords
-		})
-	}
+        console.log('billing records changed, should trigger recalculation: ', billingRecords)
+        recalculateFn(
+            parsedLastResult,
+            billingRecords, 		
+            parsedAndValidatedFormSchema,
+            convertedDatesTIWD,
+            state_id,
+            county_id)
+    }, [billingRecords, lastResult, parsedLastResult, recalculateFn])
 
-	return (
-		<Table id="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
-			<TableHeader>
-				<TableRow className='text-xs text-muted-foreground bg-neutral-50'>
-					<TableHead className="text-center">#</TableHead>
-					<TableHead className='text-center'>
-						<div className="flex flex-row">
-							<div className='text-right'>Allowed Usage</div>
-							{/* TODO: add help text */}
-							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
-						</div>
-					</TableHead>
-					
-					<TableHead className='text-center'>Start Date</TableHead>
-					<TableHead className='text-center'>End Date</TableHead>
-					<TableHead className='text-center'>Days in Period</TableHead>
-					<TableHead className='text-center'>Gas Usage (therms)</TableHead>
-					<TableHead className='text-center'>Whole-home UA (BTU/h-°F)</TableHead>
-					<TableHead className='text-center'>
-						<div className="flex flex-row">
-							<div className='text-right'>Override Default</div>
-							{/* TODO: add help text */}
-							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
-						</div>
-					</TableHead>
-					
-				</TableRow>
-			</TableHeader>
-			<TableBody>
-				{billingRecords.map((period, index) => {
-					const startDate = new Date(period.period_start_date)
-					const endDate = new Date(period.period_end_date)
+    useEffect(() => {
+        if (usage_data?.processed_energy_bills) {
+            // Process the billing records directly without converting from Map
+            setBillingRecords(usage_data.processed_energy_bills)
+        }
+    }, [usage_data])
 
-					// Calculate days in period
-					const timeInPeriod = endDate.getTime() - startDate.getTime()
-					const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
+    const handleOverrideCheckboxChange = (index: number) => {
+        setBillingRecords((prevRecords) => {
+            const newRecords = structuredClone(prevRecords)
+            const period = newRecords[index]
+            
+            if (period) {
+                const currentOverride = period.inclusion_override
+                // Toggle 'inclusion_override'
+                period.inclusion_override = !currentOverride
+                
+                newRecords[index] = { ...period } 
+            }
 
-					// Set Analysis Type image and checkbox setting
-					const analysisType = period.analysis_type
-					let analysisType_Image = undefined
-					let overrideCheckboxDisabled = false
+            return newRecords
+        })
+    }
 
-					/* switch case for 1, -1, 0 */
-					switch (analysisType) {
-						case 1:
-							analysisType_Image = HeatingUsage
-							break
-						case -1:
-							analysisType_Image = NonHeatingUsage
-							break
-						case 0:
-							analysisType_Image = NotAllowedInCalculations
-							overrideCheckboxDisabled = true
-							break
-					}
+    return (
+        <Table id="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
+            <TableHeader>
+                <TableRow className='text-xs text-muted-foreground bg-neutral-50'>
+                    <TableHead className="text-center">#</TableHead>
+                    <TableHead className='text-center'>
+                        <div className="flex flex-row">
+                            <div className='text-right'>Allowed Usage</div>
+                            {/* TODO: add help text */}
+                            {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+                        </div>
+                    </TableHead>
+                    
+                    <TableHead className='text-center'>Start Date</TableHead>
+                    <TableHead className='text-center'>End Date</TableHead>
+                    <TableHead className='text-center'>Days in Period</TableHead>
+                    <TableHead className='text-center'>Gas Usage (therms)</TableHead>
+                    <TableHead className='text-center'>Whole-home UA (BTU/h-°F)</TableHead>
+                    <TableHead className='text-center'>
+                        <div className="flex flex-row">
+                            <div className='text-right'>Override Default</div>
+                            {/* TODO: add help text */}
+                            {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+                        </div>
+                    </TableHead>
+                    
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {billingRecords.map((period, index) => {
+                    const startDate = new Date(period.period_start_date)
+                    const endDate = new Date(period.period_end_date)
 
-					// Adjust inclusion for user input
-					let calculatedInclusion = period.default_inclusion
-					if (period.inclusion_override) {
-						calculatedInclusion = !calculatedInclusion
-					}
+                    // Calculate days in period
+                    const timeInPeriod = endDate.getTime() - startDate.getTime()
+                    const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
 
-					const variant = calculatedInclusion ? 'included' : 'excluded'
+                    // Set Analysis Type image and checkbox setting
+                    const analysisType = period.analysis_type
+                    let analysisType_Image = undefined
+                    let overrideCheckboxDisabled = false
 
-					return (
-						<TableRow key={index} variant={variant}>
-							<TableCell className="font-medium">{index + 1}</TableCell>
-							<TableCell className='justify-items-center'>
-								<img src={analysisType_Image} alt="Analysis Type" />
-							</TableCell>
-							<TableCell>{startDate.toLocaleDateString()}</TableCell>
-							<TableCell>{endDate.toLocaleDateString()}</TableCell>
-							<TableCell>{daysInPeriod}</TableCell>
-							<TableCell>{period.usage}</TableCell>
-							<TableCell>
-								{period.whole_home_heat_loss_rate
-									? period.whole_home_heat_loss_rate.toFixed(0)
-									: '-'}
-							</TableCell>
-							<TableCell>
-								<Checkbox
-									checked={period.inclusion_override}
-									disabled={overrideCheckboxDisabled}
-									onClick={() => handleOverrideCheckboxChange(index)}
-								/>
-							</TableCell>
-						</TableRow>
-					)
-				})}
-			</TableBody>
-		</Table>
-	)
+                    /* switch case for 1, -1, 0 */
+                    switch (analysisType) {
+                        case 1:
+                            analysisType_Image = HeatingUsage
+                            break
+                        case -1:
+                            analysisType_Image = NonHeatingUsage
+                            break
+                        case 0:
+                            analysisType_Image = NotAllowedInCalculations
+                            overrideCheckboxDisabled = true
+                            break
+                    }
+
+                    // Adjust inclusion for user input
+                    let calculatedInclusion = period.default_inclusion
+                    if (period.inclusion_override) {
+                        calculatedInclusion = !calculatedInclusion
+                    }
+
+                    const variant = calculatedInclusion ? 'included' : 'excluded'
+
+                    return (
+                        <TableRow key={index} variant={variant}>
+                            <TableCell className="font-medium">{index + 1}</TableCell>
+                            <TableCell className='justify-items-center'>
+                                <img src={analysisType_Image} alt="Analysis Type" />
+                            </TableCell>
+                            <TableCell>{startDate.toLocaleDateString()}</TableCell>
+                            <TableCell>{endDate.toLocaleDateString()}</TableCell>
+                            <TableCell>{daysInPeriod}</TableCell>
+                            <TableCell>{period.usage}</TableCell>
+                            <TableCell>
+                                {period.whole_home_heat_loss_rate
+                                    ? period.whole_home_heat_loss_rate.toFixed(0)
+                                    : '-'}
+                            </TableCell>
+                            <TableCell>
+                                <Checkbox
+                                    checked={period.inclusion_override}
+                                    disabled={overrideCheckboxDisabled}
+                                    onClick={() => handleOverrideCheckboxChange(index)}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    )
+                })}
+            </TableBody>
+        </Table>
+    )
 }
