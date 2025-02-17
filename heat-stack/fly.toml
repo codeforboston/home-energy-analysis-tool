@@ -1,64 +1,68 @@
-app = "heat-stack"
-primary_region = "bos"
-kill_signal = "SIGINT"
-kill_timeout = 5
-processes = [ ]
+# fly.toml app configuration file generated for heat-stack on 2025-02-12T00:53:34-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'heat-stack'
+primary_region = 'bos'
+kill_signal = 'SIGINT'
+kill_timeout = '5s'
 swap_size_mb = 512
 
 [experimental]
-allowed_public_ports = [ ]
-auto_rollback = true
-
-[mounts]
-source = "data"
-destination = "/data"
+  auto_rollback = true
 
 [build]
-# github actions moves these for now, but upstream they no longer need to be moved:
-dockerfile = "Dockerfile"
-ignorefile = "Dockerfile.dockerignore"
+  dockerfile = 'Dockerfile'
+  ignorefile = 'Dockerfile.dockerignore'
 # dockerfile = "/other/Dockerfile"
 # ignorefile = "/other/Dockerfile.dockerignore"
 
+[[mounts]]
+  source = 'data'
+  destination = '/data'
+
 [[services]]
-internal_port = 8080
-processes = [ "app" ]
-protocol = "tcp"
-script_checks = [ ]
+  protocol = 'tcp'
+  internal_port = 8080
+  processes = ['app']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
 
   [services.concurrency]
-  hard_limit = 100
-  soft_limit = 80
-  type = "requests"
-
-  [[services.ports]]
-  handlers = [ "http" ]
-  port = 80
-  force_https = true
-
-  [[services.ports]]
-  handlers = [ "tls", "http" ]
-  port = 443
+    type = 'requests'
+    hard_limit = 100
+    soft_limit = 80
 
   [[services.tcp_checks]]
-  grace_period = "1s"
-  interval = "15s"
-  restart_limit = 0
-  timeout = "2s"
+    interval = '15s'
+    timeout = '2s'
+    grace_period = '1s'
 
   [[services.http_checks]]
-  interval = "10s"
-  grace_period = "5s"
-  method = "get"
-  path = "/resources/healthcheck"
-  protocol = "http"
-  timeout = "2s"
-  tls_skip_verify = false
-  headers = { }
+    interval = '10s'
+    timeout = '2s'
+    grace_period = '5s'
+    method = 'get'
+    path = '/resources/healthcheck'
+    protocol = 'http'
+    tls_skip_verify = false
 
   [[services.http_checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/litefs/health"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/litefs/health'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

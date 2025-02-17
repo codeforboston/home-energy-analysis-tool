@@ -270,7 +270,7 @@ export default function SubmitAnalysis() {
     let currentUsageData; // maybe initialize state here instead of a variable
     let parsedLastResult: Map<any, any>| undefined;
 
-    const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
+    // const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
 
     // @TODO: left off here
     /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
