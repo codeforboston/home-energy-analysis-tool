@@ -667,8 +667,6 @@ class Home:
         intermediate_energy_bills: list[IntermediateEnergyBill],
         dhw_input: Optional[DhwInput],
         initial_balance_point: float = 60,
-        stdev_pct_max: float = 0.10,
-        max_stdev_pct_diff: float = 0.01,
         next_balance_point_sensitivity: float = 0.5,
     ) -> HomeResult:
         """
