@@ -86,72 +86,18 @@ const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAn
 
 let actionCounter = 1
 
-export async function action({ request, params }: ActionFunctionArgs) {
-    // Checks if url has a homeId parameter, throws 400 if not there
-    // invariantResponse(params.homeId, 'homeId param is required')
-    console.log('action run #', actionCounter)
-    actionCounter = actionCounter + 1
-    console.log('request:',request)
+/**
+ * Do not remove this line because the parsedAndValidatedFormSchema
+ * argument of processedEnergyUsageFile cannot be typed without it,
+ * and using type: any will cause a cryptic crash.
+ */
+type SchemaZodFromFormType = z.infer<typeof Schema>
 
-    const formData = await parseMultipartFormData(request, uploadHandler)
-    const uploadedTextFile: string = await fileUploadHandler(formData)
-
-    const submission = parseWithZod(formData, {
-        schema: Schema,
-    })
-
-    if (submission.status !== 'success') {
-        if (process.env.NODE_ENV === 'development') {
-            // this can have personal identifying information, so only active in development.
-            console.error('submission failed', submission)
-        }
-        return submission.reply()
-        // submission.reply({
-        // 	// You can also pass additional error to the `reply` method
-        // 	formErrors: ['Submission failed'],
-        // 	fieldErrors: {
-        // 		address: ['Address is invalid'],
-        // 	},
-
-        // 	// or avoid sending the the field value back to client by specifying the field names
-        // 	hideFields: ['password'],
-        // }),
-        // {status: submission.status === "error" ? 400 : 200}
-    }
-
-    const {
-        name,
-        address,
-        living_area,
-        fuel_type,
-        heating_system_efficiency,
-        thermostat_set_point,
-        setback_temperature,
-        setback_hours_per_day,
-        design_temperature_override,
-    } = submission.value
-
-    // await updateNote({ id: params.noteId, title, content })
-    //code snippet from - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L180
-
-    // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
-    // Main form entrypoint
-
-    type SchemaZodFromFormType = z.infer<typeof Schema>
-
-    const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
-        living_area: living_area,
-        address,
-        name: `${ name }'s home`,
-        fuel_type,
-        heating_system_efficiency,
-        thermostat_set_point,
-        setback_temperature,
-        setback_hours_per_day,
-        design_temperature_override,
-        // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-    })
-
+async function processedEnergyUsageFile(
+    address: string, 
+    parsedAndValidatedFormSchema: SchemaZodFromFormType, 
+    uploadedTextFile: string
+) {
     /** Example:
      * records: [
      *   Map(4) {
@@ -203,9 +149,90 @@ export async function action({ request, params }: ActionFunctionArgs) {
         county_id
         });
     // return redirect(`/single`)
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+    // Checks if url has a homeId parameter, throws 400 if not there
+    // invariantResponse(params.homeId, 'homeId param is required')
+    console.log('action run #', actionCounter)
+    actionCounter = actionCounter + 1
+    console.log('request:',request)
+
+    const formData = await parseMultipartFormData(request, uploadHandler)
+    const uploadedTextFile: string = await fileUploadHandler(formData)
+
+    const submission = parseWithZod(formData, {
+        schema: Schema,
+    })
+
+    if (submission.status !== 'success') {
+        if (process.env.NODE_ENV === 'development') {
+            // this can have personal identifying information, so only active in development.
+            console.error('submission failed', submission)
+        }
+        return submission.reply()
+        // submission.reply({
+        // 	// You can also pass additional error to the `reply` method
+        // 	formErrors: ['Submission failed'],
+        // 	fieldErrors: {
+        // 		address: ['Address is invalid'],
+        // 	},
+
+        // 	// or avoid sending the the field value back to client by specifying the field names
+        // 	hideFields: ['password'],
+        // }),
+        // {status: submission.status === "error" ? 400 : 200}
+    }
+
+    const {
+        name,
+        address,
+        living_area,
+        fuel_type,
+        heating_system_efficiency,
+        thermostat_set_point,
+        setback_temperature,
+        setback_hours_per_day,
+        design_temperature_override,
+    } = submission.value
+
+    // await updateNote({ id: params.noteId, title, content })
+    //code snippet from - https://github.com/epicweb-dev/web-forms/blob/2c10993e4acffe3dd9ad7b9cb0cdf89ce8d46ecf/exercises/04.file-upload/01.solution.multi-part/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L180
+
+    // CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
+    // Main form entrypoint
+
+    const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
+        living_area: living_area,
+        address,
+        name: `${ name }'s home`,
+        fuel_type,
+        heating_system_efficiency,
+        thermostat_set_point,
+        setback_temperature,
+        setback_hours_per_day,
+        design_temperature_override,
+        // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
+    })
+    const buttonValue = formData.get("buttonPressed")
+    if (buttonValue === "upload") {
+        return await processedEnergyUsageFile(
+            address, 
+            parsedAndValidatedFormSchema, 
+            uploadedTextFile
+        )
+    } else {
+        console.log("Saving user file based on value of save button")
+        // Returns processedEnergyUsageFile anyway for now to avoid a crash
+        // but should be removed once in production because this branch of 
+        // the if-else is for saving rather than uploading a file
+        return await processedEnergyUsageFile(
+            address, 
+            parsedAndValidatedFormSchema, 
+            uploadedTextFile
+        )
+    }
 } //END OF action
-
-
 
 
 export default function SubmitAnalysis() {
@@ -376,7 +403,7 @@ export default function SubmitAnalysis() {
     // @TODO: we might need to guarantee that currentUsageData exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
         <>
-        <pre>{JSON.stringify(lastResult, null, 2)}</pre>
+        {/* <pre>{JSON.stringify(lastResult, null, 2)}</pre> */}
             <Form
                 id={form.id}
                 method="post"

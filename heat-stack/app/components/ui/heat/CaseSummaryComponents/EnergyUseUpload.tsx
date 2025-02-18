@@ -14,8 +14,11 @@ export function EnergyUseUpload() {
 				name="energy_use_upload"
 				type="file"
 			/>
-			<Button type="submit">
+			<Button type="submit" name="buttonPressed" value="upload">
 				<Upload className="mr-2 h-4 w-4" /> Upload
+			</Button>
+			<Button type="submit" name="buttonPressed" value="save">
+				Save
 			</Button>
 
 			<a
