@@ -1,4 +1,4 @@
-/** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
+ /** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
@@ -282,13 +282,22 @@ export default function SubmitAnalysis() {
         state_id: any,
         county_id: any
          ) => {
-            console.log("recalculateFromBillingRecordsChange")
-        // setUsageData(buildCurrentMapOfUsageData(parsedLastResult, billingRecords));
+            console.log("recalculateFromBillingRecordsChange", billingRecords)
+            console.log("parsedLastResult", parsedLastResult)
+
+
+        if (!parsedLastResult)
+            return
+        // replace original Rules Engine's billing records with new UI's billingRecords
+        const parsedNextResult = buildCurrentMapOfUsageData(parsedLastResult, billingRecords)
+
+
         // wire up usageData useState hook instead of variable.
         console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
+        console.log("parsedNextResult", parsedNextResult)
         // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
     
-        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedLastResult, state_id, county_id).toJs()
+        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
 )
 // how do we modify usageData afterwards?
         
@@ -299,13 +308,24 @@ export default function SubmitAnalysis() {
 
 
     // @TODO implement
+    /**
+     * replace original Rules Engine's billing records with new UI's billingRecords
+     * @param parsedLastResult 
+     * @param processedEnergyBills 
+     */
     const buildCurrentMapOfUsageData = (parsedLastResult: Map<any, any>, processedEnergyBills: BillingRecordsSchema) => {
         // make a copy of parsedLastResult
+        const copyOfParsedLastResult: Map<any, any> | undefined = structuredClone(parsedLastResult)
 
-        // const processedEnergyBillsWithMaps = change records from objects to maps in processedEnergyBills using the same key values, and order matters (maybe)
+        const billMap: Array<Map<string,any>> = processedEnergyBills.map(bill => {
+            return new Map(Object.entries(bill))
+        })
 
-        // parsedLastResultCopy.set("processed_energy_bills", processedEnergyBillsWithMaps)
-        // return parsedLastResultCopy
+        // const processedEnergyBillsWithMaps = change records from objects to maps in processedEnergyBills using the same key values, 
+        //   and order matters (maybe)
+
+        copyOfParsedLastResult.set("processed_energy_bills", billMap)
+        return copyOfParsedLastResult
     }
 
     /**
@@ -376,7 +396,6 @@ export default function SubmitAnalysis() {
     // @TODO: we might need to guarantee that currentUsageData exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
         <>
-        <pre>{JSON.stringify(lastResult, null, 2)}</pre>
             <Form
                 id={form.id}
                 method="post"
