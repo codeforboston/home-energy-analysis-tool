@@ -70,6 +70,7 @@ interface EnergyUseHistoryChartProps {
 
 export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data, recalculateFn }: EnergyUseHistoryChartProps) {
     const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
+    const [dataChanged, setDataChanged] = useState(true)
 
     useEffect(() => {
         const {
@@ -79,13 +80,18 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data
             county_id} = {...lastResult}
 
         console.log('billing records changed, should trigger recalculation: ', billingRecords)
-        recalculateFn(
-            parsedLastResult,
-            billingRecords, 		
-            parsedAndValidatedFormSchema,
-            convertedDatesTIWD,
-            state_id,
-            county_id)
+        if (dataChanged) {
+            recalculateFn(
+                parsedLastResult,
+                billingRecords, 		
+                parsedAndValidatedFormSchema,
+                convertedDatesTIWD,
+                state_id,
+                county_id
+            )
+            setDataChanged(false)
+        }
+        
     }, [billingRecords, lastResult, parsedLastResult, recalculateFn])
 
     useEffect(() => {

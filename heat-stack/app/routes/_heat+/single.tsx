@@ -300,12 +300,16 @@ export default function SubmitAnalysis() {
 
         console.log("debug execute", executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs())
         console.log("debug currentUsageData", currentUsageData)
-        currentUsageData.heat_load_output.whole_home_heat_loss_rate = 1
+        function deepClone(obj: any) {
+            return JSON.parse(JSON.stringify(obj));
+        }
+        currentUsageData2 = deepClone(currentUsageData)
+        currentUsageData2.heat_load_output.whole_home_heat_loss_rate = 1
         setCurrentUsageData(currentUsageData)
         
-        console.log("debug currentUsageData.heat_load_output.whole_home_heat_loss_rate", currentUsageData.heat_load_output.whole_home_heat_loss_rate)
+        console.log("debug currentUsageData.heat_load_output.whole_home_heat_loss_rate", currentUsageData2.heat_load_output.whole_home_heat_loss_rate)
         
-        console.log("debug currentUsageData after changing whole_home_heat_loss_rate to 1", currentUsageData)
+        console.log("debug currentUsageData after changing whole_home_heat_loss_rate to 1", currentUsageData2)
         // how do we modify usageData afterwards?
         
         // do something with billing records
