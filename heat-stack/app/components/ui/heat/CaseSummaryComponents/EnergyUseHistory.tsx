@@ -41,9 +41,6 @@ export function EnergyUseHistory({
 	return (
 		<div>
 			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
-
-			
-
 			{show_usage_data && (
 				<>
 					<AnalysisHeader usage_data={usage_data} />

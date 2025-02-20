@@ -65,6 +65,7 @@ import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import React, { useState } from 'react'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { EnergyUseUpload } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -267,7 +268,7 @@ export default function SubmitAnalysis() {
     // - use the UsageDataSchema type here?
     // - use processed_energy_bills in Checkbox behavior
     // 
-    let currentUsageData; // maybe initialize state here instead of a variable
+    const [currentUsageData, setCurrentUsageData] = useState(); // maybe initialize state here instead of a variable
     let parsedLastResult: Map<any, any>| undefined;
 
     // const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
@@ -296,12 +297,17 @@ export default function SubmitAnalysis() {
         console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
         console.log("parsedNextResult", parsedNextResult)
         // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
-    
-        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
-)
-// how do we modify usageData afterwards?
-        
 
+        console.log("debug execute", executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs())
+        console.log("debug currentUsageData", currentUsageData)
+        currentUsageData.heat_load_output.whole_home_heat_loss_rate = 1
+        setCurrentUsageData(currentUsageData)
+        
+        console.log("debug currentUsageData.heat_load_output.whole_home_heat_loss_rate", currentUsageData.heat_load_output.whole_home_heat_loss_rate)
+        
+        console.log("debug currentUsageData after changing whole_home_heat_loss_rate to 1", currentUsageData)
+        // how do we modify usageData afterwards?
+        
         // do something with billing records
         console.log('recalculating with billing records: ', billingRecords)
     }
@@ -334,11 +340,11 @@ export default function SubmitAnalysis() {
      * @returns The current usage data.
      */
     const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
-        const currentUsageData = {
+        setCurrentUsageData({
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
             processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
-        }
+        })
 
         // typecasting as UsageDataSchema because the types here do not quite line up coming from parsedLastResult as Map<any, any> - might need to think about how to handle typing the results from the python output more strictly
         // Type '{ heat_load_output: { [k: string]: any; }; balance_point_graph: { [k: string]: any; }; processed_energy_bills: any; }' is not assignable to type '{ heat_load_output: { estimated_balance_point: number; other_fuel_usage: number; average_indoor_temperature: number; difference_between_ti_and_tbp: number; design_temperature: number; whole_home_heat_loss_rate: number; standard_deviation_of_heat_loss_rate: number; average_heat_load: number; maximum_heat_load: number...'.
@@ -354,7 +360,7 @@ export default function SubmitAnalysis() {
 
             console.log('parsedLastResult', parsedLastResult)
 
-            currentUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult);
+            setCurrentUsageData(parsedLastResult && buildCurrentUsageData(parsedLastResult));
             // setUsageData(currentUsageData)
 
         } catch (error) {
