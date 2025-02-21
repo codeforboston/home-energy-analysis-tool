@@ -1,99 +1,251 @@
-## H.E.A.T. frontend app docs
+## H.E.A.T. Frontend Setup Documentation
 
-### On your computer
+This guide will help you set up the frontend application for the Home Energy
+Analysis Tool (H.E.A.T.) project. Please follow these instructions carefully.
 
-Install Git Large File Storage with Homebrew, see [docs](https://git-lfs.com/).
-```
+---
+
+### Prerequisites
+
+#### Install Git Large File Storage (Git LFS)
+
+Git LFS is required to manage large files in the repository. Choose one of the
+methods below to install it:
+
+**Method 1: Using Homebrew (Recommended)**
+
+```bash
 brew install git-lfs
 git lfs install
 ```
-Alternatively, you can install Git Large File Storage using a package manager, see [docs](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
-- Navigate to git-lfs.com and click Download
-- On your computer, locate and unzip the downloaded file
-- Open Terminal
-- Change the current working directory into the folder you downloaded and unzipped.
+
+**Method 2: Manual Installation**
+
+1. Download the Git LFS installer from [git-lfs.com](https://git-lfs.com/).
+2. Unzip the downloaded file and navigate to the extracted folder:
+   ```bash
+   cd ~/Downloads/git-lfs-<version>
+   ```
+3. Run the installation script:
+   ```bash
+   ./install.sh
+   git lfs install
+   ```
+4. Confirm the installation with:
+   ```bash
+   git lfs install
+   ```
+
+For more details, visit the
+[official documentation](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
+
+---
+
+### Repository Setup
+
+1. **Fork the repository**  
+   Go to the
+   [home-energy-analysis-tool repository](https://github.com/codeforboston/home-energy-analysis-tool)
+   and click the "Fork" button at the top right to create your own copy of the
+   repository.
+
+2. **Clone your forked repository**  
+   After forking, clone your fork to your local machine using the following
+   command (replace `your-username` with your GitHub username):
+
+   ```bash
+   git clone git@github.com:your-username/home-energy-analysis-tool.git
+   ```
+
+3. **Navigate to the project directory**  
+   Change into the `heat-stack` directory within the project:
+
+   ```bash
+   cd home-energy-analysis-tool/heat-stack
+   ```
+
+4. **Copy the example environment file**  
+   Copy the example environment file into a new `.env` file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+---
+
+### Node.js Setup
+
+The project requires Node.js version 18 to avoid engine errors with node v19+.
+[Use Node Version Manager (NVM)](https://github.com/nvm-sh/nvm/blob/master/README.md)
+for managing Node.js versions (nvm is preinstalled in coding spaces).
+
+#### Install NVM (Official Method)
+
+1. Download and install NVM:
+   ```bash
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+   ```
+2. Restart your terminal. Ensure NVM is installed by running:
+   ```bash
+   nvm --version
+   ```
+3. Install Node.js version 18:
+   ```bash
+   nvm install 18
+   ```
+4. Use Node.js version 18:
+   ```bash
+   nvm use 18
+   ```
+
+---
+
+### Install Dependencies and Build
+
+1. Install project dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Build the rules engine into the `public/pyodide-env` folder:
+
+   ```bash
+   npm run buildpy
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+If you encounter errors during this process, try the following steps:
+
+- Delete the `node_modules` folder and `package-lock.json` file:
+  ```bash
+  rm -rf node_modules package-lock.json
   ```
-  cd ~/Downloads/git-lfs-1.X.X
+- Reinstall dependencies:
+  ```bash
+  npm install
   ```
-- To install the file, run this command:
+- Run the development server again:
+  ```bash
+  npm run dev
   ```
-  $ ./install.sh
-   > Git LFS initialized.
-  ```
-- Next, make required changes to your global Git config:
-  ```
-  $ git lfs install
-  > Git LFS initialized.
-  ```
-- You should see a message indicating that git lfs install was successful
 
-Proceed to clone the repository
-```
-git clone git@github.com:codeforboston/home-energy-analysis-tool.git
-# create an environment file
-cd heat-stack
-cp .env.example .env
+---
 
-# make sure you're using node version 18
-npm install -g nvm
-nvm use 20
+### Setting Up in GitHub Codespaces
 
-# install and patch the environment
-npm install
-npm run buildpy # to build rules engine into `public/pyodide-env`
-npm run dev
-```
+If using GitHub Codespaces, follow these steps:
 
-### Set up in a new GitHub CodingSpace:
+1. Navigate to the project directory:
 
-```
-cd heat-stack
-# create an environment file
-cp .env.example .env
+   ```bash
+   cd home-energy-analysis-tool/heat-stack
+   ```
 
-nvm use 20
-npm install
-npm run buildpy # to build rules engine into `public/pyodide-env`
-npm run dev
-```
+2. Create an environment file:
 
-If you have the node version manager (`nvm`), then `nvm use 18` avoids engine error with node v19+ or newer which is default. nvm is preinstalled in coding spaces.
+   ```bash
+   cp .env.example .env
+   ```
 
+3. Use Node.js version 18:
 
-In Coding Spaces VSCode always go to hamburger menu -> File-> untick AutoSave. For a pic, see https://stackoverflow.com/a/76659316/14144258
+   ```bash
+   nvm use 18
+   ```
 
-### Under special circumstances:
+4. Install dependencies and build:
 
-Assume you don't need to, but if the version of pyodide changes run:
+   ```bash
+   npm install
+   npm run buildpy
+   npm run dev
+   ```
 
-```
-cp ./node_modules/pyodide/* public/pyodide-env/
-```
+5. Disable auto-save in VSCode (this is to avoid auto recompiling and page
+   refresh while making changes):
+   - Go to **File** > **Preferences** > **Settings**.
+   - Search for "Auto Save" and uncheck it.
+   - For reference, see
+     [this Stack Overflow post](https://stackoverflow.com/a/76659316/14144258).
 
-If the pyodide wheel for `numpy` for your version of `pyodide` isn't in `public/pyodide-env`:
+---
 
-- Make sure you have enough space on your computer for 1GB
-- Download [a full 150+mb release](https://github.com/pyodide/pyodide/releases) onto your own computer. The filename is something like `pyodide-<some version number>.tar.bz2`.
-- Double click it to extract it. It will take about 1GB to decompress.
-- Upload the `numpy` .whl file into the `public/pyodide-env` folder.
+### Handling Special Cases
 
-How do you know if your version of `numpy` is right? You can check your version of pyodide by running `npm list pyodide`. You should check that the `numpy` .whl file name includes the same version number as the output of that command.
+#### Updating Pyodide
 
-If you get an error saying you don't have the right loader:
+If the version of Pyodide changes or you encounter issues with the Pyodide
+environment:
 
-```
+1. Copy the necessary Pyodide files:
+   ```bash
+   cp ./node_modules/pyodide/* public/pyodide-env/
+   ```
+2. Ensure the correct `numpy` wheel file is in the `public/pyodide-env` folder.
+   If missing:
+   - Download the latest Pyodide release from
+     [Pyodide releases](https://github.com/pyodide/pyodide/releases).
+   - Extract the file and locate the `numpy` wheel file.
+   - Copy it into the `public/pyodide-env` folder.
+3. Check the Pyodide version:
+   ```bash
+   npm list pyodide
+   ```
+   Ensure the `numpy` file matches the version.
+
+#### Fixing Loader Errors
+
+If you encounter a loader error, run:
+
+```bash
 npm run postinstall
 ```
 
-It fixes the loader problem by doing the following programatically:
+---
 
-To re-create the patch for py file support in `/patch`, use these [instructions](https://github.com/remix-run/remix/discussions/2468#discussioncomment-2639271):
-- edit the `node_modules/@remix-run/dev/dist/modules.d` file to add py, just like sql format.
-- edit the `node_modules/@remix-run/dev/dist/compiler/utils/loader.ts` to add py, just like sql format.
-- `npx patch-package @remix-run/dev`
-- it should auto-apply any time you do `npm install`, but it may get out of sync with upstream
+### Additional Notes
 
-### Epic Stack Docs: 
+- The `npm audit fix` command can resolve minor dependency issues.
+- For a clean setup, ensure sufficient disk space (at least 1GB).
+
+---
+
+### Script Overview
+
+Below is a table summarizing the available scripts in the project:
+
+| **Script**                 | **Description**                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `npm run build`            | Runs all build-related tasks.                                                    |
+| `npm run build:icons`      | Generates icons for the project.                                                 |
+| `npm run build:remix`      | Builds the Remix application using Vite.                                         |
+| `npm run build:server`     | Builds the server files.                                                         |
+| `npm run predev`           | Prepares the environment before starting development (e.g., generates icons).    |
+| `npm run dev`              | Starts the development server.                                                   |
+| `npm run prisma:studio`    | Launches the Prisma Studio UI for database management.                           |
+| `npm run format`           | Formats the codebase using Prettier.                                             |
+| `npm run lint`             | Lints the codebase using ESLint.                                                 |
+| `npm run setup`            | Runs setup tasks including building, migrations, and Playwright setup.           |
+| `npm run start`            | Starts the application in production mode.                                       |
+| `npm run start:mocks`      | Starts the application with mock data in production mode.                        |
+| `npm run test`             | Runs unit tests and builds the Python rules engine.                              |
+| `npm run buildpy`          | Builds the Python rules engine and copies it to the `public/pyodide-env` folder. |
+| `npm run coverage`         | Runs tests and generates a coverage report.                                      |
+| `npm run test:e2e`         | Runs end-to-end tests interactively.                                             |
+| `npm run test:e2e:run`     | Runs end-to-end tests in CI mode.                                                |
+| `npm run test:e2e:install` | Installs dependencies for Playwright end-to-end tests.                           |
+| `npm run typecheck`        | Checks TypeScript types.                                                         |
+| `npm run validate`         | Validates the project by running linting, type-checking, and testing.            |
+
+---
+
+### Epic Stack Docs:
+
 <div align="center">
   <h1 align="center"><a href="https://www.epicweb.dev/epic-stack">The Epic Stack 🚀</a></h1>
   <strong align="center">
