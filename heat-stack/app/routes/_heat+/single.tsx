@@ -296,21 +296,62 @@ export default function SubmitAnalysis() {
         // wire up usageData useState hook instead of variable.
         console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
         console.log("parsedNextResult", parsedNextResult)
+        console.log("after")
         // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
 
         console.log("debug execute", executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs())
         console.log("debug currentUsageData", currentUsageData)
         function deepClone(obj: any) {
+            console.log("deepclone 2")
             return JSON.parse(JSON.stringify(obj));
         }
-        currentUsageData2 = deepClone(currentUsageData)
+        console.log("debug about to deepclone")
+        const currentUsageData2 = deepClone(currentUsageData)
         currentUsageData2.heat_load_output.whole_home_heat_loss_rate = 1
-        setCurrentUsageData(currentUsageData)
-        
+        console.log("debug changed")
+        console.log("xxx debug", currentUsageData.heat_load_output)
+        console.log("xxx 2 bug", currentUsageData2.heat_load_output)
+
+        const isDeepEqual = (object1: any, object2: any) => {
+
+            const objKeys1 = Object.keys(object1);
+            const objKeys2 = Object.keys(object2);
+
+            if (objKeys1.length !== objKeys2.length) return false;
+
+            for (var key of objKeys1) {
+                const value1 = object1[key];
+                const value2 = object2[key];
+
+                const isObjects = isObject(value1) && isObject(value2);
+
+                if ((isObjects && !isDeepEqual(value1, value2)) ||
+                    (!isObjects && value1 !== value2)
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        const isObject = (object: any) => {
+            return object != null && typeof object === "object";
+        };
+
+        if (!isDeepEqual(currentUsageData, currentUsageData2)){
+            console.log("dee    pEqual is false")
+            setCurrentUsageData(prev => ({
+                ...prev,
+                ...currentUsageData2
+            }));
+        } else {
+            console.log("deepEqual is true")
+        }
         console.log("debug currentUsageData.heat_load_output.whole_home_heat_loss_rate", currentUsageData2.heat_load_output.whole_home_heat_loss_rate)
         
-        console.log("debug currentUsageData after changing whole_home_heat_loss_rate to 1", currentUsageData2)
+        console.log("debug currentUsageData after changing whole_horeme_heat_loss_rate to 1", currentUsageData2.heat_load_output.whole_home_heat_loss)
         // how do we modify usageData afterwards?
+        console.log("show", show_usage_data)
         
         // do something with billing records
         console.log('recalculating with billing records: ', billingRecords)
@@ -344,11 +385,18 @@ export default function SubmitAnalysis() {
      * @returns The current usage data.
      */
     const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
-        setCurrentUsageData({
+        const dataValue = {
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
             processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
-        })
+        }
+        console.log("compare debug", currentUsageData)
+        console.log(dataValue)
+        console.log("debug dataValue", dataValue)
+        console.log("current", currentUsageData)
+        if ( !currentUsageData || JSON.stringify(dataValue)!=JSON.stringify(dataValue)) {
+            setCurrentUsageData(dataValue)
+        }
 
         // typecasting as UsageDataSchema because the types here do not quite line up coming from parsedLastResult as Map<any, any> - might need to think about how to handle typing the results from the python output more strictly
         // Type '{ heat_load_output: { [k: string]: any; }; balance_point_graph: { [k: string]: any; }; processed_energy_bills: any; }' is not assignable to type '{ heat_load_output: { estimated_balance_point: number; other_fuel_usage: number; average_indoor_temperature: number; difference_between_ti_and_tbp: number; design_temperature: number; whole_home_heat_loss_rate: number; standard_deviation_of_heat_loss_rate: number; average_heat_load: number; maximum_heat_load: number...'.
@@ -363,8 +411,7 @@ export default function SubmitAnalysis() {
 
 
             console.log('parsedLastResult', parsedLastResult)
-
-            setCurrentUsageData(parsedLastResult && buildCurrentUsageData(parsedLastResult));
+            // const value = (parsedLastResult && buildCurrentUsageData(parsedLastResult));
             // setUsageData(currentUsageData)
 
         } catch (error) {
