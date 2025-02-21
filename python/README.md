@@ -14,6 +14,21 @@ Simple steps for development setup:
 
 Then, you should be able to run `pytest` and see tests run successfully.
 
+
+## Codespaces
+The default codespace does not have the version of Python pre-installed that is used to develop the rules engine.  You _can_ use it and update it to install the correct Python vsion, but this takes time.  
+
+Instead, you can spin up a codespace with the correct version like so:
+
+1. navigate to the green "code" dropdown
+2. select the "codespaces" tab
+3. select the "..." menu
+4. select "new with options"
+5. on the options screen, under "Dev container configuration", select "Rules engine"
+6. click "Create codespace"
+
+![codespaces screenshot](docs/codespaces.png)
+
 ### Continuous Integration
 Type `make` to see lint, type errors, and more.  The terminal will reveal individual tests to run again.  
 * If `black` alone is a problem, then run `black .` to automatically reformat your code.
