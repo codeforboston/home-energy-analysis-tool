@@ -6,19 +6,36 @@ import { invariantResponse } from '@epic-web/invariant'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import { createMemoryUploadHandler } from '@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
-import { type z } from 'zod'
+import { object, type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacedMapToObject, replacer, reviver } from '#app/utils/data-parser.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import { writeFile } from 'fs/promises';
+import { format } from 'date-fns';
 import { 
     executeGetAnalyticsFromFormJs, 
     executeParseGasBillPy, 
     executeRoundtripAnalyticsFromFormJs 
 } from '#app/utils/rules-engine.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
+function objectToString(obj: any): any {
+    // !!!! typeof obj has rules for zodObjects
+    // typeof obj returns the type of the value of that zod object (boolean, object, etc)
+    // JSON.stringify of a Zod object is the value of that Zod object, except for null / undefined
+    if (!obj) {
+        return "none";
+    } else if (typeof obj !== "object" ) {
+        return JSON.stringify(obj); 
+    } else if (Array.isArray(obj)) {        
+        return `[${obj.map(value => {return objectToString(value) }).join(", ")}]`;
+    }
+
+    const retval = `{ ${Object.entries(obj).map(([key, value]) =>
+        `"${key}": ${objectToString(value) }`).join(", ")} }` ;
+    return retval as any;
+}
 
 // THESE ARE OLD NOTES, please someone go through and clean these up :)
 // - [x] Server side error checking/handling
@@ -89,9 +106,7 @@ let actionCounter = 1
 export async function action({ request, params }: ActionFunctionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
-    console.log('action run #', actionCounter)
     actionCounter = actionCounter + 1
-    console.log('request:',request)
 
     const formData = await parseMultipartFormData(request, uploadHandler)
     const uploadedTextFile: string = await fileUploadHandler(formData)
@@ -256,25 +271,25 @@ export default function SubmitAnalysis() {
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
     /* @ts-ignore */
+    const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
+    const [tally, setTally] = useState(0)
 
     const lastResult = useActionData<typeof action>()
-    console.log('lastResult', lastResult)
 
-    let show_usage_data = lastResult !== undefined;
+    let showUsageData = lastResult !== undefined;
+    
 
     ////////////////////////
     // TODO: 
     // - use the UsageDataSchema type here?
     // - use processed_energy_bills in Checkbox behavior
     // 
-    let currentUsageData; // maybe initialize state here instead of a variable
     let parsedLastResult: Map<any, any>| undefined;
 
-    // const [usageData, setUsageData] = useState<UsageDataSchema | undefined>(undefined);
 
     // @TODO: left off here
     /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
-    const recalculateFromBillingRecordsChange = async (
+    const recalculateFromBillingRecordsChange = async (        
         parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
         parsedAndValidatedFormSchema: any,
@@ -282,10 +297,7 @@ export default function SubmitAnalysis() {
         state_id: any,
         county_id: any
          ) => {
-            console.log("recalculateFromBillingRecordsChange", billingRecords)
-            console.log("parsedLastResult", parsedLastResult)
-
-
+        const timestamp = format(new Date(), 'HHmmss'); // Format: HHMMSS
         if (!parsedLastResult)
             return
         // replace original Rules Engine's billing records with new UI's billingRecords
@@ -293,17 +305,19 @@ export default function SubmitAnalysis() {
 
 
         // wire up usageData useState hook instead of variable.
-        console.log("check parsedAndValidatedFormSchema ", parsedAndValidatedFormSchema)
-        console.log("parsedNextResult", parsedNextResult)
         // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
     
-        console.log(executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
-)
-// how do we modify usageData afterwards?
-        
+        const calcResult = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
+        const newUsageData = calcResult && buildCurrentUsageData(calcResult)
+            setUsageData((prevUsageData) => {
 
-        // do something with billing records
-        console.log('recalculating with billing records: ', billingRecords)
+                if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
+                    return newUsageData;
+                }
+                return prevUsageData // sets useData to
+
+            });
+
     }
 
 
@@ -333,35 +347,40 @@ export default function SubmitAnalysis() {
      * @param parsedLastResult - The parsed last result.
      * @returns The current usage data.
      */
-    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
-        const currentUsageData = {
+    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {        const newUsageData = ({
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
             processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
-        }
+        }) as UsageDataSchema
+
 
         // typecasting as UsageDataSchema because the types here do not quite line up coming from parsedLastResult as Map<any, any> - might need to think about how to handle typing the results from the python output more strictly
         // Type '{ heat_load_output: { [k: string]: any; }; balance_point_graph: { [k: string]: any; }; processed_energy_bills: any; }' is not assignable to type '{ heat_load_output: { estimated_balance_point: number; other_fuel_usage: number; average_indoor_temperature: number; difference_between_ti_and_tbp: number; design_temperature: number; whole_home_heat_loss_rate: number; standard_deviation_of_heat_loss_rate: number; average_heat_load: number; maximum_heat_load: number...'.
-        return currentUsageData as UsageDataSchema;
+        return newUsageData;
     }
 
-    if (show_usage_data && hasDataProperty(lastResult)) {
-        try {
+    if (showUsageData && hasDataProperty(lastResult)) 
+        {
             // Parse the JSON string from lastResult.data
             // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
             parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 
 
-            console.log('parsedLastResult', parsedLastResult)
+            const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+            if (tally < 4) {
+                setTally(tally+1)
+                setUsageData( (prevUsageData) => {
+                    if (objectToString (prevUsageData) != objectToString(newUsageData)) {
+                        console.log("prev", prevUsageData)
+                        console.log("new", newUsageData)
+                        return newUsageData;
+                    }
+                    return prevUsageData // sets useData to
 
-            currentUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult);
-            // setUsageData(currentUsageData)
+                });
+            }
 
-        } catch (error) {
-            // console.error('Error parsing lastResult data:', error);
-        }
-    }
-    console.log('currentUsageData', currentUsageData)
+       }
    
     type ActionResult = 
     | SubmissionResult<string[]>
@@ -393,7 +412,7 @@ export default function SubmitAnalysis() {
         shouldValidate: 'onBlur',
     })
 
-    // @TODO: we might need to guarantee that currentUsageData exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
+    // @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
         <>
             <Form
@@ -402,8 +421,8 @@ export default function SubmitAnalysis() {
                 onSubmit={form.onSubmit}
                 // if there is no usage data, hit the action on this page (/single),
                 // if usage data exists, hit the action to /recalculate 
-                action={show_usage_data ? "/recalculate" : "/single"}
-                encType= {show_usage_data ? "text/plain" : "multipart/form-data"}
+                action={showUsageData ? "/recalculate" : "/single"}
+                encType= {showUsageData ? "text/plain" : "multipart/form-data"}
             >
                 {' '}
                 {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
@@ -415,10 +434,10 @@ export default function SubmitAnalysis() {
                 <EnergyUseUpload />
                 
                 <ErrorList id={form.errorId} errors={form.errors} />
-                {show_usage_data && (
+                {showUsageData && (
                     <>
-                        <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} show_usage_data={show_usage_data} />
-                        <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} /> 
+                        <EnergyUseHistory usageData={ (usageData || {}) as UsageDataSchema } setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} showUsageData={showUsageData} />
+                        <HeatLoadAnalysis heatLoadSummaryOutput={usageData?.heat_load_output} /> 
                     </>
                 )}
             </Form>

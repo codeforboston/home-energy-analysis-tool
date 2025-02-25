@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { type z } from 'zod'
 import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
-
 import {
     Table,
     TableBody,
@@ -57,7 +56,8 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 interface EnergyUseHistoryChartProps {
     lastResult: any;
     parsedLastResult: Map<any, any> | undefined;
-    usage_data: UsageDataSchema
+    usageData: UsageDataSchema
+    setUsageData: (usageData: UsageDataSchema) => void;
     recalculateFn: (
         parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
@@ -68,48 +68,65 @@ interface EnergyUseHistoryChartProps {
     ) => void;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data, recalculateFn }: EnergyUseHistoryChartProps) {
-    const [billingRecords, setBillingRecords] = useState<BillingRecordsSchema>([])
+function objectToString(obj: any): any {
+    // !!!! typeof obj has rules for zodObjects
+    // typeof obj returns the type of the value of that zod object (boolean, object, etc)
+    // JSON.stringify of a Zod object is the value of that Zod object, except for null / undefined
+    if (!obj) {
+        return "none";
+    } else if (typeof obj !== "object") {
+        return JSON.stringify(obj);
+    } else if (Array.isArray(obj)) {
 
-    useEffect(() => {
+        return `[${obj.map(value => { return objectToString(value) }).join(", ")}]`;
+    }
+
+    const retval = `{ ${Object.entries(obj).map(([key, value]) =>
+        `"${key}": ${objectToString(value)}`).join(", ")} }`;
+    return retval as any;
+}
+
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
+
+
+    const handleOverrideCheckboxChange = (index: number) => {
+        const newRecords = structuredClone(usageData.processed_energy_bills)
+        const period = newRecords[index]
+        
+        if (period) {
+            const currentOverride = period.inclusion_override
+            // Toggle 'inclusion_override'
+            period.inclusion_override = !currentOverride
+            
+            newRecords[index] = { ...period } 
+        }
+        const newUsageData = ({
+            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
+            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
+            processed_energy_bills: newRecords,
+        }) as UsageDataSchema;
+        setUsageData( (prevUsageData) => {
+
+            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
+                return newUsageData
+            }
+            return prevUsageData // sets useData to
+
+        });
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
             state_id,
-            county_id} = {...lastResult}
+            county_id } = { ...lastResult }
 
-        console.log('billing records changed, should trigger recalculation: ', billingRecords)
         recalculateFn(
             parsedLastResult,
-            billingRecords, 		
+            newRecords,
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
             state_id,
-            county_id)
-    }, [billingRecords, lastResult, parsedLastResult, recalculateFn])
-
-    useEffect(() => {
-        if (usage_data?.processed_energy_bills) {
-            // Process the billing records directly without converting from Map
-            setBillingRecords(usage_data.processed_energy_bills)
-        }
-    }, [usage_data])
-
-    const handleOverrideCheckboxChange = (index: number) => {
-        setBillingRecords((prevRecords) => {
-            const newRecords = structuredClone(prevRecords)
-            const period = newRecords[index]
-            
-            if (period) {
-                const currentOverride = period.inclusion_override
-                // Toggle 'inclusion_override'
-                period.inclusion_override = !currentOverride
-                
-                newRecords[index] = { ...period } 
-            }
-
-            return newRecords
-        })
+            county_id
+        )
     }
 
     return (
@@ -141,7 +158,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, usage_data
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {billingRecords.map((period, index) => {
+                {usageData.processed_energy_bills.map((period, index) => {
                     const startDate = new Date(period.period_start_date)
                     const endDate = new Date(period.period_end_date)
 

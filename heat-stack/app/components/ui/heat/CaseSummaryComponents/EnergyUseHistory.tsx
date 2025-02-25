@@ -1,22 +1,23 @@
 import { Upload } from 'lucide-react'
 
 import { Button } from '#/app/components/ui/button.tsx'
-import { BillingRecordsSchema, type UsageDataSchema } from '#/types/types.ts'; 
+import { type BillingRecordsSchema, type UsageDataSchema } from '#/types/types.ts'; 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
-import { EnergyUseUpload } from './EnergyUseUpload.tsx';
 
 // import { FieldMetadata, useForm } from '@conform-to/react'
 // import { Form, useLocation } from '@remix-run/react'
 // import { ErrorList } from "./ErrorList.tsx"
 // import { Input } from '#/app/components/ui/input.tsx'
 // import { Label } from '#/app/components/ui/label.tsx'
+import { usageDataSchema } from '../../../../../types/index';
 
 interface EnergyUseHistoryProps 
 {
 	lastResult: any;
 	parsedLastResult: Map<any, any> | undefined;
-	usage_data: UsageDataSchema;
+	usageData: UsageDataSchema;
+	setUsageData: (usageData: usageDataSchema) => void;
 	recalculateFn: (
 		parsedLastResult: Map<any, any> | undefined,
 		billingRecords: BillingRecordsSchema,
@@ -25,15 +26,16 @@ interface EnergyUseHistoryProps
         state_id: any,
         county_id: any
 	) => void;
-	show_usage_data: boolean
+	showUsageData: boolean
 }
 
 export function EnergyUseHistory({
 	lastResult,
 	parsedLastResult,
-	usage_data,
+	usageData,
+	setUsageData,
 	recalculateFn,
-	show_usage_data
+	showUsageData
 }: EnergyUseHistoryProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -44,25 +46,13 @@ export function EnergyUseHistory({
 
 			
 
-			{show_usage_data && (
+			{showUsageData && (
 				<>
-					<AnalysisHeader usage_data={usage_data} />
-					<EnergyUseHistoryChart usage_data={usage_data} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
+					<AnalysisHeader usageData={usageData} />
+					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
 					<Button type="submit">Re-calculate</Button>
 				</>
 			)}
 		</div>
 	)
 }
-
-// const file = event.target.files?.[0]
-
-// if (file) {
-// 	const reader = new FileReader()
-// 	reader.onloadend = () => {
-// 		setPreviewImage(reader.result as string)
-// 	}
-// 	reader.readAsDataURL(file)
-// } else {
-// 	setPreviewImage(null)
-// }

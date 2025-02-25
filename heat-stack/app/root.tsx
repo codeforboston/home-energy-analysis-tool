@@ -240,7 +240,6 @@ function App() {
 
 function TopLinks() {
 	// const data = useLoaderData<typeof loader>();
-	// console.log(`data:`, data);
 	return (
 		<>
 			<Link to="/single" className="group grid leading-snug">
