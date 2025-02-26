@@ -1,3 +1,4 @@
+# File no longer used, reference only. See heat-stack.yml in root .github
 name: 🚀 Deploy
 on:
   push:
@@ -170,7 +171,7 @@ jobs:
         with:
           file: 'fly.toml'
           field: 'app'
-          
+
       # move Dockerfile to root
       - name: 🚚 Move Dockerfile
         run: |

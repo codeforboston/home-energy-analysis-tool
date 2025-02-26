@@ -33,7 +33,7 @@ jobs:
       matrix:
         python-version: ["3.11.3"] 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up environment
         uses: "./.github/actions/setup-rules-engine"
         with:
@@ -51,7 +51,7 @@ jobs:
       matrix:
         python-version: ["3.11.3"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up environment
         uses: "./.github/actions/setup-rules-engine"
         with:
@@ -69,7 +69,7 @@ jobs:
       matrix:
         python-version: ["3.11.3"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up environment
         uses: "./.github/actions/setup-rules-engine"
         with:
@@ -88,7 +88,7 @@ jobs:
       matrix:
         python-version: ["3.11.3"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up environment
         uses: "./.github/actions/setup-rules-engine"
         with:
@@ -112,18 +112,26 @@ jobs:
     name: ⬣ Heat-Stack - ESLint
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
           working-directory:  ${{ env.heat-stack-working-directory }}
+
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
       - name: 🖼 Build icons
         run: npm run build:icons
         working-directory:  ${{ env.heat-stack-working-directory }}
+
+      - name: 🛠 Setup Database
+        run: npx prisma migrate deploy && npx prisma generate --sql
+  
       - name: 🔬 Lint
         run: npm run lint
         working-directory:  ${{ env.heat-stack-working-directory }}
@@ -132,18 +140,26 @@ jobs:
     name: ʦ Heat-Stack - TypeScript
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
           working-directory:  ${{ env.heat-stack-working-directory }}
+      
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+  
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
+
+      - name: 🛠 Setup Database
+        run: npx prisma migrate deploy && npx prisma generate --sql
+
       - name: 🔎 Type check
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run typecheck --if-present
@@ -152,11 +168,11 @@ jobs:
     name: ⚡ Heat-Stack - Vitest pyodide.test.ts
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
@@ -182,10 +198,12 @@ jobs:
       github.event_name == 'push' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '50'
 
       - name: 👀 Read app name
-        uses: SebRollen/toml-action@v1.0.2
+        uses: SebRollen/toml-action@v1.2.0
         id: app_name
         with:
           file: '${{ env.heat-stack-working-directory }}/fly.toml'
@@ -205,7 +223,7 @@ jobs:
           path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
 
       - name: 🎈 Setup Fly
-        uses: superfly/flyctl-actions/setup-flyctl@v1.4         
+        uses: superfly/flyctl-actions/setup-flyctl@1.5         
 
       - name: 🚀 Deploy Staging
         if: ${{ github.ref == 'refs/heads/dev' }}
