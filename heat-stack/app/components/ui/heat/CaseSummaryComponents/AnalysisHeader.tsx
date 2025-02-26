@@ -2,8 +2,8 @@ import { type z } from 'zod';
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import HelpCircle from './assets/help-circle.svg'
 
-export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
-	// Example usage_data
+export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
+	// Example usageData
 	// new Map([[
 	// 		"estimated_balance_point",
 	// 		61.5
@@ -33,13 +33,13 @@ export function AnalysisHeader({ usage_data }: { usage_data: UsageDataSchema}) {
 	// 		3312125.0171753373
 	// 	]])
 
-	// Extract the heat_load_output from usage_data
-	const summaryOutputs = usage_data?.heat_load_output;
+	// Extract the heat_load_output from usageData
+	const summaryOutputs = usageData?.heat_load_output;
 
-	const totalRecords = usage_data?.processed_energy_bills?.length || "-"
+	const totalRecords = usageData?.processed_energy_bills?.length || "-"
 
 	// Calculate the number of billing periods included in Heating calculations
-	const heatingAnalysisTypeRecords = usage_data?.processed_energy_bills?.filter(
+	const heatingAnalysisTypeRecords = usageData?.processed_energy_bills?.filter(
 		(billingRecord) => billingRecord.analysis_type === 1,
 		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
 	);
