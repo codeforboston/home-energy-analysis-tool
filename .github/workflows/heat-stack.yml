@@ -131,6 +131,7 @@ jobs:
         working-directory:  ${{ env.heat-stack-working-directory }}
 
       - name: 🛠 Setup Database
+        working-directory:  ${{ env.heat-stack-working-directory }}
         run: npx prisma migrate deploy && npx prisma generate --sql
   
       - name: 🔬 Lint
@@ -160,6 +161,7 @@ jobs:
         run: npm run build:icons
 
       - name: 🛠 Setup Database
+        working-directory:  ${{ env.heat-stack-working-directory }}
         run: npx prisma migrate deploy && npx prisma generate --sql
 
       - name: 🔎 Type check
