@@ -1,22 +1,10 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
+import { parseFormData } from '@mjackson/form-data-parser'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import {
-	json,
-	redirect,
-	unstable_createMemoryUploadHandler,
-	unstable_parseMultipartFormData,
-	type LoaderFunctionArgs,
-	type ActionFunctionArgs,
-} from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useNavigation,
-} from '@remix-run/react'
 import { useState } from 'react'
+import { data, redirect, Form, useNavigation } from 'react-router'
 import { z } from 'zod'
 import { ErrorList } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -29,6 +17,8 @@ import {
 	useDoubleCheck,
 	useIsPending,
 } from '#app/utils/misc.tsx'
+import { uploadProfileImage } from '#app/utils/storage.server.ts'
+import { type Route } from './+types/profile.photo.ts'
 import { type BreadcrumbHandle } from './profile.tsx'
 
 export const handle: BreadcrumbHandle & SEOHandle = {
@@ -58,7 +48,7 @@ const PhotoFormSchema = z.discriminatedUnion('intent', [
 	NewImageSchema,
 ])
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -66,20 +56,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
-			image: { select: { id: true } },
+			image: { select: { objectKey: true } },
 		},
 	})
 	invariantResponse(user, 'User not found', { status: 404 })
-	return json({ user })
+	return { user }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
-	const formData = await unstable_parseMultipartFormData(
-		request,
-		unstable_createMemoryUploadHandler({ maxPartSize: MAX_SIZE }),
-	)
 
+	const formData = await parseFormData(request, { maxFileSize: MAX_SIZE })
 	const submission = await parseWithZod(formData, {
 		schema: PhotoFormSchema.transform(async (data) => {
 			if (data.intent === 'delete') return { intent: 'delete' }
@@ -87,8 +74,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			return {
 				intent: data.intent,
 				image: {
-					contentType: data.photoFile.type,
-					blob: Buffer.from(await data.photoFile.arrayBuffer()),
+					objectKey: await uploadProfileImage(userId, data.photoFile),
 				},
 			}
 		}),
@@ -96,7 +82,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -120,12 +106,12 @@ export async function action({ request }: ActionFunctionArgs) {
 	return redirect('/settings/profile')
 }
 
-export default function PhotoRoute() {
-	const data = useLoaderData<typeof loader>()
-
+export default function PhotoRoute({
+	loaderData,
+	actionData,
+}: Route.ComponentProps) {
 	const doubleCheckDeleteImage = useDoubleCheck()
 
-	const actionData = useActionData<typeof action>()
 	const navigation = useNavigation()
 
 	const [form, fields] = useForm({
@@ -155,10 +141,13 @@ export default function PhotoRoute() {
 			>
 				<img
 					src={
-						newImageSrc ?? (data.user ? getUserImgSrc(data.user.image?.id) : '')
+						newImageSrc ??
+						(loaderData.user
+							? getUserImgSrc(loaderData.user.image?.objectKey)
+							: '')
 					}
 					className="h-52 w-52 rounded-full object-cover"
-					alt={data.user?.name ?? data.user?.username}
+					alt={loaderData.user?.name ?? loaderData.user?.username}
 				/>
 				<ErrorList errors={fields.photoFile.errors} id={fields.photoFile.id} />
 				<div className="flex gap-4">
@@ -215,7 +204,7 @@ export default function PhotoRoute() {
 					>
 						<Icon name="trash">Reset</Icon>
 					</Button>
-					{data.user.image?.id ? (
+					{loaderData.user.image ? (
 						<StatusButton
 							className="peer-valid:hidden"
 							variant="destructive"

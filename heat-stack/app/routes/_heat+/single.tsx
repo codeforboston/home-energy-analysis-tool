@@ -3,8 +3,8 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { Form, redirect, useActionData, useLocation } from '@remix-run/react'
+// import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { Form, redirect, useActionData, useLocation } from 'react-router'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { object, type z } from 'zod'
 import { Button } from '#/app/components/ui/button.tsx'
@@ -20,6 +20,7 @@ import {
     executeRoundtripAnalyticsFromFormJs 
 } from '#app/utils/rules-engine.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
+import { type Route } from './+types/single.tsx'
 function objectToString(obj: any): any {
     // !!!! typeof obj has rules for zodObjects
     // typeof obj returns the type of the value of that zod object (boolean, object, etc)
@@ -104,7 +105,7 @@ const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAn
 
 let actionCounter = 1
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
     actionCounter = actionCounter + 1
@@ -211,13 +212,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const str_version = JSON.stringify(gasBillDataFromTextFile, replacer);
 
     // Consider adding to form data, 
-    return json({
+    return {
         data: str_version,
         parsedAndValidatedFormSchema,
         convertedDatesTIWD,
         state_id,
         county_id
-        });
+        };
     // return redirect(`/single`)
 } //END OF action
 
@@ -435,9 +436,11 @@ export default function SubmitAnalysis() {
                 {showUsageData && (
                     <>
                         <EnergyUseHistory usageData={ (usageData || {}) as UsageDataSchema } setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} showUsageData={showUsageData} />
-                        <HeatLoadAnalysis heatLoadSummaryOutput={usageData?.heat_load_output} /> 
+                        {usageData && <HeatLoadAnalysis heatLoadSummaryOutput={usageData.heat_load_output} />}
+
                     </>
                 )}
+
             </Form>
         </>
     )

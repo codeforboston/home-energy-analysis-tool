@@ -1,12 +1,16 @@
+import prismaInstrumentation from '@prisma/instrumentation'
+import * as Sentry from '@sentry/node'
 import { nodeProfilingIntegration } from '@sentry/profiling-node'
-import Sentry from '@sentry/remix'
+
+// prisma's exports are wrong...
+// https://github.com/prisma/prisma/issues/23410
+const { PrismaInstrumentation } = prismaInstrumentation
 
 export function init() {
 	Sentry.init({
 		dsn: process.env.SENTRY_DSN,
 		environment: process.env.NODE_ENV,
 		tracesSampleRate: process.env.NODE_ENV === 'production' ? 1 : 0,
-		autoInstrumentRemix: true,
 		denyUrls: [
 			/\/resources\/healthcheck/,
 			// TODO: be smarter about the public assets...
@@ -18,8 +22,10 @@ export function init() {
 			/\/site\.webmanifest/,
 		],
 		integrations: [
+			Sentry.prismaIntegration({
+				prismaInstrumentation: new PrismaInstrumentation(),
+			}),
 			Sentry.httpIntegration(),
-			Sentry.prismaIntegration(),
 			nodeProfilingIntegration(),
 		],
 		tracesSampler(samplingContext) {

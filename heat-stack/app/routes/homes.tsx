@@ -1,11 +1,13 @@
 import  {
   type ActionFunctionArgs,
   redirect
-} from "@remix-run/node";
+} from "react-router";
+import { type Route } from './+types/homes.tsx'
+
 
 export async function action({
 	request
-}: ActionFunctionArgs) {
+}: Route.ActionArgs) {
 	const formData = await request.formData()
 
 	formData.forEach(d => console.log(d))
