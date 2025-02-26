@@ -123,7 +123,7 @@ jobs:
           working-directory:  ${{ env.heat-stack-working-directory }}
 
       - name: 🏄 Copy test env vars
-        run: cp .env.example .env
+        run: cp heat-stack/.env.example heat-stack/.env
 
       - name: 🖼 Build icons
         run: npm run build:icons
@@ -151,7 +151,7 @@ jobs:
           working-directory:  ${{ env.heat-stack-working-directory }}
       
       - name: 🏄 Copy test env vars
-        run: cp .env.example .env
+        run: cp heat-stack/.env.example heat-stack/.env
   
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
@@ -179,7 +179,7 @@ jobs:
           working-directory:  ${{ env.heat-stack-working-directory }}
       - name: 🏄 Copy test env vars
         working-directory: ${{ env.heat-stack-working-directory }}
-        run: cp .env.example .env
+        run: cp heat-stack/.env.example heat-stack/.env
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
