@@ -10,14 +10,13 @@ import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 // import { ErrorList } from "./ErrorList.tsx"
 // import { Input } from '#/app/components/ui/input.tsx'
 // import { Label } from '#/app/components/ui/label.tsx'
-import { usageDataSchema } from '../../../../../types/index';
 
 interface EnergyUseHistoryProps 
 {
 	lastResult: any;
 	parsedLastResult: Map<any, any> | undefined;
 	usageData: UsageDataSchema;
-	setUsageData: (usageData: usageDataSchema) => void;
+	setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
 	recalculateFn: (
 		parsedLastResult: Map<any, any> | undefined,
 		billingRecords: BillingRecordsSchema,

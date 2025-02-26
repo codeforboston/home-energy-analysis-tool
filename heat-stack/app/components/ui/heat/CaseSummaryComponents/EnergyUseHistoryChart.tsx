@@ -1,7 +1,7 @@
 import { tr } from '@faker-js/faker'
 import { useState, useEffect } from 'react'
 import { type z } from 'zod'
-import { type UsageDataSchema, type BillingRecordsSchema } from '#/types/types.ts'
+import { type UsageDataSchema, type BillingRecordsSchema, BalancePointGraphSchema, SummaryOutputSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
     Table,
@@ -57,7 +57,7 @@ interface EnergyUseHistoryChartProps {
     lastResult: any;
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
-    setUsageData: (usageData: UsageDataSchema) => void;
+    setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
     recalculateFn: (
         parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
@@ -101,10 +101,10 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             newRecords[index] = { ...period } 
         }
         const newUsageData = ({
-            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
-            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
-            processed_energy_bills: newRecords,
-        }) as UsageDataSchema;
+            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
+            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
+            processed_energy_bills: newRecords as BillingRecordsSchema,
+        });
         setUsageData( (prevUsageData) => {
 
             if (objectToString(prevUsageData) != objectToString(newUsageData)) {

@@ -74,7 +74,7 @@ function objectToString(obj: any): any {
 
 // Ours
 import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
-import { BillingRecordsSchema, UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
+import { BalancePointGraphSchema, BillingRecordsSchema, SummaryOutputSchema, UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
@@ -298,7 +298,6 @@ export default function SubmitAnalysis() {
         state_id: any,
         county_id: any
          ) => {
-        const timestamp = format(new Date(), 'HHmmss'); // Format: HHMMSS
         if (!parsedLastResult)
             return
         // replace original Rules Engine's billing records with new UI's billingRecords
@@ -322,7 +321,6 @@ export default function SubmitAnalysis() {
     }
 
 
-    // @TODO implement
     /**
      * replace original Rules Engine's billing records with new UI's billingRecords
      * @param parsedLastResult 
@@ -348,10 +346,11 @@ export default function SubmitAnalysis() {
      * @param parsedLastResult - The parsed last result.
      * @returns The current usage data.
      */
-    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {        const newUsageData = ({
-            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')),
-            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')),
-            processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)),
+    const buildCurrentUsageData = (parsedLastResult: Map<any, any>): UsageDataSchema => {
+        const newUsageData = ({
+            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output'))  as SummaryOutputSchema,
+            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph'))  as BalancePointGraphSchema,
+            processed_energy_bills: parsedLastResult?.get('processed_energy_bills').map((map: any) => Object.fromEntries(map)) as BillingRecordsSchema,
         }) as UsageDataSchema
 
 
@@ -371,9 +370,7 @@ export default function SubmitAnalysis() {
             if (tally < 4) {
                 setTally(tally+1)
                 setUsageData( (prevUsageData) => {
-                    if (objectToString (prevUsageData) != objectToString(newUsageData)) {
-                        console.log("prev", prevUsageData)
-                        console.log("new", newUsageData)
+                    if (objectToString(prevUsageData) != objectToString(newUsageData)) {
                         return newUsageData;
                     }
                     return prevUsageData // sets useData to
