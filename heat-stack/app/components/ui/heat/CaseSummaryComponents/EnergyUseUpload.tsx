@@ -14,8 +14,9 @@ export function EnergyUseUpload() {
 				name="energy_use_upload"
 				type="file"
 			/>
+			{/* Button type submit is processed by action in single.tsx */}
 			<Button type="submit">
-				<Upload className="mr-2 h-4 w-4" /> Upload
+				<Upload className="mr-2 h-4 w-4" />Upload
 			</Button>
 
 			<a

@@ -25,11 +25,11 @@ export default function Recalculate() {
             <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
                 {/* <HomeInformation fields={fields} />
                 <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory usage_data={ currentUsageData || {} as UsageDataSchema } show_usage_data={show_usage_data} /> */}
+                <EnergyUseHistory usageData={ Data || {} as UsageDataSchema } showUsageData={showUsageData} /> */}
                 
                 {/* <ErrorList id={form.errorId} errors={form.errors} /> */}
             </Form>
-            {/* <HeatLoadAnalysis heatLoadSummaryOutput={currentUsageData?.heat_load_output} />  */}
+            {/* <HeatLoadAnalysis heatLoadSummaryOutput={Data?.heat_load_output} />  */}
         </>    
     )
 }
