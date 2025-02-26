@@ -10,21 +10,21 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
-import { SummaryOutputSchema } from '../../../../../../types/types.ts'
+import { type SummaryOutputSchema } from '../../../../../../types/types.ts'
 import { Icon } from '../../../icon.tsx'
-import { HeatLoadGrid } from '../HeatLoadGrid.tsx'
 import {
 	COLOR_GREY_LIGHT,
 	COLOR_ORANGE,
 	COLOR_BLUE,
 } from '../constants.ts'
+import { HeatLoadGrid } from '../HeatLoadGrid.tsx'
+import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data.ts'
 import {
 	calculateAvgHeatLoad,
 	calculateMaxHeatLoad,
 } from '../utility/heat-load-calculations.ts'
-import { buildHeatLoadGraphData } from '../utility/build-heat-load-graph-data.ts'
-import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
 import { CustomLegend } from './HeatLoadGraphLegend.tsx'
+import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
 import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
@@ -34,7 +34,7 @@ const Y_AXIS_MIN_VALUE = 0; // Always start the Y axis at 0
 const roundDownToNearestTen = (n: number) => Math.floor(n / 10) * 10; // Used for determining the start temperature on the X axis
 
 type HeatLoadProps = {
-	heatLoadSummaryOutput: SummaryOutputSchema
+	heatLoadSummaryOutput: SummaryOutputSchema | undefined
 }
 
 /**
@@ -42,19 +42,21 @@ type HeatLoadProps = {
  * It includes two lines for the maximum and average heat loads, with scatter points at the design temperature.
  *
  * @param {HeatLoadProps} props - The props containing heat load data to render the chart.
- * @returns {JSX.Element} - The rendered chart component.
+ * @returns {React.ReactElement } - The rendered chart component.
  */
 export function HeatLoad({
 	heatLoadSummaryOutput,
-}: HeatLoadProps): JSX.Element {
-	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
-	const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
+}: HeatLoadProps): React.ReactElement  {
 	const maxTemperature = DESIGN_SET_POINT + 2 // end the X axis at the DESIGN_SET_POINT plus 2f for visual clarity
 
 	/**
 	 * useMemo to build the HeatLoad graph data.
 	 */
 	const data = useMemo(() => {
+		if (!heatLoadSummaryOutput) {
+			return []; // Return empty array if data is not available yet
+		  }
+
 		return buildHeatLoadGraphData(
 			heatLoadSummaryOutput,
 			minTemperature,
@@ -67,6 +69,9 @@ export function HeatLoad({
 	 * useMemo to iterate through the data and calculate the min and max values for the Y axis.
 	 */
 	const { minYValue, maxYValue } = useMemo(() => {
+		if (!data || data.length === 0) {
+			return { minYValue: Y_AXIS_MIN_VALUE, maxYValue: Y_AXIS_ROUNDING_UNIT }; // Default values
+		  }
 		let minValue = Infinity
 		let maxValue = 0
 
@@ -85,6 +90,13 @@ export function HeatLoad({
 
 		return { minYValue: minY, maxYValue: maxY }
 	}, [data])
+
+	if (!heatLoadSummaryOutput) {
+		return <div>Loading heat load data...</div>;
+	  }
+	  const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
+	  const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
+
 
 	return (
 		<div className="min-w-[625px] rounded-lg shadow-lg">
@@ -171,7 +183,7 @@ export function HeatLoad({
 			<CustomLegend />
 			</div>
 
-			<HeatLoadGrid
+			{heatLoadSummaryOutput && <HeatLoadGrid
 				setPoint={DESIGN_SET_POINT}
 				averageHeatLoad={calculateAvgHeatLoad(
 					heatLoadSummaryOutput,
@@ -183,7 +195,7 @@ export function HeatLoad({
 					design_temperature,
 					DESIGN_SET_POINT,
 				)}
-			/>
+			/>}
 		</div>
 	)
 }

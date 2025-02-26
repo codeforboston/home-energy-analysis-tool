@@ -2,12 +2,8 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import {
-	json,
-	type LoaderFunctionArgs,
-	type ActionFunctionArgs,
-} from '@remix-run/node'
-import { Link, useFetcher, useLoaderData } from '@remix-run/react'
+import { Img } from 'openimg/react'
+import { data, Link, useFetcher } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -19,6 +15,7 @@ import { getUserImgSrc, useDoubleCheck } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { type Route, type Info } from './+types/profile.index.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 
 export const handle: SEOHandle = {
@@ -30,7 +27,7 @@ const ProfileFormSchema = z.object({
 	username: UsernameSchema,
 })
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUniqueOrThrow({
 		where: { id: userId },
@@ -40,7 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			username: true,
 			email: true,
 			image: {
-				select: { id: true },
+				select: { objectKey: true },
 			},
 			_count: {
 				select: {
@@ -64,11 +61,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		where: { userId },
 	})
 
-	return json({
+	return {
 		user,
 		hasPassword: Boolean(password),
 		isTwoFactorEnabled: Boolean(twoFactorVerification),
-	})
+	}
 }
 
 type ProfileActionArgs = {
@@ -80,7 +77,7 @@ const profileUpdateActionIntent = 'update-profile'
 const signOutOfSessionsActionIntent = 'sign-out-of-sessions'
 const deleteDataActionIntent = 'delete-data'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
@@ -100,17 +97,18 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 }
 
-export default function EditUserProfile() {
-	const data = useLoaderData<typeof loader>()
-
+export default function EditUserProfile({ loaderData }: Route.ComponentProps) {
 	return (
 		<div className="flex flex-col gap-12">
 			<div className="flex justify-center">
 				<div className="relative h-52 w-52">
-					<img
-						src={getUserImgSrc(data.user.image?.id)}
-						alt={data.user.username}
+					<Img
+						src={getUserImgSrc(loaderData.user.image?.objectKey)}
+						alt={loaderData.user.username}
 						className="h-full w-full rounded-full object-cover"
+						width={832}
+						height={832}
+						isAboveFold
 					/>
 					<Button
 						asChild
@@ -128,20 +126,20 @@ export default function EditUserProfile() {
 					</Button>
 				</div>
 			</div>
-			<UpdateProfile />
+			<UpdateProfile loaderData={loaderData} />
 
 			<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
 			<div className="col-span-full flex flex-col gap-6">
 				<div>
 					<Link to="change-email">
 						<Icon name="envelope-closed">
-							Change email from {data.user.email}
+							Change email from {loaderData.user.email}
 						</Icon>
 					</Link>
 				</div>
 				<div>
 					<Link to="two-factor">
-						{data.isTwoFactorEnabled ? (
+						{loaderData.isTwoFactorEnabled ? (
 							<Icon name="lock-closed">2FA is enabled</Icon>
 						) : (
 							<Icon name="lock-open-1">Enable 2FA</Icon>
@@ -149,15 +147,20 @@ export default function EditUserProfile() {
 					</Link>
 				</div>
 				<div>
-					<Link to={data.hasPassword ? 'password' : 'password/create'}>
+					<Link to={loaderData.hasPassword ? 'password' : 'password/create'}>
 						<Icon name="dots-horizontal">
-							{data.hasPassword ? 'Change Password' : 'Create a Password'}
+							{loaderData.hasPassword ? 'Change Password' : 'Create a Password'}
 						</Icon>
 					</Link>
 				</div>
 				<div>
 					<Link to="connections">
 						<Icon name="link-2">Manage connections</Icon>
+					</Link>
+				</div>
+				<div>
+					<Link to="passkeys">
+						<Icon name="passkey">Manage passkeys</Icon>
 					</Link>
 				</div>
 				<div>
@@ -169,7 +172,7 @@ export default function EditUserProfile() {
 						<Icon name="download">Download your data</Icon>
 					</Link>
 				</div>
-				<SignOutOfSessions />
+				<SignOutOfSessions loaderData={loaderData} />
 				<DeleteData />
 			</div>
 		</div>
@@ -194,31 +197,29 @@ async function profileUpdateAction({ userId, formData }: ProfileActionArgs) {
 		}),
 	})
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
 
-	const data = submission.value
+	const { username, name } = submission.value
 
 	await prisma.user.update({
 		select: { username: true },
 		where: { id: userId },
 		data: {
-			name: data.name,
-			username: data.username,
+			name: name,
+			username: username,
 		},
 	})
 
-	return json({
+	return {
 		result: submission.reply(),
-	})
+	}
 }
 
-function UpdateProfile() {
-	const data = useLoaderData<typeof loader>()
-
+function UpdateProfile({ loaderData }: { loaderData: Info['loaderData'] }) {
 	const fetcher = useFetcher<typeof profileUpdateAction>()
 
 	const [form, fields] = useForm({
@@ -229,8 +230,8 @@ function UpdateProfile() {
 			return parseWithZod(formData, { schema: ProfileFormSchema })
 		},
 		defaultValue: {
-			username: data.user.username,
-			name: data.user.name,
+			username: loaderData.user.username,
+			name: loaderData.user.name,
 		},
 	})
 
@@ -288,15 +289,18 @@ async function signOutOfSessionsAction({ request, userId }: ProfileActionArgs) {
 			id: { not: sessionId },
 		},
 	})
-	return json({ status: 'success' } as const)
+	return { status: 'success' } as const
 }
 
-function SignOutOfSessions() {
-	const data = useLoaderData<typeof loader>()
+function SignOutOfSessions({
+	loaderData: loaderData,
+}: {
+	loaderData: Info['loaderData']
+}) {
 	const dc = useDoubleCheck()
 
 	const fetcher = useFetcher<typeof signOutOfSessionsAction>()
-	const otherSessionsCount = data.user._count.sessions - 1
+	const otherSessionsCount = loaderData.user._count.sessions - 1
 	return (
 		<div>
 			{otherSessionsCount ? (

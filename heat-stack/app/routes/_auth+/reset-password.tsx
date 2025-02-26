@@ -1,14 +1,7 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import {
-	json,
-	redirect,
-	type ActionFunctionArgs,
-	type LoaderFunctionArgs,
-	type MetaFunction,
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { data, redirect, Form } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -16,6 +9,7 @@ import { requireAnonymous, resetUserPassword } from '#app/utils/auth.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { PasswordAndConfirmPasswordSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
+import { type Route } from './+types/reset-password.ts'
 
 export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
@@ -39,19 +33,19 @@ async function requireResetPasswordUsername(request: Request) {
 	return resetPasswordUsername
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const resetPasswordUsername = await requireResetPasswordUsername(request)
-	return json({ resetPasswordUsername })
+	return { resetPasswordUsername }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const resetPasswordUsername = await requireResetPasswordUsername(request)
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, {
 		schema: ResetPasswordSchema,
 	})
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -67,13 +61,14 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 }
 
-export const meta: MetaFunction = () => {
+export const meta: Route.MetaFunction = () => {
 	return [{ title: 'Reset Password | Epic Notes' }]
 }
 
-export default function ResetPasswordPage() {
-	const data = useLoaderData<typeof loader>()
-	const actionData = useActionData<typeof action>()
+export default function ResetPasswordPage({
+	loaderData,
+	actionData,
+}: Route.ComponentProps) {
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
@@ -91,7 +86,8 @@ export default function ResetPasswordPage() {
 			<div className="text-center">
 				<h1 className="text-h1">Password Reset</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Hi, {data.resetPasswordUsername}. No worries. It happens all the time.
+					Hi, {loaderData.resetPasswordUsername}. No worries. It happens all the
+					time.
 				</p>
 			</div>
 			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">

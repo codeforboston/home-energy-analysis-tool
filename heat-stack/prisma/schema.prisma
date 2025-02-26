@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
@@ -11,12 +12,11 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
-  // caseUser added when CaseUser model added for HEAT schema
+  id       String  @id @default(cuid())
+    // caseUser added when CaseUser model added for HEAT schema
   caseUser CaseUser[]
-
-  email    String @unique
-  username String @unique
+  email    String  @unique
+  username String  @unique
   name     String?
 
   createdAt DateTime @default(now())
@@ -28,6 +28,7 @@ model User {
   roles       Role[]
   sessions    Session[]
   connections Connection[]
+  passkey     Passkey[]
 }
 
 model Note {
@@ -50,10 +51,9 @@ model Note {
 }
 
 model NoteImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
+  id        String  @id @default(cuid())
+  altText   String?
+  objectKey String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -66,10 +66,9 @@ model NoteImage {
 }
 
 model UserImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
+  id        String  @id @default(cuid())
+  altText   String?
+  objectKey String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,6 +170,22 @@ model Connection {
   @@unique([providerName, providerId])
 }
 
+model Passkey {
+  id             String   @id
+  aaguid         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  publicKey      Bytes
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  webauthnUserId String
+  counter        BigInt
+  deviceType     String // 'singleDevice' or 'multiDevice'
+  backedUp       Boolean
+  transports     String? // Stored as comma-separated values
+
+  @@index(userId)
+}
 // HEAT schema starts here
 model Analysis {
   id                   Int @id @default(autoincrement())

@@ -1,22 +1,24 @@
 import crypto from 'node:crypto'
-import { createRequestHandler } from '@remix-run/express'
-import { type ServerBuild } from '@remix-run/node'
+import { styleText } from 'node:util'
+import { helmet } from '@nichtsam/helmet/node-http'
+import { createRequestHandler } from '@react-router/express'
+import * as Sentry from '@sentry/node'
 import { ip as ipAddress } from 'address'
-import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
-import helmet from 'helmet'
 import morgan from 'morgan'
+import { type ServerBuild } from 'react-router'
 
 const MODE = process.env.NODE_ENV ?? 'development'
 const IS_PROD = MODE === 'production'
 const IS_DEV = MODE === 'development'
 const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
+const SENTRY_ENABLED = IS_PROD && process.env.SENTRY_DSN
 
-if (IS_PROD && process.env.SENTRY_DSN) {
+if (SENTRY_ENABLED) {
 	void import('./utils/monitoring.js').then(({ init }) => init())
 }
 
@@ -66,6 +68,33 @@ app.use(compression())
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
 
+app.use((_, res, next) => {
+	// The referrerPolicy breaks our redirectTo logic
+	helmet(res, { general: { referrerPolicy: false }, content: { contentSecurityPolicy: { reportOnly: true, directives: { /* fetch: {
+		'connect-src': [
+			MODE === 'development' ? 'ws:' : null,
+			process.env.SENTRY_DSN ? '*.sentry.io' : null,
+			"'self'",
+		].filter(Boolean) as string[],
+		'font-src': ["'self'"],
+		'frame-src': ["'self'"],
+		'img-src': ["'self'", 'data:'],
+		'script-src': [
+			"'strict-dynamic'", //heat-app: this may need to be commented for the below
+			"'self'", //heat-app: this may need to be commented for the below
+			"'unsafe-eval'", //heat-app: this may be required on localhost without SSL
+			// @ts-expect-error
+			(_, res) => `'nonce-${res.locals.cspNonce}'`,
+		],
+		'script-src-attr': [
+			// @ts-expect-error
+			(_, res) => `'nonce-${res.locals.cspNonce}'`,
+		],
+		'upgrade-insecure-requests': null,
+	}*/ }  }  } } )
+	next()
+})
+
 if (viteDevServer) {
 	app.use(viteDevServer.middlewares)
 } else {
@@ -86,13 +115,18 @@ app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	return res.status(404).send('Not found')
 })
 
-morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
+morgan.token('url', (req) => {
+	try {
+		return decodeURIComponent(req.url ?? '')
+	} catch {
+		return req.url ?? ''
+	}
+})
 app.use(
 	morgan('tiny', {
 		skip: (req, res) =>
 			res.statusCode === 200 &&
-			(req.url?.startsWith('/resources/note-images') ||
-				req.url?.startsWith('/resources/user-images') ||
+			(req.url?.startsWith('/resources/images') ||
 				req.url?.startsWith('/resources/healthcheck')),
 	}),
 )
@@ -102,40 +136,6 @@ app.use((_, res, next) => {
 	next()
 })
 
-app.use(
-	helmet({
-		xPoweredBy: false,
-		referrerPolicy: { policy: 'same-origin' },
-		crossOriginEmbedderPolicy: false,
-		contentSecurityPolicy: {
-			// NOTE: Remove reportOnly when you're ready to enforce this CSP
-			reportOnly: true,
-			directives: {
-				'connect-src': [
-					MODE === 'development' ? 'ws:' : null,
-					process.env.SENTRY_DSN ? '*.sentry.io' : null,
-					"'self'",
-				].filter(Boolean) as string[],
-				'font-src': ["'self'"],
-				'frame-src': ["'self'"],
-				'img-src': ["'self'", 'data:'],
-				'script-src': [
-					"'strict-dynamic'", //heat-app: this may need to be commented for the below
-					"'self'", //heat-app: this may need to be commented for the below
-					"'unsafe-eval'", //heat-app: this may be required on localhost without SSL
-					// @ts-expect-error
-					(_, res) => `'nonce-${res.locals.cspNonce}'`,
-				],
-				'script-src-attr': [
-					// @ts-expect-error
-					(_, res) => `'nonce-${res.locals.cspNonce}'`,
-				],
-				'upgrade-insecure-requests': null,
-			},
-		},
-	}),
-)
-
 // When running tests or running in development, we want to effectively disable
 // rate limiting because playwright tests are very fast and we don't want to
 // have to wait for the rate limit to reset between tests.
@@ -143,11 +143,11 @@ const maxMultiple =
 	!IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
 const rateLimitDefault = {
 	windowMs: 60 * 1000,
-	max: 1000 * maxMultiple,
+	limit: 1000 * maxMultiple,
 	standardHeaders: true,
 	legacyHeaders: false,
 	validate: { trustProxy: false },
-	// Malicious users can spoof their IP address which means we should not deault
+	// Malicious users can spoof their IP address which means we should not default
 	// to trusting req.ip when hosted on Fly.io. However, users cannot spoof Fly-Client-Ip.
 	// When sitting behind a CDN such as cloudflare, replace fly-client-ip with the CDN
 	// specific header such as cf-connecting-ip
@@ -159,13 +159,13 @@ const rateLimitDefault = {
 const strongestRateLimit = rateLimit({
 	...rateLimitDefault,
 	windowMs: 60 * 1000,
-	max: 10 * maxMultiple,
+	limit: 10 * maxMultiple,
 })
 
 const strongRateLimit = rateLimit({
 	...rateLimitDefault,
 	windowMs: 60 * 1000,
-	max: 100 * maxMultiple,
+	limit: 100 * maxMultiple,
 })
 
 const generalRateLimit = rateLimit(rateLimitDefault)
@@ -200,9 +200,8 @@ app.use((req, res, next) => {
 async function getBuild() {
 	try {
 		const build = viteDevServer
-			? await viteDevServer.ssrLoadModule('virtual:remix/server-build')
+			? await viteDevServer.ssrLoadModule('virtual:react-router/server-build')
 			: // @ts-expect-error - the file might not exist yet but it will
-				// eslint-disable-next-line import/no-unresolved
 				await import('../build/server/index.js')
 
 		return { build: build as unknown as ServerBuild, error: null }
@@ -252,7 +251,8 @@ if (!portAvailable && !IS_DEV) {
 const server = app.listen(portToUse, () => {
 	if (!portAvailable) {
 		console.warn(
-			chalk.yellow(
+			styleText(
+				'yellow',
 				`⚠️  Port ${desiredPort} is not available, using ${portToUse} instead.`,
 			),
 		)
@@ -270,15 +270,23 @@ const server = app.listen(portToUse, () => {
 
 	console.log(
 		`
-${chalk.bold('Local:')}            ${chalk.cyan(localUrl)}
-${lanUrl ? `${chalk.bold('On Your Network:')}  ${chalk.cyan(lanUrl)}` : ''}
-${chalk.bold('Press Ctrl+C to stop')}
+${styleText('bold', 'Local:')}            ${styleText('cyan', localUrl)}
+${lanUrl ? `${styleText('bold', 'On Your Network:')}  ${styleText('cyan', lanUrl)}` : ''}
+${styleText('bold', 'Press Ctrl+C to stop')}
 		`.trim(),
 	)
 })
 
-closeWithGrace(async () => {
+closeWithGrace(async ({ err }) => {
 	await new Promise((resolve, reject) => {
 		server.close((e) => (e ? reject(e) : resolve('ok')))
 	})
+	if (err) {
+		console.error(styleText('red', String(err)))
+		console.error(styleText('red', String(err.stack)))
+		if (SENTRY_ENABLED) {
+			Sentry.captureException(err)
+			await Sentry.flush(500)
+		}
+	}
 })

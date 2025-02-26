@@ -8,11 +8,13 @@ import { useForm } from '@conform-to/react'
 /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
 import { parseWithZod } from '@conform-to/zod'
-import { type ActionFunctionArgs } from '@remix-run/node'
-import { Form, redirect, useActionData } from '@remix-run/react'
+// import { type ActionFunctionArgs } from '@remix-run/node'
+import { Form, redirect, useActionData } from 'react-router'
 import { z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
+import { type Route } from './+types/Inputs1.ts'
+
 
 const nameMaxLength = 50
 const addressMaxLength = 100
@@ -25,7 +27,7 @@ const HomeInformationSchema = z.object({
 	living_area: z.number().min(1),
 })
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 

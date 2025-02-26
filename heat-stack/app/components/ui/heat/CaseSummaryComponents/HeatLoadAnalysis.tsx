@@ -1,9 +1,10 @@
 // import { AnalysisHeader } from './AnalysisHeader.tsx'
+import { SummaryOutputSchema } from '#types/types.ts';
 import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
 interface GraphsProps {
-	heatLoadSummaryOutput: any;
+	heatLoadSummaryOutput: SummaryOutputSchema | undefined;
 }
 
 export function Graphs({ heatLoadSummaryOutput }: GraphsProps) {

@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import { faker } from '@faker-js/faker'
-import { createRemixStub } from '@remix-run/testing'
 import { render, screen } from '@testing-library/react'
+import { createRoutesStub } from 'react-router'
 import setCookieParser from 'set-cookie-parser'
 import { test } from 'vitest'
 import { loader as rootLoader } from '#app/root.tsx'
@@ -21,11 +21,12 @@ test('The user profile when not logged in as self', async () => {
 		select: { id: true, username: true, name: true },
 		data: { ...createUser(), image: { create: userImage } },
 	})
-	const App = createRemixStub([
+	const App = createRoutesStub([
 		{
 			path: '/users/:username',
 			Component: UsernameRoute,
 			loader,
+			HydrateFallback: () => <div>Loading...</div>,
 		},
 	])
 
@@ -61,15 +62,16 @@ test('The user profile when logged in as self', async () => {
 		[parsedCookie.name]: parsedCookie.value,
 	}).toString()
 
-	const App = createRemixStub([
+	const App = createRoutesStub([
 		{
 			id: 'root',
 			path: '/',
 			loader: async (args) => {
 				// add the cookie header to the request
 				args.request.headers.set('cookie', cookieHeader)
-				return rootLoader(args)
+				return rootLoader({ ...args, context: args.context })
 			},
+			HydrateFallback: () => <div>Loading...</div>,
 			children: [
 				{
 					path: 'users/:username',
@@ -85,7 +87,7 @@ test('The user profile when logged in as self', async () => {
 	])
 
 	const routeUrl = `/users/${user.username}`
-	await render(<App initialEntries={[routeUrl]} />)
+	render(<App initialEntries={[routeUrl]} />)
 
 	await screen.findByRole('heading', { level: 1, name: user.name! })
 	await screen.findByRole('img', { name: user.name! })

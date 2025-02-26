@@ -1,22 +1,24 @@
 import { useForm, getFormProps } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { redirect, useFetcher, useFetchers } from '@remix-run/react'
+import { data, redirect, useFetcher, useFetchers } from 'react-router'
 import { ServerOnly } from 'remix-utils/server-only'
 import { z } from 'zod'
 import { Icon } from '#app/components/ui/icon.tsx'
-import { useHints } from '#app/utils/client-hints.tsx'
-import { useRequestInfo } from '#app/utils/request-info.ts'
+import { useHints, useOptionalHints } from '#app/utils/client-hints.tsx'
+import {
+	useOptionalRequestInfo,
+	useRequestInfo,
+} from '#app/utils/request-info.ts'
 import { type Theme, setTheme } from '#app/utils/theme.server.ts'
-
+import { type Route } from './+types/theme-switch.ts'
 const ThemeFormSchema = z.object({
 	theme: z.enum(['system', 'light', 'dark']),
 	// this is useful for progressive enhancement
 	redirectTo: z.string().optional(),
 })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, {
 		schema: ThemeFormSchema,
@@ -32,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	if (redirectTo) {
 		return redirect(redirectTo, responseInit)
 	} else {
-		return json({ result: submission.reply() }, responseInit)
+		return data({ result: submission.reply() }, responseInit)
 	}
 }
 
@@ -127,5 +129,17 @@ export function useTheme() {
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? hints.theme : optimisticMode
 	}
-	return requestInfo.userPrefs /* .theme ?? hints.theme */
+	return hints.theme
+	// return requestInfo.userPrefs.theme ?? hints.theme
+}
+
+export function useOptionalTheme() {
+	const optionalHints = useOptionalHints()
+	const optionalRequestInfo = useOptionalRequestInfo()
+	const optimisticMode = useOptimisticThemeMode()
+	if (optimisticMode) {
+		return optimisticMode === 'system' ? optionalHints?.theme : optimisticMode
+	}
+	return optionalHints?.theme
+	// return optionalRequestInfo?.userPrefs.theme ?? optionalHints?.theme
 }

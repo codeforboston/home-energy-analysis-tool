@@ -1,8 +1,9 @@
-import { json, type DataFunctionArgs } from '@remix-run/node'
-import { Outlet, useLoaderData } from '@remix-run/react'
+// import { json, type DataFunctionArgs } from 'r'
+import { data, Outlet, useLoaderData } from 'react-router'
 import { Fragment } from 'react'
+import { type Route } from './+types/$analysisid.ts'
 
-export async function loader({ params }: DataFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
     // // From the database:
 	// const user = await prisma.user.findFirst({
 	// 	select: {
@@ -17,7 +18,7 @@ export async function loader({ params }: DataFunctionArgs) {
 	// 	},
 	// })
     
-    return json({
+    return data({
         id: params.analysisid
         })
 }

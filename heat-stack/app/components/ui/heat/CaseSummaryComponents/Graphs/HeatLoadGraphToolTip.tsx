@@ -5,11 +5,11 @@ type HeatLoadGraphToolTipProps = {
 /**
  * CustomTooltip renders a tooltip for the heat load chart.
  * @param {object} props - The props containing data for the tooltip.
- * @returns {JSX.Element} - The rendered tooltip element.
+ * @returns {React.ReactElement} - The rendered tooltip element.
  */
 export const HeatLoadGraphToolTip = (
     props: HeatLoadGraphToolTipProps,
-): JSX.Element => {
+): React.ReactElement  => {
     const { payload } = props
     const temperature = payload?.[0]?.payload?.temperature ?? null
     const value = payload?.[0]?.value ?? null
