@@ -10,9 +10,6 @@ export function EnergyUseUpload() {
 	};
     return (
 		<div>
-			<div>
-				<button type="button" onClick={handleClick}>Click me</button>
-	    	</div>
 			<h3>Upload Energy Use File</h3>
 			<input
 				id="energy_use_upload"
