@@ -3,11 +3,6 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 
 export function EnergyUseUpload() {
-	// Define the onClick handler
-	const handleClick = (event: Event) => {
-	    console.log('Button was clicked!');
-		// event.preventDefault();
-	};
     return (
 		<div>
 			<h3>Upload Energy Use File</h3>
