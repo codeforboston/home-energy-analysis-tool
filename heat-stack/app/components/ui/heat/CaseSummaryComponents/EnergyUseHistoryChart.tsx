@@ -58,7 +58,7 @@ interface EnergyUseHistoryChartProps {
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
     setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFn: (
+    recalculateFromBillingRecordsChange: (
         parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
         parsedAndValidatedFormSchema: any,
@@ -86,40 +86,37 @@ function objectToString(obj: any): any {
     return retval as any;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
-
-
+export function EnergyUseHistoryChart({ 
+        lastResult, 
+        parsedLastResult, 
+        setUsageData, 
+        usageData, 
+        recalculateFromBillingRecordsChange 
+    }: EnergyUseHistoryChartProps) {
     const handleOverrideCheckboxChange = (index: number) => {
         const newRecords = structuredClone(usageData.processed_energy_bills)
-        const period = newRecords[index]
+        const newRecordAtIndex = newRecords[index]
         
-        if (period) {
-            const currentOverride = period.inclusion_override
+        // Null check to avoid TypeScript errors
+        if (newRecordAtIndex) {
+            // Get status of box having been checked or unchecked
+            const currentOverride = newRecordAtIndex.inclusion_override
             // Toggle 'inclusion_override'
-            period.inclusion_override = !currentOverride
-            
-            newRecords[index] = { ...period } 
+            newRecordAtIndex.inclusion_override = !currentOverride
+            newRecords[index] = { ...newRecordAtIndex }
         }
         const newUsageData = ({
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
             processed_energy_bills: newRecords as BillingRecordsSchema,
         });
-        setUsageData( (prevUsageData) => {
-
-            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                return newUsageData
-            }
-            return prevUsageData // sets useData to
-
-        });
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
             state_id,
-            county_id } = { ...lastResult }
-
-        recalculateFn(
+            county_id 
+        } = { ...lastResult }
+        recalculateFromBillingRecordsChange(
             parsedLastResult,
             newRecords,
             parsedAndValidatedFormSchema,

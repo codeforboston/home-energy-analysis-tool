@@ -6,6 +6,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { Form, redirect, useActionData, useLocation } from 'react-router'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { object, type z } from 'zod'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { HeatLoadAnalysis }  from '#app/components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { replacedMapToObject, replacer, reviver } from '#app/utils/data-parser.ts'
@@ -82,7 +83,6 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import React, { useState } from 'react'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { EnergyUseUpload } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -289,7 +289,9 @@ export default function SubmitAnalysis() {
 
 
     // @TODO: left off here
-    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
+    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future 
+     * - Called only when a box is checked or unchecked
+    */
     const recalculateFromBillingRecordsChange = async (        
         parsedLastResult: Map<any, any> | undefined,
         billingRecords: BillingRecordsSchema,
@@ -297,32 +299,18 @@ export default function SubmitAnalysis() {
         convertedDatesTIWD: any,
         state_id: any,
         county_id: any
-         ) => {
-        if (!parsedLastResult)
-            return
-        // replace original Rules Engine's billing records with new UI's billingRecords
+    ) => {
+        if (!parsedLastResult) return
         const parsedNextResult = buildCurrentMapOfUsageData(parsedLastResult, billingRecords)
-
-
-        // wire up usageData useState hook instead of variable.
         // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
-    
-        const calcResult = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
-        const newUsageData = calcResult && buildCurrentUsageData(calcResult)
-            setUsageData((prevUsageData) => {
-
-                if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-                    return newUsageData;
-                }
-                return prevUsageData // sets useData to
-
-            });
-
+        const calculateResult = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id).toJs()
+        const newUsageData = buildCurrentUsageData(calculateResult) 
+        setUsageData(newUsageData)
     }
 
 
     /**
-     * replace original Rules Engine's billing records with new UI's billingRecords
+     * Replace original Rules Engine's billing records with UI's new billingRecords
      * @param parsedLastResult 
      * @param processedEnergyBills 
      */
@@ -359,26 +347,22 @@ export default function SubmitAnalysis() {
         return newUsageData;
     }
 
-    if (showUsageData && hasDataProperty(lastResult)) 
-        {
-            // Parse the JSON string from lastResult.data
-            // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-            parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+    if (showUsageData && hasDataProperty(lastResult)) {
+        // Parse the JSON string from lastResult.data
+        // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+        parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+        const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+        if (tally < 4) {
+            setTally(tally+1)
+            setUsageData( (prevUsageData) => {
+                if (objectToString(prevUsageData) != objectToString(newUsageData)) {
+                    return newUsageData;
+                }
+                return prevUsageData // sets useData to
 
-
-            const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-            if (tally < 4) {
-                setTally(tally+1)
-                setUsageData( (prevUsageData) => {
-                    if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                        return newUsageData;
-                    }
-                    return prevUsageData // sets useData to
-
-                });
-            }
-
-       }
+            });
+        }
+    }
    
     type ActionResult = 
     | SubmissionResult<string[]>
@@ -461,7 +445,6 @@ export default function SubmitAnalysis() {
                     )}
                 </>
             )}
-
             </Form>
         </>
     )

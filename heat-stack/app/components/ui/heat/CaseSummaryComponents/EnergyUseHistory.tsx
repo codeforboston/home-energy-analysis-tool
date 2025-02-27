@@ -17,7 +17,7 @@ interface EnergyUseHistoryProps
 	parsedLastResult: Map<any, any> | undefined;
 	usageData: UsageDataSchema;
 	setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-	recalculateFn: (
+	recalculateFromBillingRecordsChange: (
 		parsedLastResult: Map<any, any> | undefined,
 		billingRecords: BillingRecordsSchema,
 		parsedAndValidatedFormSchema: any,
@@ -33,7 +33,7 @@ export function EnergyUseHistory({
 	parsedLastResult,
 	usageData,
 	setUsageData,
-	recalculateFn,
+	recalculateFromBillingRecordsChange,
 	showUsageData
 }: EnergyUseHistoryProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
@@ -42,13 +42,10 @@ export function EnergyUseHistory({
 	return (
 		<div>
 			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
-
-			
-
 			{showUsageData && (
 				<>
 					<AnalysisHeader usageData={usageData} />
-					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
+					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange}/>
 					<Button type="submit">Re-calculate</Button>
 				</>
 			)}
