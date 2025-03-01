@@ -1,14 +1,14 @@
-import { vitePlugin as remix } from '@remix-run/dev'
+import { reactRouter } from '@react-router/dev/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
-import { glob } from 'glob'
-import { flatRoutes } from 'remix-flat-routes'
-import { defineConfig } from 'vite'
+
 import { envOnlyMacros } from 'vite-env-only'
+import { type ViteUserConfig } from 'vitest/config'
 
 const MODE = process.env.NODE_ENV
 
-export default defineConfig({
+export default {
 	build: {
+		target: 'es2022',
 		cssMinify: MODE === 'production',
 
 		rollupOptions: {
@@ -36,29 +36,7 @@ export default defineConfig({
 		envOnlyMacros(),
 		// it would be really nice to have this enabled in tests, but we'll have to
 		// wait until https://github.com/remix-run/remix/issues/9871 is fixed
-		process.env.NODE_ENV === 'test'
-			? null
-			: remix({
-					ignoredRouteFiles: ['**/*'],
-					serverModuleFormat: 'esm',
-					routes: async (defineRoutes) => {
-						return flatRoutes('routes', defineRoutes, {
-							ignoredRouteFiles: [
-								'.*',
-								'**/*.css',
-								'**/*.test.{js,jsx,ts,tsx}',
-								'**/__*.*',
-								// This is for server-side utilities you want to colocate
-								// next to your routes without making an additional
-								// directory. If you need a route that includes "server" or
-								// "client" in the filename, use the escape brackets like:
-								// my-route.[server].tsx
-								'**/*.server.*',
-								'**/*.client.*',
-							],
-						})
-					},
-				}),
+		process.env.NODE_ENV === 'test' ? null : reactRouter(),
 		process.env.SENTRY_AUTH_TOKEN
 			? sentryVitePlugin({
 					disable: MODE !== 'production',
@@ -72,10 +50,10 @@ export default defineConfig({
 						},
 					},
 					sourcemaps: {
-						filesToDeleteAfterUpload: await glob([
+						filesToDeleteAfterUpload: [
 							'./build/**/*.map',
 							'.server-build/**/*.map',
-						]),
+						],
 					},
 				})
 			: null,
@@ -90,4 +68,4 @@ export default defineConfig({
 			all: true,
 		},
 	},
-})
+} satisfies ViteUserConfig

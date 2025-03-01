@@ -1,3 +1,4 @@
+# File no longer used, reference only. See heat-stack.yml in root .github
 name: 🚀 Deploy
 on:
   push:
@@ -17,57 +18,69 @@ permissions:
 jobs:
   lint:
     name: ⬣ ESLint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
       - name: 🖼 Build icons
         run: npm run build:icons
+
+      - name: 🛠 Setup Database
+        run: npx prisma migrate deploy && npx prisma generate --sql
 
       - name: 🔬 Lint
         run: npm run lint
 
   typecheck:
     name: ʦ TypeScript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
       - name: 🖼 Build icons
         run: npm run build:icons
+
+      - name: 🛠 Setup Database
+        run: npx prisma migrate deploy && npx prisma generate --sql
 
       - name: 🔎 Type check
         run: npm run typecheck --if-present
 
   vitest:
     name: ⚡ Vitest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -78,24 +91,27 @@ jobs:
       - name: 🖼 Build icons
         run: npm run build:icons
 
-      - name: ⚡ Run vitest-pyodide (restore to run test after epic-web v7 upgrade)
-        run: npm run test-pyodide -- --coverage
+      - name: 🛠 Setup Database
+        run: npx prisma migrate deploy && npx prisma generate --sql
+
+      - name: ⚡ Run vitest
+        run: npm run test -- --coverage
 
   playwright:
     name: 🎭 Playwright
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🏄 Copy test env vars
         run: cp .env.example .env
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
@@ -104,11 +120,11 @@ jobs:
         run: npm run test:e2e:install
 
       - name: 🛠 Setup Database
-        run: npx prisma migrate deploy
+        run: npx prisma migrate deploy && npx prisma generate --sql
 
       - name: 🏦 Cache Database
         id: db-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: prisma/data.db
           key:
@@ -118,9 +134,7 @@ jobs:
 
       - name: 🌱 Seed Database
         if: steps.db-cache.outputs.cache-hit != 'true'
-        run: npx prisma db seed
-        env:
-          MINIMAL_SEED: true
+        run: npx prisma migrate reset --force
 
       - name: 🏗 Build
         run: npm run build
@@ -129,7 +143,7 @@ jobs:
         run: npx playwright test
 
       - name: 📊 Upload report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -138,7 +152,7 @@ jobs:
 
   deploy:
     name: 🚀 Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [lint, typecheck, vitest, playwright]
     # only build/deploy main branch on pushes
     if:
@@ -147,10 +161,12 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '50'
 
       - name: 👀 Read app name
-        uses: SebRollen/toml-action@v1.0.2
+        uses: SebRollen/toml-action@v1.2.0
         id: app_name
         with:
           file: 'fly.toml'
@@ -163,7 +179,7 @@ jobs:
           mv ./other/.dockerignore ./.dockerignore
 
       - name: 🎈 Setup Fly
-        uses: superfly/flyctl-actions/setup-flyctl@v1.4
+        uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: 🚀 Deploy Staging
         if: ${{ github.ref == 'refs/heads/dev' }}
@@ -177,5 +193,6 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         run:
           flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
+          # --build-secret SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

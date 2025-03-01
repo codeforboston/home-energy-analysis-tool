@@ -1,9 +1,9 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { getDomainUrl } from '#app/utils/misc.tsx'
+import { getDomainUrl, getNoteImgSrc, getUserImgSrc } from '#app/utils/misc.tsx'
+import { type Route } from './+types/download-user-data.ts'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUniqueOrThrow({
 		where: { id: userId },
@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					id: true,
 					createdAt: true,
 					updatedAt: true,
-					contentType: true,
+					objectKey: true,
 				},
 			},
 			notes: {
@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 							id: true,
 							createdAt: true,
 							updatedAt: true,
-							contentType: true,
+							objectKey: true,
 						},
 					},
 				},
@@ -41,20 +41,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const domain = getDomainUrl(request)
 
-	return json({
+	return Response.json({
 		user: {
 			...user,
 			image: user.image
 				? {
 						...user.image,
-						url: `${domain}/resources/user-images/${user.image.id}`,
+						url: domain + getUserImgSrc(user.image.objectKey),
 					}
 				: null,
 			notes: user.notes.map((note) => ({
 				...note,
 				images: note.images.map((image) => ({
 					...image,
-					url: `${domain}/resources/note-images/${image.id}`,
+					url: domain + getNoteImgSrc(image.objectKey),
 				})),
 			})),
 		},

@@ -1,9 +1,10 @@
 // This is a shell for the /recalculate route
 
-import {  type ActionFunctionArgs } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData } from 'react-router'
+import { type Route } from './+types/recalculate.ts'
 
-export async function action({ request, params }: ActionFunctionArgs) {
+
+export async function action({ request, params }: Route.ActionArgs) {
     return null
 }
 
