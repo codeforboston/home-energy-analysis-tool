@@ -1,7 +1,6 @@
-import { tr } from '@faker-js/faker'
-import { useState, useEffect } from 'react'
 import { type z } from 'zod'
-import { type UsageDataSchema, type BillingRecordsSchema, BalancePointGraphSchema, SummaryOutputSchema } from '#/types/types.ts'
+import { type UsageDataSchema, type BillingRecordsSchema, type BalancePointGraphSchema, type SummaryOutputSchema } from '#/types/types.ts'
+import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
     Table,
@@ -58,14 +57,7 @@ interface EnergyUseHistoryChartProps {
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
     setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFn: (
-        parsedLastResult: Map<any, any> | undefined,
-        billingRecords: BillingRecordsSchema,
-        parsedAndValidatedFormSchema: any,
-        convertedDatesTIWD: any,
-        state_id: any,
-        county_id: any
-    ) => void;
+    recalculateFn: RecalculateFunction
 }
 
 function objectToString(obj: any): any {
@@ -125,7 +117,8 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
             state_id,
-            county_id
+            county_id,
+            setUsageData
         )
     }
 

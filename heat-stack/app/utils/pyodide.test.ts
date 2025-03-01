@@ -244,6 +244,9 @@ test('pyodide solves climate change', async () => {
         return outputs.model_dump(mode="json")
     execute
     `)
+    if (TIWD === undefined) {
+        return "ERROR: weather data undefined"
+    }
     const datesFromTIWD = TIWD.dates.map(datestring => new Date(datestring).toISOString().split('T')[0])
     const convertedDatesTIWD = {dates: datesFromTIWD, temperatures: TIWD.temperatures}
 

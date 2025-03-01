@@ -60,6 +60,17 @@ await pyodide.loadPackage(
  * CSV Parser
  * Need to parse the gas bill first to determine the start and end dates of the bill
  * so that we can request the weather for those dates.
+ * Example result:
+    * records: [
+    *   Map(4) {
+    *     'period_start_date' => '2022-10-04',
+    *     'period_end_date' => '2022-11-03',
+    *     'usage_therms' => 19,
+    *     'inclusion_override' => undefined
+    *   }
+    * ],
+    * 'overall_start_date' => '2020-10-02',
+    * 'overall_end_date' => '2022-11-03'
  */
 export const executeParseGasBillPy: ExecuteParseFunction = await pyodide.runPythonAsync(`
     from rules_engine import parser

@@ -1,5 +1,5 @@
 //heat-stack/app/routes/_heat+/single.tsx
-import { type SubmissionResult, useForm } from '@conform-to/react'
+import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useState } from 'react'
@@ -9,19 +9,18 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
-import { buildCurrentMapOfUsageData, buildCurrentUsageData, objectToString, hasDataProperty } from '#app/utils/index.ts'
+import { buildCurrentUsageData, objectToString, hasDataProperty } from '#app/utils/index.ts'
+import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
 
 import { 
     cleanupPyodideResources,
     executeGetAnalyticsFromFormJs, 
-    executeParseGasBillPy, 
-    executeRoundtripAnalyticsFromFormJs 
-} from '#app/utils/rules-engine.ts'
+    executeParseGasBillPy} from '#app/utils/rules-engine.ts'
 
 // Ours
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
-import { type BillingRecordsSchema, type UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
+import { type UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
@@ -113,18 +112,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
     })
 
-    /** Example:
-     * records: [
-     *   Map(4) {
-     *     'period_start_date' => '2022-10-04',
-     *     'period_end_date' => '2022-11-03',
-     *     'usage_therms' => 19,
-     *     'inclusion_override' => undefined
-     *   }
-     * ],
-     * 'overall_start_date' => '2020-10-02',
-     * 'overall_end_date' => '2022-11-03'
-     */
+
     // This assignment of the same name is a special thing. We don't remember the name right now.
     // It's not necessary, but it is possible.
     const pyodideResultsFromTextFilePyProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
@@ -146,20 +134,13 @@ export async function action({ request, params }: Route.ActionArgs) {
     const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
     gasBillDataFromTextFilePyProxy.destroy()
 
-
     console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
 
+    // Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
+    // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
-    //TODO: adjust below on user input (click a checkbox)
-    // const gasBillDataWithUserAdjustments = gasBillDataFromTextFile
-
-    // Call to the rules-engine with adjusted data
-    // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataWithUserAdjustments, state_id, county_id).toJs()
-
-    // console.log('calculatedData: ', calculatedData)
     const str_version = JSON.stringify(gasBillDataFromTextFile, replacer);
 
-    // Consider adding to form data, 
     return {
         data: str_version,
         parsedAndValidatedFormSchema,
@@ -228,7 +209,7 @@ export default function SubmitAnalysis({
 
     React.useEffect(() => {        
         return () => {
-        // Cleanup when component unmounts
+        // Memory cleanup of pyodide fn's when component unmounts
         cleanupPyodideResources();
         };
     }, []);
@@ -238,38 +219,6 @@ export default function SubmitAnalysis({
     let showUsageData = lastResult !== undefined;
     
     let parsedLastResult: Map<any, any>| undefined;
-
-
-    /** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
-    const recalculateFromBillingRecordsChange = async (        
-        parsedLastResult: Map<any, any> | undefined,
-        billingRecords: BillingRecordsSchema,
-        parsedAndValidatedFormSchema: any,
-        convertedDatesTIWD: any,
-        state_id: any,
-        county_id: any
-         ) => {
-        if (!parsedLastResult)
-            return
-        // replace original Rules Engine's billing records with new UI's billingRecords
-        const parsedNextResult = buildCurrentMapOfUsageData(parsedLastResult, billingRecords)
-
-
-        // why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
-        const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, parsedNextResult, state_id, county_id)
-        const calcResult = calcResultPyProxy.toJs()
-        calcResultPyProxy.destroy()
-
-        const newUsageData = calcResult && buildCurrentUsageData(calcResult)
-            setUsageData((prevUsageData) => {
-
-                if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-                    return newUsageData;
-                }
-                return prevUsageData
-
-            });
-    }
 
     if (showUsageData && hasDataProperty(lastResult)) 
         {
@@ -316,10 +265,8 @@ export default function SubmitAnalysis({
                 id={form.id}
                 method="post"
                 onSubmit={form.onSubmit}
-                // if there is no usage data, hit the action on this page (/single),
-                // if usage data exists, hit the action to /recalculate 
-                action={showUsageData ? "/recalculate" : "/single"}
-                encType= {showUsageData ? "text/plain" : "multipart/form-data"}
+                action="/single"
+                encType="multipart/form-data"
             >
                 {' '}
                 {/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values

@@ -47,7 +47,7 @@ class WeatherUtil {
      *   temperatures: [ 71.6, 76.3, ... ]
      * }
      */
-    async getThatWeathaData(longitude: number, latitude: number, startDate: string, endDate: string): Promise<TemperatureInputDataInitial> {
+    async getThatWeathaData(longitude: number, latitude: number, startDate: string, endDate: string): Promise<TemperatureInputDataInitial | undefined> {
         const params = new URLSearchParams();
         
         params.append("latitude",`${ latitude }`);
@@ -59,16 +59,44 @@ class WeatherUtil {
         params.append("temperature_unit","fahrenheit");
 
         let url = new URL(BASE_URL+WHATEVER_PATH+"?"+params.toString());
-        let rezzy = await fetch(url);
-        let jrez = await rezzy.json() as ArchiveApiResponse;
-        let dates: Date[] = [];
-        jrez.daily.time.forEach((timeStr: string) => {
-            dates.push(new Date(timeStr));
-        });
-        let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean
-        // console.log({dates,temperatures});
-        return {dates,temperatures};
+        const maxRetries = 3;
+        let retryCount = 0;
+        
+        while (retryCount <= maxRetries) {
+          try {
+            // Using undici's fetch
+            const rezzy = await fetch(url.toString());
+            
+            if (!rezzy.ok) {
+              throw new Error(`HTTP error! Status: ${rezzy.status}`);
+            }
+            
+            const jrez = await rezzy.json() as ArchiveApiResponse;
+            
+            let dates: Date[] = [];
+            jrez.daily.time.forEach((timeStr: string) => {
+              dates.push(new Date(timeStr));
+            });
+            
+            let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean;
+            // console.log({dates,temperatures});
+            
+            return { dates, temperatures };
+          } catch (error) {
+            retryCount++;
+            
+            if (retryCount <= maxRetries) {
+              // Exponential backoff
+              const delay = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+              console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+              console.error("Failed to fetch weather data after multiple attempts:", error);
+              throw error;
+            }
+          }
     }
+  }
 }
 
 export default WeatherUtil;

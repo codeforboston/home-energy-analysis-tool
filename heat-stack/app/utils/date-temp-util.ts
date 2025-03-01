@@ -66,6 +66,10 @@ export default async function getConvertedDatesTIWD(
 		formatDateString(end_date),
 	)
 
+    if (weatherData === undefined) {
+        throw new Error("weather data failed to fetch")
+    }
+
 	const datesFromTIWD = weatherData.dates.map(
 		(datestring) => new Date(datestring).toISOString().split('T')[0],
 	)
