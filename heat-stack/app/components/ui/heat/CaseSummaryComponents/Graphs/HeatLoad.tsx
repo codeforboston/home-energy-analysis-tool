@@ -1,3 +1,4 @@
+// heat-stack/app/components/ui/heat/CaseSummaryComponents/Graphs/HeatLoad.tsx
 import { useMemo } from 'react'
 import {
 	ComposedChart,
@@ -34,7 +35,7 @@ const Y_AXIS_MIN_VALUE = 0; // Always start the Y axis at 0
 const roundDownToNearestTen = (n: number) => Math.floor(n / 10) * 10; // Used for determining the start temperature on the X axis
 
 type HeatLoadProps = {
-	heatLoadSummaryOutput: SummaryOutputSchema | undefined
+	heatLoadSummaryOutput: SummaryOutputSchema
 }
 
 /**
@@ -48,6 +49,10 @@ export function HeatLoad({
 	heatLoadSummaryOutput,
 }: HeatLoadProps): React.ReactElement  {
 	const maxTemperature = DESIGN_SET_POINT + 2 // end the X axis at the DESIGN_SET_POINT plus 2f for visual clarity
+
+	const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
+	const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
+
 
 	/**
 	 * useMemo to build the HeatLoad graph data.
@@ -90,12 +95,6 @@ export function HeatLoad({
 
 		return { minYValue: minY, maxYValue: maxY }
 	}, [data])
-
-	if (!heatLoadSummaryOutput) {
-		return <div>Loading heat load data...</div>;
-	  }
-	  const { design_temperature, whole_home_heat_loss_rate } = heatLoadSummaryOutput
-	  const minTemperature = roundDownToNearestTen(design_temperature - 10) // Start temperature rounded down from design temperature for visual clarity
 
 
 	return (

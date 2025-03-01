@@ -37,12 +37,6 @@ export default function Home() {
 				</li>
 				<li>
 					<u>
-						<Link to="heatloadanalysis">/heatloadanalysis</Link>
-					</u>
-					- view heat load analysis only
-				</li>
-				<li>
-					<u>
 						<Link to="cases">/cases</Link>
 					</u>
 					- view a list of cases
