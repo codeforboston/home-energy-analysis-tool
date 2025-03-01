@@ -423,7 +423,7 @@ export default function SubmitAnalysis() {
                         setUsageData={setUsageData} 
                         lastResult={lastResult} 
                         parsedLastResult={parsedLastResult} 
-                        recalculateFn={recalculateFromBillingRecordsChange} 
+                        recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange} 
                         showUsageData={showUsageData} 
                     />
                     
