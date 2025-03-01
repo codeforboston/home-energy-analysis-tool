@@ -19,20 +19,35 @@ interface ArchiveApiResponse {
     };
 }
 
+/** produced by this class */
+export type TemperatureInputDataInitial = {
+    dates: Date[];
+    temperatures: (number | null)[];
+  };
+
+  /**
+   *  I believe this is the format we use in Python Rules Engine
+   * TODO: consolidate?
+   */
+  export type TemperatureInputDataConverted = {
+    dates: (string | undefined)[];
+    temperatures: (number | null)[];
+  };
 class WeatherUtil {
 
     /**
-     * @param {*} longitude 
-     * @param {*} latitude 
-     * @param {*} startDate 
-     * @param {*} endDate 
-     * @returns { object } 
-     * example for 2 years before 4th of June 2024: {
+     * 
+     * @param longitude 
+     * @param latitude 
+     * @param startDate 
+     * @param endDate 
+     * @returns {Promise<TemperatureInputDataInitial>} 
+     *      * example for 2 years before 4th of June 2024: {
      *   dates: [ 2022-06-04T00:00:00.000Z, 2022-06-05T00:00:00.000Z, ... ],
      *   temperatures: [ 71.6, 76.3, ... ]
      * }
      */
-    async getThatWeathaData(longitude: number, latitude: number, startDate: string, endDate: string) {
+    async getThatWeathaData(longitude: number, latitude: number, startDate: string, endDate: string): Promise<TemperatureInputDataInitial> {
         const params = new URLSearchParams();
         
         params.append("latitude",`${ latitude }`);
