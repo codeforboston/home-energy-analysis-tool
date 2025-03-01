@@ -100,7 +100,7 @@
     "lucide-react": "^0.428.0",
     "mime-types": "^2.1.35",
     "morgan": "^1.10.0",
-    "pyodide": "0.24.1",
+    "pyodide": "0.27.3",
     "openimg": "^0.5.1",
     "prisma": "^6.4.1",
     "qrcode": "^1.5.4",

@@ -31,19 +31,19 @@ const pyodide: any = await runPythonScript()
         - https://pypi.org/project/annotated-types/#files
 */
 await pyodide.loadPackage(
-    `${basePath}/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl`,
+    `${basePath}pydantic_core-2.27.2-cp312-cp312-pyodide_2024_0_wasm32.whl`,
 )
 await pyodide.loadPackage(
-    `${basePath}/pydantic-2.5.2-py3-none-any.whl`,
+    `${basePath}pydantic-2.10.5-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    `${basePath}typing_extensions-4.8.0-py3-none-any.whl`,
+    `${basePath}typing_extensions-4.11.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    `${basePath}annotated_types-0.5.0-py3-none-any.whl`,
+    `${basePath}annotated_types-0.6.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    `${basePath}/rules_engine-0.0.1-py3-none-any.whl`,
+    `${basePath}rules_engine-0.0.1-py3-none-any.whl`,
 )
 
 /* 
