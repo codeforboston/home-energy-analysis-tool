@@ -10,7 +10,7 @@ const getPyodide = async () => {
     return await pyodideModule.loadPyodide({
         // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
         // TODO: figure out how to determine if we're in browser or remix server and use ternary.
-        indexURL: 'public/pyodide-env/',
+        indexURL: basePath,
     })
 }
 const runPythonScript = async () => {
