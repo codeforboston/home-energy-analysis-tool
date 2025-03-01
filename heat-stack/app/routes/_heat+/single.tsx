@@ -1,4 +1,5 @@
- /** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
+//heat-stack/app/routes/_heat+/single.tsx
+/** THE BELOW PROBABLY NEEDS TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // import { redirect } from '@remix-run/react'
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
@@ -6,6 +7,7 @@ import { Form, redirect, useActionData, useLocation } from 'react-router'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { object, type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { HeatLoadAnalysis }  from '#app/components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { replacedMapToObject, replacer, reviver } from '#app/utils/data-parser.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
@@ -18,6 +20,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
 import { type Route } from './+types/single.tsx'
+
 function objectToString(obj: any): any {
     // !!!! typeof obj has rules for zodObjects
     // typeof obj returns the type of the value of that zod object (boolean, object, etc)
@@ -76,7 +79,6 @@ import { BalancePointGraphSchema, BillingRecordsSchema, SummaryOutputSchema, Usa
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
-import HeatLoadAnalysis from './heatloadanalysis.tsx'
 import React, { useState } from 'react'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { EnergyUseUpload } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
@@ -431,12 +433,34 @@ export default function SubmitAnalysis() {
                 
                 <ErrorList id={form.errorId} errors={form.errors} />
                 {showUsageData && (
-                    <>
-                        <EnergyUseHistory usageData={ (usageData || {}) as UsageDataSchema } setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFromBillingRecordsChange} showUsageData={showUsageData} />
-                        {usageData && <HeatLoadAnalysis heatLoadSummaryOutput={usageData.heat_load_output} />}
-
-                    </>
-                )}
+                <>
+                    <EnergyUseHistory 
+                        usageData={(usageData || {}) as UsageDataSchema} 
+                        setUsageData={setUsageData} 
+                        lastResult={lastResult} 
+                        parsedLastResult={parsedLastResult} 
+                        recalculateFn={recalculateFromBillingRecordsChange} 
+                        showUsageData={showUsageData} 
+                    />
+                    
+                    {/* Replace regular HeatLoadAnalysis with our debug wrapper */}
+                    {usageData 
+                        && usageData.heat_load_output 
+                        && usageData.heat_load_output.design_temperature 
+                        && usageData.heat_load_output.whole_home_heat_loss_rate ? (
+                        <HeatLoadAnalysis 
+                        heatLoadSummaryOutput={
+                            usageData.heat_load_output
+                          } 
+                        />
+                    ) : (
+                        <div className="p-4 my-4 border-2 border-red-400 rounded-lg">
+                            <h2 className="text-xl font-bold mb-4 text-red-600">Not rendering Heat Load</h2>
+                            <p>usageData is undefined or null</p>
+                        </div>
+                    )}
+                </>
+            )}
 
             </Form>
         </>

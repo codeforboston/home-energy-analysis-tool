@@ -1,16 +1,16 @@
 import * as pyodideModule from 'pyodide'
+const isServer = typeof window === 'undefined';
+const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/';
 
 /* 
     LOAD PYODIDE 
 */
 const getPyodide = async () => {
-    const isServer = typeof window === 'undefined';
-    const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/';
-    
+
     return await pyodideModule.loadPyodide({
         // This path is actually `public/pyodide-env`, but the browser knows where `public` is. Note that remix server needs `public/`
         // TODO: figure out how to determine if we're in browser or remix server and use ternary.
-        indexURL: 'public/pyodide-env/',
+        indexURL: basePath,
     })
 }
 const runPythonScript = async () => {
@@ -31,19 +31,19 @@ const pyodide: any = await runPythonScript()
         - https://pypi.org/project/annotated-types/#files
 */
 await pyodide.loadPackage(
-    'public/pyodide-env/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+    `${basePath}/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl`,
 )
 await pyodide.loadPackage(
-    'public/pyodide-env/pydantic-2.5.2-py3-none-any.whl',
+    `${basePath}/pydantic-2.5.2-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    'public/pyodide-env/typing_extensions-4.8.0-py3-none-any.whl',
+    `${basePath}typing_extensions-4.8.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    'public/pyodide-env/annotated_types-0.5.0-py3-none-any.whl',
+    `${basePath}annotated_types-0.5.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(
-    'public/pyodide-env/rules_engine-0.0.1-py3-none-any.whl',
+    `${basePath}/rules_engine-0.0.1-py3-none-any.whl`,
 )
 
 /* 
