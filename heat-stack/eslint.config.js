@@ -1,6 +1,4 @@
 import { default as defaultConfig } from '@epic-web/config/eslint'
-import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin'
-import typescriptEslintParser from '@typescript-eslint/parser'
 
 /** @type {import("eslint").Linter.Config} */
 export default [
@@ -10,16 +8,14 @@ export default [
 	...defaultConfig,
 	// add custom config objects here:
 	{
-		rules: {
+		files: ['**/tests/**/*.ts'],
+		rules: { 
+			'react-hooks/rules-of-hooks': 'off' ,
 			'no-unused-vars': 'off', // Turn off the base rule
 			'@typescript-eslint/no-unused-vars': 'off'
-		  },
-		plugins: {
-			'@typescript-eslint': typescriptEslintPlugin
-		  },
-		languageOptions: {
-			parser: typescriptEslintParser
-		  },
-
-	  }
+		},
+	},
+	{
+		ignores: ['.react-router/*'],
+	},
 ]

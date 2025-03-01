@@ -1,6 +1,6 @@
 import { type Submission } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { json } from '@remix-run/node'
+import { data } from 'react-router'
 import { z } from 'zod'
 import { handleVerification as handleChangeEmailVerification } from '#app/routes/settings+/profile.change-email.server.tsx'
 import { twoFAVerificationType } from '#app/routes/settings+/profile.two-factor.tsx'
@@ -87,8 +87,8 @@ export async function prepareVerification({
 	const verifyUrl = getRedirectToUrl({ request, type, target })
 	const redirectTo = new URL(verifyUrl.toString())
 
-	const { otp, ...verificationConfig } = generateTOTP({
-		algorithm: 'SHA256',
+	const { otp, ...verificationConfig } = await generateTOTP({
+		algorithm: 'SHA-256',
 		// Leaving off 0, O, and I on purpose to avoid confusing users.
 		charSet: 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789',
 		period,
@@ -128,7 +128,7 @@ export async function isCodeValid({
 		select: { algorithm: true, secret: true, period: true, charSet: true },
 	})
 	if (!verification) return false
-	const result = verifyTOTP({
+	const result = await verifyTOTP({
 		otp: code,
 		...verification,
 	})
@@ -161,7 +161,7 @@ export async function validateRequest(
 	})
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)

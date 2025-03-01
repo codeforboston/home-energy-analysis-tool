@@ -14,13 +14,13 @@ type HeatLoadGridProps = {
  * @param {number} props.setPoint - The set point temperature in degrees Fahrenheit.
  * @param {number} props.averageHeatLoad - The average heat load in BTU/h.
  * @param {number} props.maxHeatLoad - The maximum heat load in BTU/h.
- * @returns {JSX.Element} - A styled grid displaying the set point, max heat load, and average heat load.
+ * @returns {React.ReactElement} - A styled grid displaying the set point, max heat load, and average heat load.
  */
 export const HeatLoadGrid = ({
 	setPoint,
 	averageHeatLoad,
 	maxHeatLoad,
-}: HeatLoadGridProps): JSX.Element => {
+}: HeatLoadGridProps): React.ReactElement  => {
 	return (
 		<div className="container mx-auto p-4">
 			<div className="grid grid-cols-3 gap-4">
