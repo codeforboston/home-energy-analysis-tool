@@ -5,7 +5,7 @@ import { HeatLoad } from './Graphs/HeatLoad.tsx'
 import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
 interface GraphsProps {
-	heatLoadSummaryOutput: SummaryOutputSchema | undefined;
+	heatLoadSummaryOutput: SummaryOutputSchema;
 }
 
 export function HeatLoadAnalysis({ heatLoadSummaryOutput }: GraphsProps) {
