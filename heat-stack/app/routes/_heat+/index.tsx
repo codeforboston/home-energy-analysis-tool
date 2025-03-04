@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export default function Home() {
 	return (
@@ -34,12 +34,6 @@ export default function Home() {
 						<Link to="inputs3">/inputs3</Link>
 					</u>
 					- view screen 3 - Summary of Heating Use
-				</li>
-				<li>
-					<u>
-						<Link to="heatloadanalysis">/heatloadanalysis</Link>
-					</u>
-					- view heat load analysis only
 				</li>
 				<li>
 					<u>

@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
@@ -12,6 +13,8 @@ datasource db {
 
 model User {
   id       String  @id @default(cuid())
+    // caseUser added when CaseUser model added for HEAT schema
+  caseUser CaseUser[]
   email    String  @unique
   username String  @unique
   name     String?
@@ -25,6 +28,7 @@ model User {
   roles       Role[]
   sessions    Session[]
   connections Connection[]
+  passkey     Passkey[]
 }
 
 model Note {
@@ -47,10 +51,9 @@ model Note {
 }
 
 model NoteImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
+  id        String  @id @default(cuid())
+  altText   String?
+  objectKey String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,10 +66,9 @@ model NoteImage {
 }
 
 model UserImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
+  id        String  @id @default(cuid())
+  altText   String?
+  objectKey String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -166,4 +168,136 @@ model Connection {
   userId String
 
   @@unique([providerName, providerId])
+}
+
+model Passkey {
+  id             String   @id
+  aaguid         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  publicKey      Bytes
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  webauthnUserId String
+  counter        BigInt
+  deviceType     String // 'singleDevice' or 'multiDevice'
+  backedUp       Boolean
+  transports     String? // Stored as comma-separated values
+
+  @@index(userId)
+}
+// HEAT schema starts here
+model Analysis {
+  id                   Int @id @default(autoincrement())
+  case                 Case @relation(fields: [caseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  caseId               Int
+  heatingInput         HeatingInput[]
+  analysisDataFile     AnalysisDataFile[]
+  heatingOutput        HeatingOutput[]
+  rules_engine_version String
+}
+
+model HeatingInput {
+  id                              Int @id @default(autoincrement())
+  analysis                        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisId                      Int
+  caseUser                        CaseUser[]
+  fuelType                        String
+  designTemperatureOverride       Boolean
+  heatingSystemEfficiency         Int
+  thermostatSetPoint              Int
+  setbackTemperature              Int
+  setbackHoursPerDay              Int
+  numberOfOccupants               Int
+  estimatedWaterHeatingEfficiency Int
+  standByLosses                   Int
+  processedEnergyBill             ProcessedEnergyBill[]
+  livingArea                      Float
+}
+
+model ProcessedEnergyBill {
+  id                     Int @id @default(autoincrement())
+  AnalysisInput          HeatingInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisInputId        Int
+  periodStartDate        DateTime
+  periodEndDate          DateTime
+  usageTherms            Float
+  wholeHomeHeatLossRate  Float
+  analysisType           Int
+  defaultInclusion       Boolean
+  invertDefaultInclusion Boolean
+}
+
+model HeatingOutput {
+  id                              Int @id @default(autoincrement())
+  analysis                        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisId                      Int
+  estimatedBalancePoint           Float
+  otherFuelUsage                  Float 
+  averageIndoorTemperature        Float
+  differenceBetweenTiAndTbp       Float
+  designTemperature               Float
+  wholeHomeHeatLossRate           Float
+  standardDeviationOfHeatLossRate Float
+  averageHeatLoad                 Float
+  maximumHeatLoad                 Float
+}
+
+model EnergyUsageFile {
+  id                    Int @id @default(autoincrement())
+  provider              String
+  fuelType              String
+  precedingDeliveryDate DateTime
+  content               String
+  description           String
+  analysisDataFile      AnalysisDataFile[]
+}
+
+model AnalysisDataFile {
+  analysis         Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisId       Int
+  EnergyUsageFile  EnergyUsageFile @relation(fields: [energyUsageFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  energyUsageFileId Int
+  @@unique([analysisId, energyUsageFileId])
+}
+
+model Case {
+  id          Int @id @default(autoincrement())
+  homeOwner   HomeOwner @relation(fields: [homeOwnerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  homeOwnerId Int
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  locationId  Int
+  analysis    Analysis[]
+}
+
+model HomeOwner {
+  id          Int @id @default(autoincrement())
+  case        Case[]
+  firstName1  String
+  lastName1   String
+  email1      String
+  firstName2  String
+  lastName2   String
+  email2      String
+}
+
+model Location {
+  id                   Int @id @default(autoincrement())
+  case                 Case[]
+  address              String
+  city                 String
+  state                String
+  zipcode              String
+  country              String
+  livingAreaSquareFeet Int
+  latitude             Float
+  longitude            Float
+}
+
+model CaseUser {
+  case            HeatingInput @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  analysisId      Int @id @default(autoincrement())
+  userId          String
+  @@unique([analysisId, userId])
 }

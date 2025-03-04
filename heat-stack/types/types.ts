@@ -12,7 +12,7 @@ import {
 
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>;
 export type BalancePoointGraphRecordSchema = z.infer<typeof balancePointGraphRecordSchema>;
-export type BalancePintGraphSchema = z.infer<typeof balancePointGraphSchema>;
+export type BalancePointGraphSchema = z.infer<typeof balancePointGraphSchema>;
 export type SummaryOutputSchema = z.infer<typeof summaryOutputSchema>;
 export type BillingRecordSchema = z.infer<typeof oneProcessedEnergyBillSchema>;
 export type BillingRecordsSchema = z.infer<typeof allProcessedEnergyBillsSchema>;

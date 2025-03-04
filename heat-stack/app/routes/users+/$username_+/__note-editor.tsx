@@ -8,10 +8,9 @@ import {
 	type FieldMetadata,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type Note, type NoteImage } from '@prisma/client'
-import { type SerializeFrom } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Img } from 'openimg/react'
 import { useState } from 'react'
+import { Form } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -22,7 +21,7 @@ import { Label } from '#app/components/ui/label.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
 import { cn, getNoteImgSrc, useIsPending } from '#app/utils/misc.tsx'
-import { type action } from './__note-editor.server.tsx'
+import { type Info } from './+types/notes.$noteId_.edit.ts'
 
 const titleMinLength = 1
 const titleMaxLength = 100
@@ -53,14 +52,11 @@ export const NoteEditorSchema = z.object({
 
 export function NoteEditor({
 	note,
+	actionData,
 }: {
-	note?: SerializeFrom<
-		Pick<Note, 'id' | 'title' | 'content'> & {
-			images: Array<Pick<NoteImage, 'id' | 'altText'>>
-		}
-	>
+	note?: Info['loaderData']['note']
+	actionData?: Info['actionData']
 }) {
-	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
@@ -113,11 +109,11 @@ export function NoteEditor({
 						<div>
 							<Label>Images</Label>
 							<ul className="flex flex-col gap-4">
-								{imageList.map((image, index) => {
-									console.log('image.key', image.key)
+								{imageList.map((imageMeta, index) => {
+									const image = note?.images[index]
 									return (
 										<li
-											key={image.key}
+											key={imageMeta.key}
 											className="relative border-b-2 border-muted-foreground"
 										>
 											<button
@@ -134,7 +130,10 @@ export function NoteEditor({
 													Remove image {index + 1}
 												</span>
 											</button>
-											<ImageChooser meta={image} />
+											<ImageChooser
+												meta={imageMeta}
+												objectKey={image?.objectKey}
+											/>
 										</li>
 									)
 								})}
@@ -170,11 +169,17 @@ export function NoteEditor({
 	)
 }
 
-function ImageChooser({ meta }: { meta: FieldMetadata<ImageFieldset> }) {
+function ImageChooser({
+	meta,
+	objectKey,
+}: {
+	meta: FieldMetadata<ImageFieldset>
+	objectKey: string | undefined
+}) {
 	const fields = meta.getFieldset()
 	const existingImage = Boolean(fields.id.initialValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		fields.id.initialValue ? getNoteImgSrc(fields.id.initialValue) : null,
+		objectKey ? getNoteImgSrc(objectKey) : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.initialValue ?? '')
 
@@ -193,11 +198,21 @@ function ImageChooser({ meta }: { meta: FieldMetadata<ImageFieldset> }) {
 						>
 							{previewImage ? (
 								<div className="relative">
-									<img
-										src={previewImage}
-										alt={altText ?? ''}
-										className="h-32 w-32 rounded-lg object-cover"
-									/>
+									{existingImage ? (
+										<Img
+											src={previewImage}
+											alt={altText ?? ''}
+											className="h-32 w-32 rounded-lg object-cover"
+											width={512}
+											height={512}
+										/>
+									) : (
+										<img
+											src={previewImage}
+											alt={altText ?? ''}
+											className="h-32 w-32 rounded-lg object-cover"
+										/>
+									)}
 									{existingImage ? null : (
 										<div className="pointer-events-none absolute -right-0.5 -top-0.5 rotate-12 rounded-sm bg-secondary px-2 py-1 text-xs text-secondary-foreground shadow-md">
 											new

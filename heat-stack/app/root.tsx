@@ -1,12 +1,6 @@
+import { OpenImgContextProvider } from 'openimg/react'
 import {
-	json,
-	type LoaderFunctionArgs,
-	type HeadersFunction,
-	type LinksFunction,
-	type MetaFunction,
-} from '@remix-run/node'
-import {
-	Form,
+	data,
 	Link,
 	Links,
 	Meta,
@@ -15,11 +9,9 @@ import {
 	ScrollRestoration,
 	useLoaderData,
 	useMatches,
-	useSubmit,
-} from '@remix-run/react'
-import { withSentry } from '@sentry/remix'
-import { useRef } from 'react'
+} from 'react-router'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
+import { type Route } from './+types/root.ts'
 import appleTouchIconAssetUrl from './assets/favicons/apple-touch-icon.png'
 import faviconAssetUrl from './assets/favicons/favicon.svg'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
@@ -27,31 +19,31 @@ import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { useToast } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuPortal,
-	DropdownMenuTrigger,
-} from './components/ui/dropdown-menu.tsx'
-import { Icon, href as iconsHref } from './components/ui/icon.tsx'
+import { href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
+import { UserDropdown } from './components/user-dropdown.tsx'
 import tailwindStyleSheetUrl from './styles/tailwind.css?url'
 import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
+import { pipeHeaders } from './utils/headers.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
-import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
+import { combineHeaders, getDomainUrl, getImgSrc } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
-import { useOptionalUser, useUser } from './utils/user.ts'
+import { useOptionalUser } from './utils/user.ts'
 
-export const links: LinksFunction = () => {
+export const links: Route.LinksFunction = () => {
 	return [
 		// Preload svg sprite as a resource to avoid render blocking
 		{ rel: 'preload', href: iconsHref, as: 'image' },
+		{
+			rel: 'icon',
+			href: '/favicon.ico',
+			sizes: '48x48',
+		},
 		{ rel: 'icon', type: 'image/svg+xml', href: faviconAssetUrl },
 		{ rel: 'apple-touch-icon', href: appleTouchIconAssetUrl },
 		{
@@ -63,14 +55,14 @@ export const links: LinksFunction = () => {
 	].filter(Boolean)
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: Route.MetaFunction = ({ data }) => {
 	return [
 		{ title: data ? 'Epic Notes' : 'Error | Epic Notes' },
 		{ name: 'description', content: `Your own captain's log` },
 	]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const timings = makeTimings('root loader')
 	const userId = await time(() => getUserId(request), {
 		timings,
@@ -81,12 +73,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const user = userId
 		? await time(
 				() =>
-					prisma.user.findUniqueOrThrow({
+					prisma.user.findUnique({
 						select: {
 							id: true,
 							name: true,
 							username: true,
-							image: { select: { id: true } },
+							image: { select: { objectKey: true } },
 							roles: {
 								select: {
 									name: true,
@@ -108,9 +100,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		await logout({ request, redirectTo: '/' })
 	}
 	const { toast, headers: toastHeaders } = await getToast(request)
-	const honeyProps = honeypot.getInputProps()
+	const honeyProps = await honeypot.getInputProps()
 
-	return json(
+	return data(
 		{
 			user,
 			requestInfo: {
@@ -134,24 +126,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	)
 }
 
-export const headers: HeadersFunction = ({ loaderHeaders }) => {
-	const headers = {
-		'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
-	}
-	return headers
-}
+export const headers: Route.HeadersFunction = pipeHeaders
 
 function Document({
 	children,
 	nonce,
 	env = {},
-	allowIndexing = true,
 }: {
 	children: React.ReactNode
 	nonce: string
-	env?: Record<string, string>
-	allowIndexing?: boolean
+	env?: Record<string, string | undefined>
 }) {
+	const allowIndexing = ENV.ALLOW_INDEXING !== 'false'
 	return (
 		<html lang="en" className={`h-full overflow-x-hidden`}>
 			<head>
@@ -166,6 +152,7 @@ function Document({
 			</head>
 			<body className="bg-background text-foreground">
 				<div className="container items-center justify-between gap-4 md:h-24 md:flex-row">
+					
 					{children}
 				</div>
 				<script
@@ -181,23 +168,31 @@ function Document({
 	)
 }
 
+export function Layout({ children }: { children: React.ReactNode }) {
+	// if there was an error running the loader, data could be missing
+	const data = useLoaderData<typeof loader | null>()
+	const nonce = useNonce()
+	return (
+		<Document nonce={nonce} env={data?.ENV}>
+			{children}
+		</Document>
+	)
+}
+
 function App() {
 	const data = useLoaderData<typeof loader>()
-	const nonce = useNonce()
 	const user = useOptionalUser()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
-	const allowIndexing = data.ENV.ALLOW_INDEXING !== 'false'
 	useToast(data.toast)
 
 	return (
-		<Document
-			nonce={nonce}
-			allowIndexing={allowIndexing}
-			env={data.ENV}
+		<OpenImgContextProvider
+			optimizerEndpoint="/resources/images"
+			getSrc={getImgSrc}
 		>
-			<div className="flex h-screen flex-col justify-between">
+			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6">
 					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 						<TopLinks />
@@ -217,7 +212,7 @@ function App() {
 					</nav>
 				</header>
 
-				<div className="flex-1">
+				<div className="flex flex-1 flex-col">
 					<div>Site header</div>
 					<hr />
 					<br />
@@ -229,18 +224,16 @@ function App() {
 
 				<div className="container flex justify-between pb-5">
 					<TopLinks />
-					{/* <ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} /> */}
 				</div>
 			</div>
 			<EpicToaster closeButton position="top-center" />
 			<EpicProgress />
-		</Document>
+		</OpenImgContextProvider>
 	)
 }
 
 function TopLinks() {
 	// const data = useLoaderData<typeof loader>();
-	// console.log(`data:`, data);
 	return (
 		<>
 			<Link to="/single" className="group grid leading-snug">
@@ -266,84 +259,8 @@ function AppWithProviders() {
 	)
 }
 
-export default withSentry(AppWithProviders)
+export default AppWithProviders
 
-function UserDropdown() {
-	const user = useUser()
-	const submit = useSubmit()
-	const formRef = useRef<HTMLFormElement>(null)
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary">
-					<Link
-						to={`/users/${user.username}`}
-						// this is for progressive enhancement
-						onClick={(e) => e.preventDefault()}
-						className="flex items-center gap-2"
-					>
-						<img
-							className="h-8 w-8 rounded-full object-cover"
-							alt={user.name ?? user.username}
-							src={getUserImgSrc(user.image?.id)}
-						/>
-						<span className="text-body-sm font-bold">
-							{user.name ?? user.username}
-						</span>
-					</Link>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuPortal>
-				<DropdownMenuContent sideOffset={8} align="start">
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}`}>
-							<Icon className="text-body-md" name="avatar">
-								Profile
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}/notes`}>
-							<Icon className="text-body-md" name="pencil-2">
-								Notes
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						asChild
-						// this prevents the menu from closing before the form submission is completed
-						onSelect={(event) => {
-							event.preventDefault()
-							submit(formRef.current)
-						}}
-					>
-						<Form action="/logout" method="POST" ref={formRef}>
-							<Icon className="text-body-md" name="exit">
-								<button type="submit">Logout</button>
-							</Icon>
-						</Form>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenuPortal>
-		</DropdownMenu>
-	)
-}
-
-export function ErrorBoundary() {
-	// the nonce doesn't rely on the loader so we can access that
-	const nonce = useNonce()
-
-	// NOTE: you cannot use useLoaderData in an ErrorBoundary because the loader
-	// likely failed to run so we have to do the best we can.
-	// We could probably do better than this (it's possible the loader did run).
-	// This would require a change in Remix.
-
-	// Just make sure your root route never errors out and you'll always be able
-	// to give the user a better UX.
-
-	return (
-		<Document nonce={nonce}>
-			<GeneralErrorBoundary />
-		</Document>
-	)
-}
+// this is a last resort error boundary. There's not much useful information we
+// can offer at this level.
+export const ErrorBoundary = GeneralErrorBoundary
