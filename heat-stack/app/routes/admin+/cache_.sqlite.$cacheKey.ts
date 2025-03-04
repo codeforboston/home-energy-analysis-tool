@@ -1,5 +1,4 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { cache } from '#app/utils/cache.server.ts'
 import {
 	getAllInstances,
@@ -7,8 +6,9 @@ import {
 	ensureInstance,
 } from '#app/utils/litefs.server.ts'
 import { requireUserWithRole } from '#app/utils/permissions.server.ts'
+import { type Route } from './+types/cache_.sqlite.$cacheKey.ts'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
 	await requireUserWithRole(request, 'admin')
 	const searchParams = new URL(request.url).searchParams
 	const currentInstanceInfo = await getInstanceInfo()
@@ -19,7 +19,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 	const { cacheKey } = params
 	invariantResponse(cacheKey, 'cacheKey is required')
-	return json({
+	return {
 		instance: {
 			hostname: instance,
 			region: allInstances[instance],
@@ -27,5 +27,5 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 		},
 		cacheKey,
 		value: cache.get(cacheKey),
-	})
+	}
 }

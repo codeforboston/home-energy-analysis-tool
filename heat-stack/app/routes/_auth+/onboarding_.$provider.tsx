@@ -7,30 +7,21 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
 	redirect,
-	json,
-	type ActionFunctionArgs,
-	type LoaderFunctionArgs,
-	type MetaFunction,
-} from '@remix-run/node'
-import {
+	data,
 	type Params,
 	Form,
-	useActionData,
-	useLoaderData,
 	useSearchParams,
-} from '@remix-run/react'
+} from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
 import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
-	authenticator,
 	sessionKey,
 	signupWithConnection,
 	requireAnonymous,
 } from '#app/utils/auth.server.ts'
-import { connectionSessionStorage } from '#app/utils/connections.server.ts'
 import { ProviderNameSchema } from '#app/utils/connections.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
@@ -38,7 +29,8 @@ import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
-import { onboardingEmailSessionKey } from './onboarding.tsx'
+import { type Route } from './+types/onboarding_.$provider.ts'
+import { onboardingEmailSessionKey } from './onboarding'
 
 export const providerIdKey = 'providerId'
 export const prefilledProfileKey = 'prefilledProfile'
@@ -71,7 +63,7 @@ async function requireData({
 		.object({
 			email: z.string(),
 			providerName: ProviderNameSchema,
-			providerId: z.string(),
+			providerId: z.string().or(z.number()),
 		})
 		.safeParse({ email, providerName: params.provider, providerId })
 	if (result.success) {
@@ -82,31 +74,24 @@ async function requireData({
 	}
 }
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
 	const { email } = await requireData({ request, params })
-	const connectionSession = await connectionSessionStorage.getSession(
-		request.headers.get('cookie'),
-	)
+
 	const verifySession = await verifySessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
 	const prefilledProfile = verifySession.get(prefilledProfileKey)
 
-	const formError = connectionSession.get(authenticator.sessionErrorKey)
-	const hasError = typeof formError === 'string'
-
-	return json({
+	return {
 		email,
 		status: 'idle',
 		submission: {
-			status: hasError ? 'error' : undefined,
 			initialValue: prefilledProfile ?? {},
-			error: { '': hasError ? [formError] : [] },
 		} as SubmissionResult,
-	})
+	}
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
 	const { email, providerId, providerName } = await requireData({
 		request,
 		params,
@@ -134,7 +119,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			const session = await signupWithConnection({
 				...data,
 				email,
-				providerId,
+				providerId: String(providerId),
 				providerName,
 			})
 			return { ...data, session }
@@ -143,7 +128,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	})
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -174,13 +159,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	)
 }
 
-export const meta: MetaFunction = () => {
+export const meta: Route.MetaFunction = () => {
 	return [{ title: 'Setup Epic Notes Account' }]
 }
 
-export default function OnboardingProviderRoute() {
-	const data = useLoaderData<typeof loader>()
-	const actionData = useActionData<typeof action>()
+export default function OnboardingProviderRoute({
+	loaderData,
+	actionData,
+}: Route.ComponentProps) {
 	const isPending = useIsPending()
 	const [searchParams] = useSearchParams()
 	const redirectTo = searchParams.get('redirectTo')
@@ -188,7 +174,7 @@ export default function OnboardingProviderRoute() {
 	const [form, fields] = useForm({
 		id: 'onboarding-provider-form',
 		constraint: getZodConstraint(SignupFormSchema),
-		lastResult: actionData?.result ?? data.submission,
+		lastResult: actionData?.result ?? loaderData.submission,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: SignupFormSchema })
 		},
@@ -199,7 +185,7 @@ export default function OnboardingProviderRoute() {
 		<div className="container flex min-h-full flex-col justify-center pb-32 pt-20">
 			<div className="mx-auto w-full max-w-lg">
 				<div className="flex flex-col gap-3 text-center">
-					<h1 className="text-h1">Welcome aboard {data.email}!</h1>
+					<h1 className="text-h1">Welcome aboard {loaderData.email}!</h1>
 					<p className="text-body-md text-muted-foreground">
 						Please enter your details.
 					</p>

@@ -1,19 +1,10 @@
 import { getFormProps, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import {
-	json,
-	type LoaderFunctionArgs,
-	type ActionFunctionArgs,
-} from '@remix-run/node'
-import {
-	Form,
-	Link,
-	useActionData,
-	useLoaderData,
-	type MetaFunction,
-} from '@remix-run/react'
 import { formatDistanceToNow } from 'date-fns'
+import { Img } from 'openimg/react'
+import { useRef, useEffect } from 'react'
+import { data, Form, Link } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -27,9 +18,10 @@ import { getNoteImgSrc, useIsPending } from '#app/utils/misc.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { userHasPermission, useOptionalUser } from '#app/utils/user.ts'
-import { type loader as notesLoader } from './notes.tsx'
+import { type Route, type Info } from './+types/notes.$noteId.ts'
+import { type Info as notesInfo } from './+types/notes.ts'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
 	const note = await prisma.note.findUnique({
 		where: { id: params.noteId },
 		select: {
@@ -40,8 +32,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			updatedAt: true,
 			images: {
 				select: {
-					id: true,
 					altText: true,
+					objectKey: true,
 				},
 			},
 		},
@@ -52,10 +44,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 	const date = new Date(note.updatedAt)
 	const timeAgo = formatDistanceToNow(date)
 
-	return json({
-		note,
-		timeAgo,
-	})
+	return { note, timeAgo }
 }
 
 const DeleteFormSchema = z.object({
@@ -63,14 +52,14 @@ const DeleteFormSchema = z.object({
 	noteId: z.string(),
 })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, {
 		schema: DeleteFormSchema,
 	})
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -99,46 +88,69 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 }
 
-export default function NoteRoute() {
-	const data = useLoaderData<typeof loader>()
+export default function NoteRoute({
+	loaderData,
+	actionData,
+}: Route.ComponentProps) {
 	const user = useOptionalUser()
-	const isOwner = user?.id === data.note.ownerId
+	const isOwner = user?.id === loaderData.note.ownerId
 	const canDelete = userHasPermission(
 		user,
 		isOwner ? `delete:note:own` : `delete:note:any`,
 	)
 	const displayBar = canDelete || isOwner
 
+	// Add ref for auto-focusing
+	const sectionRef = useRef<HTMLElement>(null)
+
+	// Focus the section when the note ID changes
+	useEffect(() => {
+		if (sectionRef.current) {
+			sectionRef.current.focus()
+		}
+	}, [loaderData.note.id])
+
 	return (
-		<div className="absolute inset-0 flex flex-col px-10">
-			<h2 className="mb-2 pt-12 text-h2 lg:mb-6">{data.note.title}</h2>
+		<section
+			ref={sectionRef}
+			className="absolute inset-0 flex flex-col px-10"
+			aria-labelledby="note-title"
+			tabIndex={-1} // Make the section focusable without keyboard navigation
+		>
+			<h2 id="note-title" className="mb-2 pt-12 text-h2 lg:mb-6">
+				{loaderData.note.title}
+			</h2>
 			<div className={`${displayBar ? 'pb-24' : 'pb-12'} overflow-y-auto`}>
 				<ul className="flex flex-wrap gap-5 py-5">
-					{data.note.images.map((image) => (
-						<li key={image.id}>
-							<a href={getNoteImgSrc(image.id)}>
-								<img
-									src={getNoteImgSrc(image.id)}
+					{loaderData.note.images.map((image) => (
+						<li key={image.objectKey}>
+							<a href={getNoteImgSrc(image.objectKey)}>
+								<Img
+									src={getNoteImgSrc(image.objectKey)}
 									alt={image.altText ?? ''}
 									className="h-32 w-32 rounded-lg object-cover"
+									width={512}
+									height={512}
 								/>
 							</a>
 						</li>
 					))}
 				</ul>
 				<p className="whitespace-break-spaces text-sm md:text-lg">
-					{data.note.content}
+					{loaderData.note.content}
 				</p>
 			</div>
 			{displayBar ? (
 				<div className={floatingToolbarClassName}>
 					<span className="text-sm text-foreground/90 max-[524px]:hidden">
 						<Icon name="clock" className="scale-125">
-							{data.timeAgo} ago
+							{loaderData.timeAgo} ago
 						</Icon>
 					</span>
 					<div className="grid flex-1 grid-cols-2 justify-end gap-2 min-[525px]:flex md:gap-4">
-						{canDelete ? <DeleteNote id={data.note.id} /> : null}
+						{canDelete ? (
+							<DeleteNote id={loaderData.note.id} actionData={actionData} />
+						) : null}
 						<Button
 							asChild
 							className="min-[525px]:max-md:aspect-square min-[525px]:max-md:px-0"
@@ -152,12 +164,17 @@ export default function NoteRoute() {
 					</div>
 				</div>
 			) : null}
-		</div>
+		</section>
 	)
 }
 
-export function DeleteNote({ id }: { id: string }) {
-	const actionData = useActionData<typeof action>()
+export function DeleteNote({
+	id,
+	actionData,
+}: {
+	id: string
+	actionData: Info['actionData'] | undefined
+}) {
 	const isPending = useIsPending()
 	const [form] = useForm({
 		id: 'delete-note',
@@ -185,13 +202,11 @@ export function DeleteNote({ id }: { id: string }) {
 	)
 }
 
-export const meta: MetaFunction<
-	typeof loader,
-	{ 'routes/users+/$username_+/notes': typeof notesLoader }
-> = ({ data, params, matches }) => {
+export const meta: Route.MetaFunction = ({ data, params, matches }) => {
 	const notesMatch = matches.find(
-		(m) => m.id === 'routes/users+/$username_+/notes',
-	)
+		(m) => m?.id === 'routes/users+/$username_+/notes',
+	) as { data: notesInfo['loaderData'] } | undefined
+
 	const displayName = notesMatch?.data?.owner.name ?? params.username
 	const noteTitle = data?.note.title ?? 'Note'
 	const noteContentsSummary =

@@ -1,89 +1,57 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, useLoaderData } from '@remix-run/react'
-import { z } from 'zod'
+import { searchUsers } from '@prisma/client/sql'
+import { Img } from 'openimg/react'
+import { redirect, Link } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
+import { type Route } from './+types/index.ts'
 
-const UserSearchResultSchema = z.object({
-	id: z.string(),
-	username: z.string(),
-	name: z.string().nullable(),
-	imageId: z.string().nullable(),
-})
-
-const UserSearchResultsSchema = z.array(UserSearchResultSchema)
-
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
 	if (searchTerm === '') {
 		return redirect('/users')
 	}
 
 	const like = `%${searchTerm ?? ''}%`
-	const rawUsers = await prisma.$queryRaw`
-		SELECT User.id, User.username, User.name, UserImage.id AS imageId
-		FROM User
-		LEFT JOIN UserImage ON User.id = UserImage.userId
-		WHERE User.username LIKE ${like}
-		OR User.name LIKE ${like}
-		ORDER BY (
-			SELECT Note.updatedAt
-			FROM Note
-			WHERE Note.ownerId = User.id
-			ORDER BY Note.updatedAt DESC
-			LIMIT 1
-		) DESC
-		LIMIT 50
-	`
-
-	const result = UserSearchResultsSchema.safeParse(rawUsers)
-	if (!result.success) {
-		return json({ status: 'error', error: result.error.message } as const, {
-			status: 400,
-		})
-	}
-	return json({ status: 'idle', users: result.data } as const)
+	const users = await prisma.$queryRawTyped(searchUsers(like))
+	return { status: 'idle', users } as const
 }
 
-export default function UsersRoute() {
-	const data = useLoaderData<typeof loader>()
+export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 	const isPending = useDelayedIsPending({
 		formMethod: 'GET',
 		formAction: '/users',
 	})
 
-	if (data.status === 'error') {
-		console.error(data.error)
-	}
-
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
 			<h1 className="text-h1">Epic Notes Users</h1>
 			<div className="w-full max-w-[700px]">
-				<SearchBar status={data.status} autoFocus autoSubmit />
+				<SearchBar status={loaderData.status} autoFocus autoSubmit />
 			</div>
 			<main>
-				{data.status === 'idle' ? (
-					data.users.length ? (
+				{loaderData.status === 'idle' ? (
+					loaderData.users.length ? (
 						<ul
 							className={cn(
 								'flex w-full flex-wrap items-center justify-center gap-4 delay-200',
 								{ 'opacity-50': isPending },
 							)}
 						>
-							{data.users.map((user) => (
+							{loaderData.users.map((user) => (
 								<li key={user.id}>
 									<Link
 										to={user.username}
 										className="flex h-36 w-44 flex-col items-center justify-center rounded-lg bg-muted px-5 py-3"
 									>
-										<img
+										<Img
 											alt={user.name ?? user.username}
-											src={getUserImgSrc(user.imageId)}
+											src={getUserImgSrc(user.imageObjectKey)}
 											className="h-16 w-16 rounded-full"
+											width={256}
+											height={256}
 										/>
 										{user.name ? (
 											<span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-body-md">
@@ -100,7 +68,7 @@ export default function UsersRoute() {
 					) : (
 						<p>No users found</p>
 					)
-				) : data.status === 'error' ? (
+				) : loaderData.status === 'error' ? (
 					<ErrorList errors={['There was an error parsing the results']} />
 				) : null}
 			</main>

@@ -1,6 +1,4 @@
-import fs from 'node:fs'
 import { faker } from '@faker-js/faker'
-import { type PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { UniqueEnforcer } from 'enforce-unique'
 
@@ -15,7 +13,7 @@ export function createUser() {
 			return (
 				faker.string.alphanumeric({ length: 2 }) +
 				'_' +
-				faker.internet.userName({
+				faker.internet.username({
 					firstName: firstName.toLowerCase(),
 					lastName: lastName.toLowerCase(),
 				})
@@ -37,101 +35,66 @@ export function createPassword(password: string = faker.internet.password()) {
 	}
 }
 
-let noteImages: Array<Awaited<ReturnType<typeof img>>> | undefined
+let noteImages: Array<{ altText: string; objectKey: string }> | undefined
 export async function getNoteImages() {
 	if (noteImages) return noteImages
 
 	noteImages = await Promise.all([
-		img({
+		{
 			altText: 'a nice country house',
-			filepath: './tests/fixtures/images/notes/0.png',
-		}),
-		img({
+			objectKey: 'notes/0.png',
+		},
+		{
 			altText: 'a city scape',
-			filepath: './tests/fixtures/images/notes/1.png',
-		}),
-		img({
+			objectKey: 'notes/1.png',
+		},
+		{
 			altText: 'a sunrise',
-			filepath: './tests/fixtures/images/notes/2.png',
-		}),
-		img({
+			objectKey: 'notes/2.png',
+		},
+		{
 			altText: 'a group of friends',
-			filepath: './tests/fixtures/images/notes/3.png',
-		}),
-		img({
+			objectKey: 'notes/3.png',
+		},
+		{
 			altText: 'friends being inclusive of someone who looks lonely',
-			filepath: './tests/fixtures/images/notes/4.png',
-		}),
-		img({
+			objectKey: 'notes/4.png',
+		},
+		{
 			altText: 'an illustration of a hot air balloon',
-			filepath: './tests/fixtures/images/notes/5.png',
-		}),
-		img({
+			objectKey: 'notes/5.png',
+		},
+		{
 			altText:
 				'an office full of laptops and other office equipment that look like it was abandoned in a rush out of the building in an emergency years ago.',
-			filepath: './tests/fixtures/images/notes/6.png',
-		}),
-		img({
+			objectKey: 'notes/6.png',
+		},
+		{
 			altText: 'a rusty lock',
-			filepath: './tests/fixtures/images/notes/7.png',
-		}),
-		img({
+			objectKey: 'notes/7.png',
+		},
+		{
 			altText: 'something very happy in nature',
-			filepath: './tests/fixtures/images/notes/8.png',
-		}),
-		img({
+			objectKey: 'notes/8.png',
+		},
+		{
 			altText: `someone at the end of a cry session who's starting to feel a little better.`,
-			filepath: './tests/fixtures/images/notes/9.png',
-		}),
+			objectKey: 'notes/9.png',
+		},
 	])
 
 	return noteImages
 }
 
-let userImages: Array<Awaited<ReturnType<typeof img>>> | undefined
+let userImages: Array<{ objectKey: string }> | undefined
 export async function getUserImages() {
 	if (userImages) return userImages
 
 	userImages = await Promise.all(
-		Array.from({ length: 10 }, (_, index) =>
-			img({ filepath: `./tests/fixtures/images/user/${index}.jpg` }),
-		),
+		Array.from({ length: 10 }, (_, index) => ({
+			objectKey: `user/${index}.jpg`,
+		})),
 	)
 
 	return userImages
-}
-
-export async function img({
-	altText,
-	filepath,
-}: {
-	altText?: string
-	filepath: string
-}) {
-	return {
-		altText,
-		contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
-		blob: await fs.promises.readFile(filepath),
-	}
-}
-
-export async function cleanupDb(prisma: PrismaClient) {
-	const tables = await prisma.$queryRaw<
-		{ name: string }[]
-	>`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';`
-
-	try {
-		// Disable FK constraints to avoid relation conflicts during deletion
-		await prisma.$executeRawUnsafe(`PRAGMA foreign_keys = OFF`)
-		await prisma.$transaction([
-			// Delete all rows from each table, preserving table structures
-			...tables.map(({ name }) =>
-				prisma.$executeRawUnsafe(`DELETE from "${name}"`),
-			),
-		])
-	} catch (error) {
-		console.error('Error cleaning up database:', error)
-	} finally {
-		await prisma.$executeRawUnsafe(`PRAGMA foreign_keys = ON`)
-	}
 }

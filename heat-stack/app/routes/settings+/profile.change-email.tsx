@@ -1,13 +1,7 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import {
-	json,
-	redirect,
-	type ActionFunctionArgs,
-	type LoaderFunctionArgs,
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { data, redirect, Form } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -22,6 +16,7 @@ import { sendEmail } from '#app/utils/email.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { EmailSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
+import { type Route } from './+types/profile.change-email.ts'
 import { EmailChangeEmail } from './profile.change-email.server.tsx'
 import { type BreadcrumbHandle } from './profile.tsx'
 
@@ -36,7 +31,7 @@ const ChangeEmailSchema = z.object({
 	email: EmailSchema,
 })
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	await requireRecentVerification(request)
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({
@@ -47,10 +42,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		const params = new URLSearchParams({ redirectTo: request.url })
 		throw redirect(`/login?${params}`)
 	}
-	return json({ user })
+	return { user }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
 	const submission = await parseWithZod(formData, {
@@ -70,7 +65,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -97,17 +92,17 @@ export async function action({ request }: ActionFunctionArgs) {
 			},
 		})
 	} else {
-		return json(
+		return data(
 			{ result: submission.reply({ formErrors: [response.error.message] }) },
 			{ status: 500 },
 		)
 	}
 }
 
-export default function ChangeEmailIndex() {
-	const data = useLoaderData<typeof loader>()
-	const actionData = useActionData<typeof action>()
-
+export default function ChangeEmailIndex({
+	loaderData,
+	actionData,
+}: Route.ComponentProps) {
 	const [form, fields] = useForm({
 		id: 'change-email-form',
 		constraint: getZodConstraint(ChangeEmailSchema),
@@ -123,7 +118,8 @@ export default function ChangeEmailIndex() {
 			<h1 className="text-h1">Change Email</h1>
 			<p>You will receive an email at the new email address to confirm.</p>
 			<p>
-				An email notice will also be sent to your old address {data.user.email}.
+				An email notice will also be sent to your old address{' '}
+				{loaderData.user.email}.
 			</p>
 			<div className="mx-auto mt-5 max-w-sm">
 				<Form method="POST" {...getFormProps(form)}>

@@ -2,18 +2,13 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import * as E from '@react-email/components'
-import {
-	json,
-	redirect,
-	type ActionFunctionArgs,
-	type MetaFunction,
-} from '@remix-run/node'
-import { Form, useActionData, useSearchParams } from '@remix-run/react'
+import { data, redirect, Form, useSearchParams } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
+import { requireAnonymous } from '#app/utils/auth.server.ts'
 import {
 	ProviderConnectionForm,
 	providerNames,
@@ -23,6 +18,7 @@ import { sendEmail } from '#app/utils/email.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { EmailSchema } from '#app/utils/user-validation.ts'
+import { type Route } from './+types/signup.ts'
 import { prepareVerification } from './verify.server.ts'
 
 export const handle: SEOHandle = {
@@ -33,10 +29,15 @@ const SignupSchema = z.object({
 	email: EmailSchema,
 })
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+	await requireAnonymous(request)
+	return null
+}
+
+export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData()
 
-	checkHoneypot(formData)
+	await checkHoneypot(formData)
 
 	const submission = await parseWithZod(formData, {
 		schema: SignupSchema.superRefine(async (data, ctx) => {
@@ -56,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
 		async: true,
 	})
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply() },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -78,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	if (response.status === 'success') {
 		return redirect(redirectTo.toString())
 	} else {
-		return json(
+		return data(
 			{
 				result: submission.reply({ formErrors: [response.error.message] }),
 			},
@@ -116,12 +117,11 @@ export function SignupEmail({
 	)
 }
 
-export const meta: MetaFunction = () => {
+export const meta: Route.MetaFunction = () => {
 	return [{ title: 'Sign Up | Epic Notes' }]
 }
 
-export default function SignupRoute() {
-	const actionData = useActionData<typeof action>()
+export default function SignupRoute({ actionData }: Route.ComponentProps) {
 	const isPending = useIsPending()
 	const [searchParams] = useSearchParams()
 	const redirectTo = searchParams.get('redirectTo')

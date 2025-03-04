@@ -124,7 +124,7 @@ export const oneProcessedEnergyBillSchema = z.object({
 // Define the schema for the 'processed_energy_bills' list
 export const allProcessedEnergyBillsSchema = z.array(oneProcessedEnergyBillSchema);
 
-//   Define the schema for the 'usage_data' key
+//   Define the schema for the 'usageData' key
 export const usageDataSchema = z.object({
 	heat_load_output: summaryOutputSchema,
 	balance_point_graph: balancePointGraphSchema,

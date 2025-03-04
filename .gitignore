@@ -1,6 +1,6 @@
 node_modules
+heat-stack/node_modules
 .DS_Store
-
 .env
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
@@ -10,3 +10,29 @@ node_modules
 heat-app
 venv
 heat-tmp
+
+### new
+/heat-stack/build
+/heat-stack/public/build
+/heat-stack/server-build
+/heat-stack/.env
+/heat-stack/.cache
+
+/heat-stack/prisma/data.db
+/heat-stack/prisma/data.db-journal
+/heat-stack/tests/prisma
+
+/heat-stack/test-results/
+/heat-stack/playwright-report/
+/heat-stack/playwright/.cache/
+/heat-stack/tests/fixtures/email/
+/heat-stack/coverage
+
+/heat-stack/other/cache.db
+
+
+# generated files
+/heat-stack/app/components/ui/icons
+
+# react router v7 generated types
+.react-router
