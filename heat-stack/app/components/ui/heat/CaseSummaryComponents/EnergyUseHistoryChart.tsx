@@ -57,7 +57,7 @@ interface EnergyUseHistoryChartProps {
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
     setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFn: RecalculateFunction
+    recalculateFromBillingRecordsChange: RecalculateFunction
 }
 
 function objectToString(obj: any): any {
@@ -78,40 +78,33 @@ function objectToString(obj: any): any {
     return retval as any;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFromBillingRecordsChange }: EnergyUseHistoryChartProps) {
 
 
     const handleOverrideCheckboxChange = (index: number) => {
         const newRecords = structuredClone(usageData.processed_energy_bills)
-        const period = newRecords[index]
+        const newRecordAtIndex = newRecords[index]
         
-        if (period) {
-            const currentOverride = period.inclusion_override
+        if (newRecordAtIndex) {
+            const currentOverride = newRecordAtIndex.inclusion_override
             // Toggle 'inclusion_override'
-            period.inclusion_override = !currentOverride
+            newRecordAtIndex.inclusion_override = !currentOverride
             
-            newRecords[index] = { ...period } 
+            newRecords[index] = { ...newRecordAtIndex } 
         }
         const newUsageData = ({
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
             processed_energy_bills: newRecords as BillingRecordsSchema,
         });
-        setUsageData( (prevUsageData) => {
-
-            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                return newUsageData
-            }
-            return prevUsageData // sets useData to
-
-        });
+        setUsageData(newUsageData)
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
             state_id,
             county_id } = { ...lastResult }
 
-        recalculateFn(
+        recalculateFromBillingRecordsChange(
             parsedLastResult,
             newRecords,
             parsedAndValidatedFormSchema,
@@ -151,16 +144,16 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {usageData.processed_energy_bills.map((period, index) => {
-                    const startDate = new Date(period.period_start_date)
-                    const endDate = new Date(period.period_end_date)
+                {usageData.processed_energy_bills.map((newRecordAtIndex, index) => {
+                    const startDate = new Date(newRecordAtIndex.period_start_date)
+                    const endDate = new Date(newRecordAtIndex.period_end_date)
 
                     // Calculate days in period
                     const timeInPeriod = endDate.getTime() - startDate.getTime()
                     const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
 
                     // Set Analysis Type image and checkbox setting
-                    const analysisType = period.analysis_type
+                    const analysisType = newRecordAtIndex.analysis_type
                     let analysisType_Image = undefined
                     let overrideCheckboxDisabled = false
 
@@ -179,8 +172,8 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                     }
 
                     // Adjust inclusion for user input
-                    let calculatedInclusion = period.default_inclusion
-                    if (period.inclusion_override) {
+                    let calculatedInclusion = newRecordAtIndex.default_inclusion
+                    if (newRecordAtIndex.inclusion_override) {
                         calculatedInclusion = !calculatedInclusion
                     }
 
@@ -195,15 +188,15 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                             <TableCell>{startDate.toLocaleDateString()}</TableCell>
                             <TableCell>{endDate.toLocaleDateString()}</TableCell>
                             <TableCell>{daysInPeriod}</TableCell>
-                            <TableCell>{period.usage}</TableCell>
+                            <TableCell>{newRecordAtIndex.usage}</TableCell>
                             <TableCell>
-                                {period.whole_home_heat_loss_rate
-                                    ? period.whole_home_heat_loss_rate.toFixed(0)
+                                {newRecordAtIndex.whole_home_heat_loss_rate
+                                    ? newRecordAtIndex.whole_home_heat_loss_rate.toFixed(0)
                                     : '-'}
                             </TableCell>
                             <TableCell>
                                 <Checkbox
-                                    checked={period.inclusion_override}
+                                    checked={newRecordAtIndex.inclusion_override}
                                     disabled={overrideCheckboxDisabled}
                                     onClick={() => handleOverrideCheckboxChange(index)}
                                 />

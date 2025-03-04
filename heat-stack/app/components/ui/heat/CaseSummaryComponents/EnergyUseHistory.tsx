@@ -16,7 +16,7 @@ interface EnergyUseHistoryProps
 	parsedLastResult: Map<any, any> | undefined;
 	usageData: UsageDataSchema;
 	setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-	recalculateFn: RecalculateFunction;
+	recalculateFromBillingRecordsChange: RecalculateFunction;
 	showUsageData: boolean
 }
 
@@ -25,7 +25,7 @@ export function EnergyUseHistory({
 	parsedLastResult,
 	usageData,
 	setUsageData,
-	recalculateFn,
+	recalculateFromBillingRecordsChange,
 	showUsageData
 }: EnergyUseHistoryProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
@@ -40,7 +40,7 @@ export function EnergyUseHistory({
 			{showUsageData && (
 				<>
 					<AnalysisHeader usageData={usageData} />
-					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
+					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange}/>
 					
 					{/* Second use of file data has to read upload from JSON, see:
 					 https://www.jacobparis.com/content/conform-json-formdata */}
