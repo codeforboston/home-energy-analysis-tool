@@ -680,12 +680,14 @@ class Home:
             summer_processed_energy_bills,
         ) = Home._processed_energy_bill_inputs(intermediate_energy_bills, balance_point)
         avg_summer_usage = Home._avg_summer_usage(summer_processed_energy_bills)
+
         avg_non_heating_usage = Home._avg_non_heating_usage(
             heat_load_input.fuel_type,
             avg_summer_usage,
             dhw_input,
             heat_load_input.heating_system_efficiency,
         )
+        
         for processed_energy_bill in winter_processed_energy_bills:
             processed_energy_bill.avg_heating_usage = (
                 processed_energy_bill.usage / processed_energy_bill.days
@@ -699,13 +701,6 @@ class Home:
             processed_energy_bill.ua = (
                 processed_energy_bill.partial_ua / processed_energy_bill.total_hdd
             )
-
-        avg_non_heating_usage = Home._avg_non_heating_usage(
-            heat_load_input.fuel_type,
-            avg_summer_usage,
-            dhw_input,
-            heat_load_input.heating_system_efficiency,
-        )
 
         uas = [
             processed_energy_bill.ua
@@ -735,6 +730,7 @@ class Home:
         home_result.balance_point_graph = (
             calculate_balance_point_and_ua_result.balance_point_graph
         )
+        home_result.avg_non_heating_usage = avg_non_heating_usage
 
         return home_result
 
