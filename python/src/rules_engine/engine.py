@@ -687,7 +687,7 @@ class Home:
             dhw_input,
             heat_load_input.heating_system_efficiency,
         )
-        
+
         for processed_energy_bill in winter_processed_energy_bills:
             processed_energy_bill.avg_heating_usage = (
                 processed_energy_bill.usage / processed_energy_bill.days

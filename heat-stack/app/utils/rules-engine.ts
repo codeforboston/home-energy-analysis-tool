@@ -121,7 +121,6 @@ export const executeGetAnalyticsFromFormJs: ExecuteGetAnalyticsFunction = await 
         temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
         outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
-        print("debug outputs: ", outputs)
         return outputs.model_dump(mode="json")
     executeGetAnalyticsFromForm
 `);
