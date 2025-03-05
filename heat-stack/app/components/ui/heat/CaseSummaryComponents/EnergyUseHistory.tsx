@@ -1,6 +1,6 @@
 import { Button } from '#/app/components/ui/button.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'; 
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
+import { type RecalculateFunction } from '#app/utils/recalculateFunction.ts';
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
 
@@ -16,7 +16,7 @@ interface EnergyUseHistoryProps
 	parsedLastResult: Map<any, any> | undefined;
 	usageData: UsageDataSchema;
 	setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-	recalculateFromBillingRecordsChange: RecalculateFunction;
+	recalculateFunction: RecalculateFunction;
 	showUsageData: boolean
 }
 
@@ -25,7 +25,7 @@ export function EnergyUseHistory({
 	parsedLastResult,
 	usageData,
 	setUsageData,
-	recalculateFromBillingRecordsChange,
+	recalculateFunction,
 	showUsageData
 }: EnergyUseHistoryProps) {
 	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
@@ -40,7 +40,7 @@ export function EnergyUseHistory({
 			{showUsageData && (
 				<>
 					<AnalysisHeader usageData={usageData} />
-					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange}/>
+					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFunction={recalculateFunction}/>
 					
 					{/* Second use of file data has to read upload from JSON, see:
 					 https://www.jacobparis.com/content/conform-json-formdata */}

@@ -10,7 +10,7 @@ import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { buildCurrentUsageData, objectToString, hasDataProperty } from '#app/utils/index.ts'
-import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
+import {recalculateFunction} from '#app/utils/recalculateFunction.ts'
 
 import { 
     cleanupPyodideResources,
@@ -136,7 +136,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
 
-    // Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
+    // Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFunction)
     // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
     const str_version = JSON.stringify(gasBillDataFromTextFile, replacer);
@@ -276,7 +276,7 @@ export default function SubmitAnalysis({
                         setUsageData={setUsageData} 
                         lastResult={lastResult} 
                         parsedLastResult={parsedLastResult} 
-                        recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange} 
+                        recalculateFunction={recalculateFunction} 
                         showUsageData={showUsageData} 
                     />
                     

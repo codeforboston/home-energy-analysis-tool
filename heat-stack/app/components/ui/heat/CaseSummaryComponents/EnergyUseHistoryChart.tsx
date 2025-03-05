@@ -1,6 +1,6 @@
 import { type z } from 'zod'
 import { type UsageDataSchema, type BillingRecordsSchema, type BalancePointGraphSchema, type SummaryOutputSchema } from '#/types/types.ts'
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts'
+import { type RecalculateFunction } from '#app/utils/recalculateFunction.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
     Table,
@@ -57,7 +57,7 @@ interface EnergyUseHistoryChartProps {
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
     setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFromBillingRecordsChange: RecalculateFunction
+    recalculateFunction: RecalculateFunction
 }
 
 function objectToString(obj: any): any {
@@ -78,7 +78,7 @@ function objectToString(obj: any): any {
     return retval as any;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFromBillingRecordsChange }: EnergyUseHistoryChartProps) {
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFunction }: EnergyUseHistoryChartProps) {
 
 
     const handleOverrideCheckboxChange = (index: number) => {
@@ -104,7 +104,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             state_id,
             county_id } = { ...lastResult }
 
-        recalculateFromBillingRecordsChange(
+        recalculateFunction(
             parsedLastResult,
             newRecords,
             parsedAndValidatedFormSchema,
