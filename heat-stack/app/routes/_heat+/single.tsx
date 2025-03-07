@@ -49,10 +49,7 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 export const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 
-export async function action({ request, params }: Route.ActionArgs) {
-    // Checks if url has a homeId parameter, throws 400 if not there
-    // invariantResponse(params.homeId, 'homeId param is required')
-
+async function upload(request: any) {
     const formData = await parseMultipartFormData(request, uploadHandler)
     const uploadedTextFile: string = await fileUploadHandler(formData)
 
@@ -147,11 +144,13 @@ export async function action({ request, params }: Route.ActionArgs) {
         convertedDatesTIWD,
         state_id,
         county_id
-        };
-    // return redirect(`/single`)
-} //END OF action
+    };
+}
 
 
+export async function action({ request, params }: Route.ActionArgs) {
+    return await upload(request)
+}
 
 
 export default function SubmitAnalysis({

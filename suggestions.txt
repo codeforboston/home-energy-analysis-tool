@@ -1,0 +1,11 @@
+- Done | Create a remix form with two fields and a button “Upload”
+- Done | Create hidden input field called intent
+- Done | When user presses Upload, set intent to “upload” using onClick
+- Done | When user presses Upload, after setting intent to “upload”, submit form
+- In action, if intent is upload, run upload method which does console.log(“upload”)
+- Change intent to blank when done submitting
+- When user presses Enter, don’t do anything.  On-change will take care of it.
+- When user changes a field, set intent to “recalculate”
+- When user changes a field, submit form
+- In action, if intent is recalculate, run recalculate method which does console.log(“recalculate”) 
+- In action, if intent is “recalculate”, run method which does console.log(“recalculate”)

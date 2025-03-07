@@ -1,8 +1,15 @@
 import { Upload } from 'lucide-react'
 import { Button } from '#/app/components/ui/button.tsx'
+import { useState } from 'react';
 
 
 export function EnergyUseUpload() {
+	const [intent, setIntent] = useState("");
+
+	const changeIntentToUpload = () => {
+		setIntent("upload")
+	};
+
     return (
 		<div>
 			<h3>Upload Energy Use File</h3>
@@ -15,7 +22,12 @@ export function EnergyUseUpload() {
 				type="file"
 			/>
 			{/* Button type submit is processed by action in single.tsx */}
-			<Button type="submit" name="intent" value="upload">
+			<input
+					type="hidden"
+					name="intent"
+					value={intent}
+				/>
+			<Button type="submit" name="intent" value="upload" onClick={changeIntentToUpload}>
 				<Upload className="mr-2 h-4 w-4" />Upload
 			</Button>
 
