@@ -49,10 +49,7 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 export const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 
-async function upload(request: any) {
-    const formData = await parseMultipartFormData(request, uploadHandler)
-    const uploadedTextFile: string = await fileUploadHandler(formData)
-
+async function upload(formData: any, uploadedTextFile: string) {
     const submission = parseWithZod(formData, {
         schema: Schema,
     })
@@ -149,7 +146,9 @@ async function upload(request: any) {
 
 
 export async function action({ request, params }: Route.ActionArgs) {
-    return await upload(request)
+    const formData = await parseMultipartFormData(request, uploadHandler)
+    const uploadedTextFile: string = await fileUploadHandler(formData)
+    return await upload(formData, uploadedTextFile)
 }
 
 
