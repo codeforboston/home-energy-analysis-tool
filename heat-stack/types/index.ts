@@ -16,22 +16,10 @@ export const HomeSchema = z.object({
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
-	heating_system_efficiency: z.preprocess(
-		(val) => {
-		  if (val === undefined || val === null) return val;
-		  const num = typeof val === 'string' ? parseFloat(val) : Number(val);
-		  if (isNaN(num)) return val;
-		  
-		  // If it looks like a percentage (>= 1), convert to decimal
-		  if (num >= 1) {
-			return num / 100;
-		  }
-		  return num; // Otherwise assume it's already a decimal
-		},
+	heating_system_efficiency:
 		z.number()
 		  .min(0.6, { message: "Efficiency must be at least 60%" })
-		  .max(1, { message: "Efficiency cannot exceed 100%" })
-	  ),
+		  .max(1, { message: "Efficiency cannot exceed 100%" }),
 	thermostat_set_point: z.number(),
 	setback_temperature: z.number().optional(),
 	setback_hours_per_day: z.number().optional(),
