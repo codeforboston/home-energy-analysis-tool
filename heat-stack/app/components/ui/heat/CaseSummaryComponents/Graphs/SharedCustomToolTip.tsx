@@ -1,7 +1,7 @@
 import  { type TooltipProps } from 'recharts'
 import  { type ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
-interface CustomTooltipProps extends TooltipProps<ValueType, string> {
+interface SharedCustomTooltipProps extends TooltipProps<ValueType, string> {
 	active?: boolean
 	payload?: {
 		dataKey: string
@@ -25,16 +25,16 @@ interface CustomTooltipProps extends TooltipProps<ValueType, string> {
  * The tooltip dynamically displays information based on the chart's hovered data point(s),
  * with special styling for "This Home" data points.
  *
- * @param {CustomTooltipProps} props - The properties for the CustomTooltip component.
+ * @param {SharedCustomTooltipProps} props - The properties for the CustomTooltip component.
  * @param {boolean} props.active - Indicates whether the tooltip is active or not.
  * @param {Array} props.payload - The array of data points for the tooltip, each with `dataKey`, `value`, `name`, etc.
  *
  * @returns {JSX.Element | null} The JSX element representing the tooltip content, or null if the tooltip is not active.
  */
-export const CustomTooltip = ({
+export const SharedCustomTooltip = ({
 	active,
 	payload,
-}: CustomTooltipProps): React.ReactElement | null => {
+}: SharedCustomTooltipProps): React.ReactElement | null => {
 	if (active && payload && payload.length) {
 		// Check if this is "This Home" data point
 		const isThisHome = payload[0]?.payload?.name === 'This Home' || 
