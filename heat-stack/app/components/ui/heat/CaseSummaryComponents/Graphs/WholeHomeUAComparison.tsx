@@ -99,8 +99,7 @@ export function WholeHomeUAComparison({
 			x: livingArea,
 			y: Math.round(whole_home_heat_loss_rate),
 			color: COLOR_ORANGE,
-			label: 'This Home',
-			name: 'This Home'
+			label: 'This Home'
 		}
 
 		return {
