@@ -1,3 +1,4 @@
+import { Schema } from '#app/routes/_heat+/single.tsx'
 import { type SubmissionResult } from '#node_modules/@conform-to/react'
 import {
 	type BalancePointGraphSchema,
@@ -87,3 +88,13 @@ export function hasDataProperty(result: ActionResult): result is { data: string 
 		typeof (result as any).data === 'string'
 	)
 }
+interface HasParsedAndValidatedFormSchema {
+	parsedAndValidatedFormSchema: unknown;
+  }
+export function hasParsedAndValidatedFormSchemaProperty(value: unknown): value is HasParsedAndValidatedFormSchema {
+	if (!(value !== null && typeof value === 'object' && 'parsedAndValidatedFormSchema' in value)) {
+	  return false;
+	}
+	
+	return Schema.safeParse(value.parsedAndValidatedFormSchema).success;
+  }
