@@ -6,9 +6,10 @@ import { WholeHomeUAComparison } from './Graphs/WholeHomeUAComparison.tsx'
 
 interface GraphsProps {
 	heatLoadSummaryOutput: SummaryOutputSchema;
+	livingArea: number;
 }
 
-export function HeatLoadAnalysis({ heatLoadSummaryOutput }: GraphsProps) {
+export function HeatLoadAnalysis({ heatLoadSummaryOutput, livingArea }: GraphsProps) {
 	const fuel_type = 'Natural Gas'
 	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
 	const componentMargin = 'mt-10'
@@ -21,7 +22,7 @@ export function HeatLoadAnalysis({ heatLoadSummaryOutput }: GraphsProps) {
 			{fuel_type}
 			{/* <AnalysisHeader /> */}
 			<HeatLoad heatLoadSummaryOutput={heatLoadSummaryOutput} />
-			<WholeHomeUAComparison />
+			<WholeHomeUAComparison  heatLoadSummaryOutput={heatLoadSummaryOutput} livingArea={livingArea} />
 		</div>
 	)
 }
