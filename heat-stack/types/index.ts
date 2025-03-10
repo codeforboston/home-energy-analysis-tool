@@ -16,7 +16,10 @@ export const HomeSchema = z.object({
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
-	heating_system_efficiency: z.number().min(0.6).max(1),
+	heating_system_efficiency:
+		z.number()
+		  .min(0.6, { message: "Efficiency must be at least 60%" })
+		  .max(1, { message: "Efficiency cannot exceed 100%" }),
 	thermostat_set_point: z.number(),
 	setback_temperature: z.number().optional(),
 	setback_hours_per_day: z.number().optional(),
