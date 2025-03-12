@@ -82,7 +82,7 @@ export const executeParseGasBillPy: ExecuteParseFunction = await pyodide.runPyth
     from rules_engine import engine
 
     def executeParse(csvDataJs):
-        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
         return naturalGasInputRecords.model_dump(mode="json")
     executeParse
 `);
@@ -113,7 +113,7 @@ export const executeGetAnalyticsFromFormJs: ExecuteGetAnalyticsFunction = await 
         temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
 
         # We will just pass in this data
-        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
 
         design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
         summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)

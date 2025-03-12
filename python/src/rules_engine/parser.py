@@ -72,6 +72,23 @@ class _GasBillRowNationalGrid:
         self.usage = row["USAGE"]
 
 
+def _newline_line_ending(data: str) -> str:
+    """
+    Returns a csv with every line ending in a single newline
+    character.
+
+    Each Bill CSVs row ends variously, in a newline, carriage
+    return, and even a carriage return followed by a newline.
+    The company detection and parsing code crash unless each
+    row ends in one newline and nothing else.
+    """
+    data = data.replace("\r", "\n")
+    # replaces any number of consecutive newlines with one newline
+    regex = re.compile(r"\n+")
+    data = re.sub(regex, "\n", data)
+    return data
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
@@ -96,6 +113,8 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
+    data = _newline_line_ending(data)
+
     if company == None:
         company = _detect_gas_company(data)
 
