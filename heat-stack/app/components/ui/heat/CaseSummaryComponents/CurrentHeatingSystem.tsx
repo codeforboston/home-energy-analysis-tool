@@ -1,9 +1,10 @@
-import { useForm, getInputProps } from '@conform-to/react'
+import { useForm, getInputProps, useInputControl } from '@conform-to/react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import React from 'react'
 
 type CurrentHeatingSystemProps = { fields: any }
 
@@ -12,6 +13,34 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
+
+	// Create a state to track the percentage value
+	const [percentageValue, setPercentageValue] = React.useState(() => {
+		// Initialize from the field's default value or initial value
+		const value = props.fields.heating_system_efficiency.value ||
+			props.fields.heating_system_efficiency.defaultValue;
+		return value ? Math.round(parseFloat(value) * 100).toString() : "";
+	});
+
+	// Calculate the decimal value whenever percentage changes
+	const decimalValue = React.useMemo(() => {
+		const percentNum = parseFloat(percentageValue);
+		return !isNaN(percentNum) ? (percentNum / 100).toString() : "";
+	}, [percentageValue]);
+
+	// Update percentage when the underlying field changes (e.g., from form reset)
+	React.useEffect(() => {
+		const value = props.fields.heating_system_efficiency.value ||
+			props.fields.heating_system_efficiency.defaultValue;
+		if (value) {
+			setPercentageValue(Math.round(parseFloat(value) * 100).toString());
+		}
+	}, [props.fields.heating_system_efficiency.value, props.fields.heating_system_efficiency.defaultValue]);
+
+	// Handle the percentage input change
+	const handlePercentageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setPercentageValue(e.target.value);
+	};
 
 	return (
 		<div>
@@ -38,14 +67,30 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-			<Label htmlFor="heating_system_efficiency" className={`${subtitleClass}`}>
+			<Label htmlFor="heating_system_efficiency_display" className={`${subtitleClass}`}>
 				Heating System Efficiency %
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input placeholder="(Percent)" {...getInputProps(props.fields.heating_system_efficiency, { type: "text" })} />
+					{/* Display percentage to the user */}
+					<Input
+						id="heating_system_efficiency_display"
+						// Don't include a name to prevent it from being submitted
+						placeholder="Enter a percentage (60-100)"
+						type="number"
+						value={percentageValue}
+						onChange={handlePercentageChange}
+					/>
+
+					{/* Use the actual field from Conform but with our calculated decimal value */}
+					<Input
+						type="hidden"
+						name={props.fields.heating_system_efficiency.name}
+						value={decimalValue}
+					/>
+
 					<div className={`${descriptiveClass}`}>
-						Typical natural gas efficiency is 80%-95%
+						Enter efficiency as a percentage (60-100). Typical natural gas efficiency is 80-95%.
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
