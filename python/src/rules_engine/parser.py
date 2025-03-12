@@ -127,22 +127,44 @@ def parse_gas_bill(
             raise ValueError("Wrong CSV format selected: select another format.")
 
 
+def _get_date_from_string(date_string):
+    """
+    Returns the date from a string of characters
+
+    Uses a regular expression to check for four digits in a row at 
+    the beginning of the date string to determine if it starts with the 
+    year and then tells datetime.strptime the appropriate formatting
+    whereby to evaluate the date string, returning the result of that
+    function call
+    """
+    date_string = date_string.replace("-", "/")
+    starts_with_four_digits = bool(re.match(r"^\d{4}", date_string))
+    if starts_with_four_digits:
+        return datetime.strptime(date_string, "%Y/%m/%d")
+    else:
+        return datetime.strptime(date_string, "%m/%d/%Y")
+        
+
 def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
     Return a list of gas bill data parsed from an Eversource CSV
     received as a string.
 
-    Example:
+    Example 1:
         Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature
         1/18/2022,184.00,32,5.75,$327.58,30.0
         ...
+    
+    Example 2:
+        Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature
+        2022-18-1,184.00,32,5.75,$327.58,30.0    
     """
     f = io.StringIO(data)
     reader = csv.DictReader(f)
     records = []
     for row in reader:
         parsed_row = _GasBillRowEversource(row)
-        period_end_date = datetime.strptime(parsed_row.read_date, "%m/%d/%Y")
+        period_end_date = _get_date_from_string(parsed_row.read_date)
         # Calculate period_start_date using the end date and number of days in the bill
         # Care should be taken here to avoid off-by-one errors
         period_start_date = period_end_date - timedelta(
@@ -185,8 +207,8 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
     for row in reader:
         parsed_row = _GasBillRowNationalGrid(row)
 
-        period_start_date = datetime.strptime(parsed_row.start_date, "%m/%d/%Y")
-        period_end_date = datetime.strptime(parsed_row.end_date, "%m/%d/%Y")
+        period_start_date = _get_date_from_string(parsed_row.start_date)
+        period_end_date = _get_date_from_string(parsed_row.end_date)
 
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
