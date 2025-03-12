@@ -131,8 +131,8 @@ def _get_date_from_string(date_string):
     """
     Returns the date from a string of characters
 
-    Uses a regular expression to check for four digits in a row at 
-    the beginning of the date string to determine if it starts with the 
+    Uses a regular expression to check for four digits in a row at
+    the beginning of the date string to determine if it starts with the
     year and then tells datetime.strptime the appropriate formatting
     whereby to evaluate the date string, returning the result of that
     function call
@@ -143,7 +143,7 @@ def _get_date_from_string(date_string):
         return datetime.strptime(date_string, "%Y/%m/%d")
     else:
         return datetime.strptime(date_string, "%m/%d/%Y")
-        
+
 
 def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
@@ -154,10 +154,10 @@ def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
         Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature
         1/18/2022,184.00,32,5.75,$327.58,30.0
         ...
-    
+
     Example 2:
         Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature
-        2022-18-1,184.00,32,5.75,$327.58,30.0    
+        2022-18-1,184.00,32,5.75,$327.58,30.0
     """
     f = io.StringIO(data)
     reader = csv.DictReader(f)
