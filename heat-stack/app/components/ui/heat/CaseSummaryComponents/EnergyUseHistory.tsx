@@ -28,12 +28,10 @@ export function EnergyUseHistory({
 	recalculateFn,
 	showUsageData
 }: EnergyUseHistoryProps) {
-	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
 	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	return (
 		<div>
-			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
 
 			
 

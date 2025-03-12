@@ -114,6 +114,11 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    npm run buildpy
    ```
 
+3. Setup the SQLite Database:
+   ```bash
+   npm run setup
+   ```
+
 3. Start the development server:
    ```bash
    npm run dev
