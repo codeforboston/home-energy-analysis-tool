@@ -9,7 +9,7 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
-import { buildCurrentUsageData, objectToString, hasDataProperty } from '#app/utils/index.ts'
+import { buildCurrentUsageData, objectToString, hasDataProperty, hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
 
 import { 
@@ -293,11 +293,13 @@ export default function SubmitAnalysis({
                     {usageData 
                         && usageData.heat_load_output 
                         && usageData.heat_load_output.design_temperature 
-                        && usageData.heat_load_output.whole_home_heat_loss_rate ? (
+                        && usageData.heat_load_output.whole_home_heat_loss_rate && 
+                        hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
                         <HeatLoadAnalysis 
                         heatLoadSummaryOutput={
                             usageData.heat_load_output
                           } 
+                          livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
                         />
                     ) : (
                         <div className="p-4 my-4 border-2 border-red-400 rounded-lg">

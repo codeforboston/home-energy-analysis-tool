@@ -67,9 +67,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-
 			<Label htmlFor="heating_system_efficiency_display" className={`${subtitleClass}`}>
-				Heating system efficiency %
+				Heating System Efficiency %
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
@@ -103,7 +102,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</div>
 
 			<Label htmlFor="design_temperature_override" className={`${subtitleClass}`}>
-				Design temperature override (°F)
+				Design Temperature Override (°F)
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
