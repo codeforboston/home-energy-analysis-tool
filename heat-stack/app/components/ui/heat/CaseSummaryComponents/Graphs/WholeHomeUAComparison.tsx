@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 import  { type SummaryOutputSchema } from '#/types/types'
 import { Icon } from '../../../icon'
-import { COLOR_BLUE, COLOR_ORANGE } from '../constants'
+import { COLOR_BLUE, COLOR_GREY_LIGHT, COLOR_ORANGE } from '../constants'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
 import { SharedCustomTooltip } from './SharedCustomToolTip'
 import { WholeHomeUAComparisonLegend } from './WholeHomeUAComparisonLegend'
@@ -112,7 +112,7 @@ export function WholeHomeUAComparison({
 		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
 			<span className="mb-4 text-lg font-semibold">
-				Whole-home heat loss comparison{' '}
+				Whole-home Heat Loss Comparison{' '}
 				<Icon name="question-mark-circled" size="md" />{' '}
 			</span>
 
@@ -132,13 +132,15 @@ export function WholeHomeUAComparison({
 						}}
 					>
 						{/* Grid lines for the chart */}
-						<CartesianGrid stroke="#f5f5f5" />
+						{/* <CartesianGrid stroke="#f5f5f5" /> */}
+						<CartesianGrid stroke={COLOR_GREY_LIGHT} strokeDasharray="3 3"/>
 
 						{/* Tooltip with custom content for heat loss information */}
 						<Tooltip content={<SharedCustomTooltip />} wrapperStyle={{ zIndex: 20 }} />
 
 						{/* X-axis for the chart with Living Area label */}
-						<XAxis type="number" dataKey="x" name="Living Area">
+						<XAxis type="number" dataKey="x" name="Living Area" domain={[0, 6000]} tickCount={13 } // Ensure whole number ticks
+						>
 							<Label
 								value="Living Area (sf)"
 								position="bottom"

@@ -3,9 +3,11 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 
 export function EnergyUseUpload() {
+	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
+
     return (
 		<div>
-			<h3>Upload Energy Use File</h3>
+			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
 
 			<input
 				id="energy_use_upload"
@@ -13,9 +15,10 @@ export function EnergyUseUpload() {
 				accept=".xml,.csv,application/xml,text/xml,text/csv,application/csv,application/x-csv,text/comma-separated-values,text/x-comma-separated-values"
 				name="energy_use_upload"
 				type="file"
+				className="h-20"
 			/>
 			{/* Button type submit is processed by action in single.tsx */}
-			<Button type="submit" name="intent" value="upload">
+			<Button type="submit" className="ml-4" name="intent" value="upload">
 				<Upload className="mr-2 h-4 w-4" />Upload
 			</Button>
 

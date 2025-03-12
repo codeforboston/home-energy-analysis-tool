@@ -36,15 +36,14 @@ export const HeatLoadGrid = ({
 				<div className="flex items-center justify-center border-r-2 border-gray-300 p-6">
 					<div className="flex flex-col items-center">
 						<div className="text-gray-500">Max Heat Load</div>
-						<div className="font-semibold">{`${maxHeatLoad} BTU/h`}</div>
-					</div>
+						<div className="font-semibold">{`${maxHeatLoad ? maxHeatLoad.toLocaleString(undefined, {maximumFractionDigits: 0}) : ""} BTU/h`}</div>					</div>
 				</div>
 
 				{/* Grid Item 3 */}
 				<div className="flex items-center justify-center p-6">
 					<div className="flex flex-col items-center">
 						<div className="text-gray-500">Average Heat Load</div>
-						<div className="font-semibold">{`${averageHeatLoad} BTU/h`}</div>
+						<div className="font-semibold">{`${averageHeatLoad ? averageHeatLoad.toLocaleString(undefined, {maximumFractionDigits: 0}) : ""} BTU/h`}</div>
 					</div>
 				</div>
 			</div>
