@@ -29,6 +29,8 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 
 import { type Route } from './+types/single.tsx'
 
+/** TODO: Use url param "dev" to set defaults */
+
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
@@ -47,6 +49,13 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 })
 
 export const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
+
+export async function loader({ request }: Route.LoaderArgs) {
+
+    let url = new URL(request.url);
+    let isDevMode: boolean = url.searchParams.get("dev")?.toLowerCase() === "true";
+    return {isDevMode}
+}
 
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -147,7 +156,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         convertedDatesTIWD,
         state_id,
         county_id
-        };
+    };
     // return redirect(`/single`)
 } //END OF action
 
@@ -155,7 +164,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 
 export default function SubmitAnalysis({
-    // loaderData,
+    loaderData,
     actionData,
 }: Route.ComponentProps) {
     
@@ -239,23 +248,28 @@ export default function SubmitAnalysis({
        }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
+    console.log(loaderData, "loader data", loaderData.isDevMode); 
+
+    const defaultValue: SchemaZodFromFormType | undefined = loaderData.isDevMode ? {
+        living_area: 2155,
+        address: '15 Dale Ave Gloucester, MA  01930',
+        name: 'CIC',
+        fuel_type: 'GAS',
+        heating_system_efficiency: 0.97,
+        thermostat_set_point: 68,
+        setback_temperature: 65,
+        setback_hours_per_day: 8,
+        // design_temperature_override: '',
+    } : undefined;
+
     const [form, fields] = useForm({
         /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
+
         onValidate({ formData }) {
             return parseWithZod(formData, { schema: Schema })
         },
-        defaultValue: {
-            living_area: 2155,
-            address: '15 Dale Ave Gloucester, MA  01930',
-            name: 'CIC',
-            fuel_type: 'GAS',
-            heating_system_efficiency: 0.97,
-            thermostat_set_point: 68,
-            setback_temperature: 65,
-            setback_hours_per_day: 8,
-            // design_temperature_override: '',
-        } as SchemaZodFromFormType,
-        shouldValidate: 'onBlur',
+        defaultValue,
+        shouldValidate: 'onBlur'
     })
 
     // @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
