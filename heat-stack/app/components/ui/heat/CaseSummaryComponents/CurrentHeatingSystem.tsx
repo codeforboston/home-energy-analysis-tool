@@ -161,9 +161,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						</Label>
 						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
-							Typical natural gas efficiency is 80%-95%
-						</div>
-						<div className={`${descriptiveClass}`}>
 							Average hours per day that a lower or higher temperature setting
 							is in effect
 						</div>
