@@ -56,11 +56,14 @@ export function HomeInformation(props: HomeInformationProps) {
 
 			{/* <Form method="post" action="/inputs1"> */}
 				<div className={`${componentMargin}`}>
-					<h6 className={`${subtitleClass}`}>Resident/Client</h6>
+					<h6>
+						<Label className={`${subtitleClass}`} htmlFor="name">
+							Resident/Client Name(s)
+						</Label>
+					</h6>
 
 					<div className="mt-4 flex space-x-4">
 						<div>
-							<Label htmlFor="name">Name</Label>
 							<Input {...getInputProps(props.fields.name, { type: "text" })} />
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
@@ -73,11 +76,14 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 
 				<div className="mt-9">
-					<h6 className={`${subtitleClass}`}>Address</h6>
+					<h6>
+						<Label className={`${subtitleClass}`} htmlFor="address">
+							Street Address, City, State
+						</Label>
+					</h6>
 
 					<div className="mt-4 flex space-x-4">
 						<div>
-							<Label htmlFor="address">Address</Label>
 							<Input {...getInputProps(props.fields.address, { type: "text" })} />
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
