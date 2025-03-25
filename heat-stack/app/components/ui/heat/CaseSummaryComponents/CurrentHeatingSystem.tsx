@@ -106,7 +106,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</Label>
 			<div className="flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input placeholder="(Optional)" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
+					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
 						<div className={`${descriptiveClass}`}>
 							65°F is the 99% ASHRAE heating design temperature at this location
@@ -143,7 +143,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label htmlFor="setback_temperature">
 							<b>Setback Temperature (°F)</b>
 						</Label>
-						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
+						<Input placeholder="Optional" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
 							during working or sleep hours
@@ -159,7 +159,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label htmlFor="setback_hours_per_day">
 							<b>Setback hours per day</b>
 						</Label>
-						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
+						<Input placeholder="Optional" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Average hours per day that a lower or higher temperature setting
 							is in effect
