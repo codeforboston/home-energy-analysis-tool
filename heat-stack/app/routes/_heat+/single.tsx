@@ -61,7 +61,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
-
     const formData = await parseMultipartFormData(request, uploadHandler)
     const uploadedTextFile: string = await fileUploadHandler(formData)
 
