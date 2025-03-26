@@ -105,15 +105,15 @@ export function HomeInformation(props: HomeInformationProps) {
 					<div className="mt-4 flex space-x-2">
 						<div>
 							<Input {...getInputProps(props.fields.living_area, { type: "text" })}  />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<p className={`${descriptiveClass}`}>
+								The home's above-grade, conditioned space
+							</p>
+							<div className="min-h-[12px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.living_area.errorId}
 								errors={props.fields.living_area.errors}
 							/>
 							</div>
-							<p className={`${descriptiveClass}`}>
-								The home's above-grade, conditioned space
-							</p>
 						</div>
 					</div>
 				</div>
