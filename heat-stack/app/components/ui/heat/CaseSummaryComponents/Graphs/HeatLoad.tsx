@@ -99,10 +99,10 @@ export function HeatLoad({
 
 	return (
 		<div className="min-w-[625px] rounded-lg shadow-lg">
-			<span className="mb-4 mt-4 text-lg font-semibold">
+			<div className="mb-4 mt-4 text-lg font-semibold">
 				Heating System Demand
 				<Icon name="question-mark-circled" className="ps-1" size="md" />
-			</span>
+			</div>
 
 			<div className="relative w-full h-[400px]">
 			<ResponsiveContainer width="100%" height={400}>
