@@ -49,12 +49,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</h2>
 
 			{/* <Form method="post" action="/current"> */}
-			<div>
+			<div className={`${componentMargin}`}>
 				{' '}
-				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
-					Fuel Type
-				</Label>
-				<div className="flex space-x-4">
+				<h6>
+					<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
+						Fuel Type
+					</Label>
+				</h6>
+				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
 						<Input {...getInputProps(props.fields.fuel_type, { type: "text" })} />
 					</div>
@@ -70,7 +72,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			<Label htmlFor="heating_system_efficiency_display" className={`${subtitleClass}`}>
 				Heating System Efficiency %
 			</Label>
-			<div className="flex space-x-4">
+			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
 					<Input
@@ -104,7 +106,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			<Label htmlFor="design_temperature_override" className={`${subtitleClass}`}>
 				Design Temperature Override (°F)
 			</Label>
-			<div className="flex space-x-4">
+			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
