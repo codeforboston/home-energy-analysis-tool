@@ -79,7 +79,7 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
 						<div className="item font-bold">
-							{summaryOutputs?.average_indoor_temperature} °F
+							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 						</div>
 						<br />
 						Balance Point Temperature
