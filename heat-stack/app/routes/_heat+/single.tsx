@@ -214,15 +214,19 @@ export default function SubmitAnalysis({
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [tally, setTally] = useState(0)
+    const [lastResult, setLastResult] = useState<any>()
 
-    React.useEffect(() => {        
+    React.useEffect(() => {
         return () => {
         // Memory cleanup of pyodide fn's when component unmounts
         cleanupPyodideResources();
         };
     }, []);
 
-    const lastResult = actionData
+    React.useEffect(() => {
+        setLastResult(actionData)
+    }, [actionData]);
+
 
     let showUsageData = lastResult !== undefined;
     
