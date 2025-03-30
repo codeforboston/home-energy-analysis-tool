@@ -1,9 +1,10 @@
-import { useForm, getInputProps } from '@conform-to/react'
+import { useForm, getInputProps, useInputControl } from '@conform-to/react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import React from 'react'
 
 type CurrentHeatingSystemProps = { fields: any }
 
@@ -13,6 +14,34 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const componentMargin = 'mt-10'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
+	// Create a state to track the percentage value
+	const [percentageValue, setPercentageValue] = React.useState(() => {
+		// Initialize from the field's default value or initial value
+		const value = props.fields.heating_system_efficiency.value ||
+			props.fields.heating_system_efficiency.defaultValue;
+		return value ? Math.round(parseFloat(value) * 100).toString() : "";
+	});
+
+	// Calculate the decimal value whenever percentage changes
+	const decimalValue = React.useMemo(() => {
+		const percentNum = parseFloat(percentageValue);
+		return !isNaN(percentNum) ? (percentNum / 100).toString() : "";
+	}, [percentageValue]);
+
+	// Update percentage when the underlying field changes (e.g., from form reset)
+	React.useEffect(() => {
+		const value = props.fields.heating_system_efficiency.value ||
+			props.fields.heating_system_efficiency.defaultValue;
+		if (value) {
+			setPercentageValue(Math.round(parseFloat(value) * 100).toString());
+		}
+	}, [props.fields.heating_system_efficiency.value, props.fields.heating_system_efficiency.defaultValue]);
+
+	// Handle the percentage input change
+	const handlePercentageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setPercentageValue(e.target.value);
+	};
+
 	return (
 		<div>
 			<h2 className={`${titleClass} ${componentMargin}`}>
@@ -20,12 +49,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</h2>
 
 			{/* <Form method="post" action="/current"> */}
-			<div>
+			<div className={`${componentMargin}`}>
 				{' '}
-				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
-					Fuel Type
-				</Label>
-				<div className="flex space-x-4">
+				<h6>
+					<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
+						Fuel Type
+					</Label>
+				</h6>
+				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
 						<Input {...getInputProps(props.fields.fuel_type, { type: "text" })} />
 					</div>
@@ -38,14 +69,30 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-			<Label htmlFor="heating_system_efficiency" className={`${subtitleClass}`}>
-				Heating system efficiency %
+			<Label htmlFor="heating_system_efficiency_display" className={`${subtitleClass}`}>
+				Heating System Efficiency %
 			</Label>
-			<div className="flex space-x-4">
+			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input placeholder="(Percent)" {...getInputProps(props.fields.heating_system_efficiency, { type: "text" })} />
+					{/* Display percentage to the user */}
+					<Input
+						id="heating_system_efficiency_display"
+						// Don't include a name to prevent it from being submitted
+						placeholder="Enter a percentage (60-100)"
+						type="number"
+						value={percentageValue}
+						onChange={handlePercentageChange}
+					/>
+
+					{/* Use the actual field from Conform but with our calculated decimal value */}
+					<Input
+						type="hidden"
+						name={props.fields.heating_system_efficiency.name}
+						value={decimalValue}
+					/>
+
 					<div className={`${descriptiveClass}`}>
-						Typical natural gas efficiency is 80%-95%
+						Enter efficiency as a percentage (60-100). Typical natural gas efficiency is 80-95%.
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
@@ -57,11 +104,11 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</div>
 
 			<Label htmlFor="design_temperature_override" className={`${subtitleClass}`}>
-				Design temperature override (°F)
+				Design Temperature Override (°F)
 			</Label>
-			<div className="flex space-x-4">
+			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
-					<Input placeholder="(Optional)" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
+					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
 						<div className={`${descriptiveClass}`}>
 							65°F is the 99% ASHRAE heating design temperature at this location
@@ -98,7 +145,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label htmlFor="setback_temperature">
 							<b>Setback Temperature (°F)</b>
 						</Label>
-						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
+						<Input placeholder="Optional" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
 							during working or sleep hours
@@ -114,10 +161,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label htmlFor="setback_hours_per_day">
 							<b>Setback hours per day</b>
 						</Label>
-						<Input placeholder="(Optional)" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
-						<div className={`${descriptiveClass}`}>
-							Typical natural gas efficiency is 80%-95%
-						</div>
+						<Input placeholder="Optional" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
 						<div className={`${descriptiveClass}`}>
 							Average hours per day that a lower or higher temperature setting
 							is in effect
