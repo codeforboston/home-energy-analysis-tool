@@ -78,7 +78,7 @@ export const buildCurrentUsageData = (
 	return newUsageData
 }
 
-type ActionResult = SubmissionResult<string[]> | { data: string } | undefined
+export type ActionResult = SubmissionResult<string[]> | { data: string } | undefined
 
 /** typeguard for useAction between string[] and {data: string} */
 export function hasDataProperty(result: ActionResult): result is { data: string } {
