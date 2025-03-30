@@ -9,7 +9,7 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
-import { buildCurrentUsageData, objectToString, hasDataProperty } from '#app/utils/index.ts'
+import { buildCurrentUsageData, objectToString, hasDataProperty, hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
 
 import { 
@@ -28,6 +28,8 @@ import { HeatLoadAnalysis }  from '../../components/ui/heat/CaseSummaryComponent
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.tsx'
+
+/** TODO: Use url param "dev" to set defaults */
 
 
 /** Modeled off the conform example at
@@ -48,11 +50,17 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 
 export const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
+export async function loader({ request }: Route.LoaderArgs) {
+
+    let url = new URL(request.url);
+    let isDevMode: boolean = url.searchParams.get("dev")?.toLowerCase() === "true";
+    return {isDevMode}
+}
+
 
 export async function action({ request, params }: Route.ActionArgs) {
     // Checks if url has a homeId parameter, throws 400 if not there
     // invariantResponse(params.homeId, 'homeId param is required')
-
     const formData = await parseMultipartFormData(request, uploadHandler)
     const uploadedTextFile: string = await fileUploadHandler(formData)
 
@@ -147,7 +155,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         convertedDatesTIWD,
         state_id,
         county_id
-        };
+    };
     // return redirect(`/single`)
 } //END OF action
 
@@ -155,7 +163,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 
 export default function SubmitAnalysis({
-    // loaderData,
+    loaderData,
     actionData,
 }: Route.ComponentProps) {
     
@@ -239,23 +247,28 @@ export default function SubmitAnalysis({
        }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
+    console.log(loaderData, "loader data", loaderData.isDevMode); 
+
+    const defaultValue: SchemaZodFromFormType | undefined = loaderData.isDevMode ? {
+        living_area: 2155,
+        address: '15 Dale Ave Gloucester, MA  01930',
+        name: 'CIC',
+        fuel_type: 'GAS',
+        heating_system_efficiency: 0.97,
+        thermostat_set_point: 68,
+        setback_temperature: 65,
+        setback_hours_per_day: 8,
+        // design_temperature_override: '',
+    } : undefined;
+
     const [form, fields] = useForm({
         /* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
+
         onValidate({ formData }) {
             return parseWithZod(formData, { schema: Schema })
         },
-        defaultValue: {
-            living_area: 2155,
-            address: '15 Dale Ave Gloucester, MA  01930',
-            name: 'CIC',
-            fuel_type: 'GAS',
-            heating_system_efficiency: 0.97,
-            thermostat_set_point: 68,
-            setback_temperature: 65,
-            setback_hours_per_day: 8,
-            // design_temperature_override: '',
-        } as SchemaZodFromFormType,
-        shouldValidate: 'onBlur',
+        defaultValue,
+        shouldValidate: 'onBlur'
     })
 
     // @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
@@ -293,11 +306,13 @@ export default function SubmitAnalysis({
                     {usageData 
                         && usageData.heat_load_output 
                         && usageData.heat_load_output.design_temperature 
-                        && usageData.heat_load_output.whole_home_heat_loss_rate ? (
+                        && usageData.heat_load_output.whole_home_heat_loss_rate && 
+                        hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
                         <HeatLoadAnalysis 
                         heatLoadSummaryOutput={
                             usageData.heat_load_output
                           } 
+                          livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
                         />
                     ) : (
                         <div className="p-4 my-4 border-2 border-red-400 rounded-lg">

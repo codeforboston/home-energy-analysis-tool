@@ -58,14 +58,20 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 
 	const numRecordsForHeatingCalculations =
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
+	
+	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
+	const componentMargin = 'mt-10'
 
 
 	return (
 		<div className="section-title mt-12">
 			<div className="flex flex-row gap-0.5 mb-4">
-				<div className="item-group-title font-semibold text-2xl">Heat Load Analysis</div>
+				
+				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
+					Heat Load Analysis
+				</h2>
 				{/* TODO: add help text here */}
-				{/* <img src={HelpCircle} alt='help text'/> */}
+				<img src={HelpCircle} alt='help text'/>
 			</div>
 
 			<div className="flex flex-row gap-x-4">
@@ -73,7 +79,7 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
 						<div className="item font-bold">
-							{summaryOutputs?.average_indoor_temperature} °F
+							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 						</div>
 						<br />
 						Balance Point Temperature
@@ -89,7 +95,7 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 						Number of Periods Included <br />
 						<div className="item font-bold">{numRecordsForHeatingCalculations} / {totalRecords}</div>
 						<br />
-						Daily non-heating Usage <br />
+						Daily Non-heating Usage <br />
 						<div className="item font-bold">
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
