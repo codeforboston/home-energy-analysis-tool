@@ -213,7 +213,6 @@ export default function SubmitAnalysis({
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
-    const [tally, setTally] = useState(0)
     const [lastResult, setLastResult] = useState<ActionResult>()
     useEffect(() => {
         setLastResult(actionData)
@@ -227,8 +226,6 @@ export default function SubmitAnalysis({
         };
     }, []);
 
-    setLastResult(actionData)
-
     let showUsageData = lastResult !== undefined;
     
     let parsedLastResult: Map<any, any>| undefined;
@@ -240,19 +237,12 @@ export default function SubmitAnalysis({
             parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 
             const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-            if (tally < 4) {
-                setTally(tally+1)
-                setUsageData( (prevUsageData) => {
-                    if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                        return newUsageData;
-                    }
-                    return prevUsageData
-                });
+            if (objectToString(usageData) != objectToString(newUsageData)) {
+                setUsageData(newUsageData);
             }
-       }
+        }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
-    console.log(loaderData, "loader data", loaderData.isDevMode); 
 
     const defaultValue: SchemaZodFromFormType | undefined = loaderData.isDevMode ? {
         living_area: 2155,
