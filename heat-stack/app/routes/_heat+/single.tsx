@@ -2,13 +2,13 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Form } from 'react-router'
 import {  type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
+import { type ActionResult, fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { buildCurrentUsageData, objectToString, hasDataProperty, hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
 
@@ -214,10 +214,13 @@ export default function SubmitAnalysis({
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [tally, setTally] = useState(0)
-    const [lastResult, setLastResult] = useState<any>()
+    const [lastResult, setLastResult] = useState<ActionResult>()
+    useEffect(() => {
+        setLastResult(actionData)
+    }, [actionData]);
 
 
-    React.useEffect(() => {        
+    useEffect(() => {        
         return () => {
         // Memory cleanup of pyodide fn's when component unmounts
         cleanupPyodideResources();
