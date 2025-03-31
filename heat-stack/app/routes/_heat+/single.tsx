@@ -2,7 +2,7 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Form } from 'react-router'
 import {  type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -214,15 +214,21 @@ export default function SubmitAnalysis({
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [tally, setTally] = useState(0)
+    const [lastResult, setLastResult] = useState<any>()
 
-    React.useEffect(() => {        
+
+    useEffect(() => {        
         return () => {
         // Memory cleanup of pyodide fn's when component unmounts
         cleanupPyodideResources();
         };
     }, []);
 
-    const lastResult = actionData
+
+    useEffect(() => {
+        console.log("action data", actionData)
+        setLastResult(actionData)
+    }, [actionData]);
 
     let showUsageData = lastResult !== undefined;
     
