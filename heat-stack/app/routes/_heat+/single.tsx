@@ -166,7 +166,6 @@ export default function SubmitAnalysis({
     loaderData,
     actionData,
 }: Route.ComponentProps) {
-    
     // USAGE OF lastResult
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
@@ -213,7 +212,6 @@ export default function SubmitAnalysis({
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
-    const [tally, setTally] = useState(0)
 
     React.useEffect(() => {        
         return () => {
@@ -228,23 +226,15 @@ export default function SubmitAnalysis({
     
     let parsedLastResult: Map<any, any>| undefined;
 
-    if (showUsageData && hasDataProperty(lastResult)) 
-        {
-            // Parse the JSON string from lastResult.data
-            // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-            parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-
-            const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-            if (tally < 4) {
-                setTally(tally+1)
-                setUsageData( (prevUsageData) => {
-                    if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                        return newUsageData;
-                    }
-                    return prevUsageData
-                });
-            }
-       }
+    if (showUsageData && hasDataProperty(lastResult)) {
+        // Parse the JSON string from lastResult.data
+        // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+        parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+        const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+        if (objectToString(usageData) != objectToString(newUsageData)) {
+            setUsageData(newUsageData)
+        }
+    }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
     console.log(loaderData, "loader data", loaderData.isDevMode); 
@@ -270,6 +260,8 @@ export default function SubmitAnalysis({
         defaultValue,
         shouldValidate: 'onBlur'
     })
+
+
 
     // @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
     return (
