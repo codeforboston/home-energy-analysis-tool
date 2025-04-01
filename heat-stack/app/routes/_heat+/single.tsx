@@ -142,8 +142,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
     gasBillDataFromTextFilePyProxy.destroy()
 
-    console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
-
     // Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
     // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
@@ -214,7 +212,7 @@ export default function SubmitAnalysis({
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [tally, setTally] = useState(0)
-    const [lastResult, setLastResult] = useState<any>()
+    const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
 
     useEffect(() => {        
@@ -224,9 +222,7 @@ export default function SubmitAnalysis({
         };
     }, []);
 
-
     useEffect(() => {
-        console.log("action data", actionData)
         setLastResult(actionData)
     }, [actionData]);
 
@@ -253,7 +249,6 @@ export default function SubmitAnalysis({
        }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
-    console.log(loaderData, "loader data", loaderData.isDevMode); 
 
     const defaultValue: SchemaZodFromFormType | undefined = loaderData.isDevMode ? {
         living_area: 2155,
