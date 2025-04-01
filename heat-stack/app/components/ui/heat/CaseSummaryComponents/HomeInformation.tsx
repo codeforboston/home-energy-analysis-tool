@@ -1,8 +1,10 @@
 import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
-import { Button } from '#/app/components/ui/button.tsx'
+import { useState, useEffect } from 'react'
+// import { Button } from '#/app/components/ui/button.tsx' | Used in a commented out field in the JSX
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from "./ErrorList.tsx"
+import { getCountyID } from '#app/utils/date-temp-util.ts'
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
@@ -45,11 +47,21 @@ import { ErrorList } from "./ErrorList.tsx"
 type HomeInformationProps = {fields: any};
 
 export function HomeInformation(props: HomeInformationProps) {
-
+	const [address, setAddress] = useState("");
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
+	const handleBlurAddress = (event: any) => {
+		setAddress(event.target.value);
+		console.log("debug handleBlur setting address to", address);
+	}
+	useEffect(() => {
+		// Calling getCountyID causes a CORS error
+		// const { county_id }: any = getCountyID(address);
+		console.log("debug useEffect changed address to:", address);
+		// console.log("debug useEffect county_id:", county_id);
+	}, [address])
 	return (
 		<div>
 			<h2 className={`${titleClass}`}>Home Information</h2>
@@ -84,7 +96,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="mt-4 flex space-x-4">
 						<div>
-							<Input {...getInputProps(props.fields.address, { type: "text" })} />
+							<Input {...getInputProps(props.fields.address, { type: "text" })} onBlur={handleBlurAddress}/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.address.errorId}

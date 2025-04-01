@@ -7,6 +7,12 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, { type TemperatureInputDataConverted } from './WeatherUtil.ts'
 
+// Calling geocodeUtil causes a CORS error
+// export async function getCountyID(address: string) {
+// 	const geocodeUtil = new GeocodeUtil()
+// 	return await geocodeUtil.getLL(address)
+// }
+
 export default async function getConvertedDatesTIWD(
 	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
 	address: string,
