@@ -45,85 +45,76 @@ import { ErrorList } from "./ErrorList.tsx"
 type HomeInformationProps = {fields: any};
 
 export function HomeInformation(props: HomeInformationProps) {
-
 	const titleClass = 'text-5xl font-extrabold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
+
 	return (
-		<div>
-			<h2 className={`${titleClass}`}>Home Information</h2>
+		<fieldset>
+			<legend className={`${titleClass} ${componentMargin}`}>Home Information</legend>
 
 			{/* <Form method="post" action="/inputs1"> */}
-				<div className={`${componentMargin}`}>
-					<h6>
-						<Label className={`${subtitleClass}`} htmlFor="name">
-							Resident/Client Name(s)
-						</Label>
-					</h6>
-
-					<div className="mt-4 flex space-x-4">
-						<div>
-							<Input {...getInputProps(props.fields.name, { type: "text" })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className={`${componentMargin}`}>
+				<Label className={`${subtitleClass}`} htmlFor="name">
+					Resident/Client Name(s)
+				</Label>
+				<div className="mt-4 flex space-x-4">
+					<div>
+						<Input {...getInputProps(props.fields.name, { type: "text" })} />
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.name.errorId}
 								errors={props.fields.name.errors}
 							/>
-							</div>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				<div className="mt-9">
-					<h6>
-						<Label className={`${subtitleClass}`} htmlFor="address">
-							Street Address, City, State
-						</Label>
-					</h6>
-
-					<div className="mt-4 flex space-x-4">
-						<div>
-							<Input {...getInputProps(props.fields.address, { type: "text" })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className="mt-9">
+				<Label className={`${subtitleClass}`} htmlFor="address">
+					Street Address, City, State
+				</Label>
+				<div className="mt-4 flex space-x-4">
+					<div>
+						<Input {...getInputProps(props.fields.address, { type: "text" })} />
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.address.errorId}
 								errors={props.fields.address.errors}
 							/>
-							</div>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				<div className="mt-9">
-					<h6>
-						<Label className={`${subtitleClass}`} htmlFor="living_area">
-							Living Area (sf)
-						</Label>
-					</h6>
-
-					<div className="mt-4 flex space-x-2">
-						<div>
-							<Input {...getInputProps(props.fields.living_area, { type: "text" })}  />
-							<p className={`${descriptiveClass}`}>
-								The home's above-grade, conditioned space
-							</p>
-							<div className="min-h-[12px] px-4 pb-3 pt-1">
+			<div className="mt-9">
+				<Label className={`${subtitleClass}`} htmlFor="living_area">
+					Living Area (sf)
+				</Label>
+				<div className="mt-4 flex space-x-2">
+					<div>
+						<Input {...getInputProps(props.fields.living_area, { type: "text" })}  />
+						<span className={`${descriptiveClass}`}>
+							The home's above-grade, conditioned space
+						</span>
+						<div className="min-h-[12px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.living_area.errorId}
 								errors={props.fields.living_area.errors}
 							/>
-							</div>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				{/* removed temporarily for single page app format */}
-				{/* <div>
+			{/* removed temporarily for single page app format */}
+			{/* <div>
 				<Button type="submit">Next ={'>'}</Button>
 			</div> */}
 
 			{/* </Form> */}
-		</div>
+		</fieldset>
 	)
 }

@@ -218,8 +218,10 @@ function App() {
 					<br />
 					<Outlet />
 					<br />
-					<hr />
-					<div>Site footer</div>
+					<footer className="mt-10">
+						<hr />
+						<p>Site footer</p>
+					</footer>
 				</div>
 
 				<div className="container flex justify-between pb-5">
