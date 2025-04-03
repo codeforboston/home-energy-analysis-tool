@@ -42,6 +42,18 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 		setPercentageValue(e.target.value);
 	};
 
+	console.log('address value', props.fields.address.value);
+	console.log('dirty', props.fields.address.dirty);
+	console.log(!props.fields.address.value);
+
+	// TODO: `dirty` just compares to the default value. Maybe we should set
+	// default values to form values if they exist?
+	let design_temp_override_help_text = `5°F to 15°F is the 99% ASHRAE heating design temperature for MA`;
+	if (props.fields.address.value && !(props.fields.address.dirty) {
+		// Old Placeholder Value: 7°F is the 99% ASHRAE heating design temperature at this location
+		design_temp_override_help_text = `??°F is the 99% ASHRAE heating design temperature for county_name county`;
+	}
+
 	return (
 		<div>
 			<h2 className={`${titleClass} ${componentMargin}`}>
@@ -111,7 +123,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
 						<div className={`${descriptiveClass}`}>
-							65°F is the 99% ASHRAE heating design temperature at this location
+							{design_temp_override_help_text}
 						</div>
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
