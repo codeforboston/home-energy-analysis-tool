@@ -1,0 +1,34 @@
+- single.tsx needs the temperature
+- HomeInformation.tsx has the address used to calculate it
+
+- js file
+  - create a js file you can call using a URL
+  - return a value of 4
+  - confirm when you enter URL in browser, response returns 4
+  - **commit**
+  - add a post variable “address”
+  - get county id of the address and return
+  - **commit**
+  - confirm with PostMan that you can post the request and it will return a county id
+  - get the temperature using the county id
+  - return temperature
+  - confirm posting request for an address returns temperature
+  - **commit**
+
+- HomeInformation
+  - create state variable to track address
+  - when address changes, console.log
+  - **commit**
+  - get county id and temperature
+    - fetch js function to get temperature when address
+    - console.log temperature
+  - **commit**
+
+- single.tsx
+  - create state variable for tracking temperature
+  - pass setTemperature to HomeInformation
+  - (HomeInformation) access setTemperature as a parameter and call when temperature changes
+  - console log temperature when it changes
+  - **commit**
+  - modify JSX to display temperature in hint
+  - **commit**
