@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { getCountyId } from "./averageTemperature";
+import { getCountyId } from "../utils/date-temp-util";
 
 
 /**
@@ -19,6 +19,6 @@ export async function action({ request }) {
         const countyId = await getCountyId(address);
         return json({ countyId });
     } catch (error) {
-        return json({ error: "Error processing request" }, { status: 500 });
+        return json({ error: error }, { status: 500 });
     }
 }
