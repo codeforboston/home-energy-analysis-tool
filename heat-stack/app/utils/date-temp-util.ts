@@ -7,6 +7,18 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, { type TemperatureInputDataConverted } from './WeatherUtil.ts'
 
+
+/**
+ * @param {string} address of the user
+ * @returns the county_id of the county to which the address belongs
+ */
+export async function getCountyId(address: string) {
+    const geocodeUtil = new GeocodeUtil();
+    const { county_id } = await geocodeUtil.getLL(address);
+    return county_id;
+}
+
+
 export default async function getConvertedDatesTIWD(
 	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
 	address: string,

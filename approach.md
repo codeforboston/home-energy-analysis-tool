@@ -6,12 +6,11 @@
   - return a value of 4
   - confirm when you enter URL in browser, response returns 4
   - **commit** DONE
-  - read a post variable “address”
-  - return "x" + address
-  - **commit**
+  - read a post variable “address” from a request to an action method in getCountyId
+  - have the action method return "x " + address
+  - **commit** DONE
   - get county id of the address and return
-  - **commit**
-  - confirm with PostMan that you can post the request and it will return a county id
+  - **commit** DONE
   - get the temperature using the county id
   - return temperature
   - confirm posting request for an address returns temperature
