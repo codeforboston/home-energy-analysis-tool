@@ -5,8 +5,10 @@
   - create a js file you can call using a URL
   - return a value of 4
   - confirm when you enter URL in browser, response returns 4
+  - **commit** DONE
+  - read a post variable “address”
+  - return "x" + address
   - **commit**
-  - add a post variable “address”
   - get county id of the address and return
   - **commit**
   - confirm with PostMan that you can post the request and it will return a county id
