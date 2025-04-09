@@ -51,7 +51,6 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 export const Schema = HomeFormSchema.and(CurrentHeatingSystemSchema) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
-
     let url = new URL(request.url);
     let isDevMode: boolean = url.searchParams.get("dev")?.toLowerCase() === "true";
     return {isDevMode}
