@@ -75,7 +75,7 @@ For more details, visit the
 
 ### Node.js Setup
 
-The project requires Node.js version 18 to avoid engine errors with node v19+.
+The project requires Node.js version 22.
 [Use Node Version Manager (NVM)](https://github.com/nvm-sh/nvm/blob/master/README.md)
 for managing Node.js versions (nvm is preinstalled in coding spaces).
 
@@ -89,13 +89,13 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    ```bash
    nvm --version
    ```
-3. Install Node.js version 18:
+3. Install Node.js version 22:
    ```bash
-   nvm install 18
+   nvm install 22
    ```
-4. Use Node.js version 18:
+4. Use Node.js version 22:
    ```bash
-   nvm use 18
+   nvm use 22
    ```
 
 ---
@@ -157,10 +157,10 @@ If using GitHub Codespaces, follow these steps:
    cp .env.example .env
    ```
 
-3. Use Node.js version 18:
+3. Use Node.js version 22:
 
    ```bash
-   nvm use 18
+   nvm use 22
    ```
 
 4. Install dependencies and build:
@@ -168,6 +168,7 @@ If using GitHub Codespaces, follow these steps:
    ```bash
    npm install
    npm run buildpy
+   npm run setup
    npm run dev
    ```
 
