@@ -103,26 +103,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-			<Label htmlFor="design_temperature_override" className={`${subtitleClass}`}>
-				Design Temperature Override (°F)
-			</Label>
-			<div className="mt-4 flex space-x-4">
-				<div className={`basis-1/3`}>
-					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
-					<div>
-						<div className={`${descriptiveClass}`}>
-							65°F is the 99% ASHRAE heating design temperature at this location
-						</div>
-					</div>
-					<div className="min-h-[32px] px-4 pb-3 pt-1">
-						<ErrorList
-							id={props.fields.design_temperature_override.errorId}
-							errors={props.fields.design_temperature_override.errors}
-						/>
-					</div>
-				</div>
-			</div>
-
 			<div>
 				<h6 className={`${subtitleClass}`}>Thermostat Settings</h6>
 				<div className="mt-4 flex space-x-4">
