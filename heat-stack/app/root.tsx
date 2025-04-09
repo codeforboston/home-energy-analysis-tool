@@ -184,6 +184,13 @@ function App() {
 	const user = useOptionalUser()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
+	const isHomePage = matches.find((m) => {
+		let data = {} as any;  // Typescript is freaking out about m.data.requestInfo
+		if ( m && m.data ) { data = m.data; }
+		if ( data.requestInfo && data.requestInfo.path ) {
+			return data.requestInfo.path === '/'
+		}
+	})
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
 
@@ -193,7 +200,15 @@ function App() {
 			getSrc={getImgSrc}
 		>
 			<div className="flex min-h-screen flex-col justify-between">
-				<header className="container py-6">
+				<header className="container py-6 px-0">
+					{!isHomePage ? <Link to="/">
+						<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white">
+							<div className="max-w-5xl mx-auto text-center">
+								<h1 className="text-4xl md:text-4xl font-bold mb-6">Home Energy Analysis Tool (HEAT)</h1>
+							</div>
+						</section>
+					</Link> : null}
+
 					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 						<div className="ml-auto hidden max-w-sm flex-1">
 							{searchBar}
