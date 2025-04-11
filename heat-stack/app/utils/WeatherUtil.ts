@@ -59,7 +59,7 @@ class WeatherUtil {
         params.append("temperature_unit","fahrenheit");
 
         let url = new URL(BASE_URL+WHATEVER_PATH+"?"+params.toString());
-        const maxRetries = 3;
+        const maxRetries = 10;
         let retryCount = 0;
         
         while (retryCount <= maxRetries) {
