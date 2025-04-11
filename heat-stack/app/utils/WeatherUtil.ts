@@ -59,7 +59,7 @@ class WeatherUtil {
         params.append("temperature_unit","fahrenheit");
 
         let url = new URL(BASE_URL+WHATEVER_PATH+"?"+params.toString());
-        const maxRetries = 10;
+        const maxRetries = 30;
         let retryCount = 0;
         
         while (retryCount <= maxRetries) {
@@ -87,7 +87,7 @@ class WeatherUtil {
             
             if (retryCount <= maxRetries) {
               // Exponential backoff
-              const delay = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+              const delay = 100;
               console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`);
               await new Promise(resolve => setTimeout(resolve, delay));
             } else {
