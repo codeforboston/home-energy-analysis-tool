@@ -195,8 +195,7 @@ function App() {
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6">
 					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-						<TopLinks />
-						<div className="ml-auto hidden max-w-sm flex-1 sm:block">
+						<div className="ml-auto hidden max-w-sm flex-1">
 							{searchBar}
 						</div>
 						<div className="flex items-center gap-10">
@@ -208,45 +207,17 @@ function App() {
 								</Button>
 							)}
 						</div>
-						<div className="block w-full sm:hidden">{searchBar}</div>
+						<div className="hidden w-full sm:hidden">{searchBar}</div>
 					</nav>
 				</header>
 
 				<div className="flex flex-1 flex-col">
-					<div>Site header</div>
-					<hr />
-					<br />
 					<Outlet />
-					<br />
-					<hr />
-					<div>Site footer</div>
-				</div>
-
-				<div className="container flex justify-between pb-5">
-					<TopLinks />
 				</div>
 			</div>
 			<EpicToaster closeButton position="top-center" />
 			<EpicProgress />
 		</OpenImgContextProvider>
-	)
-}
-
-function TopLinks() {
-	// const data = useLoaderData<typeof loader>();
-	return (
-		<>
-			<Link to="/single" className="group grid leading-snug">
-				<span className="font-light transition group-hover:-translate-x-1">
-					single form
-				</span>
-			</Link>
-			<Link to="/" className="group grid leading-snug">
-				<span className="font-light transition group-hover:-translate-x-1">
-					developers
-				</span>
-			</Link>
-		</>
 	)
 }
 
