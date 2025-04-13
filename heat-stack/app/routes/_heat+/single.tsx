@@ -2,7 +2,7 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Form } from 'react-router'
 import {  type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -141,8 +141,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
     gasBillDataFromTextFilePyProxy.destroy()
 
-    console.log('***** Rules-engine Output from CSV upload:', gasBillDataFromTextFile)
-
     // Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
     // const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
@@ -213,15 +211,19 @@ export default function SubmitAnalysis({
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [tally, setTally] = useState(0)
+    const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
-    React.useEffect(() => {        
+
+    useEffect(() => {        
         return () => {
         // Memory cleanup of pyodide fn's when component unmounts
         cleanupPyodideResources();
         };
     }, []);
 
-    const lastResult = actionData
+    useEffect(() => {
+        setLastResult(actionData)
+    }, [actionData]);
 
     let showUsageData = lastResult !== undefined;
     
@@ -246,7 +248,6 @@ export default function SubmitAnalysis({
        }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
-    console.log(loaderData, "loader data", loaderData.isDevMode); 
 
     const defaultValue: SchemaZodFromFormType | undefined = loaderData.isDevMode ? {
         living_area: 2155,
