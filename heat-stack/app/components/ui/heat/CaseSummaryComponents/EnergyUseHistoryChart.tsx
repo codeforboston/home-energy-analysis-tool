@@ -84,27 +84,24 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
     const handleOverrideCheckboxChange = (index: number) => {
         const newRecords = structuredClone(usageData.processed_energy_bills)
         const period = newRecords[index]
-        
+
         if (period) {
             const currentOverride = period.inclusion_override
             // Toggle 'inclusion_override'
             period.inclusion_override = !currentOverride
-            
-            newRecords[index] = { ...period } 
+
+            newRecords[index] = { ...period }
         }
         const newUsageData = ({
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
             processed_energy_bills: newRecords as BillingRecordsSchema,
         });
-        setUsageData( (prevUsageData) => {
 
-            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                return newUsageData
-            }
-            return prevUsageData // sets useData to
+        if (objectToString(usageData) != objectToString(newUsageData)) {
+            setUsageData(newUsageData);
+        }
 
-        });
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
@@ -134,7 +131,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                             {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
                         </div>
                     </TableHead>
-                    
+
                     <TableHead className='text-center'>Start Date</TableHead>
                     <TableHead className='text-center'>End Date</TableHead>
                     <TableHead className='text-center'>Days in Period</TableHead>
@@ -147,7 +144,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                             {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
                         </div>
                     </TableHead>
-                    
+
                 </TableRow>
             </TableHeader>
             <TableBody>
