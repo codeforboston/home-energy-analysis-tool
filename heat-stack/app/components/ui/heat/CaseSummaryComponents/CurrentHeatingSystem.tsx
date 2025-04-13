@@ -9,7 +9,7 @@ import React from 'react'
 type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
-	const titleClass = 'text-5xl font-extrabold tracking-wide'
+	const titleClass = 'text-4xl font-bold tracking-wide'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'

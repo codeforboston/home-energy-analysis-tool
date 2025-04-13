@@ -59,7 +59,7 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 	const numRecordsForHeatingCalculations =
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
 	
-	const titleClassTailwind = 'text-5xl font-extrabold tracking-wide'
+	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
 	const componentMargin = 'mt-10'
 
 
