@@ -72,26 +72,26 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 	const user = userId
 		? await time(
-				() =>
-					prisma.user.findUnique({
-						select: {
-							id: true,
-							name: true,
-							username: true,
-							image: { select: { objectKey: true } },
-							roles: {
-								select: {
-									name: true,
-									permissions: {
-										select: { entity: true, action: true, access: true },
-									},
+			() =>
+				prisma.user.findUnique({
+					select: {
+						id: true,
+						name: true,
+						username: true,
+						image: { select: { objectKey: true } },
+						roles: {
+							select: {
+								name: true,
+								permissions: {
+									select: { entity: true, action: true, access: true },
 								},
 							},
 						},
-						where: { id: userId },
-					}),
-				{ timings, type: 'find user', desc: 'find user in root' },
-			)
+					},
+					where: { id: userId },
+				}),
+			{ timings, type: 'find user', desc: 'find user in root' },
+		)
 		: null
 	if (userId && !user) {
 		console.info('something weird happened')
@@ -152,7 +152,7 @@ function Document({
 			</head>
 			<body className="bg-background text-foreground">
 				<div className="container items-center justify-between gap-4 md:h-24 md:flex-row">
-					
+
 					{children}
 				</div>
 				<script
@@ -184,6 +184,13 @@ function App() {
 	const user = useOptionalUser()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
+	const isOnHomePage = matches.find((match) => {
+		let data = {} as any;  // Typescript is freaking out about m.data.requestInfo
+		if (match && match.data) { data = match.data; }
+		if (data.requestInfo && data.requestInfo.path) {
+			return data.requestInfo.path === '/'
+		}
+	})
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
 
@@ -193,7 +200,15 @@ function App() {
 			getSrc={getImgSrc}
 		>
 			<div className="flex min-h-screen flex-col justify-between">
-				<header className="container py-6">
+				<header className="container py-6 px-0">
+					{!isOnHomePage ? <Link to="/">
+						<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white">
+							<div className="max-w-5xl mx-auto text-center">
+								<h1 className="text-4xl md:text-4xl font-bold">Home Energy Analysis Tool (HEAT)</h1>
+							</div>
+						</section>
+					</Link> : null}
+
 					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 						<div className="ml-auto hidden max-w-sm flex-1">
 							{searchBar}
