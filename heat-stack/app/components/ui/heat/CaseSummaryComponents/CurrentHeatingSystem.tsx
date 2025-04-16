@@ -55,7 +55,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
-						<Input {...getInputProps(props.fields.fuel_type, { type: "text" })} />
+						<Input aria-disabled={true} disabled={true} {...getInputProps(props.fields.fuel_type, { type: "text" })} />
 					</div>
 				</div>
 				<div className="min-h-[32px] px-4 pb-3 pt-1">
