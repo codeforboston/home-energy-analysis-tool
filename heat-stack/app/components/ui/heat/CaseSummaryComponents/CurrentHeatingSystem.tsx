@@ -43,19 +43,16 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	};
 
 	return (
-		<div>
-			<h2 className={`${titleClass} ${componentMargin}`}>
+		<fieldset>
+			<legend className={`${titleClass} ${componentMargin}`}>
 				Existing Heating System
-			</h2>
+			</legend>
 
 			{/* <Form method="post" action="/current"> */}
 			<div className={`${componentMargin}`}>
-				{' '}
-				<h6>
-					<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
-						Fuel Type
-					</Label>
-				</h6>
+				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
+					Fuel Type
+				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
 						<Input {...getInputProps(props.fields.fuel_type, { type: "text" })} />
@@ -83,17 +80,15 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						value={percentageValue}
 						onChange={handlePercentageChange}
 					/>
-
 					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
 						type="hidden"
 						name={props.fields.heating_system_efficiency.name}
 						value={decimalValue}
 					/>
-
-					<div className={`${descriptiveClass}`}>
+					<span className={`${descriptiveClass}`}>
 						Enter efficiency as a percentage (60-100). Typical natural gas efficiency is 80-95%.
-					</div>
+					</span>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
 							id={props.fields.heating_system_efficiency.errorId}
@@ -110,9 +105,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				<div className={`basis-1/3`}>
 					<Input placeholder="Optional" {...getInputProps(props.fields.design_temperature_override, { type: "text" })} />
 					<div>
-						<div className={`${descriptiveClass}`}>
+						<span className={`${descriptiveClass}`}>
 							65°F is the 99% ASHRAE heating design temperature at this location
-						</div>
+						</span>
 					</div>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
@@ -123,17 +118,18 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-			<div>
-				<h6 className={`${subtitleClass}`}>Thermostat Settings</h6>
+			<fieldset>
+				<legend className={`${subtitleClass}`}>Thermostat Settings</legend>
+
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="thermostat_set_point">
-							<b>Set Point (°F)</b>{' '}
+						<Label htmlFor="thermostat_set_point" className="font-bold">
+							Set Point (°F)
 						</Label>
 						<Input placeholder="(Fahrenheit)" {...getInputProps(props.fields.thermostat_set_point, { type: "text" })} />
-						<div className={`${descriptiveClass}`}>
+						<span className={`${descriptiveClass}`}>
 							Usual thermostat setting for heating
-						</div>
+						</span>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.thermostat_set_point.errorId}
@@ -141,15 +137,16 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							/>
 						</div>
 					</div>
+
 					<div className="basis-1/3">
-						<Label htmlFor="setback_temperature">
-							<b>Setback Temperature (°F)</b>
+						<Label className="font-bold" htmlFor="setback_temperature">
+							Setback Temperature (°F)
 						</Label>
 						<Input placeholder="Optional" {...getInputProps(props.fields.setback_temperature, { type: "text" })} />
-						<div className={`${descriptiveClass}`}>
+						<span className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
 							during working or sleep hours
-						</div>
+						</span>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.setback_temperature.errorId}
@@ -157,15 +154,16 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							/>
 						</div>
 					</div>
+
 					<div className="basis-1/3">
-						<Label htmlFor="setback_hours_per_day">
-							<b>Setback hours per day</b>
+						<Label className="font-bold" htmlFor="setback_hours_per_day">
+							Setback hours per day
 						</Label>
 						<Input placeholder="Optional" {...getInputProps(props.fields.setback_hours_per_day, { type: "text" })} />
-						<div className={`${descriptiveClass}`}>
+						<span className={`${descriptiveClass}`}>
 							Average hours per day that a lower or higher temperature setting
 							is in effect
-						</div>
+						</span>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.setback_hours_per_day.errorId}
@@ -174,7 +172,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						</div>
 					</div>
 				</div>
-			</div>
+			</fieldset>
 
 			{/* </Form> */}
 
@@ -182,6 +180,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			{/* <div>
 				<Button type="submit">Next ={'>'}</Button>
 			</div> */}
-		</div>
+		</fieldset>
 	)
 }
