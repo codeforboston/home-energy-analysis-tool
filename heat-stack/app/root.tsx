@@ -72,26 +72,26 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 	const user = userId
 		? await time(
-				() =>
-					prisma.user.findUnique({
-						select: {
-							id: true,
-							name: true,
-							username: true,
-							image: { select: { objectKey: true } },
-							roles: {
-								select: {
-									name: true,
-									permissions: {
-										select: { entity: true, action: true, access: true },
-									},
+			() =>
+				prisma.user.findUnique({
+					select: {
+						id: true,
+						name: true,
+						username: true,
+						image: { select: { objectKey: true } },
+						roles: {
+							select: {
+								name: true,
+								permissions: {
+									select: { entity: true, action: true, access: true },
 								},
 							},
 						},
-						where: { id: userId },
-					}),
-				{ timings, type: 'find user', desc: 'find user in root' },
-			)
+					},
+					where: { id: userId },
+				}),
+			{ timings, type: 'find user', desc: 'find user in root' },
+		)
 		: null
 	if (userId && !user) {
 		console.info('something weird happened')
@@ -152,7 +152,7 @@ function Document({
 			</head>
 			<body className="bg-background text-foreground">
 				<div className="container items-center justify-between gap-4 md:h-24 md:flex-row">
-					
+
 					{children}
 				</div>
 				<script
@@ -184,10 +184,10 @@ function App() {
 	const user = useOptionalUser()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
-	const isHomePage = matches.find((m) => {
+	const isOnHomePage = matches.find((match) => {
 		let data = {} as any;  // Typescript is freaking out about m.data.requestInfo
-		if ( m && m.data ) { data = m.data; }
-		if ( data.requestInfo && data.requestInfo.path ) {
+		if (match && match.data) { data = match.data; }
+		if (data.requestInfo && data.requestInfo.path) {
 			return data.requestInfo.path === '/'
 		}
 	})
@@ -201,10 +201,10 @@ function App() {
 		>
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6 px-0">
-					{!isHomePage ? <Link to="/">
+					{!isOnHomePage ? <Link to="/">
 						<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white">
 							<div className="max-w-5xl mx-auto text-center">
-								<h1 className="text-4xl md:text-4xl font-bold mb-6">Home Energy Analysis Tool (HEAT)</h1>
+								<h1 className="text-4xl md:text-4xl font-bold">Home Energy Analysis Tool (HEAT)</h1>
 							</div>
 						</section>
 					</Link> : null}
