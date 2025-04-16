@@ -6,9 +6,9 @@ export default function HEATLandingPage() {
 			{/* Hero Section */}
 			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white">
 				<div className="max-w-5xl mx-auto text-center">
-					<h1 className="text-5xl md:text-6xl font-bold mb-6">Right-Size Your Heat Pump</h1>
+					<h1 className="text-5xl md:text-6xl font-bold">Home Energy Analysis Tool (HEAT) </h1>
 					<p className="text-xl md:text-2xl mb-8">
-						The Home Energy Analysis Tool helps determine the perfect heat pump for your home's unique heating needs.
+						Right-Size Your Heat Pump
 					</p>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<Link to="/single" className="inline-block bg-white text-emerald-700 font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
