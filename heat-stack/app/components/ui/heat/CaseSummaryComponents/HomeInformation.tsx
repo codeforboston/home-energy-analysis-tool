@@ -45,7 +45,7 @@ import { ErrorList } from "./ErrorList.tsx"
 type HomeInformationProps = {fields: any};
 
 export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-5xl font-extrabold tracking-wide'
+	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'

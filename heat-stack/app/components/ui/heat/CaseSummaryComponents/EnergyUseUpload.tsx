@@ -3,7 +3,7 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 
 export function EnergyUseUpload() {
-	const titleClass = 'text-5xl font-extrabold tracking-wide mt-10'
+	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 
     return (
 		<fieldset>
