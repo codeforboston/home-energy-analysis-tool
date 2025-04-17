@@ -211,7 +211,6 @@ export default function SubmitAnalysis({
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
-    const [tally, setTally] = useState(0)
     const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
 
@@ -230,23 +229,16 @@ export default function SubmitAnalysis({
     
     let parsedLastResult: Map<any, any>| undefined;
 
-    if (showUsageData && hasDataProperty(lastResult)) 
-        {
-            // Parse the JSON string from lastResult.data
-            // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-            parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+    if (showUsageData && hasDataProperty(lastResult)) {
+        // Parse the JSON string from lastResult.data
+        // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
+        parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 
-            const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-            if (tally < 4) {
-                setTally(tally+1)
-                setUsageData( (prevUsageData) => {
-                    if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                        return newUsageData;
-                    }
-                    return prevUsageData
-                });
-            }
-       }
+        const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+        if (objectToString(newUsageData) !== objectToString(usageData)) {
+            setUsageData(newUsageData);
+        }
+    }
 
     type SchemaZodFromFormType = z.infer<typeof Schema>
 
