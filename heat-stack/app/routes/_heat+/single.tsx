@@ -222,7 +222,9 @@ export default function SubmitAnalysis({
     }, []);
 
     useEffect(() => {
-        setLastResult(actionData)
+        if (actionData) {
+            setLastResult(actionData);
+        }
     }, [actionData]);
 
     let showUsageData = lastResult !== undefined;
