@@ -131,8 +131,16 @@ export async function action({ request, params }: Route.ActionArgs) {
      * and returns date and weather data,
      * and geolocation information 
     */ 
-    const {convertedDatesTIWD, state_id, county_id} = await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
 
+    let convertedDatesTIWD, state_id, county_id;
+    try {
+        const result = await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
+        convertedDatesTIWD = result.convertedDatesTIWD;
+        state_id = result.state_id;
+        county_id = result.county_id;
+    } catch {
+        return {exceptionMessage: "Could not fetch weather data.  Click OK and click calculate again."};
+    }
 
     /** Main form entrypoint
      */
@@ -156,8 +164,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     };
     // return redirect(`/single`)
 } //END OF action
-
-
 
 
 export default function SubmitAnalysis({
@@ -213,7 +219,6 @@ export default function SubmitAnalysis({
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
-
     useEffect(() => {        
         return () => {
         // Memory cleanup of pyodide fn's when component unmounts
@@ -222,7 +227,9 @@ export default function SubmitAnalysis({
     }, []);
 
     useEffect(() => {
-        if (actionData) {
+        if (actionData && actionData.exceptionMessage) {
+            alert(actionData.exceptionMessage);
+        } else {
             setLastResult(actionData);
         }
     }, [actionData]);
