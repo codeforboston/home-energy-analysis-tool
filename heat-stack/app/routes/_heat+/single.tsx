@@ -4,27 +4,28 @@ import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useEffect, useState } from 'react'
 import { Form } from 'react-router'
-import {  type z } from 'zod'
+import { type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { fileUploadHandler, uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { buildCurrentUsageData, objectToString, hasDataProperty, hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
-import {recalculateFromBillingRecordsChange} from '#app/utils/recalculateFromBillingRecordsChange.ts'
+import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
 
-import { 
+import {
     cleanupPyodideResources,
-    executeGetAnalyticsFromFormJs, 
-    executeParseGasBillPy} from '#app/utils/rules-engine.ts'
+    executeGetAnalyticsFromFormJs,
+    executeParseGasBillPy
+} from '#app/utils/rules-engine.ts'
 
 // Ours
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { HomeSchema, LocationSchema, CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */ } from '../../../types/index.ts'
-import { type UsageDataSchema, type NaturalGasUsageDataSchema} from '../../../types/types.ts'
+import { type UsageDataSchema, type NaturalGasUsageDataSchema } from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
-import { HeatLoadAnalysis }  from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
+import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.tsx'
@@ -54,7 +55,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     let url = new URL(request.url);
     let isDevMode: boolean = url.searchParams.get("dev")?.toLowerCase() === "true";
-    return {isDevMode}
+    return { isDevMode }
 }
 
 
@@ -110,7 +111,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
         living_area: living_area,
         address,
-        name: `${ name }'s home`,
+        name: `${name}'s home`,
         fuel_type,
         heating_system_efficiency,
         thermostat_set_point,
@@ -130,7 +131,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     /** This function takes a CSV string and an address
      * and returns date and weather data,
      * and geolocation information 
-    */ 
+    */
 
     let convertedDatesTIWD, state_id, county_id;
     try {
@@ -139,7 +140,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         state_id = result.state_id;
         county_id = result.county_id;
     } catch {
-        return {exceptionMessage: "Could not fetch weather data.  Click OK and click calculate again."};
+        return { exceptionMessage: "Could not fetch weather data.  Click OK and click calculate again." };
     }
 
     /** Main form entrypoint
@@ -170,7 +171,7 @@ export default function SubmitAnalysis({
     loaderData,
     actionData,
 }: Route.ComponentProps) {
-    
+
     // USAGE OF lastResult
     // console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
@@ -219,15 +220,17 @@ export default function SubmitAnalysis({
     const [usageData, setUsageData] = useState<UsageDataSchema | undefined>();
     const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
-    useEffect(() => {        
+    useEffect(() => {
         return () => {
-        // Memory cleanup of pyodide fn's when component unmounts
-        cleanupPyodideResources();
+            // Memory cleanup of pyodide fn's when component unmounts
+            cleanupPyodideResources();
         };
     }, []);
 
     useEffect(() => {
+        //@ts-ignore
         if (actionData && actionData.exceptionMessage) {
+            //@ts-ignore
             alert(actionData.exceptionMessage);
         } else {
             setLastResult(actionData);
@@ -235,9 +238,10 @@ export default function SubmitAnalysis({
     }, [actionData]);
 
     let showUsageData = lastResult !== undefined;
-    
-    let parsedLastResult: Map<any, any>| undefined;
 
+    let parsedLastResult: Map<any, any> | undefined;
+
+    //@ts-ignore
     if (showUsageData && hasDataProperty(lastResult)) {
         // Parse the JSON string from lastResult.data
         // const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
@@ -291,39 +295,39 @@ export default function SubmitAnalysis({
                 <CurrentHeatingSystem fields={fields} />
                 {/* if no usage data, show the file upload functionality */}
                 <EnergyUseUpload />
-                
+
                 <ErrorList id={form.errorId} errors={form.errors} />
                 {showUsageData && (
-                <>
-                    <EnergyUseHistory 
-                        usageData={(usageData || {}) as UsageDataSchema} 
-                        setUsageData={setUsageData} 
-                        lastResult={lastResult} 
-                        parsedLastResult={parsedLastResult} 
-                        recalculateFn={recalculateFromBillingRecordsChange} 
-                        showUsageData={showUsageData} 
-                    />
-                    
-                    {/* Replace regular HeatLoadAnalysis with our debug wrapper */}
-                    {usageData 
-                        && usageData.heat_load_output 
-                        && usageData.heat_load_output.design_temperature 
-                        && usageData.heat_load_output.whole_home_heat_loss_rate && 
-                        hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
-                        <HeatLoadAnalysis 
-                        heatLoadSummaryOutput={
-                            usageData.heat_load_output
-                          } 
-                          livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
+                    <>
+                        <EnergyUseHistory
+                            usageData={(usageData || {}) as UsageDataSchema}
+                            setUsageData={setUsageData}
+                            lastResult={lastResult}
+                            parsedLastResult={parsedLastResult}
+                            recalculateFn={recalculateFromBillingRecordsChange}
+                            showUsageData={showUsageData}
                         />
-                    ) : (
-                        <div className="p-4 my-4 border-2 border-red-400 rounded-lg">
-                            <h2 className="text-xl font-bold mb-4 text-red-600">Not rendering Heat Load</h2>
-                            <p>usageData is undefined or null</p>
-                        </div>
-                    )}
-                </>
-            )}
+
+                        {/* Replace regular HeatLoadAnalysis with our debug wrapper */}
+                        {usageData
+                            && usageData.heat_load_output
+                            && usageData.heat_load_output.design_temperature
+                            && usageData.heat_load_output.whole_home_heat_loss_rate &&
+                            hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+                            <HeatLoadAnalysis
+                                heatLoadSummaryOutput={
+                                    usageData.heat_load_output
+                                }
+                                livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
+                            />
+                        ) : (
+                            <div className="p-4 my-4 border-2 border-red-400 rounded-lg">
+                                <h2 className="text-xl font-bold mb-4 text-red-600">Not rendering Heat Load</h2>
+                                <p>usageData is undefined or null</p>
+                            </div>
+                        )}
+                    </>
+                )}
 
             </Form>
         </>
