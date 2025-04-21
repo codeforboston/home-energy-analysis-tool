@@ -277,7 +277,7 @@ export default function SubmitAnalysis({
 		loaderData.isDevMode
 			? {
 					living_area: 2155,
-					address: '15 Dale Ave Gloucester, MA  01930',
+					address: '15 Dale Ave Gloucester, MA 01930',
 					name: 'CIC',
 					fuel_type: 'GAS',
 					heating_system_efficiency: 0.97,
