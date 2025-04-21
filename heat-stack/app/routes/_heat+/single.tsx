@@ -253,17 +253,9 @@ export default function SubmitAnalysis({
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
-
-		const newUsageData =
-			parsedLastResult && buildCurrentUsageData(parsedLastResult)
-		if (tally < 4) {
-			setTally(tally + 1)
-			setUsageData((prevUsageData) => {
-				if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-					return newUsageData
-				}
-				return prevUsageData
-			})
+		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+		if (objectToString(newUsageData) !== objectToString(usageData)) {
+			setUsageData(newUsageData);
 		}
 	}
 
