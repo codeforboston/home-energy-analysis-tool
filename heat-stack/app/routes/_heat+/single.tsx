@@ -234,7 +234,6 @@ export default function SubmitAnalysis({
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
-	const [tally, setTally] = useState(0)
 
 	React.useEffect(() => {
 		return () => {
@@ -254,6 +253,7 @@ export default function SubmitAnalysis({
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
 		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
