@@ -6,8 +6,8 @@ export function EnergyUseUpload() {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 
     return (
-		<fieldset>
-			<legend className={`${titleClass} pb-6`}>Energy Use History</legend>
+		<div>
+			<h2 className={`${titleClass} pb-6`}>Energy Use History</h2>
 
 			<input
 				id="energy_use_upload"
@@ -31,6 +31,6 @@ export function EnergyUseUpload() {
 					Get example file here
 				</a>
 			</div>
-		</fieldset>
+		</div>
 	)
 }
