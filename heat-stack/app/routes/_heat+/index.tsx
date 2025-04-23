@@ -7,7 +7,7 @@ export default function HEATLandingPage() {
 			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white">
 				<div className="max-w-5xl mx-auto text-center">
 					<h1 className="text-5xl md:text-6xl font-bold">Home Energy Analysis Tool (HEAT) </h1>
-					<p className="text-xl md:text-2xl mb-8">
+					<p className="text-xl md:text-2xl mt-6 mb-8">
 						Right-Size Your Heat Pump
 					</p>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -27,7 +27,7 @@ export default function HEATLandingPage() {
 			{/* Features Section */}
 			<section id="learn-more" className="py-16 px-4 bg-white">
 				<div className="max-w-5xl mx-auto">
-					<h2 className="text-4xl font-bold text-center mb-12 text-gray-800">How H.E.A.T. Works</h2>
+					<h2 className="text-4xl font-bold text-center mb-12 text-gray-800">How HEAT Works</h2>
 
 					<div className="grid md:grid-cols-3 gap-8">
 						<div className="bg-gray-50 p-6 rounded-lg shadow-md">
