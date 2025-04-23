@@ -73,6 +73,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { isDevMode }
 }
 
+interface ErrorWithExceptionMessage extends Error {
+	exceptionMessage?: string;
+  }
+
 export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
@@ -157,11 +161,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 		convertedDatesTIWD = result.convertedDatesTIWD
 		state_id = result.state_id
 		county_id = result.county_id
-	} catch {
-		return {
-			exceptionMessage:
-				'Could not fetch weather data.  Click OK and click calculate again.',
+	} catch (error) {
+		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
+		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
+			return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
 		}
+		throw error
 	}
 
 	/** Main form entrypoint
