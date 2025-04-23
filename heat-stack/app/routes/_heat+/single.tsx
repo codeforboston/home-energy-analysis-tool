@@ -2,7 +2,7 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -43,7 +43,7 @@ import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
-import { type Route } from './+types/single.tsx'
+import { type Route } from './+types/single.ts'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -147,8 +147,22 @@ export async function action({ request, params }: Route.ActionArgs) {
 	 * and returns date and weather data,
 	 * and geolocation information
 	 */
-	const { convertedDatesTIWD, state_id, county_id } =
-		await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
+
+	let convertedDatesTIWD, state_id, county_id
+	try {
+		const result = await getConvertedDatesTIWD(
+			pyodideResultsFromTextFile,
+			address,
+		)
+		convertedDatesTIWD = result.convertedDatesTIWD
+		state_id = result.state_id
+		county_id = result.county_id
+	} catch {
+		return {
+			exceptionMessage:
+				'Could not fetch weather data.  Click OK and click calculate again.',
+		}
+	}
 
 	/** Main form entrypoint
 	 */
@@ -163,11 +177,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	)
 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 	gasBillDataFromTextFilePyProxy.destroy()
-
-	console.log(
-		'***** Rules-engine Output from CSV upload:',
-		gasBillDataFromTextFile,
-	)
 
 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
@@ -234,20 +243,30 @@ export default function SubmitAnalysis({
         temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
      */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
+	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 
-	React.useEffect(() => {
+	useEffect(() => {
 		return () => {
 			// Memory cleanup of pyodide fn's when component unmounts
 			cleanupPyodideResources()
 		}
 	}, [])
 
-	const lastResult = actionData
+	useEffect(() => {
+		//@ts-ignore
+		if (actionData && actionData.exceptionMessage) {
+			//@ts-ignore
+			alert(actionData.exceptionMessage)
+		} else {
+			setLastResult(actionData)
+		}
+	}, [actionData])
 
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
 
+	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult)) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
@@ -271,7 +290,7 @@ export default function SubmitAnalysis({
 		loaderData.isDevMode
 			? {
 					living_area: 2155,
-					address: '15 Dale Ave Gloucester, MA 01930',
+				    address: '15 Dale Ave Gloucester, MA  01930',
 					name: 'CIC',
 					fuel_type: 'GAS',
 					heating_system_efficiency: 0.97,
