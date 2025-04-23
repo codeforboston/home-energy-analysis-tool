@@ -228,6 +228,7 @@ function App() {
 
 				<div className="flex flex-1 flex-col">
 					<Outlet />
+					<div className="container flex justify-between pb-5">&nbsp;</div>
 				</div>
 			</div>
 			<EpicToaster closeButton position="top-center" />
