@@ -1,7 +1,6 @@
 import { useForm, getInputProps, useInputControl } from '@conform-to/react'
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
-
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
@@ -60,60 +59,54 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				Existing Heating System
 			</legend>
 
-			{/* <Form method="post" action="/current"> */}
-			<div className={`${componentMargin}`}>
-				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
-					Fuel Type
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div className="basis-1/4">
-						{/* Disabled fields don't submit. */}
-						<Input
-							aria-disabled={true}
-							disabled={true}
-							onChange={(e) => setFuelType(e.target.value)}
-							{...getInputProps(props.fields.fuel_type, { type: 'text' })}
+			<div className={`flex flex-wrap gap-8 ${componentMargin}`}>
+				{/* Fuel Type */}
+				<div className="flex flex-col" style={{ width: '20ch' }}>
+					<Label htmlFor="fuel_type" className="text-base font-medium">
+						Fuel Type
+					</Label>
+					<Input
+						aria-disabled
+						disabled
+						value={fuelType}
+						onChange={(e) => setFuelType(e.target.value)}
+						{...getInputProps(props.fields.fuel_type, { type: 'text' })}
+					/>
+					<Input type="hidden" name="fuel_type" value={fuelType} />
+					<div className="min-h-[32px] px-1 pb-2 pt-1">
+						<ErrorList
+							id={props.fields.fuel_type.errorId}
+							errors={props.fields.fuel_type.errors}
 						/>
-						{/* This hidden field submits the same value instead. */}
-						<Input type="hidden" name="fuel_type" value={fuelType} />
 					</div>
 				</div>
-				<div className="min-h-[32px] px-4 pb-3 pt-1">
-					<ErrorList
-						id={props.fields.fuel_type.errorId}
-						errors={props.fields.fuel_type.errors}
-					/>
-				</div>
-			</div>
 
-			<Label
-				htmlFor="heating_system_efficiency_display"
-				className={`${subtitleClass}`}
-			>
-				Heating System Efficiency %
-			</Label>
-			<div className="mt-4 flex space-x-4">
-				<div className={`basis-1/3`}>
-					{/* Display percentage to the user */}
+				{/* Heating System Efficiency */}
+				<div className="flex flex-col" style={{ width: '24ch' }}>
+					<Label
+						htmlFor="heating_system_efficiency_display"
+						className="text-base font-medium"
+					>
+						Heating System Efficiency (%)
+					</Label>
 					<Input
 						id="heating_system_efficiency_display"
-						// Don't include a name to prevent it from being submitted
-						placeholder="Enter a percentage (60-100)"
+						placeholder="60–100"
 						type="number"
 						value={percentageValue}
 						onChange={handlePercentageChange}
+						min={60}
+						max={100}
 					/>
-					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
 						type="hidden"
 						name={props.fields.heating_system_efficiency.name}
 						value={decimalValue}
 					/>
-					<span className={`${descriptiveClass}`}>
-						Enter efficiency as a percentage (60-100). Typical natural gas
-						efficiency is 80-95%.
+					<span className={descriptiveClass}>
+						Typical gas efficiency is 80–95%.
 					</span>
-					<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<div className="min-h-[32px] px-1 pb-2 pt-1">
 						<ErrorList
 							id={props.fields.heating_system_efficiency.errorId}
 							errors={props.fields.heating_system_efficiency.errors}
@@ -191,13 +184,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					</div>
 				</div>
 			</fieldset>
-
-			{/* </Form> */}
-
-			{/* removed temporarily for single page app format */}
-			{/* <div>
-				<Button type="submit">Next ={'>'}</Button>
-			</div> */}
 		</fieldset>
 	)
 }
