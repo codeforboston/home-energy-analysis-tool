@@ -1,8 +1,7 @@
-import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
-import { Button } from '#/app/components/ui/button.tsx'
+import { getInputProps } from '@conform-to/react'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
-import { ErrorList } from "./ErrorList.tsx"
+import { ErrorList } from './ErrorList.tsx'
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
@@ -41,80 +40,68 @@ import { ErrorList } from "./ErrorList.tsx"
 
 // 	// return redirect(`/inputs1`)
 // }
+type HomeInformationProps = { fields: any }
 
-type HomeInformationProps = {fields: any};
-
-export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
-	const componentMargin = 'mt-10'
+export function HomeInformation({ fields }: HomeInformationProps) {
+	const labelClass = 'w-40 text-base font-medium text-gray-800'
+	const rowClass = 'flex items-center space-x-4'
+	const fieldGroupClass = 'space-y-1'
+	const inputClass = 'placeholder-italic'
 
 	return (
-		<fieldset>
-			<legend className={`${titleClass} ${componentMargin}`}>Home Information</legend>
+		<fieldset className="space-y-8">
+			<legend className="text-4xl font-bold tracking-wide mt-10">
+				Home Information
+			</legend>
 
-			{/* <Form method="post" action="/inputs1"> */}
-			<div className={`${componentMargin}`}>
-				<Label className={`${subtitleClass}`} htmlFor="name">
-					Resident/Client Name(s)
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.name, { type: "text" })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.name.errorId}
-								errors={props.fields.name.errors}
-							/>
-						</div>
-					</div>
+			{/* Client Name */}
+			<div className={fieldGroupClass}>
+				<div className={rowClass}>
+					<Label htmlFor="name" className={labelClass}>
+						Resident or Client Name(s)
+					</Label>
+					<Input
+						{...getInputProps(fields.name, { type: 'text' })}
+						placeholder="e.g., Jane Doe"
+						className={`w-64 ${inputClass}`}
+					/>
 				</div>
+				<ErrorList id={fields.name.errorId} errors={fields.name.errors} />
 			</div>
 
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="address">
-					Street Address, City, State
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.address, { type: "text" })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.address.errorId}
-								errors={props.fields.address.errors}
-							/>
-						</div>
-					</div>
+			{/* Address */}
+			<div className={fieldGroupClass}>
+				<div className={rowClass}>
+					<Label htmlFor="address" className={labelClass}>
+						Street Address, City, State
+					</Label>
+					<Input
+						{...getInputProps(fields.address, { type: 'text' })}
+						placeholder="e.g., 123 Main St, Anytown, MA 01234"
+						className={`w-[28rem] ${inputClass}`}
+					/>
 				</div>
+				<ErrorList id={fields.address.errorId} errors={fields.address.errors} />
 			</div>
 
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="living_area">
-					Living Area (sf)
-				</Label>
-				<div className="mt-4 flex space-x-2">
-					<div>
-						<Input {...getInputProps(props.fields.living_area, { type: "text" })}  />
-						<span className={`${descriptiveClass}`}>
-							The home's above-grade, conditioned space
-						</span>
-						<div className="min-h-[12px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.living_area.errorId}
-								errors={props.fields.living_area.errors}
-							/>
-						</div>
-					</div>
+			{/* Living Area */}
+			<div className={fieldGroupClass}>
+				<div className={rowClass}>
+					<Label htmlFor="living_area" className={labelClass}>
+						Living Area
+					</Label>
+					<Input
+						{...getInputProps(fields.living_area, { type: 'number' })}
+						placeholder="e.g., 1800"
+						className={`w-32 ${inputClass}`}
+						inputMode="numeric"
+					/>
 				</div>
+				<ErrorList
+					id={fields.living_area.errorId}
+					errors={fields.living_area.errors}
+				/>
 			</div>
-
-			{/* removed temporarily for single page app format */}
-			{/* <div>
-				<Button type="submit">Next ={'>'}</Button>
-			</div> */}
-
-			{/* </Form> */}
 		</fieldset>
 	)
 }
