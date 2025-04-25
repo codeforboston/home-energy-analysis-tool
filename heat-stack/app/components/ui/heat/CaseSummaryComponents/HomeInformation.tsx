@@ -53,11 +53,11 @@ export function HomeInformation({ fields }: HomeInformationProps) {
 			<legend className="text-4xl font-bold tracking-wide mt-10">
 				Home Information
 			</legend>
-
+	
 			{/* Client Name */}
 			<div className={fieldGroupClass}>
-				<div className={rowClass}>
-					<Label htmlFor="name" className={labelClass}>
+				<div className="flex items-center space-x-2">
+					<Label htmlFor="name" className={`${labelClass} w-60`}>
 						Resident or Client Name(s)
 					</Label>
 					<Input
@@ -68,11 +68,11 @@ export function HomeInformation({ fields }: HomeInformationProps) {
 				</div>
 				<ErrorList id={fields.name.errorId} errors={fields.name.errors} />
 			</div>
-
+	
 			{/* Address */}
 			<div className={fieldGroupClass}>
-				<div className={rowClass}>
-					<Label htmlFor="address" className={labelClass}>
+				<div className="flex items-center space-x-2">
+					<Label htmlFor="address" className={`${labelClass} w-60`}>
 						Street Address, City, State
 					</Label>
 					<Input
@@ -83,11 +83,11 @@ export function HomeInformation({ fields }: HomeInformationProps) {
 				</div>
 				<ErrorList id={fields.address.errorId} errors={fields.address.errors} />
 			</div>
-
+	
 			{/* Living Area */}
 			<div className={fieldGroupClass}>
-				<div className={rowClass}>
-					<Label htmlFor="living_area" className={labelClass}>
+				<div className="flex items-center space-x-2">
+					<Label htmlFor="living_area" className={`${labelClass} w-60`}>
 						Living Area
 					</Label>
 					<Input
@@ -103,5 +103,5 @@ export function HomeInformation({ fields }: HomeInformationProps) {
 				/>
 			</div>
 		</fieldset>
-	)
+	)	
 }
