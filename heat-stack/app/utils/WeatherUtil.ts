@@ -95,7 +95,7 @@ class WeatherUtil {
                     console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`);
                     await new Promise((resolve) => setTimeout(resolve, delay));
                 } else {
-          const exceptionMessage = 'Failed to fetch weather data after multiple attempts.\nClick OK and click calculate again.';
+          const exceptionMessage = `Failed to get temperature data at this home's location from an online data source.\nTry again by clicking OK and then clicking Calculate.`;
           //@ts-ignore
           error.exceptionMessage = exceptionMessage;
                     console.error(exceptionMessage);
