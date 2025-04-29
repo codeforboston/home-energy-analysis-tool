@@ -72,7 +72,7 @@ class WeatherUtil {
                 const rezzy = await fetch(url.toString());
 
                 if (!rezzy.ok) {
-                    throw new Error(`HTTP error! Status: ${rezzy.status}`;)
+                    throw new Error(`HTTP error! Status: ${rezzy.status}`);
                 }
 
                 const jrez = (await rezzy.json()) as ArchiveApiResponse;
