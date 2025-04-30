@@ -5,6 +5,13 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import {
+	Select,
+	SelectTrigger,
+	SelectValue,
+	SelectContent,
+	SelectItem,
+} from '#/app/components/ui/select.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 
@@ -47,12 +54,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 		setPercentageValue(e.target.value)
 	}
 
-	const [fuelType, setFuelType] = useState('')
-
-	useEffect(() => {
-		// Set the initial value of the form field
-		setFuelType('GAS')
-	}, []) // Empty dependency array ensures this runs only once at mount
+	const [fuelType, setFuelType] = useState('GAS')
 
 	return (
 		<fieldset>
@@ -67,13 +69,15 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
-						{/* Disabled fields don't submit. */}
-						<Input
-							aria-disabled={true}
-							disabled={true}
-							onChange={(e) => setFuelType(e.target.value)}
-							{...getInputProps(props.fields.fuel_type, { type: 'text' })}
-						/>
+						<Select onValueChange={(val) => setFuelType(val)} value={fuelType}>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue placeholder="Fuel Type" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="GAS">Natural Gas</SelectItem>
+							</SelectContent>
+						</Select>
+
 						{/* This hidden field submits the same value instead. */}
 						<Input type="hidden" name="fuel_type" value={fuelType} />
 					</div>
