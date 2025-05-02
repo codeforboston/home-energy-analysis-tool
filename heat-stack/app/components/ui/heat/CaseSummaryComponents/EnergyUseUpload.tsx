@@ -1,9 +1,18 @@
 import { Upload } from 'lucide-react'
+import { useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 
 export function EnergyUseUpload() {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
+	const targetRef = useRef<HTMLDivElement>(null);
+
+	const handleClick = () => {
+		console.log("EnergyUseUpload:9 scrolling down");
+		if (targetRef.current) {
+			targetRef.current.scrollIntoView({ behavior: 'smooth' });
+		}
+	};
 
     return (
 		<fieldset>
@@ -19,7 +28,13 @@ export function EnergyUseUpload() {
 			/>
 
 			<div>
+				<Button type="button" style={{ marginBottom: '20px' }} onClick={handleClick}>
+					<Button className="mr-2 h-4 w-4" />Scroll down
+				</Button>
+			</div>
+			<div>
 				{/* Button type submit is processed by action in single.tsx */}
+				
 				<Button type="submit" name="intent" value="upload">
 					<Upload className="mr-2 h-4 w-4" />Calculate
 				</Button>
@@ -31,6 +46,7 @@ export function EnergyUseUpload() {
 					Get example file here
 				</a>
 			</div>
+			<div ref={targetRef} style={{ padding: '20px', marginTop: '10px' }}></div>
 		</fieldset>
 	)
 }

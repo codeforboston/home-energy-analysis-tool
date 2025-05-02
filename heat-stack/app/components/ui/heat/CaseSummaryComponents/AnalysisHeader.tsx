@@ -60,20 +60,18 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
 	
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
-	const componentMargin = 'mt-10'
+	const componentMargin = 'mt-0'
 
 
 	return (
-		<div className="section-title mt-12">
+		<div className="section-title">
 			<div className="flex flex-row gap-0.5 mb-4">
-				
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
 				</h2>
 				{/* TODO: add help text here */}
 				<img src={HelpCircle} alt='help text'/>
 			</div>
-
 			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
