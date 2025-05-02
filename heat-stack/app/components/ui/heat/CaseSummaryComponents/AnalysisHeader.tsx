@@ -60,8 +60,7 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
 	
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
-	const componentMargin = 'mt-0'
-
+	const componentMargin = 'mt-20'
 
 	return (
 		<div className="section-title">

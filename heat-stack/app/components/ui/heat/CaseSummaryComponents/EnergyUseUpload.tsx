@@ -1,18 +1,60 @@
 import { Upload } from 'lucide-react'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 
-export function EnergyUseUpload() {
+interface EnergyUseUploadProps
+{
+	dataLoaded: boolean,
+	scrollAfterSubmit: boolean,
+	setDataLoaded: React.Dispatch<React.SetStateAction<boolean>>
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+
+export function EnergyUseUpload({
+	dataLoaded,
+	scrollAfterSubmit,
+	setDataLoaded,
+	setScrollAfterSubmit,
+}: EnergyUseUploadProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	const targetRef = useRef<HTMLDivElement>(null);
 
-	const handleClick = () => {
-		console.log("EnergyUseUpload:9 scrolling down");
-		if (targetRef.current) {
-			targetRef.current.scrollIntoView({ behavior: 'smooth' });
+	/*
+	Scrolls down until the top of the Analysis Header is at the top of 
+	the browser
+
+	- After scrolling, resets dataLoaded and scrollAfterSubmit to false to 
+	prevent unwanted scrolling
+	- The targetRef is a hidden div at the bottom of the returned component
+
+	This useEffect is part of a state machine to manage automatic scrolling
+	after the user clicks the calculate button, with other, likewise-marked code
+	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly.
+	*/
+	useEffect(() => {
+		if (dataLoaded && scrollAfterSubmit) {
+			if (targetRef.current) {
+				targetRef.current.scrollIntoView({ behavior: 'smooth' });
+				setDataLoaded(false);
+				setScrollAfterSubmit(false);
+			}
 		}
-	};
+	}, [dataLoaded, setDataLoaded, scrollAfterSubmit, setScrollAfterSubmit])
+
+	/*
+	When the calculate button is pressed, sets scrollAfterSubmit to true 
+	because we want the page to scroll then.
+
+	This useEffect is part of a state machine to manage automatic scrolling
+	after the user clicks the calculate button, with other, likewise-marked code
+	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly, but if
+	you must, look for SCROLLING STATE MACHINE to find the other parts.
+	*/
+	const handleSubmit = () => {
+		setScrollAfterSubmit(true);
+	}
 
     return (
 		<fieldset>
@@ -28,14 +70,9 @@ export function EnergyUseUpload() {
 			/>
 
 			<div>
-				<Button type="button" style={{ marginBottom: '20px' }} onClick={handleClick}>
-					<Button className="mr-2 h-4 w-4" />Scroll down
-				</Button>
-			</div>
-			<div>
 				{/* Button type submit is processed by action in single.tsx */}
 				
-				<Button type="submit" name="intent" value="upload">
+				<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
 					<Upload className="mr-2 h-4 w-4" />Calculate
 				</Button>
 
@@ -46,7 +83,7 @@ export function EnergyUseUpload() {
 					Get example file here
 				</a>
 			</div>
-			<div ref={targetRef} style={{ padding: '20px', marginTop: '10px' }}></div>
+			<div ref={targetRef} style={{}}></div> {/*Secret div for target scrolling*/}
 		</fieldset>
 	)
 }
