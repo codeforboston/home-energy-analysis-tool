@@ -96,8 +96,7 @@ export function AnalysisHeader({
 	const componentMargin = 'mt-20'
 
 	return (
-		<div className="section-title">
-			<div ref={targetRef} style={{}}></div> {/*Secret div for target scrolling*/}
+		<div className="section-title" ref={targetRef}>
 			<div className="flex flex-row gap-0.5 mb-4">
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
