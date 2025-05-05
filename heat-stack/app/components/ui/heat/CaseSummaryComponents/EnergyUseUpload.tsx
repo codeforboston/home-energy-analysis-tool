@@ -3,54 +3,17 @@ import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 
-interface EnergyUseUploadProps
-{
-	dataLoaded: boolean,
-	scrollAfterSubmit: boolean,
-	setDataLoaded: React.Dispatch<React.SetStateAction<boolean>>
-	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
+interface EnergyUseUploadProps {
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
-export function EnergyUseUpload({
-	dataLoaded,
-	scrollAfterSubmit,
-	setDataLoaded,
-	setScrollAfterSubmit,
-}: EnergyUseUploadProps) {
+export function EnergyUseUpload(
+	{ setScrollAfterSubmit }: EnergyUseUploadProps
+) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
-	const targetRef = useRef<HTMLDivElement>(null);
-
 	/*
-	Scrolls down until the top of the Analysis Header is at the top of 
-	the browser
-
-	- After scrolling, resets dataLoaded and scrollAfterSubmit to false to 
-	prevent unwanted scrolling
-	- The targetRef is a hidden div at the bottom of the returned component
-
-	This useEffect is part of a state machine to manage automatic scrolling
-	after the user clicks the calculate button, with other, likewise-marked code
-	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly.
-	*/
-	useEffect(() => {
-		if (dataLoaded && scrollAfterSubmit) {
-			if (targetRef.current) {
-				targetRef.current.scrollIntoView({ behavior: 'smooth' });
-				setDataLoaded(false);
-				setScrollAfterSubmit(false);
-			}
-		}
-	}, [dataLoaded, setDataLoaded, scrollAfterSubmit, setScrollAfterSubmit])
-
-	/*
-	When the calculate button is pressed, sets scrollAfterSubmit to true 
-	because we want the page to scroll then.
-
-	This useEffect is part of a state machine to manage automatic scrolling
-	after the user clicks the calculate button, with other, likewise-marked code
-	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly, but if
-	you must, look for SCROLLING STATE MACHINE to find the other parts.
+	When the calculate button is pressed, sets scrollAfterSubmit to 
+	true because we want the page to scroll then.
 	*/
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
@@ -83,7 +46,6 @@ export function EnergyUseUpload({
 					Get example file here
 				</a>
 			</div>
-			<div ref={targetRef} style={{}}></div> {/*Secret div for target scrolling*/}
 		</fieldset>
 	)
 }

@@ -249,14 +249,7 @@ export default function SubmitAnalysis({
      */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
-	/* 
-	These state variables are part of a state machine to manage automatic scrolling
-	after the user clicks the calculate button, with other, likewise-marked code in
-	EnergyUseUpload.tsx and EnergyUseHistory.tsx.  Do not edit them lightly, but if
-	you must, look for SCROLLING STATE MACHINE to find the other parts.
-	*/
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
-	const [dataLoaded, setDataLoaded] = useState(false)
 
 	useEffect(() => {
 		return () => {
@@ -340,7 +333,7 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload dataLoaded={dataLoaded} scrollAfterSubmit={scrollAfterSubmit} setDataLoaded={setDataLoaded} setScrollAfterSubmit={setScrollAfterSubmit} />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && (
 					<>
@@ -351,8 +344,8 @@ export default function SubmitAnalysis({
 							parsedLastResult={parsedLastResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 							showUsageData={showUsageData}
-							dataLoaded={dataLoaded}
-							setDataLoaded={setDataLoaded}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
 						/>
 
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
