@@ -1,4 +1,3 @@
-import { Button } from '#/app/components/ui/button.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
 import { AnalysisHeader } from './AnalysisHeader.tsx'
@@ -17,7 +16,9 @@ interface EnergyUseHistoryProps
 	usageData: UsageDataSchema;
 	setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
 	recalculateFn: RecalculateFunction;
-	showUsageData: boolean
+	showUsageData: boolean;
+	scrollAfterSubmit: boolean;
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EnergyUseHistory({
@@ -26,16 +27,26 @@ export function EnergyUseHistory({
 	usageData,
 	setUsageData,
 	recalculateFn,
-	showUsageData
+	showUsageData,
+	scrollAfterSubmit,
+	setScrollAfterSubmit
 }: EnergyUseHistoryProps) {
-	// const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-
 	return (
 		<div>
 			{showUsageData && (
 				<>
-					<AnalysisHeader usageData={usageData} />
-					<EnergyUseHistoryChart usageData={usageData} setUsageData={setUsageData} lastResult={lastResult} parsedLastResult={parsedLastResult} recalculateFn={recalculateFn}/>
+					<AnalysisHeader 
+						usageData={usageData} 
+						scrollAfterSubmit={scrollAfterSubmit} 
+						setScrollAfterSubmit={setScrollAfterSubmit} 
+					/>
+					<EnergyUseHistoryChart 
+						usageData={usageData} 
+						setUsageData={setUsageData} 
+						lastResult={lastResult} 
+						parsedLastResult={parsedLastResult} 
+						recalculateFn={recalculateFn}
+					/>
 				</>
 			)}
 		</div>

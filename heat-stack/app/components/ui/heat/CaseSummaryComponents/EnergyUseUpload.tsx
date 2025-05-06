@@ -1,9 +1,23 @@
 import { Upload } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 
 
-export function EnergyUseUpload() {
+interface EnergyUseUploadProps {
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export function EnergyUseUpload(
+	{ setScrollAfterSubmit }: EnergyUseUploadProps
+) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
+	/*
+	When the calculate button is pressed, sets scrollAfterSubmit to 
+	true because we want the page to scroll then.
+	*/
+	const handleSubmit = () => {
+		setScrollAfterSubmit(true);
+	}
 
     return (
 		<fieldset>
@@ -20,7 +34,8 @@ export function EnergyUseUpload() {
 
 			<div>
 				{/* Button type submit is processed by action in single.tsx */}
-				<Button type="submit" name="intent" value="upload">
+				
+				<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
 					<Upload className="mr-2 h-4 w-4" />Calculate
 				</Button>
 

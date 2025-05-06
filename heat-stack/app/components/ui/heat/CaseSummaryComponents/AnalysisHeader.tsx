@@ -1,8 +1,19 @@
 import { type z } from 'zod';
+import { useEffect, useRef } from 'react';
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import HelpCircle from './assets/help-circle.svg'
 
-export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
+interface AnalysisHeaderProps {
+	usageData: UsageDataSchema;
+	scrollAfterSubmit: boolean;
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export function AnalysisHeader({
+	usageData, 
+	scrollAfterSubmit,
+	setScrollAfterSubmit,
+} : AnalysisHeaderProps) {
 	// Example usageData
 	// new Map([[
 	// 		"estimated_balance_point",
@@ -58,22 +69,41 @@ export function AnalysisHeader({ usageData }: { usageData: UsageDataSchema}) {
 
 	const numRecordsForHeatingCalculations =
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
+
+	const targetRef = useRef<HTMLDivElement>(null);
+	/*
+	Scrolls down until the top of the Analysis Header is at the top of 
+	the browser
+
+	- After scrolling, resets dataLoaded and scrollAfterSubmit to false to 
+	prevent unwanted scrolling
+	- The targetRef is a hidden div at the bottom of the returned component
+
+	This useEffect is part of a state machine to manage automatic scrolling
+	after the user clicks the calculate button, with other, likewise-marked code
+	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly.
+	*/
+	useEffect(() => {
+		if (scrollAfterSubmit) {
+			if (targetRef.current) {
+				targetRef.current.scrollIntoView({ behavior: 'smooth' });
+				setScrollAfterSubmit(false);
+			}
+		}
+	}, [scrollAfterSubmit, setScrollAfterSubmit])
 	
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
 	const componentMargin = 'mt-10'
 
-
 	return (
-		<div className="section-title mt-12">
+		<div className="section-title mt-12" ref={targetRef}>
 			<div className="flex flex-row gap-0.5 mb-4">
-				
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
 				</h2>
 				{/* TODO: add help text here */}
 				<img src={HelpCircle} alt='help text'/>
 			</div>
-
 			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
