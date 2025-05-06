@@ -93,10 +93,10 @@ export function AnalysisHeader({
 	}, [scrollAfterSubmit, setScrollAfterSubmit])
 	
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
-	const componentMargin = 'mt-20'
+	const componentMargin = 'mt-10'
 
 	return (
-		<div className="section-title" ref={targetRef}>
+		<div className="section-title mt-12" ref={targetRef}>
 			<div className="flex flex-row gap-0.5 mb-4">
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
