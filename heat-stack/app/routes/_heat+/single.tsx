@@ -192,49 +192,52 @@ export default function SubmitAnalysis({
 	// console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
 	/**
-     * Example Data Returned
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * 
-     * 1 of 3: heat_load_output
-     * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
-     * 
-     * temp1.get('heat_load_output'): Map(9) { 
-        * estimated_balance_point → 61.5, 
-        * other_fuel_usage → 0.2857142857142857, 
-        * average_indoor_temperature → 67, 
-        * difference_between_ti_and_tbp → 5.5, 
-        * design_temperature → 1, 
-        * whole_home_heat_loss_rate → 48001.81184312083, 
-        * standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
-        * average_heat_load → 3048115.0520381727, 
-        * maximum_heat_load → 3312125.0171753373 
-     * }
-     * 
-     * 
-     * 2 of 3: processed_energy_bills
-     * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
-     *
-     * temp1.get('processed_energy_bills')
-     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * 
-     * temp1.get('processed_energy_bills')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * 
-     * temp1.get('processed_energy_bills')[0].get('period_start_date')
-     * "2020-10-02" 
-     * 
-     * 
-     * 3 of 3: balance_point_graph
-     * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
-     * 
-     * temp1.get('balance_point_graph').get('records')
-        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
-        temp1.get('balance_point_graph').get('records')[0]
-        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
-        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
-     */
+	 * Example Data Returned
+	 * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+	 * 
+	 * 1 of 3: heat_load_output
+	 * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
+	 * 
+	 * temp1.get('heat_load_output'): Map(9) { 
+		* estimated_balance_point → 61.5, 
+		* other_fuel_usage → 0.2857142857142857, 
+		* average_indoor_temperature → 67, 
+		* difference_between_ti_and_tbp → 5.5, 
+		* design_temperature → 1, 
+		* whole_home_heat_loss_rate → 48001.81184312083, 
+		* standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
+		* average_heat_load → 3048115.0520381727, 
+		* maximum_heat_load → 3312125.0171753373 
+	 * }
+	 * 
+	 * 
+	 * 2 of 3: processed_energy_bills
+	 * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
+	 *
+	 * temp1.get('processed_energy_bills')
+	 * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+	 * 
+	 * temp1.get('processed_energy_bills')[0]
+	 * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+	 * 
+	 * temp1.get('processed_energy_bills')[0].get('period_start_date')
+	 * "2020-10-02" 
+	 * 
+	 * 
+	 * 3 of 3: balance_point_graph
+	 * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+	 * 
+	 * temp1.get('balance_point_graph').get('records')
+		Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
+		temp1.get('balance_point_graph').get('records')[0]
+		Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
+		temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
+	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [tally, setTally] = useState(0)
+	// const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+
 
 	React.useEffect(() => {
 		return () => {
@@ -268,7 +271,6 @@ export default function SubmitAnalysis({
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
-	console.log(loaderData, 'loader data', loaderData.isDevMode)
 
 	type MinimalFormData = {
 		fuel_type: 'GAS'
@@ -276,16 +278,16 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-					living_area: 2155,
-					address: '15 Dale Ave Gloucester, MA 01930',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-					// design_temperature_override: '',
-				}
+				living_area: 2155,
+				address: '15 Dale Ave Gloucester, MA 01930',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+				// design_temperature_override: '',
+			}
 			: { fuel_type: 'GAS' }
 
 	const [form, fields] = useForm({
@@ -315,7 +317,7 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && (
 					<>
@@ -326,14 +328,16 @@ export default function SubmitAnalysis({
 							parsedLastResult={parsedLastResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 							showUsageData={showUsageData}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
 						/>
 
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
