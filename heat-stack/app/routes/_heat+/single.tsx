@@ -249,6 +249,7 @@ export default function SubmitAnalysis({
      */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	useEffect(() => {
 		return () => {
@@ -286,7 +287,6 @@ export default function SubmitAnalysis({
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
-	console.log(loaderData, 'loader data', loaderData.isDevMode)
 
 	type MinimalFormData = {
 		fuel_type: 'GAS'
@@ -333,7 +333,7 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && (
 					<>
@@ -344,6 +344,8 @@ export default function SubmitAnalysis({
 							parsedLastResult={parsedLastResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 							showUsageData={showUsageData}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
 						/>
 
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
