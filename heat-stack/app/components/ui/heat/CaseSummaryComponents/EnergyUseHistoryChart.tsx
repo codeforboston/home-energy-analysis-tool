@@ -93,8 +93,8 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             newRecords[index] = { ...period } 
         }
         const newUsageData = ({
-            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
-            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
+            heat_load_output: usageData.heat_load_output,
+            balance_point_graph: usageData.balance_point_graph,
             processed_energy_bills: newRecords as BillingRecordsSchema,
         });
         setUsageData( (prevUsageData) => {

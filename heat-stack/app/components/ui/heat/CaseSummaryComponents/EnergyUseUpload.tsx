@@ -5,11 +5,11 @@ import { ErrorList } from './ErrorList';
 
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
-	fields: any;
+	setNeedParseFromAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EnergyUseUpload(
-	{ setScrollAfterSubmit, fields }: EnergyUseUploadProps
+	{ setScrollAfterSubmit, setNeedParseFromAction }: EnergyUseUploadProps
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
@@ -18,6 +18,7 @@ export function EnergyUseUpload(
 	*/
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
+		setNeedParseFromAction(true)
 	}
 
 	return (
