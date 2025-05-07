@@ -17,6 +17,7 @@ export function EnergyUseUpload(
 	true because we want the page to scroll then.
 	*/
 	const handleSubmit = () => {
+		console.log("submitting")
 		setScrollAfterSubmit(true);
 		setNeedParseFromAction(true)
 	}

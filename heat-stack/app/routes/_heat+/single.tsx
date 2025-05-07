@@ -80,6 +80,7 @@ interface ErrorWithExceptionMessage extends Error {
 export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
+	console.log("processing action")
 	const formData = await parseMultipartFormData(request, uploadHandler)
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
@@ -187,6 +188,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
 	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
+	console.log("returning", parsedAndValidatedFormSchema);
+	console.log("data",str_version)
 
 	return {
 		data: str_version,
@@ -261,14 +264,17 @@ export default function SubmitAnalysis({
 	}, [])
 
 	useEffect(() => {
+		console.log("action data changed")
 		//@ts-ignore
 		if (actionData && actionData.exceptionMessage) {
 			//@ts-ignore
 			alert(actionData.exceptionMessage)
 		} else {
 			setLastResult(actionData)
+			setNeedParseFromAction(true)
 		}
 	}, [actionData])
+	console.log("needParseFromAction", needParseFromAction)
 
 	let showUsageData = lastResult !== undefined
 
@@ -276,6 +282,7 @@ export default function SubmitAnalysis({
 
 	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
+		console.log("parsing")
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
@@ -283,10 +290,13 @@ export default function SubmitAnalysis({
 		if (!parsedLastResult) {
 			return
 		}
+		console.log("lastResult.data", lastResult.data)
+		console.log("parsedLastResult", parsedLastResult)
 		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
 		newUsageData.processed_energy_bills.sort((a, b) => {
 			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
 		});
+		console.log("newUsageData", newUsageData.processed_energy_bills)
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
