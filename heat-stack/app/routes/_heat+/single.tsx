@@ -272,8 +272,6 @@ export default function SubmitAnalysis({
 
 	let showUsageData = lastResult !== undefined
 
-	// let parsedLastResult: Map<any, any> | undefined
-
 	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
 		// Parse the JSON string from lastResult.data
