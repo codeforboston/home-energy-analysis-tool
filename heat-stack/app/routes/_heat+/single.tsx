@@ -250,6 +250,8 @@ export default function SubmitAnalysis({
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [needParseFromAction, setNeedParseFromAction] = useState(false)
+	const [parsedLastResult, setLastParsedResult] = useState<Map<any, any> | undefined>()
 
 	useEffect(() => {
 		return () => {
@@ -270,13 +272,17 @@ export default function SubmitAnalysis({
 
 	let showUsageData = lastResult !== undefined
 
-	let parsedLastResult: Map<any, any> | undefined
+	// let parsedLastResult: Map<any, any> | undefined
 
 	//@ts-ignore
-	if (showUsageData && hasDataProperty(lastResult)) {
+	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
+		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+		// typescript required guard - parsedLastResult should be non-blank
+		if (!parsedLastResult) {
+			return
+		}
 		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
 		newUsageData.processed_energy_bills.sort((a, b) => {
 			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
@@ -284,6 +290,7 @@ export default function SubmitAnalysis({
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
+		setNeedParseFromAction(false);
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
@@ -333,7 +340,10 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
+				<EnergyUseUpload 
+				setScrollAfterSubmit={setScrollAfterSubmit} 
+					setNeedParseFromAction={setNeedParseFromAction}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && (
 					<>
