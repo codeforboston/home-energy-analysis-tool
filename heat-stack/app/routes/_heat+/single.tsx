@@ -269,18 +269,39 @@ export default function SubmitAnalysis({
 			setLastResult(actionData)
 		}
 	}, [actionData])
+	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
+		loaderData.isDevMode
+			? {
+				living_area: 2155,
+				address: '15 Dale Ave Gloucester, MA  01930',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+				// design_temperature_override: '',
+			}
+			: { fuel_type: 'GAS' }
 
+	const [form, fields] = useForm({
+		/* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
+
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: Schema })
+		},
+		defaultValue,
+		shouldValidate: 'onBlur',
+	})
 	let showUsageData = lastResult !== undefined
 
 	//@ts-ignore
-	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
+	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction && parsedLastResult) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
 		// typescript required guard - parsedLastResult should be non-blank
-		if (!parsedLastResult) {
-			return
-		}
+
 		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
 		newUsageData.processed_energy_bills.sort((a, b) => {
 			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
@@ -296,31 +317,8 @@ export default function SubmitAnalysis({
 	type MinimalFormData = {
 		fuel_type: 'GAS'
 	}
-	
-	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
-		loaderData.isDevMode
-			? {
-					living_area: 2155,
-				    address: '15 Dale Ave Gloucester, MA  01930',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-					// design_temperature_override: '',
-				}
-			: { fuel_type: 'GAS' }
 
-	const [form, fields] = useForm({
-		/* removed lastResult , consider re-adding https://conform.guide/api/react/useForm#options */
 
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: Schema })
-		},
-		defaultValue,
-		shouldValidate: 'onBlur',
-	})
 
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
 	return (
