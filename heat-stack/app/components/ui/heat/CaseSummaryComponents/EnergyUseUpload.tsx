@@ -5,10 +5,11 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+	setNeedParseFromAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EnergyUseUpload(
-	{ setScrollAfterSubmit }: EnergyUseUploadProps
+	{ setScrollAfterSubmit, setNeedParseFromAction }: EnergyUseUploadProps
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
@@ -17,6 +18,7 @@ export function EnergyUseUpload(
 	*/
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
+		setNeedParseFromAction(true)
 	}
 
     return (
