@@ -296,6 +296,7 @@ export default function SubmitAnalysis({
 	type MinimalFormData = {
 		fuel_type: 'GAS'
 	}
+	
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
