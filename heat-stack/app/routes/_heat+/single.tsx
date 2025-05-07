@@ -270,8 +270,8 @@ export default function SubmitAnalysis({
 			//@ts-ignore
 			alert(actionData.exceptionMessage)
 		} else {
-			setLastResult(actionData)
 			setNeedParseFromAction(true)
+			setLastResult(actionData)
 		}
 	}, [actionData])
 
