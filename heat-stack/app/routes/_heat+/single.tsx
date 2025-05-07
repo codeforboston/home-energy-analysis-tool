@@ -274,7 +274,6 @@ export default function SubmitAnalysis({
 			setNeedParseFromAction(true)
 		}
 	}, [actionData])
-	console.log("needParseFromAction", needParseFromAction)
 
 	let showUsageData = lastResult !== undefined
 
@@ -282,7 +281,6 @@ export default function SubmitAnalysis({
 
 	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
-		console.log("parsing")
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
@@ -290,13 +288,10 @@ export default function SubmitAnalysis({
 		if (!parsedLastResult) {
 			return
 		}
-		console.log("lastResult.data", lastResult.data)
-		console.log("parsedLastResult", parsedLastResult)
 		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
 		newUsageData.processed_energy_bills.sort((a, b) => {
 			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
 		});
-		console.log("newUsageData", newUsageData.processed_energy_bills)
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
@@ -311,16 +306,16 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-					living_area: 2155,
-				    address: '15 Dale Ave Gloucester, MA  01930',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-					// design_temperature_override: '',
-				}
+				living_area: 2155,
+				address: '15 Dale Ave Gloucester, MA  01930',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+				// design_temperature_override: '',
+			}
 			: { fuel_type: 'GAS' }
 
 	const [form, fields] = useForm({
