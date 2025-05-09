@@ -12,6 +12,9 @@ from enum import StrEnum
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
+BYTE_ORDER_MARK = "\ufeff"  # ï»¿
+
+
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
@@ -26,7 +29,7 @@ class _NaturalGasCompanyBillRegex:
         r"Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature"
     )
     NATIONAL_GRID = re.compile(
-        r"Name,.*,,,,,\nAddress,.*,,,,,\nAccount Number,.*,,,,,\nService,.*,,,,,\n"
+        r"Name,.*,,,,,?\nAddress,.*,,,,,?\nAccount Number,.*,,,,,?\nService,.*,,,,,?\n"
     )
 
 
@@ -69,7 +72,14 @@ class _GasBillRowNationalGrid:
     def __init__(self, row):
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
-        self.usage = row["USAGE"]
+        if "USAGE" in row:
+            self.usage = row["USAGE"]
+        elif "USAGE (therms)" in row:
+            self.usage = row["USAGE (Therms)"]
+        else:
+            raise KeyError(
+                "USAGE and USAGE(therms) not found in natural gas bill CSV row"
+            )
 
 
 def _newline_line_ending(data: str) -> str:
@@ -95,7 +105,7 @@ def _remove_bom_and_garbage(data: str) -> str:
     from the CSV data.
     """
     # Remove BOM if it exists
-    data = data.lstrip("\ufeff")
+    data = data.lstrip(BYTE_ORDER_MARK)
 
     # Split the data into lines
     lines = data.splitlines()
@@ -121,8 +131,10 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
         return NaturalGasCompany.EVERSOURCE
     else:
         raise ValueError(
-            """Could not detect which company this bill was from:\n 
-               Regular expressions matched not."""
+            """
+            Could not detect which company this bill was from:\n 
+            regular expressions matched not.
+            """
         )
 
 
@@ -138,7 +150,7 @@ def parse_gas_bill(
     data = _remove_bom_and_garbage(data)
     data = _newline_line_ending(data)
 
-    if company == None:
+    if company is None:
         company = _detect_gas_company(data)
 
     match company:
