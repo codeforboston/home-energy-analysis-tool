@@ -96,10 +96,9 @@ def _newline_line_ending(data: str) -> str:
     return data
 
 
-def _remove_bom_and_garbage(data: str) -> str:
+def _remove_leading_garbage(data: str) -> str:
     """
-    Remove the Byte Order Mark (BOM) ï»¿ and any leading garbage lines
-    from the CSV data.
+    Remove any leading garbage lines from the CSV data.
     """
     # Split the data into lines
     lines = data.splitlines()
