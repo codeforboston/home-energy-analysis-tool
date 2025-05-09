@@ -89,6 +89,28 @@ def _newline_line_ending(data: str) -> str:
     return data
 
 
+def _remove_bom_and_garbage(data: str) -> str:
+    """
+    Remove the Byte Order Mark (BOM) ï»¿ and any leading garbage lines
+    from the CSV data.
+    """
+    # Remove BOM if it exists
+    data = data.lstrip("\ufeff")
+
+    # Split the data into lines
+    lines = data.splitlines()
+
+    # Find the index of the first line that matches the NATIONAL_GRID pattern
+    for i, _ in enumerate(lines):
+        if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(
+            "\n".join(lines[i : i + 5])
+        ):
+            return "\n".join(lines[i:])
+
+    # If no match is found, return the original data
+    return data
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
@@ -100,7 +122,7 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
     else:
         raise ValueError(
             """Could not detect which company this bill was from:\n 
-                           Regular expressions matched not."""
+               Regular expressions matched not."""
         )
 
 
@@ -113,6 +135,7 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
+    data = _remove_bom_and_garbage(data)
     data = _newline_line_ending(data)
 
     if company == None:

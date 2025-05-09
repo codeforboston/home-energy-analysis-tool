@@ -21,7 +21,7 @@ def _read_gas_bill_national_grid() -> str:
         ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
     ) as f:
         return f.read()
-    
+
 
 def _read_gas_bill_national_grid_with_garbage_on_first_line() -> str:
     """
@@ -29,10 +29,12 @@ def _read_gas_bill_national_grid_with_garbage_on_first_line() -> str:
     has garbage on its first line
     """
     with open(
-        ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
+        pathlib.Path(__file__).parent
+        / "cases"
+        / "national_grid_garbage"
+        / "natural-gas-national-grid.csv"
     ) as f:
         return f.read()
-        
 
 
 def _validate_eversource(result):
@@ -104,10 +106,7 @@ def test_detect_natural_gas_company():
     eversource = _read_gas_bill_eversource()
     national_grid = _read_gas_bill_national_grid()
     national_grid_garbage = _read_gas_bill_national_grid_with_garbage_on_first_line()
-    assert (
-        parser._detect_gas_company(eversource)
-        == parser.NaturalGasCompany.EVERSOURCE
-    )
+    assert parser._detect_gas_company(eversource) == parser.NaturalGasCompany.EVERSOURCE
     assert (
         parser._detect_gas_company(national_grid)
         == parser.NaturalGasCompany.NATIONAL_GRID
