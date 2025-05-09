@@ -106,9 +106,14 @@ def test_detect_natural_gas_company():
     eversource = _read_gas_bill_eversource()
     national_grid = _read_gas_bill_national_grid()
     national_grid_garbage = _read_gas_bill_national_grid_with_garbage_on_first_line()
+
     assert parser._detect_gas_company(eversource) == parser.NaturalGasCompany.EVERSOURCE
     assert (
         parser._detect_gas_company(national_grid)
+        == parser.NaturalGasCompany.NATIONAL_GRID
+    )
+    assert (
+        parser._detect_gas_company(national_grid_garbage)
         == parser.NaturalGasCompany.NATIONAL_GRID
     )
 
