@@ -12,9 +12,6 @@ from enum import StrEnum
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
-BYTE_ORDER_MARK = "\ufeff"  # ï»¿
-
-
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
@@ -104,9 +101,6 @@ def _remove_bom_and_garbage(data: str) -> str:
     Remove the Byte Order Mark (BOM) ï»¿ and any leading garbage lines
     from the CSV data.
     """
-    # Remove BOM if it exists
-    data = data.lstrip(BYTE_ORDER_MARK)
-
     # Split the data into lines
     lines = data.splitlines()
 
