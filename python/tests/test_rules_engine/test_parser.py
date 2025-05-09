@@ -85,6 +85,10 @@ def test_parse_gas_bill():
             _read_gas_bill_national_grid(), parser.NaturalGasCompany.NATIONAL_GRID
         )
     )
+    parser.parse_gas_bill(
+        _read_gas_bill_national_grid_with_garbage_on_first_line(),
+        parser.NaturalGasCompany.NATIONAL_GRID,
+    )
     # TODO: Does not verify that the method crashes when given the wrong
     # enum.
 

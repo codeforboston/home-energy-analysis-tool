@@ -69,14 +69,9 @@ class _GasBillRowNationalGrid:
     def __init__(self, row):
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
-        if "USAGE" in row:
-            self.usage = row["USAGE"]
-        elif "USAGE (therms)" in row:
-            self.usage = row["USAGE (Therms)"]
-        else:
-            raise KeyError(
-                "USAGE and USAGE(therms) not found in natural gas bill CSV row"
-            )
+        self.usage = (
+            row.get("USAGE") or row.get("USAGE (Therms)") or row.get("USAGE (therms)")
+        )
 
 
 def _newline_line_ending(data: str) -> str:
