@@ -21,6 +21,18 @@ def _read_gas_bill_national_grid() -> str:
         ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
     ) as f:
         return f.read()
+    
+
+def _read_gas_bill_national_grid_with_garbage_on_first_line() -> str:
+    """
+    Read a test natural gas bill from a test National Grid CSV that
+    has garbage on its first line
+    """
+    with open(
+        ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
+    ) as f:
+        return f.read()
+        
 
 
 def _validate_eversource(result):
@@ -89,14 +101,15 @@ def test_parse_gas_bill_national_grid():
 
 def test_detect_natural_gas_company():
     """Tests if the natural gas company is correctly detected from the parsed csv."""
-    read_eversource = _read_gas_bill_eversource()
-    read_nationalgrid = _read_gas_bill_national_grid()
+    eversource = _read_gas_bill_eversource()
+    national_grid = _read_gas_bill_national_grid()
+    national_grid_garbage = _read_gas_bill_national_grid_with_garbage_on_first_line()
     assert (
-        parser._detect_gas_company(read_eversource)
+        parser._detect_gas_company(eversource)
         == parser.NaturalGasCompany.EVERSOURCE
     )
     assert (
-        parser._detect_gas_company(read_nationalgrid)
+        parser._detect_gas_company(national_grid)
         == parser.NaturalGasCompany.NATIONAL_GRID
     )
 
