@@ -140,7 +140,7 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    data = _remove_bom_and_garbage(data)
+    data = _remove_leading_garbage(data)
     data = _newline_line_ending(data)
 
     if company is None:
