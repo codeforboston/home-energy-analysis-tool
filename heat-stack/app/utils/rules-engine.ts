@@ -1,9 +1,14 @@
 import * as pyodideModule from 'pyodide'
-import  {  type PyodideInterface } from 'pyodide';
-import {  Schema } from "#app/routes/_heat+/single"
+import { type PyodideInterface } from 'pyodide';
+import { Schema } from "#app/routes/_heat+/single"
 import { type z } from '#node_modules/zod';
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type TemperatureInputDataConverted } from './WeatherUtil';
+
+// Import Python code as raw string assets
+import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw';
+import getAnalyticsPyCode from '../pycode/get_analytics.py?raw';
+import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw';
 
 const isServer = typeof window === 'undefined';
 const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/';
@@ -72,104 +77,25 @@ await pyodide.loadPackage(
     * 'overall_start_date' => '2020-10-02',
     * 'overall_end_date' => '2022-11-03'
  */
-export const executeParseGasBillPy: ExecuteParseFunction = await pyodide.runPythonAsync(`
-    from rules_engine import parser
-    from rules_engine.pydantic_models import (
-        FuelType,
-        HeatLoadInput,
-        TemperatureInput
-    )
-    from rules_engine import engine
-
-    def executeParse(csvDataJs):
-        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
-        return naturalGasInputRecords.model_dump(mode="json")
-    executeParse
-`);
+export const executeParseGasBillPy: ExecuteParseFunction = await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse');
 
 /**
  * Full call with csv data
  * call to get_outputs_natural_gas
  */
-export const executeGetAnalyticsFromFormJs: ExecuteGetAnalyticsFunction = await pyodide.runPythonAsync(`
-    from rules_engine import parser
-    from rules_engine.pydantic_models import (
-        FuelType,
-        HeatLoadInput,
-        TemperatureInput
-    )
-    from rules_engine import engine, helpers
-
-    def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id):
-        """
-        second step: this will be the first time to draw the table
-        # two new geocode parameters may be needed for design temp:
-        # watch out for helpers.get_design_temp( addressMatches[0].geographies.counties[0]['STATE'] , addressMatches[0].geographies.counties[0]['COUNTY'] county_id) 
-        # in addition to latitude and longitude from GeocodeUtil.ts object .
-        # pack the get_design_temp output into heat_load_input
-        """
-        
-        summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-        temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
-
-        # We will just pass in this data
-        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
-
-        design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-        summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
-
-        temperatureInput = TemperatureInput(**temperatureInputFromJs)
-
-        outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
-        return outputs.model_dump(mode="json")
-    executeGetAnalyticsFromForm
-`);
+export const executeGetAnalyticsFromFormJs: ExecuteGetAnalyticsFunction = await pyodide.runPythonAsync(getAnalyticsPyCode + '\nexecuteGetAnalyticsFromForm');
 
 /**
  * Full call with userAdjustedData
  * second time and after, when table is modified, this becomes entrypoint
  */
-export const executeRoundtripAnalyticsFromFormJs: ExecuteRoundtripAnalyticsFunction = await pyodide.runPythonAsync(`
-    from rules_engine import parser
-    from rules_engine.pydantic_models import (
-        FuelType,
-        HeatLoadInput,
-        TemperatureInput,
-        ProcessedEnergyBillInput
-    )
-    from rules_engine import engine, helpers
-
-
-    def executeRoundtripAnalyticsFromForm(summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id):
-        """
-        "processed_energy_bills" is the "roundtripping" parameter to be passed as userAdjustedData.
-        """
-        
-        summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-        temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
-
-        design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-        # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
-        summaryInput = HeatLoadInput( **summaryInputFromJs, design_temperature=design_temp_looked_up)
-
-        temperatureInput = TemperatureInput(**temperatureInputFromJs)
-
-        # third step, re-run of the table data
-        userAdjustedDataFromJsToPython = [ProcessedEnergyBillInput(**record) for record in userAdjustedData['processed_energy_bills'] ]
-        # print("py", userAdjustedDataFromJsToPython[0])
-
-        outputs2 = engine.get_outputs_normalized(summaryInput, None, temperatureInput, userAdjustedDataFromJsToPython)
-
-        # print("py2", outputs2.processed_energy_bills[0])
-        return outputs2.model_dump(mode="json")
-    executeRoundtripAnalyticsFromForm
-`);
+export const executeRoundtripAnalyticsFromFormJs: ExecuteRoundtripAnalyticsFunction = await pyodide.runPythonAsync(roundtripAnalyticsPyCode + '\nexecuteRoundtripAnalyticsFromForm');
 
 // Type for the execute parse function
 export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
-    destroy(): void;
-    toJs?(): any;
-  };
+  destroy(): void;
+  toJs?(): any;
+};
   
 // Type for the execute analytics function - notice we're using Maps now
 type ExecuteGetAnalyticsFunction = ((
