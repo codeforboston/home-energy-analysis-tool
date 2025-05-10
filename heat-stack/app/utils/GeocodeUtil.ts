@@ -97,16 +97,23 @@ class GeocodeUtil {
 		let rezzy = await fetch(url)
 		let jrez = (await rezzy.json()) as CensusGeocoderResponse
 		// TODO: Return all addresses and let the user choose the right one
-		let coordz = jrez?.result?.addressMatches?.[0]?.coordinates
+
+		const addressMatch = jrez?.result?.addressMatches?.[0]
+		let coordz = addressMatch?.coordinates
+		const addressComponents = addressMatch?.addressComponents
+
 		// console.log(JSON.stringify(jrez, null, 2));
 		return {
 			coordinates: coordz,
-			state_id:
-				jrez?.result?.addressMatches?.[0]?.geographies.Counties?.[0]?.['STATE'],
-			county_id:
-				jrez?.result?.addressMatches?.[0]?.geographies?.Counties?.[0]?.[
-					'COUNTY'
-				],
+			state_id: addressMatch?.geographies.Counties?.[0]?.['STATE'],
+			county_id: addressMatch?.geographies?.Counties?.[0]?.['COUNTY'],
+			addressComponents: addressComponents ? {
+				street: `${addressComponents.preDirection || ''} ${addressComponents.streetName || ''} ${addressComponents.suffixType || ''}`.trim(),
+				city: addressComponents.city || '',
+				state: addressComponents.state || '',
+				zip: addressComponents.zip || '',
+				formattedAddress: addressMatch?.matchedAddress || address
+			} : null
 		}
 	}
 }

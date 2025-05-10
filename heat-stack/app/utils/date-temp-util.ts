@@ -7,6 +7,15 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, { type TemperatureInputDataConverted } from './WeatherUtil.ts'
 
+// Define interface for address components
+export interface AddressComponents {
+	street: string;
+	city: string;
+	state: string;
+	zip: string;
+	formattedAddress: string;
+}
+
 export default async function getConvertedDatesTIWD(
 	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
 	address: string,
@@ -14,13 +23,15 @@ export default async function getConvertedDatesTIWD(
 	convertedDatesTIWD: TemperatureInputDataConverted
 	state_id: string | undefined
 	county_id: string | number | undefined
+	coordinates: { x: number, y: number } | null | undefined
+	addressComponents: AddressComponents | null
 }> {
 	console.log('loading geocodeUtil/weatherUtil')
 
 	const geocodeUtil = new GeocodeUtil()
 	const weatherUtil = new WeatherUtil()
 
-	let { coordinates, state_id, county_id } = await geocodeUtil.getLL(address)
+	let { coordinates, state_id, county_id, addressComponents } = await geocodeUtil.getLL(address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 
 	console.log('geocoded', x, y)
@@ -78,5 +89,5 @@ export default async function getConvertedDatesTIWD(
 		temperatures: weatherData.temperatures,
 	}
 
-	return { convertedDatesTIWD, state_id, county_id }
+	return { convertedDatesTIWD, state_id, county_id, coordinates, addressComponents }
 }
