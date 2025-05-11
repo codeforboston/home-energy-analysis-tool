@@ -16,17 +16,17 @@ def _read_gas_bill_eversource() -> str:
 
 
 def _read_gas_bill_national_grid() -> str:
-    """Read a test natural gas bill from a test National Grid CSV"""
+    """Read a test natural gas bill from a test National Grid CSV."""
     with open(
         ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
     ) as f:
         return f.read()
 
 
-def _read_gas_bill_national_grid_with_garbage_on_first_line() -> str:
+def _read_gas_bill_national_grid_with_garbage_on_some_leading_lines() -> str:
     """
     Read a test natural gas bill from a test National Grid CSV that
-    has garbage on its first line
+    has garbage on its first line.
     """
     with open(
         pathlib.Path(__file__).parent
@@ -37,15 +37,22 @@ def _read_gas_bill_national_grid_with_garbage_on_first_line() -> str:
         return f.read()
 
 
+def _assert_that_every_result_records_row_is_a_NaturalGasBillingRecordInput(
+    result_records,
+):
+    for row in result_records:
+        assert isinstance(row, NaturalGasBillingRecordInput)
+
+
 def _validate_eversource(result):
     """Validate the result of reading an Eversource CSV."""
     assert len(result.records) == 36
-    for row in result.records:
-        assert isinstance(row, NaturalGasBillingRecordInput)
+    _assert_that_every_result_records_row_is_a_NaturalGasBillingRecordInput(
+        result.records
+    )
 
     # input: 12/17/2021,124.00,29,4.28,$224.09,39.0
     # from excel: 11/19/2021,12/17/2021,29,124,,1,4.28,3.82
-
     second_row = result.records[1]
     assert second_row.period_start_date == datetime(2021, 11, 19)
     assert second_row.period_end_date == datetime(2021, 12, 17)
@@ -57,12 +64,12 @@ def _validate_eversource(result):
 def _validate_national_grid(result):
     """Validate the result of reading a National Grid CSV."""
     assert len(result.records) == 25
-    for row in result.records:
-        assert isinstance(row, NaturalGasBillingRecordInput)
+    _assert_that_every_result_records_row_is_a_NaturalGasBillingRecordInput(
+        result.records
+    )
 
     # input: Natural gas billing,11/5/2020,12/3/2020,36,therms,$65.60 ,
     # from excel: 11/6/2020,12/3/2020,28,36,,1,1.29,0.99
-
     second_row = result.records[1]
     assert second_row.period_start_date == datetime(2020, 11, 5)
     assert second_row.period_end_date == datetime(2020, 12, 3)
@@ -71,9 +78,28 @@ def _validate_national_grid(result):
     assert second_row.inclusion_override == None
 
 
+def _validate_national_grid_with_garbage_on_some_leading_lines(result):
+    """
+    Validate the result of reading a National Grid CSV wherein the first
+    row is a byte order mark
+    """
+    assert len(result.records) == 35
+    _assert_that_every_result_records_row_is_a_NaturalGasBillingRecordInput(
+        result.records
+    )
+
+    # input: Natural gas billing,2022-04-15,2022-05-18,47,$97.04,
+    second_row = result.records[1]
+    assert second_row.period_start_date == datetime(2022, 4, 15)
+    assert second_row.period_end_date == datetime(2022, 5, 18)
+    assert isinstance(second_row.usage_therms, float)
+    assert second_row.usage_therms == 47
+    assert second_row.inclusion_override == None
+
+
 def test_parse_gas_bill():
     """
-    Tests the logic of parse_gas_bill.
+    Test the logic of parse_gas_bill.
     """
     _validate_eversource(
         parser.parse_gas_bill(
@@ -86,7 +112,7 @@ def test_parse_gas_bill():
         )
     )
     parser.parse_gas_bill(
-        _read_gas_bill_national_grid_with_garbage_on_first_line(),
+        _read_gas_bill_national_grid_with_garbage_on_some_leading_lines(),
         parser.NaturalGasCompany.NATIONAL_GRID,
     )
     # TODO: Does not verify that the method crashes when given the wrong
@@ -94,22 +120,39 @@ def test_parse_gas_bill():
 
 
 def test_parse_gas_bill_eversource():
-    """Tests parsing a natural gas bill from Eversource."""
+    """Test parsing a natural gas bill from Eversource."""
     _validate_eversource(parser._parse_gas_bill_eversource(_read_gas_bill_eversource()))
 
 
 def test_parse_gas_bill_national_grid():
-    """Tests parsing a natural gas bill from National Grid."""
+    """Test parsing a natural gas bill from National Grid."""
     _validate_national_grid(
         parser._parse_gas_bill_national_grid(_read_gas_bill_national_grid())
     )
 
 
+def test_parse_national_grid_with_garbage_on_some_leading_lines():
+    """
+    Test parsing a natural gas bill from National Grid with garbage
+    on some leading lines.
+    """
+    _validate_national_grid_with_garbage_on_some_leading_lines(
+        # Use parse_gas_bill instead of _parse_gas_bill_national_grid
+        # because parse_gas_bill takes care of leading garbage before
+        # passing the data to _parse_gas_bill_national_grid
+        parser.parse_gas_bill(
+            _read_gas_bill_national_grid_with_garbage_on_some_leading_lines()
+        )
+    )
+
+
 def test_detect_natural_gas_company():
-    """Tests if the natural gas company is correctly detected from the parsed csv."""
+    """Test if the natural gas company is correctly detected from the parsed csv."""
     eversource = _read_gas_bill_eversource()
     national_grid = _read_gas_bill_national_grid()
-    national_grid_garbage = _read_gas_bill_national_grid_with_garbage_on_first_line()
+    national_grid_garbage = (
+        _read_gas_bill_national_grid_with_garbage_on_some_leading_lines()
+    )
 
     assert parser._detect_gas_company(eversource) == parser.NaturalGasCompany.EVERSOURCE
     assert (
@@ -123,7 +166,7 @@ def test_detect_natural_gas_company():
 
 
 def test_detect_natural_gas_company_with_error():
-    """Tests if an error is raised if the natural gas company is incorrect in the csv."""
+    """Test if an error is raised if the natural gas company is incorrect in the csv."""
     read_csv_string = r"Some bogus string input"
     with pytest.raises(ValueError):
         parser._detect_gas_company(read_csv_string)
