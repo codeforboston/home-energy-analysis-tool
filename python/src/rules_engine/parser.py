@@ -91,7 +91,7 @@ def _newline_line_ending(data: str) -> str:
     return data
 
 
-def _remove_leading_garbage(data: str) -> str:
+def _remove_leading_garbage_lines(data: str) -> str:
     """
     Remove any leading garbage lines from the CSV data.
     """
@@ -135,7 +135,7 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    data = _remove_leading_garbage(data)
+    data = _remove_leading_garbage_lines(data)
     data = _newline_line_ending(data)
 
     if company is None:
