@@ -45,6 +45,10 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 
 import { type Route } from './+types/single.ts'
 
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
+import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
+
 /** TODO: Use url param "dev" to set defaults */
 
 /** Modeled off the conform example at
@@ -335,19 +339,20 @@ export default function SubmitAnalysis({
 				{/* if no usage data, show the file upload functionality */}
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
 				<ErrorList id={form.errorId} errors={form.errors} />
-				{showUsageData && (
+				{showUsageData && usageData && (
 					<>
-						<EnergyUseHistory
-							usageData={(usageData || {}) as UsageDataSchema}
-							setUsageData={setUsageData}
-							lastResult={lastResult}
-							parsedLastResult={parsedLastResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
-							showUsageData={showUsageData}
-							scrollAfterSubmit={scrollAfterSubmit}
-							setScrollAfterSubmit={setScrollAfterSubmit}
+						<AnalysisHeader 
+							usageData={usageData} 
+							scrollAfterSubmit={scrollAfterSubmit} 
+							setScrollAfterSubmit={setScrollAfterSubmit} 
 						/>
-
+						<EnergyUseHistoryChart 
+							usageData={usageData} 
+							setUsageData={setUsageData} 
+							lastResult={lastResult} 
+							parsedLastResult={parsedLastResult} 
+							recalculateFn={recalculateFromBillingRecordsChange}
+						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
 						usageData.heat_load_output &&
