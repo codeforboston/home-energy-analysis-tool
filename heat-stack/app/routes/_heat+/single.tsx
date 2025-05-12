@@ -38,12 +38,15 @@ import {
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
-import { EnergyUseHistory } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
+
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
+import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -335,19 +338,20 @@ export default function SubmitAnalysis({
 				{/* if no usage data, show the file upload functionality */}
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
 				<ErrorList id={form.errorId} errors={form.errors} />
-				{showUsageData && (
+				{showUsageData && usageData && (
 					<>
-						<EnergyUseHistory
-							usageData={(usageData || {}) as UsageDataSchema}
-							setUsageData={setUsageData}
-							lastResult={lastResult}
-							parsedLastResult={parsedLastResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
-							showUsageData={showUsageData}
-							scrollAfterSubmit={scrollAfterSubmit}
-							setScrollAfterSubmit={setScrollAfterSubmit}
+						<AnalysisHeader 
+							usageData={usageData} 
+							scrollAfterSubmit={scrollAfterSubmit} 
+							setScrollAfterSubmit={setScrollAfterSubmit} 
 						/>
-
+						<EnergyUseHistoryChart 
+							usageData={usageData} 
+							setUsageData={setUsageData} 
+							lastResult={lastResult} 
+							parsedLastResult={parsedLastResult} 
+							recalculateFn={recalculateFromBillingRecordsChange}
+						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
 						usageData.heat_load_output &&
