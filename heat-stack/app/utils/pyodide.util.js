@@ -1,5 +1,6 @@
 import * as pyodideModule from 'pyodide'
-
+import processPyCode from '../pycode/process.py?raw';
+import utilFunctionsPyCode from '../pycode/util_functions.py?raw';
 
 class PyodideUtil {
     static _instance;
@@ -34,100 +35,52 @@ class PyodideUtil {
 
     makePyImpObj(EngineObj) {
         let name = EngineObj.constructor.name;
-		let r = this.pyodideModule.runPython(`
-		from rules_engine.pydantic_models import ${name}
-		from pyodide.ffi import to_js
-		import js
-		${name}`);
-		return r;
-
-		// return await this.pyodideModule.toPy(thing);
+        // Load utility functions
+        this.pyodideModule.runPython(utilFunctionsPyCode);
+        // Use get_py_imp_obj function to get the class
+        let r = this.pyodideModule.runPython(`
+        from rules_engine.pydantic_models import ${name}
+        from pyodide.ffi import to_js
+        import js
+        ${name}`);
+        return r;
     }
 
-	async makeSI(si) {
-		console.log("Makin SI name:"+ si.name);
-		let f = this.pyodideModule.runPython(`
-		def f(s):
-			return HeatLoadInput(**s)
-		f
-		`);
-		let fr = f(si);
-		console.log(`FR: ${fr}`);
-		return fr;
-	}
+    async makeSI(si) {
+        console.log("Makin SI name:"+ si.name);
+        // Load utility functions
+        this.pyodideModule.runPython(utilFunctionsPyCode);
+        // Use make_si function
+        let f = this.pyodideModule.runPython(`
+        def f(s):
+            return HeatLoadInput(**s)
+        f
+        `);
+        let fr = f(si);
+        console.log(`FR: ${fr}`);
+        return fr;
+    }
 
-	getSIO() {
-		let r = this.pyodideModule.runPython(`
-		from rules_engine.pydantic_models import HeatLoadInput
-		from pyodide.ffi import to_js
-		import js
-		HeatLoadInput`);
-		return r;
-	}
+    getSIO() {
+        // Load utility functions
+        this.pyodideModule.runPython(utilFunctionsPyCode);
+        // Use get_sio function
+        let r = this.pyodideModule.runPython(`
+        from rules_engine.pydantic_models import HeatLoadInput
+        from pyodide.ffi import to_js
+        import js
+        HeatLoadInput`);
+        return r;
+    }
 
     runit(rs,rn,rt,rb) {
-		let pyProcess = this.pyodideModule.runPython(`
-		import json
-		from pyodide.ffi import to_js, JsProxy
-		from pyodide.code import run_js
-		import js
-		from datetime import date
-		from rules_engine import engine
-		from rules_engine.pydantic_models import (
-			AnalysisType,
-			BalancePointGraph,
-			BalancePointGraphRow,
-			Constants,
-			DhwInput,
-			FuelType,
-			NaturalGasBillingInput,
-			NormalizedBillingPeriodRecordInput,
-			OilPropaneBillingInput,
-			HeatLoadInput,
-			HeatLoadOutput,
-			TemperatureInput,
-		)
-		
-		def default_converter(value,_i1m,_i2):
-			#print("value: "+str(value))
-			if 'Date' == str(value.constructor.name):
-				return date.fromtimestamp(value.valueOf() / 1000)
-			return value
-		
-		def process(s,n,t,b):
-			print("S INIT: ")
-			print(type(s))
-			
-			s = s.as_object_map()
-			sv = s.values()
-			svm = sv._mapping
-			
-
-			t = t.to_py(default_converter=default_converter)
-
-			summa_inpoot = HeatLoadInput(**svm)
-			tempinz = TemperatureInput(**t)
-
-
-			b = json.loads(b)
-			billy_normz = []
-			for x in b:
-				print(x)
-				billy_normz.append(NormalizedBillingPeriodRecordInput(**x))
-
-
-			print(type(summa_inpoot))
-			print(type(tempinz))
-			print(type(billy_normz))
-			print(summa_inpoot)
-			print(tempinz)
-			print(billy_normz)
-
-			r = engine.get_outputs_normalized(summa_inpoot,None,tempinz,billy_normz)
-			print(r)
-			return r
-		process
-	`);
+        // Load process module
+        this.pyodideModule.runPython(processPyCode);
+        // Use process function from the loaded module
+        let pyProcess = this.pyodideModule.runPython(`
+        from pycode.process import process
+        process
+        `);
 
         let rezz = pyProcess(rs,rn,rt,rb);
         console.log(`Le Rezz: ${rezz}`);
@@ -137,11 +90,11 @@ class PyodideUtil {
 
 
 const loadPyodideModule = async () => {
-	// public folder:
-	return await pyodideModule.loadPyodide({
-		indexURL: 'public/pyodide-env/',
-		packages:["numpy","pydantic","pydantic_core","annotated_types","rules_engine"]
-	});
+    // public folder:
+    return await pyodideModule.loadPyodide({
+        indexURL: 'public/pyodide-env/',
+        packages:["numpy","pydantic","pydantic_core","annotated_types","rules_engine"]
+    });
 }
 
 const getEngine = async(pyodide) => {
@@ -149,15 +102,15 @@ const getEngine = async(pyodide) => {
 }
 
 const testPythonScript = async () => {
-	const pyodide = await loadPyodideModule()
+    const pyodide = await loadPyodideModule()
 
-	let pm = await pyodide.pyimport("rules_engine.engine");
-	let r = pm.hdd(57,60);
-	console.log(pm.toString());
-	console.log(r);
-	// window.pydd = pyodide; //no eye deer what this does. hopefully its not needed after moving.
+    let pm = await pyodide.pyimport("rules_engine.engine");
+    let r = pm.hdd(57,60);
+    console.log(pm.toString());
+    console.log(r);
+    // window.pydd = pyodide; //no eye deer what this does. hopefully its not needed after moving.
 
-	return pyodide;
+    return pyodide;
 }
 
 
