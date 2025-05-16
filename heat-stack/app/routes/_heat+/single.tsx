@@ -2,7 +2,7 @@
 import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -42,7 +42,7 @@ import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
-import { type Route } from './+types/single.ts'
+import { type Route } from './+types/single.tsx'
 
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
@@ -75,10 +75,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 	let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
 	return { isDevMode }
 }
-
-interface ErrorWithExceptionMessage extends Error {
-	exceptionMessage?: string;
-  }
 
 export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
@@ -154,23 +150,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 	 * and returns date and weather data,
 	 * and geolocation information
 	 */
-
-	let convertedDatesTIWD, state_id, county_id
-	try {
-		const result = await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			address,
-		)
-		convertedDatesTIWD = result.convertedDatesTIWD
-		state_id = result.state_id
-		county_id = result.county_id
-	} catch (error) {
-		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
-		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
-			return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
-		}
-		throw error
-	}
+	const { convertedDatesTIWD, state_id, county_id } =
+		await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
 
 	/** Main form entrypoint
 	 */
@@ -185,6 +166,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 	)
 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 	gasBillDataFromTextFilePyProxy.destroy()
+
+	console.log(
+		'***** Rules-engine Output from CSV upload:',
+		gasBillDataFromTextFile,
+	)
 
 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
@@ -209,83 +195,81 @@ export default function SubmitAnalysis({
 	// console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
 	/**
-     * Example Data Returned
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * 
-     * 1 of 3: heat_load_output
-     * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
-     * 
-     * temp1.get('heat_load_output'): Map(9) { 
-        * estimated_balance_point → 61.5, 
-        * other_fuel_usage → 0.2857142857142857, 
-        * average_indoor_temperature → 67, 
-        * difference_between_ti_and_tbp → 5.5, 
-        * design_temperature → 1, 
-        * whole_home_heat_loss_rate → 48001.81184312083, 
-        * standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
-        * average_heat_load → 3048115.0520381727, 
-        * maximum_heat_load → 3312125.0171753373 
-     * }
-     * 
-     * 
-     * 2 of 3: processed_energy_bills
-     * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
-     *
-     * temp1.get('processed_energy_bills')
-     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * 
-     * temp1.get('processed_energy_bills')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * 
-     * temp1.get('processed_energy_bills')[0].get('period_start_date')
-     * "2020-10-02" 
-     * 
-     * 
-     * 3 of 3: balance_point_graph
-     * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
-     * 
-     * temp1.get('balance_point_graph').get('records')
-        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
-        temp1.get('balance_point_graph').get('records')[0]
-        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
-        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
-     */
+	 * Example Data Returned
+	 * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+	 * 
+	 * 1 of 3: heat_load_output
+	 * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
+	 * 
+	 * temp1.get('heat_load_output'): Map(9) { 
+		* estimated_balance_point → 61.5, 
+		* other_fuel_usage → 0.2857142857142857, 
+		* average_indoor_temperature → 67, 
+		* difference_between_ti_and_tbp → 5.5, 
+		* design_temperature → 1, 
+		* whole_home_heat_loss_rate → 48001.81184312083, 
+		* standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
+		* average_heat_load → 3048115.0520381727, 
+		* maximum_heat_load → 3312125.0171753373 
+	 * }
+	 * 
+	 * 
+	 * 2 of 3: processed_energy_bills
+	 * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
+	 *
+	 * temp1.get('processed_energy_bills')
+	 * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+	 * 
+	 * temp1.get('processed_energy_bills')[0]
+	 * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+	 * 
+	 * temp1.get('processed_energy_bills')[0].get('period_start_date')
+	 * "2020-10-02" 
+	 * 
+	 * 
+	 * 3 of 3: balance_point_graph
+	 * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+	 * 
+	 * temp1.get('balance_point_graph').get('records')
+		Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
+		temp1.get('balance_point_graph').get('records')[0]
+		Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
+		temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
+	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
-	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
+	const [tally, setTally] = useState(0)
+	// const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
-	useEffect(() => {
+
+	React.useEffect(() => {
 		return () => {
 			// Memory cleanup of pyodide fn's when component unmounts
 			cleanupPyodideResources()
 		}
 	}, [])
 
-	useEffect(() => {
-		//@ts-ignore
-		if (actionData && actionData.exceptionMessage) {
-			//@ts-ignore
-			alert(actionData.exceptionMessage)
-		} else {
-			setLastResult(actionData)
-		}
-	}, [actionData])
+	const lastResult = actionData
 
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
 
-	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult)) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
-		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-		newUsageData.processed_energy_bills.sort((a, b) => {
-			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
-		});
-		if (objectToString(newUsageData) !== objectToString(usageData)) {
-			setUsageData(newUsageData);
+
+		const newUsageData =
+			parsedLastResult && buildCurrentUsageData(parsedLastResult)
+		if (tally < 4) {
+			setTally(tally + 1)
+			setUsageData((prevUsageData) => {
+				if (objectToString(prevUsageData) != objectToString(newUsageData)) {
+					return newUsageData
+				}
+				return prevUsageData
+			})
 		}
 	}
 
@@ -297,16 +281,16 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-					living_area: 2155,
-				    address: '15 Dale Ave Gloucester, MA  01930',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-					// design_temperature_override: '',
-				}
+				living_area: 2155,
+				address: '15 Dale Ave Gloucester, MA 01930',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+				// design_temperature_override: '',
+			}
 			: { fuel_type: 'GAS' }
 
 	const [form, fields] = useForm({
@@ -354,10 +338,10 @@ export default function SubmitAnalysis({
 						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
