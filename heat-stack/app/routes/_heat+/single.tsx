@@ -31,7 +31,8 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import {
 	HomeSchema,
 	LocationSchema,
-	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
+	CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */
+	UploadEnergyUseFileSchema,
 } from '../../../types/index.ts'
 import {
 	type UsageDataSchema,
@@ -66,8 +67,9 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 	setback_hours_per_day: true,
 })
 
-export const Schema = HomeFormSchema.and(
-	CurrentHeatingSystemSchema,
+
+export const Schema = UploadEnergyUseFileSchema.and(HomeFormSchema.and(
+	CurrentHeatingSystemSchema)
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -115,6 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
+		energy_use_upload
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -135,6 +138,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
+		energy_use_upload
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
@@ -249,8 +253,7 @@ export default function SubmitAnalysis({
 		}
 	}, [])
 
-	const lastResult = actionData
-
+	const lastResult: typeof actionData | undefined = actionData
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
@@ -276,7 +279,7 @@ export default function SubmitAnalysis({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 
 	type MinimalFormData = {
-		fuel_type: 'GAS'
+		fuel_type: 'GAS',
 	}
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
@@ -289,6 +292,7 @@ export default function SubmitAnalysis({
 				thermostat_set_point: 68,
 				setback_temperature: 65,
 				setback_hours_per_day: 8,
+				energy_use_upload: undefined
 				// design_temperature_override: '',
 			}
 			: { fuel_type: 'GAS' }
@@ -301,7 +305,7 @@ export default function SubmitAnalysis({
 		},
 		defaultValue,
 		shouldValidate: 'onBlur',
-		shouldRevalidate: 'onInput'
+		shouldRevalidate: 'onSubmit'
 	})
 
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
@@ -323,7 +327,7 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && (
 					<>
@@ -360,6 +364,14 @@ export default function SubmitAnalysis({
 					</>
 				)}
 			</Form>
+			{Object.entries(form.allErrors ?? {}).map(([fieldName, errors]) => (
+				<ErrorList
+					key={fieldName}
+					id={`${form.id}-${fieldName}-error`}
+					errors={errors}
+				/>
+			))}
+
 		</>
 	)
 }
