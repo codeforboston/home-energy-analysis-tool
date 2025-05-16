@@ -8,9 +8,29 @@ export const CaseSchema = z.object({
 
 /* in default, allow for energy_use_upload  to be undefined, but provide a message */
 export const UploadEnergyUseFileSchema = z.object({
-  energy_use_upload: z.custom<File | undefined>(
-    (val) => val instanceof File,
-    { message: 'Energy Use Profile CSV/XML from Energy Utility company is required' }
+  energy_use_upload: z.union([
+    z.string(),
+    z.null(),
+    z.undefined(),
+    // Add an object type that represents a File-like object
+    z.object({
+      name: z.string(),
+      size: z.number(),
+      type: z.string()
+    })
+  ])
+  .refine(
+    (val) => {
+      // Check if it has File-like properties
+      return val !== null && 
+             val !== undefined && 
+             val !== '' &&
+             typeof val === 'object' && 
+             'name' in val && 
+             'size' in val;
+    },
+	/* this only shows "Invalid Input" but I tried other things and they break defaultValues in typescript, superrefine might work */
+    { message: 'Energy Use Profile CSV/XML from Energy Utility company is required' } 
   )
 });
 
