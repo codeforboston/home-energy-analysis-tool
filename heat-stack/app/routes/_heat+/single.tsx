@@ -292,7 +292,6 @@ export default function SubmitAnalysis({
 				thermostat_set_point: 68,
 				setback_temperature: 65,
 				setback_hours_per_day: 8,
-				energy_use_upload: undefined
 				// design_temperature_override: '',
 			}
 			: { fuel_type: 'GAS' }
