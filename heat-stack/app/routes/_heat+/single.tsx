@@ -301,6 +301,7 @@ export default function SubmitAnalysis({
 		},
 		defaultValue,
 		shouldValidate: 'onBlur',
+		shouldRevalidate: 'onInput'
 	})
 
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
@@ -312,6 +313,8 @@ export default function SubmitAnalysis({
 				onSubmit={form.onSubmit}
 				action="/single"
 				encType="multipart/form-data"
+				aria-invalid={form.errors ? true : undefined}
+				aria-describedby={form.errors ? form.errorId : undefined}
 			>
 				{' '}
 				{/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
@@ -324,16 +327,16 @@ export default function SubmitAnalysis({
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && (
 					<>
-						<AnalysisHeader 
-							usageData={usageData} 
-							scrollAfterSubmit={scrollAfterSubmit} 
-							setScrollAfterSubmit={setScrollAfterSubmit} 
+						<AnalysisHeader
+							usageData={usageData}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
 						/>
-						<EnergyUseHistoryChart 
-							usageData={usageData} 
-							setUsageData={setUsageData} 
-							lastResult={lastResult} 
-							parsedLastResult={parsedLastResult} 
+						<EnergyUseHistoryChart
+							usageData={usageData}
+							setUsageData={setUsageData}
+							lastResult={lastResult}
+							parsedLastResult={parsedLastResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
