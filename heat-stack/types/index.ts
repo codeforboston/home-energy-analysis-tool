@@ -6,6 +6,14 @@ export const CaseSchema = z.object({
 	name: z.string()
 })
 
+/* in default, allow for energy_use_upload  to be undefined, but provide a message */
+export const UploadEnergyUseFileSchema = z.object({
+  energy_use_upload: z.custom<File | undefined>(
+    (val) => val instanceof File,
+    { message: 'Energy Use Profile CSV/XML from Energy Utility company is required' }
+  )
+});
+
 export const HomeSchema = z.object({
 	/**
 	 * unit: square feet
