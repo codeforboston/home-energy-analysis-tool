@@ -114,7 +114,7 @@ export const summaryOutputSchema = z.object({
 export const NaturalGasBillRecord = z.object({
 	periodStartDate: z.date(),
 	periodEndDate: z.date(),
-	usageTherms: z.number(),
+	usageQuantity: z.number(),
 	inclusionOverride: z.number(),
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
 });

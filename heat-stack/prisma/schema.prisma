@@ -219,9 +219,9 @@ model ProcessedEnergyBill {
   id                     Int @id @default(autoincrement())
   AnalysisInput          HeatingInput @relation(fields: [analysisInputId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   analysisInputId        Int
-  periodStartDate        DateTime
-  periodEndDate          DateTime
-  usageTherms            Float
+  periodStartDate        DateTime // for oil and propane, this is the previous delivery date
+  periodEndDate          DateTime // for oil and propane, this is the delivery date
+  usageQuantity          Float // for natural gas, this is therms, and for oil and propane, this is gallons
   wholeHomeHeatLossRate  Float
   analysisType           Int
   defaultInclusion       Boolean
