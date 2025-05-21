@@ -304,7 +304,7 @@ export default function SubmitAnalysis({
 		},
 		defaultValue,
 		shouldValidate: 'onBlur',
-		shouldRevalidate: 'onSubmit'
+		shouldRevalidate: 'onInput'
 	})
 
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
@@ -363,13 +363,14 @@ export default function SubmitAnalysis({
 					</>
 				)}
 			</Form>
-			{Object.entries(form.allErrors ?? {}).map(([fieldName, errors]) => (
+			{/* // TODO: This is good to display errors from Conform which accidentally haven't been explicitly shown anywhere else
+			 {Object.entries(form.allErrors ?? {}).map(([fieldName, errors]) => (
 				<ErrorList
 					key={fieldName}
 					id={`${form.id}-${fieldName}-error`}
 					errors={errors}
 				/>
-			))}
+			))} */}
 
 		</>
 	)
