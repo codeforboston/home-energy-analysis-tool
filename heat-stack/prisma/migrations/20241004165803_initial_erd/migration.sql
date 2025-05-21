@@ -24,7 +24,7 @@ CREATE TABLE "ProcessedEnergyBill" (
     "analysisInputId" INTEGER NOT NULL,
     "periodStartDate" DATETIME NOT NULL,
     "periodEndDate" DATETIME NOT NULL,
-    "usageTherms" REAL NOT NULL,
+    "usageQuantity" REAL NOT NULL,
     "wholeHomeHeatLossRate" REAL NOT NULL,
     "analysisType" INTEGER NOT NULL,
     "defaultInclusion" BOOLEAN NOT NULL,
