@@ -235,6 +235,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 				},
 			})
 
+			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+
 			/* TODO: store rules-engine output in database too */
 		}
 
