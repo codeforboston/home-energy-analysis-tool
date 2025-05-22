@@ -171,67 +171,72 @@ export async function action({ request, params }: Route.ActionArgs) {
 		state_id = result.state_id
 		county_id = result.county_id
 
-		// Save to database using Prisma
-		// First create or find HomeOwner
-		const homeOwner = await prisma.homeOwner.create({
-			data: {
-				firstName1: name.split(' ')[0] || 'Unknown',
-				lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-				email1: '', // We'll need to add these to the form
-				firstName2: '',
-				lastName2: '',
-				email2: '',
-			},
-		})
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+			/* TODO: refactor out into a separate file. 
+					for args, use submission.values, result
+			*/
+			// Save to database using Prisma
+			// First create or find HomeOwner
+			const homeOwner = await prisma.homeOwner.create({
+				data: {
+					firstName1: name.split(' ')[0] || 'Unknown',
+					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+					email1: '', // We'll need to add these to the form
+					firstName2: '',
+					lastName2: '',
+					email2: '',
+				},
+			})
 
-		// Create location using geocoded information
-		const location = await prisma.location.create({
-			data: {
-				address: result.addressComponents?.street || address,
-				city: result.addressComponents?.city || '',
-				state: result.addressComponents?.state || '',
-				zipcode: result.addressComponents?.zip || '',
-				country: 'USA',
-				livingAreaSquareFeet: Math.round(living_area),
-				latitude: result.coordinates?.y || 0,
-				longitude: result.coordinates?.x || 0,
-			},
-		})
+			// Create location using geocoded information
+			const location = await prisma.location.create({
+				data: {
+					address: result.addressComponents?.street || address,
+					city: result.addressComponents?.city || '',
+					state: result.addressComponents?.state || '',
+					zipcode: result.addressComponents?.zip || '',
+					country: 'USA',
+					livingAreaSquareFeet: Math.round(living_area),
+					latitude: result.coordinates?.y || 0,
+					longitude: result.coordinates?.x || 0,
+				},
+			})
 
-		// Create Case
-		caseRecord = await prisma.case.create({
-			data: {
-				homeOwnerId: homeOwner.id,
-				locationId: location.id,
-			},
-		})
+			// Create Case
+			caseRecord = await prisma.case.create({
+				data: {
+					homeOwnerId: homeOwner.id,
+					locationId: location.id,
+				},
+			})
 
-		// Create Analysis
-		analysis = await prisma.analysis.create({
-			data: {
-				caseId: caseRecord.id,
-				rules_engine_version: '0.0.1',
-			},
-		})
+			// Create Analysis
+			analysis = await prisma.analysis.create({
+				data: {
+					caseId: caseRecord.id,
+					rules_engine_version: '0.0.1',
+				},
+			})
 
-		// Create HeatingInput
-		heatingInput = await prisma.heatingInput.create({
-			data: {
-				analysisId: analysis.id,
-				fuelType: fuel_type,
-				designTemperatureOverride: Boolean(design_temperature_override),
-				heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-				thermostatSetPoint: thermostat_set_point,
-				setbackTemperature: setback_temperature || 65,
-				setbackHoursPerDay: setback_hours_per_day || 0,
-				numberOfOccupants: 2, // Default value until we add to form
-				estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-				standByLosses: 5, // Default value until we add to form
-				livingArea: living_area,
-			},
-		})
+			// Create HeatingInput
+			heatingInput = await prisma.heatingInput.create({
+				data: {
+					analysisId: analysis.id,
+					fuelType: fuel_type,
+					designTemperatureOverride: Boolean(design_temperature_override),
+					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+					thermostatSetPoint: thermostat_set_point,
+					setbackTemperature: setback_temperature || 65,
+					setbackHoursPerDay: setback_hours_per_day || 0,
+					numberOfOccupants: 2, // Default value until we add to form
+					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+					standByLosses: 5, // Default value until we add to form
+					livingArea: living_area,
+				},
+			})
 
-		/* TODO: store rules-engine output in database too */
+			/* TODO: store rules-engine output in database too */
+		}
 
 	} catch (error) {
 		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
