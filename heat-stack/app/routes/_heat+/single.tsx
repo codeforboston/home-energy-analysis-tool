@@ -8,6 +8,7 @@ import { type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -76,6 +77,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 	let url = new URL(request.url)
 	let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
 	return { isDevMode }
+}
+
+interface ErrorWithExceptionMessage extends Error {
+	exceptionMessage?: string;
+}
+
+/* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
+export interface CaseInfo {
+	caseId?: number;
+	analysisId?: number;
+	heatingInputId?: number;
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -154,8 +166,95 @@ export async function action({ request, params }: Route.ActionArgs) {
 	 * and returns date and weather data,
 	 * and geolocation information
 	 */
-	const { convertedDatesTIWD, state_id, county_id } =
-		await getConvertedDatesTIWD(pyodideResultsFromTextFile, address)
+
+	let convertedDatesTIWD, state_id, county_id
+	// Define variables at function scope for access in the return statement
+	let caseRecord, analysis, heatingInput
+	try {
+		const result = await getConvertedDatesTIWD(
+			pyodideResultsFromTextFile,
+			address,
+		)
+		convertedDatesTIWD = result.convertedDatesTIWD
+		state_id = result.state_id
+		county_id = result.county_id
+
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+			/* TODO: refactor out into a separate file. 
+					for args, use submission.values, result
+			*/
+			// Save to database using Prisma
+			// First create or find HomeOwner
+			const homeOwner = await prisma.homeOwner.create({
+				data: {
+					firstName1: name.split(' ')[0] || 'Unknown',
+					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+					email1: '', // We'll need to add these to the form
+					firstName2: '',
+					lastName2: '',
+					email2: '',
+				},
+			})
+
+			// Create location using geocoded information
+			const location = await prisma.location.create({
+				data: {
+					address: result.addressComponents?.street || address,
+					city: result.addressComponents?.city || '',
+					state: result.addressComponents?.state || '',
+					zipcode: result.addressComponents?.zip || '',
+					country: 'USA',
+					livingAreaSquareFeet: Math.round(living_area),
+					latitude: result.coordinates?.y || 0,
+					longitude: result.coordinates?.x || 0,
+				},
+			})
+
+			// Create Case
+			caseRecord = await prisma.case.create({
+				data: {
+					homeOwnerId: homeOwner.id,
+					locationId: location.id,
+				},
+			})
+
+			// Create Analysis
+			analysis = await prisma.analysis.create({
+				data: {
+					caseId: caseRecord.id,
+					rules_engine_version: '0.0.1',
+				},
+			})
+
+			// Create HeatingInput
+			heatingInput = await prisma.heatingInput.create({
+				data: {
+					analysisId: analysis.id,
+					fuelType: fuel_type,
+					designTemperatureOverride: Boolean(design_temperature_override),
+					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+					thermostatSetPoint: thermostat_set_point,
+					setbackTemperature: setback_temperature || 65,
+					setbackHoursPerDay: setback_hours_per_day || 0,
+					numberOfOccupants: 2, // Default value until we add to form
+					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+					standByLosses: 5, // Default value until we add to form
+					livingArea: living_area,
+				},
+			})
+
+			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+
+			/* TODO: store rules-engine output in database too */
+		}
+
+	} catch (error) {
+		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
+		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
+			return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
+		}
+		throw error
+	}
 
 	/** Main form entrypoint
 	 */
@@ -187,6 +286,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 		convertedDatesTIWD,
 		state_id,
 		county_id,
+		// Return case information for linking to case details
+		caseInfo: {
+			caseId: caseRecord?.id,
+			analysisId: analysis?.id,
+			heatingInputId: heatingInput?.id
+		}
 	}
 	// return redirect(`/single`)
 } //END OF action
@@ -242,8 +347,9 @@ export default function SubmitAnalysis({
 	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [tally, setTally] = useState(0)
-	// const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
+	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
 
 
 	React.useEffect(() => {
@@ -253,7 +359,16 @@ export default function SubmitAnalysis({
 		}
 	}, [])
 
-	const lastResult: typeof actionData | undefined = actionData
+	React.useEffect(() => {
+		// Set case info if available
+		// Type assertion to handle the extended actionData type
+		const typedActionData = actionData as typeof actionData & { caseInfo?: CaseInfo };
+		if (typedActionData?.caseInfo) {
+			setSavedCase(typedActionData.caseInfo)
+		}
+	}, [actionData])
+
+	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
@@ -321,8 +436,8 @@ export default function SubmitAnalysis({
 			>
 				{' '}
 				{/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
-            This will make it work when JavaScript is turned off as well 
-            <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
+			This will make it work when JavaScript is turned off as well 
+			<Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
@@ -363,6 +478,21 @@ export default function SubmitAnalysis({
 					</>
 				)}
 			</Form>
+			{/* Show case saved message */}
+			{savedCase && savedCase.caseId && (
+				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<p className="mb-4">Your case data has been saved to the database.</p>
+					<p>
+						<a
+							href={`/cases/${savedCase.caseId}`}
+							className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+						>
+							View Case Details
+						</a>
+					</p>
+				</div>
+			)}
 			{/* // TODO: This is good to display errors from Conform which accidentally haven't been explicitly shown anywhere else
 			 {Object.entries(form.allErrors ?? {}).map(([fieldName, errors]) => (
 				<ErrorList
@@ -371,7 +501,6 @@ export default function SubmitAnalysis({
 					errors={errors}
 				/>
 			))} */}
-
 		</>
 	)
 }
