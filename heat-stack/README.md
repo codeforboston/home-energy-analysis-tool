@@ -183,6 +183,28 @@ If using GitHub Codespaces, follow these steps:
 
 ### Handling Special Cases
 
+#### Deploying from scratch to Fly.io
+
+Helpful if migrations need to be completely re-done: destroy the app and re-add it with the same name(s).
+
+You can add `--name` to fly launch, but be careful you're in the right folder.
+
+More details [in the epicstack deployment docs](https://github.com/epicweb-dev/epic-stack/blob/main/docs/deployment.md)
+The cert you add first will be default.
+
+```sh
+cd heat-stack
+fly launch
+fly consul attach --app heat-stack
+
+# only in Staging, disable google etc robot indexing:
+fly secrets set ALLOW_INDEXING=true --app heat-stack
+
+fly secrets set SESSION_SECRET=$(openssl rand -hex 32) HONEYPOT_SECRET=$(openssl rand -hex 32) --app heat-stack
+fly certs add heat.heatsmartalliance.org
+fly certs add www.heat.heatsmartalliance.org
+```
+
 #### Updating Pyodide
 
 If the version of Pyodide changes or you encounter issues with the Pyodide
