@@ -1,4 +1,4 @@
-import { Schema } from '#app/routes/_heat+/single.tsx'
+import { type CaseInfo, Schema } from '#app/routes/_heat+/single.tsx'
 import { type SubmissionResult } from '#node_modules/@conform-to/react'
 import {
 	type BalancePointGraphSchema,
@@ -78,7 +78,7 @@ export const buildCurrentUsageData = (
 	return newUsageData
 }
 
-type ActionResult = SubmissionResult<string[]> | { data: string } | undefined
+type ActionResult = SubmissionResult<string[]> & { caseInfo?: CaseInfo }  | { data: string } & { caseInfo?: CaseInfo }  | undefined
 
 /** typeguard for useAction between string[] and {data: string} */
 export function hasDataProperty(result: ActionResult): result is { data: string } {

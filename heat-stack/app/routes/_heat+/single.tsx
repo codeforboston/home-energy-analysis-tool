@@ -84,7 +84,7 @@ interface ErrorWithExceptionMessage extends Error {
 }
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
-interface CaseInfo {
+export interface CaseInfo {
 	caseId?: number;
 	analysisId?: number;
 	heatingInputId?: number;
@@ -359,17 +359,16 @@ export default function SubmitAnalysis({
 		}
 	}, [])
 
-	useEffect(() => {
-			// Set case info if available
-			// Type assertion to handle the extended actionData type
-			const typedActionData = actionData as typeof actionData & { caseInfo?: CaseInfo };
-			if (typedActionData?.caseInfo) {
-				setSavedCase(typedActionData.caseInfo)
-			}
+	React.useEffect(() => {
+		// Set case info if available
+		// Type assertion to handle the extended actionData type
+		const typedActionData = actionData as typeof actionData & { caseInfo?: CaseInfo };
+		if (typedActionData?.caseInfo) {
+			setSavedCase(typedActionData.caseInfo)
 		}
 	}, [actionData])
 
-	const lastResult: typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
+	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
