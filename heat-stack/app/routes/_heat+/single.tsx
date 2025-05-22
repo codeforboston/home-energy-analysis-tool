@@ -8,6 +8,7 @@ import { type z } from 'zod'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -75,7 +76,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 interface ErrorWithExceptionMessage extends Error {
 	exceptionMessage?: string;
-  }
+}
+
+interface CaseInfo {
+	caseId?: number;
+	analysisId?: number;
+	heatingInputId?: number;
+}
 
 export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
@@ -153,6 +160,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 	 */
 
 	let convertedDatesTIWD, state_id, county_id
+	// Define variables at function scope for access in the return statement
+	let caseRecord, analysis, heatingInput
 	try {
 		const result = await getConvertedDatesTIWD(
 			pyodideResultsFromTextFile,
@@ -161,6 +170,76 @@ export async function action({ request, params }: Route.ActionArgs) {
 		convertedDatesTIWD = result.convertedDatesTIWD
 		state_id = result.state_id
 		county_id = result.county_id
+
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+			/* TODO: refactor out into a separate file. 
+					for args, use submission.values, result
+			*/
+			// Save to database using Prisma
+			// First create or find HomeOwner
+			const homeOwner = await prisma.homeOwner.create({
+				data: {
+					firstName1: name.split(' ')[0] || 'Unknown',
+					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+					email1: '', // We'll need to add these to the form
+					firstName2: '',
+					lastName2: '',
+					email2: '',
+				},
+			})
+
+			// Create location using geocoded information
+			const location = await prisma.location.create({
+				data: {
+					address: result.addressComponents?.street || address,
+					city: result.addressComponents?.city || '',
+					state: result.addressComponents?.state || '',
+					zipcode: result.addressComponents?.zip || '',
+					country: 'USA',
+					livingAreaSquareFeet: Math.round(living_area),
+					latitude: result.coordinates?.y || 0,
+					longitude: result.coordinates?.x || 0,
+				},
+			})
+
+			// Create Case
+			caseRecord = await prisma.case.create({
+				data: {
+					homeOwnerId: homeOwner.id,
+					locationId: location.id,
+				},
+			})
+
+			// Create Analysis
+			analysis = await prisma.analysis.create({
+				data: {
+					caseId: caseRecord.id,
+					rules_engine_version: '0.0.1',
+				},
+			})
+
+			// Create HeatingInput
+			heatingInput = await prisma.heatingInput.create({
+				data: {
+					analysisId: analysis.id,
+					fuelType: fuel_type,
+					designTemperatureOverride: Boolean(design_temperature_override),
+					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+					thermostatSetPoint: thermostat_set_point,
+					setbackTemperature: setback_temperature || 65,
+					setbackHoursPerDay: setback_hours_per_day || 0,
+					numberOfOccupants: 2, // Default value until we add to form
+					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+					standByLosses: 5, // Default value until we add to form
+					livingArea: living_area,
+				},
+			})
+
+			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+
+			/* TODO: store rules-engine output in database too */
+		}
+
 	} catch (error) {
 		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
 		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
@@ -194,6 +273,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 		convertedDatesTIWD,
 		state_id,
 		county_id,
+		// Return case information for linking to case details
+		caseInfo: {
+			caseId: caseRecord?.id,
+			analysisId: analysis?.id,
+			heatingInputId: heatingInput?.id
+		}
 	}
 	// return redirect(`/single`)
 } //END OF action
@@ -206,50 +291,52 @@ export default function SubmitAnalysis({
 	// console.log("lastResult (all Rules Engine data)", lastResult !== undefined ? JSON.parse(lastResult.data, reviver): undefined)
 
 	/**
-     * Example Data Returned
-     * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
-     * 
-     * 1 of 3: heat_load_output
-     * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
-     * 
-     * temp1.get('heat_load_output'): Map(9) { 
-        * estimated_balance_point → 61.5, 
-        * other_fuel_usage → 0.2857142857142857, 
-        * average_indoor_temperature → 67, 
-        * difference_between_ti_and_tbp → 5.5, 
-        * design_temperature → 1, 
-        * whole_home_heat_loss_rate → 48001.81184312083, 
-        * standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
-        * average_heat_load → 3048115.0520381727, 
-        * maximum_heat_load → 3312125.0171753373 
-     * }
-     * 
-     * 
-     * 2 of 3: processed_energy_bills
-     * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
-     *
-     * temp1.get('processed_energy_bills')
-     * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
-     * 
-     * temp1.get('processed_energy_bills')[0]
-     * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
-     * 
-     * temp1.get('processed_energy_bills')[0].get('period_start_date')
-     * "2020-10-02" 
-     * 
-     * 
-     * 3 of 3: balance_point_graph
-     * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
-     * 
-     * temp1.get('balance_point_graph').get('records')
-        Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
-        temp1.get('balance_point_graph').get('records')[0]
-        Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
-        temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
-     */
+	 * Example Data Returned
+	 * Where temp1 is a temporary variable with the main Map of Maps (or undefined if page not yet submitted).
+	 * 
+	 * 1 of 3: heat_load_output
+	 * console.log("Summary Output", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('heat_load_output'): undefined)
+	 * 
+	 * temp1.get('heat_load_output'): Map(9) { 
+		* estimated_balance_point → 61.5, 
+		* other_fuel_usage → 0.2857142857142857, 
+		* average_indoor_temperature → 67, 
+		* difference_between_ti_and_tbp → 5.5, 
+		* design_temperature → 1, 
+		* whole_home_heat_loss_rate → 48001.81184312083, 
+		* standard_deviation_of_heat_loss_rate → 0.08066745182677547, 
+		* average_heat_load → 3048115.0520381727, 
+		* maximum_heat_load → 3312125.0171753373 
+	 * }
+	 * 
+	 * 
+	 * 2 of 3: processed_energy_bills
+	 * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
+	 *
+	 * temp1.get('processed_energy_bills')
+	 * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
+	 * 
+	 * temp1.get('processed_energy_bills')[0]
+	 * Map(9) { period_start_date → "2020-10-02", period_end_date → "2020-11-04", usage → 29, analysis_type_override → null, inclusion_override → true, analysis_type → 0, default_inclusion → false, eliminated_as_outlier → false, whole_home_heat_loss_rate → null }
+	 * 
+	 * temp1.get('processed_energy_bills')[0].get('period_start_date')
+	 * "2020-10-02" 
+	 * 
+	 * 
+	 * 3 of 3: balance_point_graph
+	 * console.log("HeatLoad chart", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('balance_point_graph')?.get('records'): undefined) 
+	 * 
+	 * temp1.get('balance_point_graph').get('records')
+		Array(23) [ Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), Map(5), … ]
+		temp1.get('balance_point_graph').get('records')[0]
+		Map(5) { balance_point → 60, heat_loss_rate → 51056.8007761249, change_in_heat_loss_rate → 0, percent_change_in_heat_loss_rate → 0, standard_deviation → 0.17628334816871494 }
+		temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
+	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
-	const [lastResult, setLastResult] = useState<typeof actionData | undefined>()
+	// Define lastResult with an extended type that includes caseInfo
+	const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
 
 	useEffect(() => {
 		return () => {
@@ -265,6 +352,13 @@ export default function SubmitAnalysis({
 			alert(actionData.exceptionMessage)
 		} else {
 			setLastResult(actionData)
+
+			// Set case info if available
+			// Type assertion to handle the extended actionData type
+			const typedActionData = actionData as typeof actionData & { caseInfo?: CaseInfo };
+			if (typedActionData?.caseInfo) {
+				setSavedCase(typedActionData.caseInfo)
+			}
 		}
 	}, [actionData])
 
@@ -294,16 +388,16 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-					living_area: 2155,
-				    address: '15 Dale Ave Gloucester, MA  01930',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-					// design_temperature_override: '',
-				}
+				living_area: 2155,
+				address: '15 Dale Ave Gloucester, MA  01930',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+				// design_temperature_override: '',
+			}
 			: { fuel_type: 'GAS' }
 
 	const [form, fields] = useForm({
@@ -328,8 +422,8 @@ export default function SubmitAnalysis({
 			>
 				{' '}
 				{/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
-            This will make it work when JavaScript is turned off as well 
-            <Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
+			This will make it work when JavaScript is turned off as well 
+			<Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
@@ -350,10 +444,10 @@ export default function SubmitAnalysis({
 
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
@@ -369,6 +463,21 @@ export default function SubmitAnalysis({
 					</>
 				)}
 			</Form>
+			{/* Show case saved message */}
+			{savedCase && savedCase.caseId && (
+				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<p className="mb-4">Your case data has been saved to the database.</p>
+					<p>
+						<a
+							href={`/cases/${savedCase.caseId}`}
+							className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+						>
+							View Case Details
+						</a>
+					</p>
+				</div>
+			)}
 		</>
 	)
 }
