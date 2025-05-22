@@ -25,8 +25,11 @@ export async function loader() {
     return data({ cases })
 }
 
-export default function Cases() {
-    const { cases } = useLoaderData<typeof loader>()
+export default function Cases({
+    loaderData,
+    // actionData,
+}: Route.ComponentProps) {
+    const { cases } = loaderData
 
     return (
         <div className="container mx-auto p-6">

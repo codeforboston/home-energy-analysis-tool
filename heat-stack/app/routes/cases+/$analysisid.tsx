@@ -40,8 +40,11 @@ export async function loader({ params }: Route.LoaderArgs) {
     return data({ caseData })
 }
 
-export default function Analysis() {
-    const { caseData } = useLoaderData<typeof loader>()
+export default function Analysis({
+    loaderData,
+    // actionData,
+}: Route.ComponentProps) {
+    const { caseData } = loaderData
     const analysis = caseData.analysis[0]
     const heatingInput = analysis?.heatingInput[0]
     const heatingOutput = analysis?.heatingOutput[0]
