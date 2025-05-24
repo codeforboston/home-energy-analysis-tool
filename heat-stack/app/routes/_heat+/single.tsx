@@ -5,6 +5,7 @@ import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.
 import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
@@ -19,8 +20,6 @@ import {
 	hasDataProperty,
 	hasParsedAndValidatedFormSchemaProperty,
 } from '#app/utils/index.ts'
-import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
-
 import {
 	cleanupPyodideResources,
 	executeGetAnalyticsFromFormJs,
@@ -39,6 +38,7 @@ import {
 	type UsageDataSchema,
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
@@ -46,9 +46,7 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 
 import { type Route } from './+types/single.tsx'
 
-import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -346,11 +344,10 @@ export default function SubmitAnalysis({
 		temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
 	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
-	const [tally, setTally] = useState(0)
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [needParseFromAction, setNeedParseFromAction] = useState(false)
-	const [parsedLastResult, setLastParsedResult] = useState<Map<any, any> | undefined>()
+	const [parsedLastResult, setParsedLastResult] = useState<Map<any, any> | undefined>()
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
 
 
@@ -375,11 +372,10 @@ export default function SubmitAnalysis({
 
 	// let parsedLastResult: Map<any, any> | undefined
 
-	//@ts-ignore
 	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+		setParsedLastResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
 		// typescript required guard - parsedLastResult should be non-blank
 
 		let newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
