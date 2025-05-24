@@ -1,5 +1,4 @@
 import { Upload } from 'lucide-react'
-import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList';
 
