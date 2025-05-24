@@ -20,6 +20,7 @@ import {
 	hasDataProperty,
 	hasParsedAndValidatedFormSchemaProperty,
 } from '#app/utils/index.ts'
+import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
 import {
 	cleanupPyodideResources,
 	executeGetAnalyticsFromFormJs,
@@ -45,8 +46,6 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.tsx'
-
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -88,7 +87,7 @@ export interface CaseInfo {
 	heatingInputId?: number;
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request, params: __params__ }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
