@@ -26,7 +26,6 @@ export const recalculateFromBillingRecordsChange = (
         setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>
          ) => {
         if (!parsedLastResult) {
-            console.error("parsedResult is blank")
             return
         }
         // replace original Rules Engine's billing records with new UI's billingRecords
@@ -40,9 +39,11 @@ export const recalculateFromBillingRecordsChange = (
 
         const newUsageData = calcResult && buildCurrentUsageData(calcResult)
             setUsageData((prevUsageData) => {
+
                 if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
                     return newUsageData;
                 }
                 return prevUsageData
+
             });
     }
