@@ -57,7 +57,7 @@ interface EnergyUseHistoryChartProps {
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
     setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFn: RecalculateFunction
+    recalculateFromBillingRecordsChange: RecalculateFunction
 }
 
 function objectToString(obj: any): any {
@@ -78,7 +78,7 @@ function objectToString(obj: any): any {
     return retval as any;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
+export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFromBillingRecordsChange }: EnergyUseHistoryChartProps) {
 
 
     const handleOverrideCheckboxChange = (index: number) => {
@@ -111,7 +111,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             state_id,
             county_id } = { ...lastResult }
 
-        recalculateFn(
+        recalculateFromBillingRecordsChange(
             parsedLastResult,
             newRecords,
             parsedAndValidatedFormSchema,

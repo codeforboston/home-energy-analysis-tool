@@ -459,7 +459,7 @@ export default function SubmitAnalysis({
 							setUsageData={setUsageData}
 							lastResult={lastResult}
 							parsedLastResult={parsedLastResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
+							recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange}
 						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
