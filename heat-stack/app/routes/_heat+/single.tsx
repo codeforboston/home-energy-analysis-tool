@@ -381,13 +381,15 @@ export default function SubmitAnalysis({
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
 		// typescript required guard - parsedLastResult should be non-blank
-		if (!parsedLastResult) {
-			return
+
+		let newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+			
+		if (newUsageData) {
+			newUsageData.processed_energy_bills.sort((a, b) => {
+				return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
+			});
 		}
-		const newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-		newUsageData.processed_energy_bills.sort((a, b) => {
-			return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
-		});
+	
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
