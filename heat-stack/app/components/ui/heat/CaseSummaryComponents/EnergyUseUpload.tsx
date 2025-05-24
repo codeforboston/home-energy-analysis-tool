@@ -1,15 +1,15 @@
 import { Upload } from 'lucide-react'
-import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList';
 
 interface EnergyUseUploadProps {
-	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 	fields: any;
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+	setNeedParseFromAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EnergyUseUpload(
-	{ setScrollAfterSubmit, fields }: EnergyUseUploadProps
+	{ fields, setScrollAfterSubmit, setNeedParseFromAction }: EnergyUseUploadProps
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
@@ -18,6 +18,7 @@ export function EnergyUseUpload(
 	*/
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
+		setNeedParseFromAction(true)
 	}
 
 	return (

@@ -5,6 +5,7 @@ import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.
 import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
@@ -20,7 +21,6 @@ import {
 	hasParsedAndValidatedFormSchemaProperty,
 } from '#app/utils/index.ts'
 import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
-
 import {
 	cleanupPyodideResources,
 	executeGetAnalyticsFromFormJs,
@@ -39,16 +39,13 @@ import {
 	type UsageDataSchema,
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.tsx'
-
-import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -90,7 +87,7 @@ export interface CaseInfo {
 	heatingInputId?: number;
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request, params: __params__ }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
@@ -346,9 +343,10 @@ export default function SubmitAnalysis({
 		temp1.get('balance_point_graph').get('records')[0].get('heat_loss_rate') 
 	 */
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
-	const [tally, setTally] = useState(0)
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [needParseFromAction, setNeedParseFromAction] = useState(false)
+	const [parsedLastResult, setParsedLastResult] = useState<Map<any, any> | undefined>()
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
 
 
@@ -371,24 +369,26 @@ export default function SubmitAnalysis({
 	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
 	let showUsageData = lastResult !== undefined
 
-	let parsedLastResult: Map<any, any> | undefined
+	// let parsedLastResult: Map<any, any> | undefined
 
-	if (showUsageData && hasDataProperty(lastResult)) {
+	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
-		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
+		setParsedLastResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+		// typescript required guard - parsedLastResult should be non-blank
 
-		const newUsageData =
-			parsedLastResult && buildCurrentUsageData(parsedLastResult)
-		if (tally < 4) {
-			setTally(tally + 1)
-			setUsageData((prevUsageData) => {
-				if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-					return newUsageData
-				}
-				return prevUsageData
-			})
+		let newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
+
+		if (newUsageData) {
+			newUsageData.processed_energy_bills.sort((a, b) => {
+				return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
+			});
 		}
+
+		if (objectToString(newUsageData) !== objectToString(usageData)) {
+			setUsageData(newUsageData);
+		}
+		setNeedParseFromAction(false);
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
@@ -441,7 +441,11 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload
+					fields={fields}
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					setNeedParseFromAction={setNeedParseFromAction}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && (
 					<>
@@ -455,7 +459,7 @@ export default function SubmitAnalysis({
 							setUsageData={setUsageData}
 							lastResult={lastResult}
 							parsedLastResult={parsedLastResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
+							recalculateFromBillingRecordsChange={recalculateFromBillingRecordsChange}
 						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&

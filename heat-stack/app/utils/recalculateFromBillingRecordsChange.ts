@@ -25,8 +25,9 @@ export const recalculateFromBillingRecordsChange = (
         county_id: any,
         setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>
          ) => {
-        if (!parsedLastResult)
+        if (!parsedLastResult) {
             return
+        }
         // replace original Rules Engine's billing records with new UI's billingRecords
         const parsedNextResult = buildCurrentMapOfUsageData(parsedLastResult, billingRecords)
 
