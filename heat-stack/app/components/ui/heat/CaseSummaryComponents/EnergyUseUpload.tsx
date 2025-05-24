@@ -4,12 +4,13 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList';
 
 interface EnergyUseUploadProps {
+	fields: any;
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 	setNeedParseFromAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EnergyUseUpload(
-	{ setScrollAfterSubmit, setNeedParseFromAction }: EnergyUseUploadProps
+	{ fields, setScrollAfterSubmit, setNeedParseFromAction }: EnergyUseUploadProps
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
