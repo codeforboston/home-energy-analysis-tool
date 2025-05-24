@@ -376,20 +376,20 @@ export default function SubmitAnalysis({
 	// let parsedLastResult: Map<any, any> | undefined
 
 	//@ts-ignore
-	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction ) {
+	if (showUsageData && hasDataProperty(lastResult) && needParseFromAction) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
 		setLastParsedResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
 		// typescript required guard - parsedLastResult should be non-blank
 
 		let newUsageData = parsedLastResult && buildCurrentUsageData(parsedLastResult)
-			
+
 		if (newUsageData) {
 			newUsageData.processed_energy_bills.sort((a, b) => {
 				return new Date(a.period_start_date).getTime() - new Date(b.period_start_date).getTime();
 			});
 		}
-	
+
 		if (objectToString(newUsageData) !== objectToString(usageData)) {
 			setUsageData(newUsageData);
 		}
@@ -446,8 +446,9 @@ export default function SubmitAnalysis({
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload 
-				setScrollAfterSubmit={setScrollAfterSubmit} 
+				<EnergyUseUpload
+					fields={fields}
+					setScrollAfterSubmit={setScrollAfterSubmit}
 					setNeedParseFromAction={setNeedParseFromAction}
 				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
