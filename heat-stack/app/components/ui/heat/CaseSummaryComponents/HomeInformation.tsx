@@ -2,6 +2,7 @@ import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+import {AddressAutofill} from "#app/components/address-geocode-lookup.tsx"
 import { ErrorList } from "./ErrorList.tsx"
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
@@ -78,13 +79,12 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
-						<Input {...getInputProps(props.fields.address, { type: "text" })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.address.errorId}
-								errors={props.fields.address.errors}
-							/>
-						</div>
+						<AddressAutofill
+							onAddressSelect={(address) => console.log(address)}
+							placeholder="Enter address..."
+							className="custom-styles"
+							disabled={false}
+						/>
 					</div>
 				</div>
 			</div>
