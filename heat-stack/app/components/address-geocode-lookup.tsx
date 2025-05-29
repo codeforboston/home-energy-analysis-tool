@@ -1,107 +1,58 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Search, MapPin, X } from 'lucide-react'
-// GeocodeUtil and interfaces
-const BASE_URL = 'https://geocoding.geo.census.gov'
-const ADDRESS_ENDPOINT = '/geocoder/geographies/onelineaddress'
-interface CensusGeocoderResponse {
-	result: {
-		input: {
-			address: {
-				address: string
-			}
-			vintage: {
-				isDefault: boolean
-				id: string
-				vintageName: string
-				vintageDescription: string
-			}
-			benchmark: {
-				isDefault: boolean
-				benchmarkDescription: string
-				id: string
-				benchmarkName: string
-			}
-		}
-		addressMatches: AddressMatch[]
-	}
+
+// Client-side GeocodeUtil that uses our API route
+interface GeocodeResult {
+  coordinates?: {
+    x: number
+    y: number
+  }
+  state_id?: string
+  county_id?: string
+  addressComponents?: {
+    street: string
+    city: string
+    state: string
+    zip: string
+    formattedAddress: string
+  } | null
 }
-interface AddressMatch {
-	tigerLine: {
-		side: string
-		tigerLineId: string
-	}
-	geographies: {
-		'State Legislative Districts - Upper': Geography[]
-		States: Geography[]
-		'Combined Statistical Areas': Geography[]
-		'2020 Urban Areas - Corrected': Geography[]
-		'County Subdivisions': Geography[]
-		'State Legislative Districts - Lower': Geography[]
-		'Incorporated Places': Geography[]
-		Counties: Geography[]
-		'116th Congressional Districts': Geography[]
-		'Census Tracts': Geography[]
-		'Census Blocks': Geography[]
-	}
-	coordinates: {
-		x: number
-		y: number
-	}
-	addressComponents: {
-		zip: string
-		streetName: string
-		preType: string
-		city: string
-		preDirection: string
-		suffixDirection: string
-		fromAddress: string
-		state: string
-		suffixType: string
-		toAddress: string
-		suffixQualifier: string
-		preQualifier: string
-	}
-	matchedAddress: string
+
+interface ErrorData {
+  error?: string;
 }
-interface Geography {
-	GEOID: string
-	CENTLAT: string
-	AREAWATER: number
-	STATE: string
-	BASENAME: string
-	OID: string
-	LSADC: string
-	[key: string]: string | number
+
+function isErrorData(data: unknown): data is ErrorData {
+  return typeof data === 'object' && data !== null && 'error' in data;
 }
-class GeocodeUtil {
-	async getLL(address: string) {
-		const params = new URLSearchParams()
-		params.append('address', address)
-		params.append('format', 'json')
-		params.append('benchmark', '2020')
-		params.append('vintage', 'Census2020_Census2020')
-		let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
-		let rezzy = await fetch(url)
-		let jrez = (await rezzy.json()) as CensusGeocoderResponse
-		const addressMatch = jrez?.result?.addressMatches?.[0]
-		let coordz = addressMatch?.coordinates
-		const addressComponents = addressMatch?.addressComponents
-		return {
-			coordinates: coordz,
-			state_id: addressMatch?.geographies.Counties?.[0]?.['STATE'],
-			county_id: addressMatch?.geographies?.Counties?.[0]?.['COUNTY'],
-			addressComponents: addressComponents
-				? {
-						street:
-							`${addressComponents.preDirection || ''} ${addressComponents.streetName || ''} ${addressComponents.suffixType || ''}`.trim(),
-						city: addressComponents.city || '',
-						state: addressComponents.state || '',
-						zip: addressComponents.zip || '',
-						formattedAddress: addressMatch?.matchedAddress || address,
-					}
-				: null,
-		}
-	}
+
+class GeocodeUtilClient {
+  async getLL(address: string): Promise<GeocodeResult> {
+    try {
+      const params = new URLSearchParams({ address })
+      const response = await fetch(`/api/geocode?${params.toString()}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        if (isErrorData(errorData)) {
+            throw new Error(errorData.error || `HTTP ${response.status}`);
+        } else {
+            throw new Error(`HTTP ${response.status}`);
+        }
+      }
+
+      const result = await response.json() as GeocodeResult
+      return result
+    } catch (error) {
+      console.error('Geocoding error:', error)
+      return {
+        coordinates: undefined,
+        state_id: undefined,
+        county_id: undefined,
+        addressComponents: null
+      }
+    }
+  }
 }
 // Main component
 interface AddressAutofillProps {
@@ -124,7 +75,7 @@ export const AddressAutofill: React.FC<AddressAutofillProps> = ({
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const geocoder = useRef(new GeocodeUtil())
+	const geocoder = useRef(new GeocodeUtilClient())
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const searchAddresses = async (query: string) => {

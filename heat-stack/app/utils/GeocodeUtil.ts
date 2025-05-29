@@ -77,6 +77,7 @@ interface Geography {
 }
 
 class GeocodeUtil {
+    result: any
 	/**
 	 *
 	 * @param {*} address
