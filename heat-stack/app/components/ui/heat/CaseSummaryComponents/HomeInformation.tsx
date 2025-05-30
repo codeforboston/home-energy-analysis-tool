@@ -108,7 +108,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 			<div className="mt-9">
 				<Label className={`${subtitleClass}`} htmlFor="address">
-					Street Address, City, State
+					Street Address
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
@@ -117,6 +117,41 @@ export function HomeInformation(props: HomeInformationProps) {
 							<ErrorList
 								id={props.fields.address.errorId}
 								errors={props.fields.address.errors}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="mt-9">
+				<Label className={`${subtitleClass}`} htmlFor="town">
+					Town
+				</Label>
+				<div className="mt-4 flex space-x-4">
+					<div>
+						<Input {...getInputProps(props.fields.town, { type: 'text' })} />
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.town.errorId}
+								errors={props.fields.town.errors}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* TODO: Add dropdown of state abbreviation suggestions */}
+			<div className="mt-9">
+				<Label className={`${subtitleClass}`} htmlFor="state">
+					State (Abbreviation)
+				</Label>
+				<div className="mt-4 flex space-x-4">
+					<div>
+						<Input {...getInputProps(props.fields.state, { type: 'text' })} />
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.state.errorId}
+								errors={props.fields.state.errors}
 							/>
 						</div>
 					</div>
