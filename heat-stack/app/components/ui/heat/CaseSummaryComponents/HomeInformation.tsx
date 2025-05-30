@@ -55,72 +55,72 @@ export function HomeInformation(props: HomeInformationProps) {
 			<legend className={`${titleClass} ${componentMargin}`}>
 				Home Information
 			</legend>
-
-			{/* <Form method="post" action="/inputs1"> */}
-			<div className={`${componentMargin}`}>
-				<Label className={`${subtitleClass}`} htmlFor="name">
-					Resident/Client Name(s)
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.name.errorId}
-								errors={props.fields.name.errors}
-							/>
+			<Label className={`${subtitleClass}`} htmlFor="name">
+				Resident/Client Name(s)
+			</Label>
+				{/* <Form method="post" action="/inputs1"> */}
+				<div className={`${componentMargin}`}>
+					<div className="mt-4 flex space-x-4">
+						<div>
+							<Input {...getInputProps(props.fields.name, { type: 'text' })} />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.name.errorId}
+									errors={props.fields.name.errors}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="street_address">
-					Street Address
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.street_address, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.street_address.errorId}
-								errors={props.fields.street_address.errors}
-							/>
+			<div className="mt-4 flex space-x-4">
+				<div className="mt-9">
+					<Label className={`${subtitleClass}`} htmlFor="street_address">
+						Street Address
+					</Label>
+					<div className="mt-4 flex space-x-4">
+						<div>
+							<Input {...getInputProps(props.fields.street_address, { type: 'text' })} />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.street_address.errorId}
+									errors={props.fields.street_address.errors}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="town">
-					Town
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.town, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.town.errorId}
-								errors={props.fields.town.errors}
-							/>
+				<div className="mt-9">
+					<Label className={`${subtitleClass}`} htmlFor="town">
+						Town
+					</Label>
+					<div className="mt-4 flex space-x-4">
+						<div>
+							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.town.errorId}
+									errors={props.fields.town.errors}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			{/* TODO: Add dropdown of state abbreviation suggestions */}
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="state">
-					State (Abbreviation)
-				</Label>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.state, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.state.errorId}
-								errors={props.fields.state.errors}
-							/>
+				{/* TODO: Add dropdown of state abbreviation suggestions */}
+				<div className="mt-9">
+					<Label className={`${subtitleClass}`} htmlFor="state">
+						State (Abbreviation)
+					</Label>
+					<div className="mt-4 flex space-x-4">
+						<div>
+							<Input {...getInputProps(props.fields.state, { type: 'text' })} />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.state.errorId}
+									errors={props.fields.state.errors}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
