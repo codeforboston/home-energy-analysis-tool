@@ -1,87 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { ErrorList } from './ErrorList';
+import React, { useState } from 'react'
+import Select, { SingleValue, ActionMeta } from 'react-select'
 
-// Define the list of state abbreviations
-const stateAbbreviations = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-];
+const people = [
+	{ value: 1, label: 'Durward Reynolds' },
+	{ value: 2, label: 'Kenton Towne' },
+	{ value: 3, label: 'Therese Wunsch' },
+	{ value: 4, label: 'Benedict Kessler' },
+	{ value: 5, label: 'Katelyn Rohan' },
+]
 
-interface Props {
-  fields: {
-    state: {
-      value: string;
-      errorId: string;
-      errors: string[];
-    };
-  };
-  getInputProps: (field: any, props: any) => any;
-  subSubTitleClass: string;
+export function StateDropdown() {
+	const [selectedPerson, setSelectedPerson] =
+		useState<SingleValue<{ value: number; label: string }>>(null)
+	const [query, setQuery] = useState('')
+
+	const handleInputChange = (inputValue: string) => {
+		setQuery(inputValue)
+	}
+
+	const handleChange = (
+		selectedOption: SingleValue<{ value: number; label: string }>,
+		actionMeta: ActionMeta<{ value: number; label: string }>,
+	) => {
+		setSelectedPerson(selectedOption)
+	}
+
+	const filteredPeople =
+		query === ''
+			? people
+			: people.filter((person) =>
+					person.label.toLowerCase().includes(query.toLowerCase()),
+				)
+
+	return (
+		<Select
+			value={selectedPerson}
+			onChange={handleChange}
+			onInputChange={handleInputChange}
+			options={filteredPeople}
+			isSearchable
+			placeholder="Select a person"
+		/>
+	)
 }
-
-export const StateDropdown: React.FC<Props> = ({ fields, getInputProps, subSubTitleClass }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedState, setSelectedState] = useState(fields.state.value);
-  const [filteredStates, setFilteredStates] = useState(stateAbbreviations);
-
-  useEffect(() => {
-    setSelectedState(fields.state.value);
-  }, [fields.state.value]);
-
-  const handleStateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setSelectedState(value);
-    fields.state.value = value;
-    setFilteredStates(stateAbbreviations.filter(state => state.toLowerCase().includes(value.toLowerCase())));
-  };
-
-  const handleDropdownToggle = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleSuggestionClick = (abbreviation: string) => {
-    setSelectedState(abbreviation);
-    fields.state.value = abbreviation;
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="basis-1/3">
-      <label className={`${subSubTitleClass}`} htmlFor="state">
-        State (Abbreviation)
-      </label>
-      <div className="mt-4 relative">
-        <input
-          {...getInputProps(fields.state, { type: 'text' })}
-          value={selectedState}
-          onChange={handleStateChange}
-          onFocus={handleDropdownToggle}
-          onBlur={() => setIsOpen(false)}
-          className="w-full px-4 py-2 border rounded"
-        />
-        {isOpen && (
-          <div className="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg">
-            {filteredStates.map((abbreviation) => (
-              <div
-                key={abbreviation}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleSuggestionClick(abbreviation)}
-              >
-                {abbreviation}
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="min-h-[32px] px-4 pb-3 pt-1">
-          <ErrorList
-            id={fields.state.errorId}
-            errors={fields.state.errors}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
