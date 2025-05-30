@@ -19,7 +19,6 @@ export function EnergyUseUpload(
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
 	}
-
 	return (
 		<fieldset>
 			<legend className={`${titleClass} pb-6`}>Energy Use History</legend>
