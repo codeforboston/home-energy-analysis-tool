@@ -64,13 +64,6 @@ For more details, visit the
    cd home-energy-analysis-tool/heat-stack
    ```
 
-4. **Copy the example environment file**  
-   Copy the example environment file into a new `.env` file:
-
-   ```bash
-   cp .env.example .env
-   ```
-
 ---
 
 ### Node.js Setup
@@ -119,7 +112,13 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    npm run setup
    ```
 
-3. Start the development server:
+4. Copy the example environment file into a new `.env` file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+5. Start the development server:
    ```bash
    npm run dev
    ```
