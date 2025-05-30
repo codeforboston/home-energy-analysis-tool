@@ -3,6 +3,7 @@ import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import { StateDropdown } from './StateDropdown.tsx'
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
@@ -44,6 +45,29 @@ import { ErrorList } from './ErrorList.tsx'
 
 type HomeInformationProps = { fields: any }
 
+interface Props {
+	fields: {
+		street_address: {
+			value: string
+			errorId: string
+			errors: string[]
+		}
+		town: {
+			value: string
+			errorId: string
+			errors: string[]
+		}
+		state: {
+			value: string
+			errorId: string
+			errors: string[]
+		}
+	}
+	getInputProps: (field: any, props: any) => any
+	subtitleClass: string
+	subSubTitleClass: string
+}
+
 export function HomeInformation(props: HomeInformationProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -81,7 +105,11 @@ export function HomeInformation(props: HomeInformationProps) {
 							Street Address
 						</Label>
 						<div className="mt-4">
-							<Input {...getInputProps(props.fields.street_address, { type: 'text' })} />
+							<Input
+								{...getInputProps(props.fields.street_address, {
+									type: 'text',
+								})}
+							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.street_address.errorId}
@@ -107,20 +135,11 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					{/* TODO: Add dropdown of state abbreviation suggestions */}
-					<div className="basis-1/3">
-						<Label className={`${subSubTitleClass}`} htmlFor="state">
-							State (Abbreviation)
-						</Label>
-						<div className="mt-4">
-							<Input {...getInputProps(props.fields.state, { type: 'text' })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.state.errorId}
-									errors={props.fields.state.errors}
-								/>
-							</div>
-						</div>
-					</div>
+					<StateDropdown
+						fields={props.fields}
+						getInputProps={getInputProps}
+						subSubTitleClass={subSubTitleClass}
+					/>
 				</div>
 			</fieldset>
 
