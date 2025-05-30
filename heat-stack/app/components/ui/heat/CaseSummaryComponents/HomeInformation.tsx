@@ -47,29 +47,6 @@ import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
 
-interface Props {
-	fields: {
-		street_address: {
-			value: string
-			errorId: string
-			errors: string[]
-		}
-		town: {
-			value: string
-			errorId: string
-			errors: string[]
-		}
-		state: {
-			value: string
-			errorId: string
-			errors: string[]
-		}
-	}
-	getInputProps: (field: any, props: any) => any
-	subtitleClass: string
-	subSubTitleClass: string
-}
-
 export function HomeInformation(props: HomeInformationProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
