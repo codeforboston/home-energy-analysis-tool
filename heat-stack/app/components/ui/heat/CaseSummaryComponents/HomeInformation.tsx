@@ -107,16 +107,16 @@ export function HomeInformation(props: HomeInformationProps) {
 			</div>
 
 			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="address">
+				<Label className={`${subtitleClass}`} htmlFor="street_address">
 					Street Address
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
-						<Input {...getInputProps(props.fields.address, { type: 'text' })} />
+						<Input {...getInputProps(props.fields.street_address, { type: 'text' })} />
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
-								id={props.fields.address.errorId}
-								errors={props.fields.address.errors}
+								id={props.fields.street_address.errorId}
+								errors={props.fields.street_address.errors}
 							/>
 						</div>
 					</div>
