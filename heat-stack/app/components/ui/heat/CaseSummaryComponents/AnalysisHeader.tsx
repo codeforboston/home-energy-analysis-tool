@@ -95,6 +95,12 @@ export function AnalysisHeader({
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
 	const componentMargin = 'mt-10'
 
+	// Calculate the value
+	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100;
+
+	// Determine the text color based on the value
+	const textColor = value <= 10 ? 'green' : 'red';
+
 	return (
 		<div className="section-title mt-12" ref={targetRef}>
 			<div className="flex flex-row gap-0.5 mb-4">
@@ -135,11 +141,9 @@ export function AnalysisHeader({
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Standard Deviation of UA <br />
-						<div className="item font-bold">
+						<div className="item font-bold" style={{ color: textColor }}>
 							{/* Rounding to two decimal places */}
-							{(
-								summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
-							)?.toFixed(2)}{' '}
+							{(value)?.toFixed(2)}{' '}
 							%
 						</div>
 						<br />
