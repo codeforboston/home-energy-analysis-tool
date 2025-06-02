@@ -143,21 +143,6 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
-					{/* <div className="basis-1/3">
-						<Label className={`${subSubTitleClass}`} htmlFor="state">
-							Town
-						</Label>
-						<div className="mt-4">
-							<Input {...getInputProps(props.fields.state, { type: 'text' })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.state.errorId}
-									errors={props.fields.state.errors}
-								/>
-							</div>
-						</div>
-					</div> */}
-
 					<div className="basis-1/3">
 						<Label className={`${subSubTitleClass}`} htmlFor="state">
 							State
