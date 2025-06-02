@@ -13,12 +13,14 @@ export function EnergyUseUpload(
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
-	When the calculate button is pressed, sets scrollAfterSubmit to 
+	When the calculate button is pressed, sets scrollAfterSubmit to
 	true because we want the page to scroll then.
 	*/
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
 	}
+
+	const descriptiveClass = 'mt-2 mb-6 text-sm text-slate-500'
 
 	return (
 		<fieldset>
@@ -28,14 +30,17 @@ export function EnergyUseUpload(
 				errors={fields.energy_use_upload.errors}
 			/>
 
-			<input
-				id="energy_use_upload"
-				aria-label="Upload your energy billing company's bill."
-				accept=".xml,.csv,application/xml,text/xml,text/csv,application/csv,application/x-csv,text/comma-separated-values,text/x-comma-separated-values"
-				name={fields.energy_use_upload.name}
-				type="file"
-				className="h-20"
-			/>
+			<div className="flex flex-col items-start mb-4">
+				<input
+					id="energy_use_upload"
+					aria-label="Upload your energy billing company's bill."
+					accept=".xml,.csv,application/xml,text/xml,text/csv,application/csv,application/x-csv,text/comma-separated-values,text/x-comma-separated-values"
+					name={fields.energy_use_upload.name}
+					type="file"
+					className="h-7"
+				/>
+				<div className={`${descriptiveClass}`}>The file must be a CSV.</div>
+			</div>
 
 			<div>
 				{/* Button type submit is processed by action in single.tsx */}
