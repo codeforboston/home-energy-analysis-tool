@@ -408,9 +408,11 @@ export default function SubmitAnalysis({
 				living_area: 2155,
 				street_address: '15 Dale Ave',
 				town: 'Gloucester',
-				state: 'MA',
+				// Only the initial state value in the useState of HomeInformation.tsx matters.
+				state: '',
 				name: 'CIC',
-				fuel_type: 'GAS',
+				// Only the initial fuel_type value in the useState of CurrentHeatingSystem.tsx matters.
+				fuel_type: 'GAS',   
 				heating_system_efficiency: 0.97,
 				thermostat_set_point: 68,
 				setback_temperature: 65,
