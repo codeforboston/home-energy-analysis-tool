@@ -99,7 +99,7 @@ export function AnalysisHeader({
 	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100;
 
 	// Determine the text color based on the value
-	const textColor = value <= 10 ? 'green' : 'red';
+	const textColor = value <= 10 ? 'text-green-400' : 'text-red-500';
 
 	return (
 		<div className="section-title mt-12" ref={targetRef}>
@@ -141,7 +141,7 @@ export function AnalysisHeader({
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Standard Deviation of UA <br />
-						<div className="item font-bold" style={{ color: textColor }}>
+						<div className={`item font-bold ${textColor}`}>
 							{/* Rounding to two decimal places */}
 							{(value)?.toFixed(2)}{' '}
 							%
