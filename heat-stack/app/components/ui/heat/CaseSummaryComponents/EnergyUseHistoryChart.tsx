@@ -20,28 +20,28 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // const naturalGasBillRecord01: NaturalGasBillRecord = {
 // 	periodStartDate: new Date('12/08/2017'),
 // 	periodEndDate: new Date('01/07/2018'),
-// 	usageTherms: 197,
+// 	usageQuantity: 197,
 // 	inclusionOverride: 'Include',
 // }
 
 // const naturalGasBillRecord02: NaturalGasBillRecord = {
 // 	periodStartDate: new Date('01/08/2018'),
 // 	periodEndDate: new Date('02/07/2018'),
-// 	usageTherms: 205,
+// 	usageQuantity: 205,
 // 	inclusionOverride: 'Include',
 // }
 
 // const naturalGasBillRecord03: NaturalGasBillRecord = {
 // 	periodStartDate: new Date('02/08/2018'),
 // 	periodEndDate: new Date('03/07/2018'),
-// 	usageTherms: 220,
+// 	usageQuantity: 220,
 // 	inclusionOverride: 'Include',
 // }
 
 // const naturalGasBillRecord04: NaturalGasBillRecord = {
 // 	periodStartDate: new Date('03/08/2018'),
 // 	periodEndDate: new Date('04/07/2018'),
-// 	usageTherms: 196,
+// 	usageQuantity: 196,
 // 	inclusionOverride: 'Include',
 // }
 
