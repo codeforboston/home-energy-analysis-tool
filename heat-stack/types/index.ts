@@ -1,70 +1,75 @@
-import { number, z } from 'zod';
-export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>;
+import { number, z } from 'zod'
+export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
 
 // JS team wants to discuss this name
 export const CaseSchema = z.object({
-	name: z.string()
+	name: z.string(),
 })
 
 /* in default, allow for energy_use_upload  to be undefined, but provide a message */
 export const UploadEnergyUseFileSchema = z.object({
-  energy_use_upload: z.union([
-    z.string(),
-    z.null(),
-    z.undefined(),
-    // Add an object type that represents a File-like object
-    z.object({
-      name: z.string(),
-      size: z.number(),
-      type: z.string()
-    })
-  ])
-  .refine(
-    (val) => {
-      // Check if it has File-like properties
-      return val !== null && 
-             val !== undefined && 
-             val !== '' &&
-             typeof val === 'object' && 
-             'name' in val && 
-             'size' in val;
-    },
-	/* this only shows "Invalid Input" but I tried other things and they break defaultValues in typescript, superrefine might work */
-    { message: 'Energy Use Profile CSV/XML from Energy Utility company is required' } 
-  )
-});
+	energy_use_upload: z
+		.union([
+			z.string(),
+			z.null(),
+			z.undefined(),
+			// Add an object type that represents a File-like object
+			z.object({
+				name: z.string(),
+				size: z.number(),
+				type: z.string(),
+			}),
+		])
+		.refine(
+			(val) => {
+				// Check if it has File-like properties
+				return (
+					val !== null &&
+					val !== undefined &&
+					val !== '' &&
+					typeof val === 'object' &&
+					'name' in val &&
+					'size' in val
+				)
+			},
+			/* this only shows "Invalid Input" but I tried other things and they break defaultValues in typescript, superrefine might work */
+			{
+				message:
+					'Energy Use Profile CSV/XML from Energy Utility company is required',
+			},
+		),
+})
 
 export const HomeSchema = z.object({
 	/**
 	 * unit: square feet
 	 */
 	living_area: z.number().min(500).max(10000),
-	fuel_type: z.enum(['GAS','OIL','PROPANE']),
+	fuel_type: z.enum(['GAS', 'OIL', 'PROPANE']),
 	design_temperature_override: z.number().optional(),
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
-	heating_system_efficiency:
-		z.number()
-		  .min(0.6, { message: "Efficiency must be at least 60%" })
-		  .max(1, { message: "Efficiency cannot exceed 100%" }),
+	heating_system_efficiency: z
+		.number()
+		.min(0.6, { message: 'Efficiency must be at least 60%' })
+		.max(1, { message: 'Efficiency cannot exceed 100%' }),
 	thermostat_set_point: z.number(),
 	setback_temperature: z.number().optional(),
 	setback_hours_per_day: z.number().optional(),
 	numberOfOccupants: z.number(),
 	estimatedWaterHeatingEfficiency: z.number(),
 	standByLosses: z.number(),
-});
+})
 
 export const LocationSchema = z.object({
 	address: z.string(),
-});
+})
 
 // Not used
 // export const NaturalGasBill = z.object({
 // 	provider: z.string(),
 // });
-
 
 // Not used
 // export const OilPropaneBill = z.object({
@@ -109,16 +114,16 @@ export const summaryOutputSchema = z.object({
 	standard_deviation_of_heat_loss_rate: z.number(),
 	average_heat_load: z.number(),
 	maximum_heat_load: z.number(),
-});
+})
 
 export const NaturalGasBillRecord = z.object({
 	periodStartDate: z.date(),
 	periodEndDate: z.date(),
-	usageTherms: z.number(),
+	usageQuantity: z.number(),
 	inclusionOverride: z.number(),
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
-});
-  
+})
+
 // Helper function to create a date string schema
 const dateStringSchema = () =>
 	z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD')
@@ -140,9 +145,9 @@ export const oneProcessedEnergyBillSchema = z.object({
 	inclusion_override: z.boolean(),
 	/**
 	 * ALLOWED_HEATING_USAGE is for winter — red
-	 * 
+	 *
 	 * ALLOWED_NON_HEATING_USAGE is for summer — blue
-	 * 
+	 *
 	 * NOT_ALLOWED_IN_CALCULATIONS is for "shoulder" months/seasons — crossed out
 	 */
 	// analysis_type: z.enum(["ALLOWED_HEATING_USAGE", "ALLOWED_NON_HEATING_USAGE", "NOT_ALLOWED_IN_CALCULATIONS"]),
@@ -150,10 +155,12 @@ export const oneProcessedEnergyBillSchema = z.object({
 	default_inclusion: z.boolean(),
 	eliminated_as_outlier: z.boolean(),
 	whole_home_heat_loss_rate: z.number(),
-});
+})
 
 // Define the schema for the 'processed_energy_bills' list
-export const allProcessedEnergyBillsSchema = z.array(oneProcessedEnergyBillSchema);
+export const allProcessedEnergyBillsSchema = z.array(
+	oneProcessedEnergyBillSchema,
+)
 
 //   Define the schema for the 'usageData' key
 export const usageDataSchema = z.object({
