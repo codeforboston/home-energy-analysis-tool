@@ -98,7 +98,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/3">
 						<Label className={`${subSubTitleClass}`} htmlFor="town">
-							Town
+							City/Town
 						</Label>
 						<div className="mt-4">
 							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
