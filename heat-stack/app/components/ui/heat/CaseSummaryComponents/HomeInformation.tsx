@@ -1,8 +1,10 @@
 import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
+import { useEffect, useMemo, useState } from 'react'
+import { NumericFormat } from 'react-number-format'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
-import { ErrorList } from "./ErrorList.tsx"
+import { ErrorList } from './ErrorList.tsx'
 
 // /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
 // // import { redirect } from '@remix-run/react'
@@ -42,7 +44,7 @@ import { ErrorList } from "./ErrorList.tsx"
 // 	// return redirect(`/inputs1`)
 // }
 
-type HomeInformationProps = {fields: any};
+type HomeInformationProps = { fields: any }
 
 export function HomeInformation(props: HomeInformationProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide'
@@ -50,9 +52,41 @@ export function HomeInformation(props: HomeInformationProps) {
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 
+	// Create a state to track the number value
+	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
+		() => {
+			// Initialize from the field's default value or initial value
+			const string =
+				props.fields.living_area.value || props.fields.living_area.defaultValue
+			return string ? string.replace(/,/g, '') : ''
+		},
+	)
+
+	// Calculate the decimal value whenever percentage changes
+	const livingAreaNumberHidden = useMemo(() => {
+		const convertedNumber = Number(livingAreaStringDisplayed)
+		return !isNaN(convertedNumber) ? convertedNumber.toString() : ''
+	}, [livingAreaStringDisplayed])
+
+	// Update percentage when the underlying field changes (e.g., from form reset)
+	useEffect(() => {
+		const value =
+			props.fields.living_area.value || props.fields.living_area.defaultValue
+		if (value) {
+			setLivingAreaStringDisplayed(Math.round(parseFloat(value)).toString())
+		}
+	}, [props.fields.living_area.value, props.fields.living_area.defaultValue])
+
+	// Handle the percentage input change
+	const handleLivingAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setLivingAreaStringDisplayed(e.target.value)
+	}
+
 	return (
 		<fieldset>
-			<legend className={`${titleClass} ${componentMargin}`}>Home Information</legend>
+			<legend className={`${titleClass} ${componentMargin}`}>
+				Home Information
+			</legend>
 
 			{/* <Form method="post" action="/inputs1"> */}
 			<div className={`${componentMargin}`}>
@@ -61,7 +95,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
-						<Input {...getInputProps(props.fields.name, { type: "text" })} />
+						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.name.errorId}
@@ -78,7 +112,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
-						<Input {...getInputProps(props.fields.address, { type: "text" })} />
+						<Input {...getInputProps(props.fields.address, { type: 'text' })} />
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.address.errorId}
@@ -93,12 +127,27 @@ export function HomeInformation(props: HomeInformationProps) {
 				<Label className={`${subtitleClass}`} htmlFor="living_area">
 					Living Area (sf)
 				</Label>
-				<div className="mt-4 flex space-x-2">
+				<div className="mt-4">
 					<div>
-						<Input {...getInputProps(props.fields.living_area, { type: "text" })}  />
-						<span className={`${descriptiveClass}`}>
-							The home's above-grade, conditioned space
-						</span>
+						<NumericFormat
+							id="living_area"
+							// Don't include a name to prevent it from being submitted
+							placeholder="Enter a number 0-10000"
+							// type="number"
+							value={livingAreaStringDisplayed}
+							onChange={handleLivingAreaChange}
+							thousandSeparator={true} // Add this line to include commas
+							valueIsNumericString={true} // Add this line to treat the value as a numeric string
+							allowNegative={false} // Ensure negative numbers are not allowed
+							decimalScale={0} // Set the decimal scale to 0 to avoid decimal points
+							fixedDecimalScale={true} // Ensure the decimal scale is fixed
+						/>
+						{/* Use the actual field from Conform but with our calculated decimal value */}
+						<Input
+							type="hidden"
+							name={props.fields.living_area.name}
+							value={livingAreaNumberHidden}
+						/>
 						<div className="min-h-[12px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.living_area.errorId}
@@ -106,6 +155,9 @@ export function HomeInformation(props: HomeInformationProps) {
 							/>
 						</div>
 					</div>
+					<span className={`${descriptiveClass}`}>
+						The home's above-grade, conditioned space
+					</span>
 				</div>
 			</div>
 

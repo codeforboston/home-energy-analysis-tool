@@ -22,7 +22,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	// Create a state to track the percentage value
-	const [percentageValue, setPercentageValue] = useState(() => {
+	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(() => {
 		// Initialize from the field's default value or initial value
 		const value =
 			props.fields.heating_system_efficiency.value ||
@@ -31,10 +31,10 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	})
 
 	// Calculate the decimal value whenever percentage changes
-	const decimalValue = useMemo(() => {
-		const percentNum = parseFloat(percentageValue)
+	const decimalValueHidden = useMemo(() => {
+		const percentNum = parseFloat(percentageValueDisplayed)
 		return !isNaN(percentNum) ? (percentNum / 100).toString() : ''
-	}, [percentageValue])
+	}, [percentageValueDisplayed])
 
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
@@ -42,7 +42,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.value ||
 			props.fields.heating_system_efficiency.defaultValue
 		if (value) {
-			setPercentageValue(Math.round(parseFloat(value) * 100).toString())
+			setPercentageValueDisplayed(Math.round(parseFloat(value) * 100).toString())
 		}
 	}, [
 		props.fields.heating_system_efficiency.value,
@@ -51,7 +51,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	// Handle the percentage input change
 	const handlePercentageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setPercentageValue(e.target.value)
+		setPercentageValueDisplayed(e.target.value)
 	}
 
 	const [fuelType, setFuelType] = useState('GAS')
@@ -104,14 +104,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						// Don't include a name to prevent it from being submitted
 						placeholder="Enter a percentage (60-100)"
 						type="number"
-						value={percentageValue}
+						value={percentageValueDisplayed}
 						onChange={handlePercentageChange}
 					/>
 					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
 						type="hidden"
 						name={props.fields.heating_system_efficiency.name}
-						value={decimalValue}
+						value={decimalValueHidden}
 					/>
 					<span className={`${descriptiveClass}`}>
 						Enter efficiency as a percentage (60-100). Typical natural gas
