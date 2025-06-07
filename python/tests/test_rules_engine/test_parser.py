@@ -8,18 +8,14 @@ from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
 
+class _GasBillPaths:
+    EVERSOURCE_LATEST = ROOT_DIR / "natural_gas" / "feldman" / "natural-gas-eversource.csv"
+    NATIONAL_GRID_LATEST = ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
 
-def _read_gas_bill_eversource() -> str:
+
+def _read_gas_bill(path: str) -> str:
     """Read a test natural gas bill from a test Eversource CSV"""
-    with open(ROOT_DIR / "natural_gas" / "feldman" / "natural-gas-eversource.csv") as f:
-        return f.read()
-
-
-def _read_gas_bill_national_grid() -> str:
-    """Read a test natural gas bill from a test National Grid CSV"""
-    with open(
-        ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
-    ) as f:
+    with open(path) as f:
         return f.read()
 
 
@@ -63,12 +59,12 @@ def test_parse_gas_bill():
     """
     _validate_eversource(
         parser.parse_gas_bill(
-            _read_gas_bill_eversource(), parser.NaturalGasCompany.EVERSOURCE
+            _read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST), parser.NaturalGasCompany.EVERSOURCE
         )
     )
     _validate_national_grid(
         parser.parse_gas_bill(
-            _read_gas_bill_national_grid(), parser.NaturalGasCompany.NATIONAL_GRID
+            _read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST), parser.NaturalGasCompany.NATIONAL_GRID
         )
     )
     # TODO: Does not verify that the method crashes when given the wrong
@@ -77,20 +73,20 @@ def test_parse_gas_bill():
 
 def test_parse_gas_bill_eversource():
     """Tests parsing a natural gas bill from Eversource."""
-    _validate_eversource(parser._parse_gas_bill_eversource(_read_gas_bill_eversource()))
+    _validate_eversource(parser._parse_gas_bill_eversource(_read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST)))
 
 
 def test_parse_gas_bill_national_grid():
     """Tests parsing a natural gas bill from National Grid."""
     _validate_national_grid(
-        parser._parse_gas_bill_national_grid(_read_gas_bill_national_grid())
+        parser._parse_gas_bill_national_grid(_read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST))
     )
 
 
 def test_detect_natural_gas_company():
     """Tests if the natural gas company is correctly detected from the parsed csv."""
-    read_eversource = _read_gas_bill_eversource()
-    read_nationalgrid = _read_gas_bill_national_grid()
+    read_eversource = _read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST)
+    read_nationalgrid = _read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST)
     assert (
         parser._detect_gas_company(read_eversource)
         == parser.NaturalGasCompany.EVERSOURCE
