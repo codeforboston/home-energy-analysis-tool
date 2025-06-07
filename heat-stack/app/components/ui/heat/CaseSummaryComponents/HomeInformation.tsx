@@ -48,7 +48,6 @@ type HomeInformationProps = { fields: any }
 export function HomeInformation(props: HomeInformationProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const subSubTitleClass = 'text-sm font-semibold text-zinc-950 mt-4'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 
@@ -78,7 +77,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				<legend className={`${subtitleClass}`}>Address Information</legend>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label className={`${subSubTitleClass}"`} htmlFor="street_address">
+						<Label htmlFor="street_address">
 							Street Address
 						</Label>
 						<div className="mt-4">
@@ -97,7 +96,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label className={`${subSubTitleClass}`} htmlFor="town">
+						<Label htmlFor="town">
 							City/Town
 						</Label>
 						<div className="mt-4">
@@ -112,14 +111,13 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label className={`${subSubTitleClass}`} htmlFor="state">
+						<Label htmlFor="state">
 							State
 						</Label>
 						<div className="mt-4">
 							<StateDropdown
 								fields={props.fields}
 								getInputProps={getInputProps}
-								subSubTitleClass={subSubTitleClass}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
