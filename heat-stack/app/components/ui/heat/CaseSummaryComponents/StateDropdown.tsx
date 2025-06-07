@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import Select, { SingleValue, ActionMeta } from 'react-select'
+import { Input } from '#/app/components/ui/input.tsx'
+import {
+	Select,
+	SelectTrigger,
+	SelectValue,
+	SelectContent,
+	SelectItem,
+} from '#/app/components/ui/select.tsx'
+import { ErrorList } from './ErrorList.tsx'
+
 
 const states = [
 	{ value: 'AL', label: 'AL' },
@@ -54,50 +63,46 @@ const states = [
 	{ value: 'WY', label: 'WY' },
 ]
 
-interface StateDropdownProps {
-	fields: any
-	getInputProps: any
-	subSubTitleClass: string
-}
+type CurrentHeatingSystemProps = { fields: any }
 
-export function StateDropdown({
-	fields,
-	getInputProps,
-	subSubTitleClass,
-}: StateDropdownProps) {
-	const [selectedState, setSelectedState] =
-		useState<SingleValue<{ value: string; label: string }>>({ value: 'MA', label: 'MA' })
-	const [query, setQuery] = useState('')
-
-	const handleInputChange = (inputValue: string) => {
-		setQuery(inputValue)
-	}
-
-	const handleChange = (
-		selectedOption: SingleValue<{ value: string; label: string }>,
-		actionMeta: ActionMeta<{ value: string; label: string }>,
-	) => {
-		setSelectedState(selectedOption)
-	}
-
-	const filteredStates =
-		query === ''
-			? states
-			: states.filter((states) =>
-					states.label.toLowerCase().includes(query.toLowerCase()),
-				)
+export function StateDropdown(props: CurrentHeatingSystemProps) {
+	const [stateSelected, setStateSelected] = useState('MA')
 
 	return (
-		<Select
-			value={selectedState}
-			onChange={handleChange}
-			onInputChange={handleInputChange}
-			options={filteredStates}
-			isSearchable
-			placeholder="Type to select a state"
-			className={subSubTitleClass}
-			{...getInputProps(fields.state, { type: 'text' })}
-      defaultValue={"MA"}
-		/>
+		<div>
+			{/* <Form method="post" action="/current"> */}
+			<div>
+				<div className="mt-4 flex space-x-4">
+					<div className="basis-1/4">
+						<Select
+							onValueChange={(val) => setStateSelected(val)}
+							value={stateSelected}
+						>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue placeholder="State" />
+							</SelectTrigger>
+							<SelectContent>
+								{states.map((state) => (
+									<SelectItem
+										key={state.value}
+										value={state.value}
+									>{state.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+
+						{/* This hidden field submits the same value instead. */}
+						<Input type="hidden" name="state" value={stateSelected} />
+					</div>
+				</div>
+				<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<ErrorList
+						id={props.fields.state.errorId}
+						errors={props.fields.state.errors}
+					/>
+				</div>
+			</div>
+		</div>
 	)
 }
