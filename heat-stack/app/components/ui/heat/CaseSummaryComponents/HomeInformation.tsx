@@ -135,6 +135,8 @@ export function HomeInformation(props: HomeInformationProps) {
 							placeholder="Enter a number 0-10000"
 							// type="number"
 							value={livingAreaStringDisplayed}
+							/* classes as if it was Conform: */
+							className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 							onChange={handleLivingAreaChange}
 							thousandSeparator={true} // Add this line to include commas
 							valueIsNumericString={true} // Add this line to treat the value as a numeric string
