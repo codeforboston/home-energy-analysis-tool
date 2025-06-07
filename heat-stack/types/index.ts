@@ -63,8 +63,10 @@ export const HomeSchema = z.object({
 })
 
 export const LocationSchema = z.object({
-	address: z.string(),
-})
+	street_address: z.string(),
+	town: z.string(),
+	state: z.string(),
+});
 
 // Not used
 // export const NaturalGasBill = z.object({
