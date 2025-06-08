@@ -7,10 +7,23 @@ from rules_engine import parser
 from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
 ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
+_ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES = (
+    pathlib.Path(__file__).parent / "alternate_natural_gas_bills"
+)
+
 
 class _GasBillPaths:
-    EVERSOURCE_LATEST = ROOT_DIR / "natural_gas" / "feldman" / "natural-gas-eversource.csv"
-    NATIONAL_GRID_LATEST = ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
+    EVERSOURCE_LATEST = (
+        ROOT_DIR / "natural_gas" / "feldman" / "natural-gas-eversource.csv"
+    )
+    NATIONAL_GRID_LATEST = (
+        ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
+    )
+    DORCHESTER_SMITH = (
+        _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
+        / "Dorchester-Smith"
+        / "national-grid.csv"
+    )
 
 
 def _read_gas_bill(path: str) -> str:
@@ -19,7 +32,7 @@ def _read_gas_bill(path: str) -> str:
         return f.read()
 
 
-def _validate_eversource(result):
+def _validate_eversource_latest(result):
     """Validate the result of reading an Eversource CSV."""
     assert len(result.records) == 36
     for row in result.records:
@@ -36,7 +49,7 @@ def _validate_eversource(result):
     assert second_row.inclusion_override == None
 
 
-def _validate_national_grid(result):
+def _validate_national_grid_latest(result):
     """Validate the result of reading a National Grid CSV."""
     assert len(result.records) == 25
     for row in result.records:
@@ -53,34 +66,31 @@ def _validate_national_grid(result):
     assert second_row.inclusion_override == None
 
 
-def test_parse_gas_bill():
+def test_parse_gas_bill_eversource_latest():
     """
-    Tests the logic of parse_gas_bill.
+    Tests parsing a natural gas bill from Eversource in the latest
+    format.
     """
-    _validate_eversource(
-        parser.parse_gas_bill(
-            _read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST), parser.NaturalGasCompany.EVERSOURCE
-        )
+    _validate_eversource_latest(
+        parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST))
     )
-    _validate_national_grid(
-        parser.parse_gas_bill(
-            _read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST), parser.NaturalGasCompany.NATIONAL_GRID
-        )
+
+
+def test_parse_gas_bill_national_grid_latest():
+    """
+    Tests parsing a natural gas bill from National Grid in the latest
+    format.
+    """
+    _validate_national_grid_latest(
+        parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST))
     )
-    # TODO: Does not verify that the method crashes when given the wrong
-    # enum.
 
 
-def test_parse_gas_bill_eversource():
-    """Tests parsing a natural gas bill from Eversource."""
-    _validate_eversource(parser._parse_gas_bill_eversource(_read_gas_bill(_GasBillPaths.EVERSOURCE_LATEST)))
-
-
-def test_parse_gas_bill_national_grid():
-    """Tests parsing a natural gas bill from National Grid."""
-    _validate_national_grid(
-        parser._parse_gas_bill_national_grid(_read_gas_bill(_GasBillPaths.NATIONAL_GRID_LATEST))
-    )
+def test_parse_gas_bill_dorchester_smith():
+    """
+    Tests parsing a natural gas bill from the Dorchester-Smith file.
+    """
+    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.DORCHESTER_SMITH))
 
 
 def test_detect_natural_gas_company():

@@ -25,8 +25,12 @@ class _NaturalGasCompanyBillRegex:
     EVERSOURCE = re.compile(
         r"Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature"
     )
+
     NATIONAL_GRID = re.compile(
-        r"Name,.*,,,,,\nAddress,.*,,,,,\nAccount Number,.*,,,,,\nService,.*,,,,,\n"
+        r"Name,.*\n"  # Match "Name," followed by any characters and a newline
+        r"Address,.*\n"  # Match "Address," followed by any characters and a newline
+        r"Account Number,.*\n"  # Match "Account Number," followed by any characters and a newline
+        r"Service,.*\n"  # Match "Service," followed by any characters and a newline
     )
 
 
@@ -113,16 +117,15 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    data = _newline_line_ending(data)
-
+    data_without_newlines = _newline_line_ending(data)
     if company == None:
-        company = _detect_gas_company(data)
+        company = _detect_gas_company(data_without_newlines)
 
     match company:
         case NaturalGasCompany.EVERSOURCE:
-            return _parse_gas_bill_eversource(data)
+            return _parse_gas_bill_eversource(data_without_newlines)
         case NaturalGasCompany.NATIONAL_GRID:
-            return _parse_gas_bill_national_grid(data)
+            return _parse_gas_bill_national_grid(data_without_newlines)
         case _:
             raise ValueError("Wrong CSV format selected: select another format.")
 
@@ -198,9 +201,26 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
         ...
     """
     f = io.StringIO(data)
-    ROWS_TO_SKIP = 5
-    for _ in range(ROWS_TO_SKIP):
+    header_row = "TYPE,START DATE,END DATE,USAGE,UNITS,COST,NOTES"
+    header_found = False
+
+    # Read lines until the header row is found
+    header_row_index = 0
+    for line in f:
+        if line.strip() != header_row:
+            header_row_index += 1
+        else:
+            header_found = True
+            break
+
+    f.seek(0)
+    for _ in range(header_row_index):
         next(f)
+
+    if not header_found:
+        raise ValueError("Header row not found in the CSV data")
+
+    # Create a DictReader using the header row
     reader = csv.DictReader(f)
 
     records = []
