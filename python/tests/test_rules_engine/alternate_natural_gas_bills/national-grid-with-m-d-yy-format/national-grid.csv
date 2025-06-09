@@ -1,0 +1,183 @@
+﻿Name,ALICE SMITH,,,,,
+
+Address,"1 MAIN STREET, HARVARD MA 01451",,,,,
+
+Account Number,1234567890,,,,,
+
+Service,Service 1,,,,,
+
+,,,,,,
+
+TYPE,START DATE,END DATE,USAGE,UNITS,COST,NOTES
+
+Natural gas billing,11/25/15,12/7/15,18,therms,$25.20 ,
+
+Natural gas billing,12/8/15,1/7/16,272,therms,$337.40 ,
+
+Natural gas billing,1/8/16,2/10/16,317,therms,$392.75 ,* This data was estimated
+
+Natural gas billing,2/11/16,3/8/16,344,therms,$424.01 ,
+
+Natural gas billing,3/9/16,4/8/16,212,therms,$264.48 ,
+
+Natural gas billing,4/9/16,5/6/16,141,therms,$166.15 ,
+
+Natural gas billing,5/7/16,6/7/16,68,therms,$67.16 ,
+
+Natural gas billing,6/8/16,7/8/16,21,therms,$27.52 ,
+
+Natural gas billing,7/9/16,8/8/16,16,therms,$23.34 ,
+
+Natural gas billing,8/9/16,9/7/16,25,therms,$31.97 ,
+
+Natural gas billing,9/8/16,10/7/16,54,therms,$68.03 ,
+
+Natural gas billing,10/8/16,11/4/16,145,therms,$172.60 ,
+
+Natural gas billing,11/5/16,12/7/16,266,therms,$361.48 ,
+
+Natural gas billing,12/8/16,1/6/17,348,therms,$455.53 ,
+
+Natural gas billing,1/7/17,2/6/17,352,therms,$466.30 ,
+
+Natural gas billing,2/7/17,3/8/17,294,therms,$406.52 ,
+
+Natural gas billing,3/9/17,4/6/17,254,therms,$351.88 ,
+
+Natural gas billing,4/7/17,5/8/17,121,therms,$160.86 ,
+
+Natural gas billing,5/9/17,6/7/17,85,therms,$94.78 ,
+
+Natural gas billing,6/8/17,7/10/17,16,therms,$27.17 ,
+
+Natural gas billing,7/11/17,8/7/17,23,therms,$32.58 ,
+
+Natural gas billing,8/8/17,9/7/17,23,therms,$32.55 ,
+
+Natural gas billing,9/8/17,10/6/17,36,therms,$43.58 ,
+
+Natural gas billing,10/7/17,11/6/17,97,therms,$115.43 ,
+
+Natural gas billing,11/7/17,12/7/17,239,therms,$361.45 ,
+
+Natural gas billing,12/8/17,1/9/18,397,therms,$596.34 ,
+
+Natural gas billing,1/10/18,2/6/18,277,therms,$428.74 ,
+
+Natural gas billing,2/7/18,3/12/18,300,therms,$519.72 ,* This data was estimated
+
+Natural gas billing,3/13/18,4/6/18,158,therms,$288.99 ,
+
+Natural gas billing,4/7/18,5/7/18,116,therms,$206.67 ,
+
+Natural gas billing,5/8/18,6/8/18,60,therms,$69.68 ,
+
+Natural gas billing,6/9/18,7/9/18,17,therms,$26.79 ,
+
+Natural gas billing,7/10/18,8/7/18,17,therms,$26.14 ,
+
+Natural gas billing,8/8/18,9/6/18,20,therms,$29.43 ,
+
+Natural gas billing,9/7/18,10/8/18,47,therms,$56.38 ,
+
+Natural gas billing,10/9/18,11/5/18,136,therms,$154.85 ,
+
+Natural gas billing,11/6/18,12/7/18,259,therms,$403.02 ,
+
+Natural gas billing,12/8/18,1/8/19,274,therms,$425.65 ,
+
+Natural gas billing,1/9/19,2/6/19,278,therms,$430.49 ,
+
+Natural gas billing,2/7/19,3/11/19,282,therms,$438.11 ,
+
+Natural gas billing,3/12/19,4/8/19,173,therms,$271.71 ,
+
+Natural gas billing,4/9/19,5/7/19,110,therms,$163.83 ,
+
+Natural gas billing,5/8/19,6/7/19,61,therms,$75.50 ,
+
+Natural gas billing,6/8/19,7/9/19,28,therms,$40.04 ,
+
+Natural gas billing,7/10/19,8/7/19,12,therms,$22.62 ,
+
+Natural gas billing,8/8/19,9/9/19,24,therms,$35.65 ,
+
+Natural gas billing,9/10/19,10/7/19,38,therms,$47.01 ,
+
+Natural gas billing,10/8/19,11/7/19,120,therms,$141.26 ,
+
+Natural gas billing,11/8/19,12/6/19,234,therms,$337.79 ,
+
+Natural gas billing,1/10/20,2/6/20,250,therms,$359.73 ,
+
+Natural gas billing,2/7/20,3/10/20,247,therms,$357.54 ,
+
+Natural gas billing,3/11/20,4/7/20,160,therms,$234.10 ,
+
+Natural gas billing,4/8/20,5/7/20,145,therms,$202.28 ,
+
+Natural gas billing,5/8/20,6/5/20,65,therms,$68.43 ,
+
+Natural gas billing,6/6/20,7/9/20,33,therms,$41.75 ,
+
+Natural gas billing,7/10/20,8/10/20,27,therms,$34.34 ,
+
+Natural gas billing,8/11/20,9/8/20,27,therms,$33.14 ,
+
+Natural gas billing,9/9/20,10/6/20,54,therms,$54.73 ,
+
+Natural gas billing,10/7/20,11/5/20,133,therms,$148.29 ,
+
+Natural gas billing,11/6/20,12/9/20,211,therms,$329.65 ,
+
+Natural gas billing,12/10/20,1/8/21,280,therms,$431.55 ,
+
+Natural gas billing,1/9/21,2/8/21,324,therms,$497.94 ,
+
+Natural gas billing,2/9/21,3/9/21,284,therms,$437.13 ,
+
+Natural gas billing,3/10/21,4/8/21,171,therms,$268.06 ,
+
+Natural gas billing,4/9/21,5/7/21,114,therms,$170.55 ,
+
+Natural gas billing,5/8/21,6/9/21,63,therms,$76.50 ,
+
+Natural gas billing,6/10/21,7/8/21,33,therms,$44.55 ,
+
+Natural gas billing,7/9/21,8/6/21,29,therms,$40.51 ,
+
+Natural gas billing,8/7/21,9/9/21,31,therms,$45.24 ,
+
+Natural gas billing,9/10/21,10/6/21,41,therms,$55.43 ,
+
+Natural gas billing,10/7/21,11/5/21,114,therms,$157.00 ,
+
+Natural gas billing,11/6/21,12/7/21,224,therms,$418.74 ,
+
+Natural gas billing,12/8/21,1/6/22,285,therms,$540.69 ,
+
+Natural gas billing,1/7/22,2/7/22,395,therms,$721.73 ,
+
+Natural gas billing,2/8/22,3/8/22,284,therms,$537.44 ,
+
+Natural gas billing,3/9/22,4/8/22,248,therms,$509.24 ,
+
+Natural gas billing,4/9/22,5/9/22,142,therms,$277.39 ,
+
+Natural gas billing,5/10/22,6/8/22,59,therms,$105.59 ,
+
+Natural gas billing,6/9/22,7/8/22,42,therms,$86.79 ,
+
+Natural gas billing,7/9/22,8/5/22,26,therms,$55.63 ,
+
+Natural gas billing,8/6/22,9/8/22,33,therms,$63.00 ,
+
+Natural gas billing,9/9/22,10/6/22,43,therms,$89.11 ,
+
+Natural gas billing,10/7/22,11/4/22,87,therms,$180.20 ,
+
+Natural gas billing,11/5/22,12/9/22,199,therms,$470.26 ,
+
+Natural gas billing,12/10/22,1/9/23,227,therms,$522.72 ,
+
+Natural gas billing,1/10/23,2/7/23,264,therms,$597.56 ,

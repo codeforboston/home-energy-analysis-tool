@@ -145,7 +145,11 @@ def _get_date_from_string(date_string):
     if starts_with_four_digits:
         return datetime.strptime(date_string, "%Y/%m/%d")
     else:
-        return datetime.strptime(date_string, "%m/%d/%Y")
+        month_day_year = r"^\d{1,2}/\d{1,2}/\d{2}$"
+        if re.match(month_day_year, date_string):
+            return datetime.strptime(date_string, "%m/%d/%y")
+        else:
+            return datetime.strptime(date_string, "%m/%d/%Y")
 
 
 def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
