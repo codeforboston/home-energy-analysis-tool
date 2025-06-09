@@ -109,14 +109,18 @@ def test_parse_gas_bill_with_m_d_yy():
     """
     Tests parsing a natural gas bill from the Harvard-Smith file.
     """
-    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_M_D_YY_FORMAT))
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_M_D_YY_FORMAT)
+    )
 
 
-def test_parse_gas_bill_with_m_d_yy():
+def test_parse_gas_bill_with_yyy_m_d():
     """
     Tests parsing a natural gas bill from the Harvard-Smith file.
     """
-    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT))
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT)
+    )
 
 
 def test_detect_natural_gas_company():
