@@ -114,7 +114,7 @@ def test_parse_gas_bill_with_m_d_yy():
     )
 
 
-def test_parse_gas_bill_with_yyy_m_d():
+def test_parse_gas_bill_with_yyyy_m_d():
     """
     Tests parsing a natural gas bill from the Harvard-Smith file.
     """
