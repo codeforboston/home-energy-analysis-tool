@@ -19,9 +19,14 @@ class _GasBillPaths:
     NATIONAL_GRID_LATEST = (
         ROOT_DIR / "natural_gas" / "quateman" / "natural-gas-national-grid.csv"
     )
-    DORCHESTER_SMITH = (
+    NATIONAL_GRID_WITH_BLANK_LINE_AFTER_HEADER = (
         _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
-        / "Dorchester-Smith"
+        / "national-grid-with-blank-line-after-header"
+        / "national-grid.csv"
+    )
+    HARVARD_SMITH = (
+        _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
+        / "national-grid-with-m-d-yy-format"
         / "national-grid.csv"
     )
 
@@ -86,11 +91,20 @@ def test_parse_gas_bill_national_grid_latest():
     )
 
 
-def test_parse_gas_bill_dorchester_smith():
+def test_parse_gas_bill_national_grid_with_blank_line_after_header():
     """
     Tests parsing a natural gas bill from the Dorchester-Smith file.
     """
-    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.DORCHESTER_SMITH))
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_BLANK_LINE_AFTER_HEADER)
+    )
+
+
+def test_parse_gas_bill_with_m_d_yy():
+    """
+    Tests parsing a natural gas bill from the Harvard-Smith file.
+    """
+    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.HARVARD_SMITH))
 
 
 def test_detect_natural_gas_company():
