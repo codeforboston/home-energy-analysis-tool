@@ -6,13 +6,35 @@ For an outline of the logic behind the rules engine and a glossary of common ter
 ## Development
 
 ### Setup
-Simple steps for development setup:
+
+Mac:
 
 1. Clone the git repository.
 2. Navigate to python by typing `cd python`
 3. Type `source setup-python.sh`
 
+Windows:
+
+1. Clone the git directory
+2. Navigate to python by typing `cd python`
+3. Run `setup-python-windows.bat`
+
 Then, you should be able to run `pytest` and see tests run successfully.
+
+Note: When setting up in windows there is a error that occurs `error: metadata-generation-failed`. Not a concern now. Command pip list returns these libraries
+
+Package           Version 
+
+annotated-types   0.7.0
+pip               25.0.1
+pydantic          2.11.5
+pydantic_core     2.33.2
+rules-engine      0.0.1   home-energy-analysis-tool\python
+typing_extensions 4.14.0
+typing-inspection 0.4.1
+
+When the application is opened using Visual Studio Code, the Python in the virtual environment should be activated. Activate using 
+`.venv/Scripts/activate`
 
 
 ## Codespaces
