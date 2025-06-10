@@ -37,7 +37,7 @@ class _GasBillPaths:
 
 
 def _read_gas_bill(path: str) -> str:
-    """Read a test natural gas bill from a test Eversource CSV"""
+    """Read a test natural gas bill from a test CSV"""
     with open(path) as f:
         return f.read()
 
@@ -98,7 +98,17 @@ def test_parse_gas_bill_national_grid_latest():
 
 def test_parse_gas_bill_national_grid_with_blank_line_after_header():
     """
-    Tests parsing a natural gas bill from the Dorchester-Smith file.
+    Tests parsing a natural gas bill from a National Grid CSV with a 
+    blank line after its header.
+
+    Name,BOB SMITH
+    Address,"1 MAIN ST, DORCHESTER MA 02124"
+    Account Number,1234567890
+    Service,Service 1
+
+    TYPE,START DATE,END DATE,USAGE,UNITS,COST,NOTES
+
+    Note the blank line between the header and key row.
     """
     parser.parse_gas_bill(
         _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_BLANK_LINE_AFTER_HEADER)
@@ -107,7 +117,20 @@ def test_parse_gas_bill_national_grid_with_blank_line_after_header():
 
 def test_parse_gas_bill_with_m_d_yy():
     """
-    Tests parsing a natural gas bill from the Harvard-Smith file.
+    Tests parsing a natural gas bill from a National Grid CSV with 
+    m-d-yy format.
+
+    Example rows:
+    Natural gas billing,7/11/17,8/7/17,23,therms,$32.58 ,
+
+    Natural gas billing,8/8/17,9/7/17,23,therms,$32.55 ,
+    
+    m - 1 or 2 digit month
+    d - 1 or 2 digit day
+    yy - 2 digit year
+
+    The blank line between rows is intentional, as it appears in the 
+    CSV.
     """
     parser.parse_gas_bill(
         _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_M_D_YY_FORMAT)
@@ -116,7 +139,16 @@ def test_parse_gas_bill_with_m_d_yy():
 
 def test_parse_gas_bill_with_yyyy_m_d():
     """
-    Tests parsing a natural gas bill from the Harvard-Smith file.
+    Tests parsing a natural gas bill from a National Grid CSV with 
+    yyyy-m-d format.
+
+    Example rows
+    Natural gas billing,2020-06-17,2020-07-17,35.00,therms,$41.57,
+    Natural gas billing,2020-07-18,2020-08-14,30.00,therms,$35.19,
+
+    yyyy - 4 digit year
+    m - 1 or 2 digit month
+    d - 1 or 2 digit day
     """
     parser.parse_gas_bill(
         _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT)
