@@ -24,9 +24,14 @@ class _GasBillPaths:
         / "national-grid-with-blank-line-after-header"
         / "national-grid.csv"
     )
-    HARVARD_SMITH = (
+    NATIONAL_GRID_WITH_M_D_YY_FORMAT = (
         _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
         / "national-grid-with-m-d-yy-format"
+        / "national-grid.csv"
+    )
+    NATIONAL_GRID_WITH_YYYY_M_D_FORMAT = (
+        _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
+        / "national-grid-with-yyyy-m-d-format"
         / "national-grid.csv"
     )
 
@@ -104,7 +109,18 @@ def test_parse_gas_bill_with_m_d_yy():
     """
     Tests parsing a natural gas bill from the Harvard-Smith file.
     """
-    parser.parse_gas_bill(_read_gas_bill(_GasBillPaths.HARVARD_SMITH))
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_M_D_YY_FORMAT)
+    )
+
+
+def test_parse_gas_bill_with_yyyy_m_d():
+    """
+    Tests parsing a natural gas bill from the Harvard-Smith file.
+    """
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT)
+    )
 
 
 def test_detect_natural_gas_company():
