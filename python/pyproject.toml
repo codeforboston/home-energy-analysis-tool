@@ -7,6 +7,7 @@ name="rules-engine"
 version="0.0.1"
 requires-python=">=3.11.3"
 dependencies = [
+    "chardet",
     "pydantic"
 ]
 
@@ -17,6 +18,7 @@ dev = [
     "mypy",
     "openpyxl",
     "pydantic",
+    "pip-tools",
     "pydocstyle",
     "pytest",
     "types-openpyxl",

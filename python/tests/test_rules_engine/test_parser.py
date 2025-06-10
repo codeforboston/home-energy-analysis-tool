@@ -1,5 +1,6 @@
 import pathlib
 from datetime import date, datetime
+import chardet
 
 import pytest
 
@@ -34,11 +35,21 @@ class _GasBillPaths:
         / "national-grid-with-yyyy-m-d-format"
         / "national-grid.csv"
     )
+    EVERSOURCE_WITH_ALTERNATE_FORMAT = (
+        _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
+        / "eversource-with-alternate-format"
+        / "eversource.csv"
+    )
 
 
 def _read_gas_bill(path: str) -> str:
     """Read a test natural gas bill from a test CSV"""
-    with open(path) as f:
+    with open(path, 'rb') as f:
+        raw_data = f.read()
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
+
+    with open(path, encoding=encoding) as f:
         return f.read()
 
 
@@ -152,6 +163,30 @@ def test_parse_gas_bill_with_yyyy_m_d():
     """
     parser.parse_gas_bill(
         _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT)
+    )
+
+
+def test_parse_gas_bill_with_eversource_with_alternate_format():
+    """
+    Tests parsing a natural gas bill from an Eversource CSV with
+    an alternate format
+
+    End Date	Days In Bill	Meter Read	Read Type	Usage (CCF)	Usage (Therms)	Usage (Cost)
+    "7/12/2021"	"32"	"9113"	"ACTUAL"	"18"	"18"	"$30.58"
+    "6/10/2021"	"30"	"9095"	"ACTUAL"	"41"	"42"	"$54.06"
+    "5/11/2021"	"32"	"9054"	"ACTUAL"	"143"	"147"	"$211.70"
+    "4/9/2021"	"31"	"8911"	"ACTUAL"	"221"	"227"	"$352.45"
+    "3/9/2021"	"29"	"8690"	"ACTUAL"	"359"	"369"	"$564.63"
+    "2/8/2021"	"30"	"8331"	"ACTUAL"	"369"	"380"	"$581.54"
+    "1/9/2021"	"30"	"7962"	"ACTUAL"	"327"	"336"	"$515.54"
+    "12/10/2020"	"33"	"7635"	"ACTUAL"	"232"	"238"	"$369.75"
+
+    Note the different column key row from the latest Eversource 
+    format, the tab separation of that row and the columns, and the
+    double quotation of every column value.
+    """
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.EVERSOURCE_WITH_ALTERNATE_FORMAT)
     )
 
 
