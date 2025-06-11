@@ -147,7 +147,7 @@ If using GitHub Codespaces, follow these steps:
 1. Navigate to the project directory:
 
    ```bash
-   cd home-energy-analysis-tool/heat-stack
+   cd heat-stack
    ```
 
 2. Create an environment file:
@@ -159,6 +159,7 @@ If using GitHub Codespaces, follow these steps:
 3. Use Node.js version 22:
 
    ```bash
+   nvm install 22
    nvm use 22
    ```
 
