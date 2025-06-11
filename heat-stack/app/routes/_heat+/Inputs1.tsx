@@ -18,12 +18,16 @@ import { type Route } from './+types/Inputs1.ts'
 
 const nameMaxLength = 50
 const addressMaxLength = 100
+const cityMaxLength = 100
+const stateMaxLength = 2
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
 const HomeInformationSchema = z.object({
 	name: z.string().min(1).max(nameMaxLength),
 	address: z.string().min(1).max(addressMaxLength),
+	city: z.string().max(cityMaxLength),
+  	state: z.string().max(stateMaxLength),
 	living_area: z.number().min(1),
 })
 

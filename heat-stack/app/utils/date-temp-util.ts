@@ -5,25 +5,29 @@
 
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
-import WeatherUtil, { type TemperatureInputDataConverted } from './WeatherUtil.ts'
+import WeatherUtil, {
+	type TemperatureInputDataConverted,
+} from './WeatherUtil.ts'
 
 // Define interface for address components
 export interface AddressComponents {
-	street: string;
-	city: string;
-	state: string;
-	zip: string;
-	formattedAddress: string;
+	street: string
+	city: string
+	state: string
+	zip: string
+	formattedAddress: string
 }
 
 export default async function getConvertedDatesTIWD(
 	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
-	address: string,
+	street_address: string,
+	town: string,
+	state: string,
 ): Promise<{
 	convertedDatesTIWD: TemperatureInputDataConverted
 	state_id: string | undefined
 	county_id: string | number | undefined
-	coordinates: { x: number, y: number } | null | undefined
+	coordinates: { x: number; y: number } | null | undefined
 	addressComponents: AddressComponents | null
 }> {
 	console.log('loading geocodeUtil/weatherUtil')
@@ -31,7 +35,9 @@ export default async function getConvertedDatesTIWD(
 	const geocodeUtil = new GeocodeUtil()
 	const weatherUtil = new WeatherUtil()
 
-	let { coordinates, state_id, county_id, addressComponents } = await geocodeUtil.getLL(address)
+	const combined_address = `${street_address}, ${town}, ${state}`
+	const { coordinates, state_id, county_id, addressComponents } =
+		await geocodeUtil.getLL(combined_address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 
 	console.log('geocoded', x, y)
@@ -77,9 +83,9 @@ export default async function getConvertedDatesTIWD(
 		formatDateString(end_date),
 	)
 
-    if (weatherData === undefined) {
-        throw new Error("weather data failed to fetch")
-    }
+	if (weatherData === undefined) {
+		throw new Error('weather data failed to fetch')
+	}
 
 	const datesFromTIWD = weatherData.dates.map(
 		(datestring) => new Date(datestring).toISOString().split('T')[0],
@@ -89,5 +95,11 @@ export default async function getConvertedDatesTIWD(
 		temperatures: weatherData.temperatures,
 	}
 
-	return { convertedDatesTIWD, state_id, county_id, coordinates, addressComponents }
+	return {
+		convertedDatesTIWD,
+		state_id,
+		county_id,
+		coordinates,
+		addressComponents,
+	}
 }
