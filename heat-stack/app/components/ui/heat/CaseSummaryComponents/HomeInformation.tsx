@@ -149,7 +149,6 @@ export function HomeInformation(props: HomeInformationProps) {
 						<div className="mt-4">
 							<StateDropdown
 								fields={props.fields}
-								getInputProps={getInputProps}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
