@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name="rules-engine"
 version="0.0.1"
-requires-python=">=3.12,<3.13"
+requires-python=">=3.11.3,<3.13"
 dependencies = [
     "pydantic"
 ]
