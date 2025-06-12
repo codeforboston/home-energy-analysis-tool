@@ -48,7 +48,7 @@ export PYTHON_CMD=<path to python 3.12 executable, including executable name>
 
 ### Modifying Code
 1. Find an issue to work on
-2. Create a branch from main names <issue, feature, or other>/<issue number>/<description>.  Separate words in the description using a dash (-).  Consider using the subject as a description.  Example:
+2. Create a branch from main.  Best practice for naming looks like this: <issue, feature, or other>/<issue number>/<description>.  Separate words in the description using a dash (-).  Consider using the subject as a description.  Example:
 ```
 git checkout main
 git checkout -b feature/341/validate-address
