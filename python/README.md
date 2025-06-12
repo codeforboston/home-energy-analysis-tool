@@ -30,21 +30,6 @@ export PYTHON_CMD=<path to python 3.12 executable, including executable name>
 
 #### Setup Codespace
 
-### Setup
-Simple steps for development setup:
-
-1. Clone the git repository.
-2. Navigate to python by typing `cd python`
-3. Type `source setup-python.sh`
-
-Then, you should be able to run `pytest` and see tests run successfully.
-
-
-## Codespaces
-The default codespace does not have the version of Python pre-installed that is used to develop the rules engine.  You _can_ use it and update it to install the correct Python vsion, but this takes time.  
-
-Instead, you can spin up a codespace with the correct version like so:
-
 1. navigate to the green "code" dropdown
 2. select the "codespaces" tab
 3. select the "..." menu
