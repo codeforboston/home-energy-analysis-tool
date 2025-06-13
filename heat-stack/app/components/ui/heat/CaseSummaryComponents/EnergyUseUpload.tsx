@@ -1,5 +1,5 @@
-import { Upload } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { FileUp, Upload } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList'
 
@@ -25,10 +25,13 @@ export function EnergyUseUpload({
 
 	// useRef to access the file input element
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const [fileName, setFileName] = useState<String>('')
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files ? e.target.files[0] : null
-		if (!file) return
+		if (file) {
+			console.log('Selected file:', file.name)
+		}
 	}
 
 	return (
@@ -41,7 +44,8 @@ export function EnergyUseUpload({
 					onClick={() => fileInputRef.current?.click()}
 					className="bg-teal-500 py-6"
 				>
-					Choose File
+					<FileUp className="h-6 w-6" />
+					<span className="ml-2"> Click to upload CSV</span>
 				</Button>
 				<ErrorList
 					id={fields.energy_use_upload.errorId}
@@ -58,13 +62,12 @@ export function EnergyUseUpload({
 					name={fields.energy_use_upload.name}
 					className="h-7"
 				/>
-				<div className={`${descriptiveClass}`}>The file must be a CSV.</div>
 			</div>
 
 			<div className="flex justify-end">
 				{/* Button type submit is processed by action in single.tsx */}
 				<Button
-					className="bg-gradient-to-r from-emerald-600 to-teal-500"
+					className="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-6"
 					type="submit"
 					name="intent"
 					value="upload"
@@ -74,6 +77,8 @@ export function EnergyUseUpload({
 					<Upload className="mr-2 h-4 w-4" />
 					Calculate
 				</Button>
+				{/*
+				#idk if we neeed this 
 				<div className="">
 					<a
 						target="_blank"
@@ -82,7 +87,7 @@ export function EnergyUseUpload({
 					>
 						Get example file here
 					</a>
-				</div>
+				</div> */}
 			</div>
 		</fieldset>
 	)

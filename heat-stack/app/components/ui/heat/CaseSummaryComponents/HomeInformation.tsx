@@ -97,7 +97,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				<div className="mt-4 flex space-x-4">
 					<div>
 						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<div className="pb-3 pt-1">
 							<ErrorList
 								id={props.fields.name.errorId}
 								errors={props.fields.name.errors}
@@ -108,7 +108,7 @@ export function HomeInformation(props: HomeInformationProps) {
 			</div>
 			<fieldset>
 				<legend className={`${subtitleClass}`}>Address Information</legend>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-4 flex flex-col md:flex-row md:space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="street_address">Street Address</Label>
 						<div className="mt-4">
@@ -117,7 +117,7 @@ export function HomeInformation(props: HomeInformationProps) {
 									type: 'text',
 								})}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<div className="pb-3 pt-1">
 								<ErrorList
 									id={props.fields.street_address.errorId}
 									errors={props.fields.street_address.errors}
@@ -130,7 +130,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						<Label htmlFor="town">City/Town</Label>
 						<div className="mt-4">
 							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<div className="pb-3 pt-1">
 								<ErrorList
 									id={props.fields.town.errorId}
 									errors={props.fields.town.errors}
@@ -143,7 +143,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						<Label htmlFor="state">State</Label>
 						<div className="mt-4">
 							<StateDropdown fields={props.fields} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<div className="pt-1">
 								<ErrorList
 									id={props.fields.state.errorId}
 									errors={props.fields.state.errors}
@@ -183,7 +183,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								The home's above-grade, conditioned space
 							</span>
 
-							<div className="min-h-[12px] px-4 pb-3 pt-1">
+							<div className="pb-3 pt-1">
 								<ErrorList
 									id={props.fields.living_area.errorId}
 									errors={props.fields.living_area.errors}

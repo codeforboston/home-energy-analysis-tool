@@ -132,7 +132,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 			<fieldset>
 				<legend className={`${subtitleClass}`}>Thermostat Settings</legend>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-4 flex flex-col md:flex-row md:space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="thermostat_set_point" className="font-bold">
 							Set Point (°F)
@@ -143,10 +143,11 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 								type: 'text',
 							})}
 						/>
+
 						<span className={`${descriptiveClass}`}>
 							Usual thermostat setting for heating
 						</span>
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<div className="pb-3 pt-1">
 							<ErrorList
 								id={props.fields.thermostat_set_point.errorId}
 								errors={props.fields.thermostat_set_point.errors}
