@@ -90,7 +90,7 @@ export function HomeInformation(props: HomeInformationProps) {
 			</legend>
 
 			{/* <Form method="post" action="/inputs1"> */}
-			<div className={`${componentMargin}`}>
+			<div className={`${componentMargin} mb-4`}>
 				<Label className={`${subtitleClass} `} htmlFor="name">
 					Resident/Client Name(s)
 				</Label>
@@ -107,7 +107,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</div>
 			<fieldset>
-				<legend className={`${subtitleClass}`}>Address Information</legend>
+				<legend className={`${subtitleClass} `}>Address Information</legend>
 				<div className="mt-4 flex flex-col md:flex-row md:space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="street_address">Street Address</Label>
