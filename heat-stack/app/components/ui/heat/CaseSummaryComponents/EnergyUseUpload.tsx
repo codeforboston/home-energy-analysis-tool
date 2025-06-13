@@ -25,13 +25,14 @@ export function EnergyUseUpload({
 
 	// useRef to access the file input element
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const [fileName, setFileName] = useState<String>('')
+	const [fileName, setFileName] = useState('')
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files ? e.target.files[0] : null
 		if (file) {
-			console.log('Selected file:', file.name)
+			setFileName(file.name)
 		}
+		console.log('workinf')
 	}
 
 	return (
@@ -43,6 +44,7 @@ export function EnergyUseUpload({
 					type="button"
 					onClick={() => fileInputRef.current?.click()}
 					className="bg-teal-500 py-6"
+					disabled={fileName !== ''}
 				>
 					<FileUp className="h-6 w-6" />
 					<span className="ml-2"> Click to upload CSV</span>
@@ -51,9 +53,15 @@ export function EnergyUseUpload({
 					id={fields.energy_use_upload.errorId}
 					errors={fields.energy_use_upload.errors}
 				/>
+
+				{fileName && (
+					<p className={`${descriptiveClass}`}>
+						Selected file: <strong>{fileName}</strong>
+					</p>
+				)}
 				<input
 					ref={fileInputRef}
-					onChange={() => handleFileChange}
+					onChange={handleFileChange}
 					hidden
 					id="energy_use_upload"
 					aria-label="Upload your energy billing company's bill."
