@@ -48,9 +48,9 @@ import { StateDropdown } from './StateDropdown.tsx'
 type HomeInformationProps = { fields: any }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
+	const titleClass = 'text-3xl font-bold tracking-wide  '
+	const subtitleClass = 'text-lg font-semibold text-zinc-950  mt-5 '
+	const descriptiveClass = 'mt-2 text-xs text-slate-500'
 	const componentMargin = 'mt-10'
 
 	// Create a state to track the number value
@@ -88,11 +88,12 @@ export function HomeInformation(props: HomeInformationProps) {
 			<legend className={`${titleClass} ${componentMargin}`}>
 				Home Information
 			</legend>
-			<Label className={`${subtitleClass}`} htmlFor="name">
-				Resident/Client Name(s)
-			</Label>
+
 			{/* <Form method="post" action="/inputs1"> */}
 			<div className={`${componentMargin}`}>
+				<Label className={`${subtitleClass} `} htmlFor="name">
+					Resident/Client Name(s)
+				</Label>
 				<div className="mt-4 flex space-x-4">
 					<div>
 						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
@@ -109,9 +110,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				<legend className={`${subtitleClass}`}>Address Information</legend>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="street_address">
-							Street Address
-						</Label>
+						<Label htmlFor="street_address">Street Address</Label>
 						<div className="mt-4">
 							<Input
 								{...getInputProps(props.fields.street_address, {
@@ -128,9 +127,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="town">
-							City/Town
-						</Label>
+						<Label htmlFor="town">City/Town</Label>
 						<div className="mt-4">
 							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
@@ -143,13 +140,9 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="state">
-							State
-						</Label>
+						<Label htmlFor="state">State</Label>
 						<div className="mt-4">
-							<StateDropdown
-								fields={props.fields}
-							/>
+							<StateDropdown fields={props.fields} />
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.state.errorId}
@@ -159,47 +152,47 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 				</div>
-			</fieldset>
-
-			<div className="mt-9">
-				<Label className={`${subtitleClass}`} htmlFor="living_area">
-					Living Area (sf)
-				</Label>
-				<div className="mt-4">
-					<div>
-						<NumericFormat
-							id="living_area"
-							// Don't include a name to prevent it from being submitted
-							placeholder="Enter a number 0-10000"
-							// type="number"
-							value={livingAreaStringDisplayed}
-							/* classes as if it was Conform: */
-							className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
-							onChange={handleLivingAreaChange}
-							thousandSeparator={true} // Add this line to include commas
-							valueIsNumericString={true} // Add this line to treat the value as a numeric string
-							allowNegative={false} // Ensure negative numbers are not allowed
-							decimalScale={0} // Set the decimal scale to 0 to avoid decimal points
-							fixedDecimalScale={true} // Ensure the decimal scale is fixed
-						/>
-						{/* Use the actual field from Conform but with our calculated decimal value */}
-						<Input
-							type="hidden"
-							name={props.fields.living_area.name}
-							value={livingAreaNumberHidden}
-						/>
-						<div className="min-h-[12px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.living_area.errorId}
-								errors={props.fields.living_area.errors}
+				<div className="mb-5">
+					<Label className={`${subtitleClass}`} htmlFor="living_area">
+						Living Area (sf)
+					</Label>
+					<div className="mt-4">
+						<div>
+							<NumericFormat
+								id="living_area"
+								// Don't include a name to prevent it from being submitted
+								placeholder="Enter a number 0-10000"
+								// type="number"
+								value={livingAreaStringDisplayed}
+								/* classes as if it was Conform: */
+								className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+								onChange={handleLivingAreaChange}
+								thousandSeparator={true} // Add this line to include commas
+								valueIsNumericString={true} // Add this line to treat the value as a numeric string
+								allowNegative={false} // Ensure negative numbers are not allowed
+								decimalScale={0} // Set the decimal scale to 0 to avoid decimal points
+								fixedDecimalScale={true} // Ensure the decimal scale is fixed
 							/>
+							{/* Use the actual field from Conform but with our calculated decimal value */}
+							<Input
+								type="hidden"
+								name={props.fields.living_area.name}
+								value={livingAreaNumberHidden}
+							/>
+							<span className={`${descriptiveClass}`}>
+								The home's above-grade, conditioned space
+							</span>
+
+							<div className="min-h-[12px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.living_area.errorId}
+									errors={props.fields.living_area.errors}
+								/>
+							</div>
 						</div>
 					</div>
-					<span className={`${descriptiveClass}`}>
-						The home's above-grade, conditioned space
-					</span>
 				</div>
-			</div>
+			</fieldset>
 
 			{/* removed temporarily for single page app format */}
 			{/* <div>

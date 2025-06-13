@@ -16,19 +16,21 @@ import {
 type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
+	const titleClass = 'text-3xl font-bold tracking-wide  '
+	const subtitleClass = 'text-lg font-semibold text-zinc-950  mt-5 '
+	const descriptiveClass = 'mt-2 text-xs text-slate-500'
 	const componentMargin = 'mt-10'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	// Create a state to track the percentage value
-	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(() => {
-		// Initialize from the field's default value or initial value
-		const value =
-			props.fields.heating_system_efficiency.value ||
-			props.fields.heating_system_efficiency.defaultValue
-		return value ? Math.round(parseFloat(value) * 100).toString() : ''
-	})
+	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
+		() => {
+			// Initialize from the field's default value or initial value
+			const value =
+				props.fields.heating_system_efficiency.value ||
+				props.fields.heating_system_efficiency.defaultValue
+			return value ? Math.round(parseFloat(value) * 100).toString() : ''
+		},
+	)
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
@@ -42,7 +44,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.value ||
 			props.fields.heating_system_efficiency.defaultValue
 		if (value) {
-			setPercentageValueDisplayed(Math.round(parseFloat(value) * 100).toString())
+			setPercentageValueDisplayed(
+				Math.round(parseFloat(value) * 100).toString(),
+			)
 		}
 	}, [
 		props.fields.heating_system_efficiency.value,
