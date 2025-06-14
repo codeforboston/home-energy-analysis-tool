@@ -69,6 +69,21 @@ export function HomeInformation(props: HomeInformationProps) {
 		return !isNaN(convertedNumber) ? convertedNumber.toString() : ''
 	}, [livingAreaStringDisplayed])
 
+	const [streetAddress, setStreetAddress] = useState(
+		props.fields.street_address.value || props.fields.street_address.defaultValue
+	);
+	const [town, setTown] = useState(
+		props.fields.town.value || props.fields.town.defaultValue?.town
+	  );
+
+	const handleStreetAddressBlur = () => {
+
+	}
+
+	const handleTownBlur = () => {
+
+	}
+
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
@@ -109,14 +124,17 @@ export function HomeInformation(props: HomeInformationProps) {
 				<legend className={`${subtitleClass}`}>Address Information</legend>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="street_address">
-							Street Address
-						</Label>
+						<Label htmlFor={props.fields.street_address.id}>Street Address</Label>
 						<div className="mt-4">
 							<Input
-								{...getInputProps(props.fields.street_address, {
-									type: 'text',
-								})}
+								id={props.fields.street_address.id}
+								name={props.fields.street_address.name}
+								type="text"
+								value={streetAddress}
+								onChange={(e) => setStreetAddress(e.target.value)}
+								onBlur={handleStreetAddressBlur}
+								aria-invalid={props.fields.street_address.errors?.length ? true : undefined}
+								aria-describedby={props.fields.street_address.errorId}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
@@ -128,11 +146,18 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="town">
-							City/Town
-						</Label>
+						<Label htmlFor={props.fields.town.id}>City/Town</Label>
 						<div className="mt-4">
-							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
+							<Input
+								id={props.fields.town.id}
+								name={props.fields.town.name}
+								type="text"
+								value={town}
+								onChange={(e) => setTown(e.target.value)}
+								onBlur={handleTownBlur}
+								aria-invalid={props.fields.town.errors?.length ? true : undefined}
+								aria-describedby={props.fields.town.errorId}
+							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.town.errorId}
@@ -141,6 +166,7 @@ export function HomeInformation(props: HomeInformationProps) {
 							</div>
 						</div>
 					</div>
+
 
 					<div className="basis-1/3">
 						<Label htmlFor="state">
