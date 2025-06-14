@@ -34,7 +34,6 @@ export function EnergyUseUpload({
 		const file = e.target.files ? e.target.files[0] : null
 		if (file) {
 			setFileName(file.name)
-			handleSubmit()
 		}
 	}
 
