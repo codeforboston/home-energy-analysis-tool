@@ -32,7 +32,6 @@ export function EnergyUseUpload({
 		if (file) {
 			setFileName(file.name)
 		}
-		console.log('workinf')
 	}
 
 	return (
@@ -44,7 +43,6 @@ export function EnergyUseUpload({
 					type="button"
 					onClick={() => fileInputRef.current?.click()}
 					className="bg-teal-500 py-6"
-					disabled={fileName !== ''}
 				>
 					<FileUp className="h-6 w-6" />
 					<span className="ml-2"> Click to upload CSV</span>
@@ -80,22 +78,18 @@ export function EnergyUseUpload({
 					name="intent"
 					value="upload"
 					onClick={handleSubmit}
-					style={{ marginBottom: '20px' }}
 				>
 					<Upload className="mr-2 h-4 w-4" />
 					Calculate
 				</Button>
-				{/*
-				#idk if we neeed this 
-				<div className="">
-					<a
-						target="_blank"
-						className="ml-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-						href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484"
-					>
-						Get example file here
-					</a>
-				</div> */}
+
+				<a
+					target="_blank"
+					className="ml-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+					href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484"
+				>
+					Get example file here
+				</a>
 			</div>
 		</fieldset>
 	)
