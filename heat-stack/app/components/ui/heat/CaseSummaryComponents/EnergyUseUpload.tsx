@@ -74,10 +74,10 @@ export function EnergyUseUpload({
 					/>
 				</div>
 
-				<div className="flex justify-end">
+				<div className="mt-14 flex justify-center md:justify-end">
 					{/* Button type submit is processed by action in single.tsx */}
 					<Button
-						className="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-6"
+						className="order-2 bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-6"
 						type="submit"
 						name="intent"
 						value="upload"
@@ -89,7 +89,7 @@ export function EnergyUseUpload({
 
 					<a
 						target="_blank"
-						className="ml-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+						className="order-1 mr-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
 						href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484"
 					>
 						Get example file here
