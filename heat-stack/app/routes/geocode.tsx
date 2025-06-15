@@ -23,13 +23,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		const { coordinates } = await geocodeUtil.getLL(address)
 
 		if (!coordinates) {
-			return new Response(JSON.stringify({ error: 'Address not found', status: 400}))
+			return new Response(JSON.stringify({ message: 'Address not found', status: 400}))
 		}
 	
 		return new Response(JSON.stringify({coordinates}))
 
 	} catch (error) {
 		console.error('Geocoding error:', error)
-		return new Response(JSON.stringify({ error: 'Server error' , status: 500 }))
+		return new Response(JSON.stringify({ message: 'Server error' , status: 500 }))
 	}
 }
