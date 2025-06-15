@@ -4,7 +4,6 @@ import { Button } from '#/app/components/ui/button.tsx'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
-import { ErrorList } from './ErrorList.tsx'
 import {
 	Select,
 	SelectTrigger,
@@ -12,6 +11,7 @@ import {
 	SelectContent,
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
+import { ErrorList } from './ErrorList.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 
@@ -29,6 +29,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.defaultValue
 		return value ? Math.round(parseFloat(value) * 100).toString() : ''
 	})
+	const [state, setState] = useState(
+		props.fields.state.value || props.fields.state.defaultValue || ''
+	)
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
