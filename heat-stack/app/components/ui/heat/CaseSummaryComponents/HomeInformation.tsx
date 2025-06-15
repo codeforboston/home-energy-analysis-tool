@@ -93,7 +93,6 @@ export function HomeInformation(props: HomeInformationProps) {
 
 
 	async function validateGeocode() {
-		console.log("vg 1", state)
 		if (!streetAddress || !town || !state) {
 			setGeoError(null)
 			return
@@ -104,13 +103,10 @@ export function HomeInformation(props: HomeInformationProps) {
 			console.timeLog ("trying")
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json() 
-			console.log("data defined", data)
 			if (!data.coordinates) {
-				setGeoError( "Geocoding failed")
-				console.log("Geocode error:", data)
+				setGeoError( data.message )
 			} else {
 				setGeoError(null)
-				console.log("Geocode result:", data)
 			}
 		} catch (error) {
 			setGeoError("Error connecting to geocoding service" + error)
