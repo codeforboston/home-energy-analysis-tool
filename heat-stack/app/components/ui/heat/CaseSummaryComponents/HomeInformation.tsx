@@ -75,7 +75,7 @@ export function HomeInformation(props: HomeInformationProps) {
 		props.fields.town.value || props.fields.town.defaultValue?.town
 	  );
 	const [state, setState] = useState(
-		props.fields.state.value || props.fields.sate.defaultValue?.state
+		props.fields.state.value || props.fields.state.defaultValue?.state
 	);
 	const [geoError, setGeoError] = useState<string | null>(null);
 
@@ -93,8 +93,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 
 	async function validateGeocode() {
-		console.log("vg 1")
-		const state = "MA" // Update if you support dynamic state
+		console.log("vg 1", state)
 		if (!streetAddress || !town || !state) {
 			setGeoError(null)
 			return
