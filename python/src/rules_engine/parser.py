@@ -12,6 +12,16 @@ from enum import StrEnum
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
+_ASCII_CHARACTERS = [
+    ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?',
+    '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+    'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_',
+    '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'
+]
+
+
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
@@ -37,6 +47,9 @@ class _NaturalGasCompanyBillRegex:
 class ColumnNamesEversource:
     """Column names of an Eversource natural gas bill"""
     def __init__(self, header: str):
+        print("eversource", header)
+        print("read date exists", "Read Date" in header)
+        print("end date exists", "End Date" in header)
         if "Read Date" in header:
             self.read_date = "Read Date"
         elif "End Date" in header:
@@ -137,18 +150,25 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
     """
-    lines = data.split("\n")
-    header = lines[0]
+    header = data.split("\n")[0]
+    print("header", header)
     date_exists = "End Date" in header or "Read Date" in header
     days_exist = "Days In Bill" in header or "Days" in header
     therms_exist = "Usage" in header or "Usage (Therms)" in header
     is_eversource = date_exists and days_exist and therms_exist
+    print("debug logic parser.py:159")
+    print("header", header)
+    print("date_exists", "days_exist", "therms_exist")
+    print(date_exists, days_exist, therms_exist)
+    print()
 
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
         return NaturalGasCompany.NATIONAL_GRID
     elif is_eversource:
         return NaturalGasCompany.EVERSOURCE
     else:
+        print("bad header")
+        print(header)
         raise ValueError(
             """Could not detect which company this bill was from"""
         )
@@ -163,17 +183,27 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    data_without_newlines = _newline_line_ending(data)
-    data_without_double_quotes = _remove_double_quotes(data_without_newlines)
-    data_with_commas_instead_of_tabs = _replace_tabs_with_commas(data_without_double_quotes)
+    data = _newline_line_ending(data)
+    data = _remove_double_quotes(data)
+    data = _replace_tabs_with_commas(data)
+
+    lines = data.split("\n")
+    for i, line in enumerate(lines):
+        string = ""
+        for character in line:
+            if character in _ASCII_CHARACTERS and ord(character) != 0:
+                string += character
+        lines[i] = string + "\n"
+    data = "".join(lines)
+
     if company == None:
-        company = _detect_gas_company(data_with_commas_instead_of_tabs)
+        company = _detect_gas_company(data)
 
     match company:
         case NaturalGasCompany.EVERSOURCE:
-            return _parse_gas_bill_eversource(data_with_commas_instead_of_tabs)
+            return _parse_gas_bill_eversource(data)
         case NaturalGasCompany.NATIONAL_GRID:
-            return _parse_gas_bill_national_grid(data_with_commas_instead_of_tabs)
+            return _parse_gas_bill_national_grid(data)
         case _:
             raise ValueError("Wrong CSV format selected: select another format.")
 
