@@ -12,14 +12,9 @@ from enum import StrEnum
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 
-_ASCII_CHARACTERS = [
-    ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?',
-    '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-    'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_',
-    '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'
-]
+_ASCII_CHARACTERS_PLUS_NEWLINE = set(
+    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
+)
 
 
 class NaturalGasCompany(StrEnum):
@@ -46,6 +41,7 @@ class _NaturalGasCompanyBillRegex:
 
 class ColumnNamesEversource:
     """Column names of an Eversource natural gas bill"""
+
     def __init__(self, header: str):
         print("eversource", header)
         print("read date exists", "Read Date" in header)
@@ -60,7 +56,7 @@ class ColumnNamesEversource:
         if "Number of Days" in header:
             self.number_of_days = "Number of Days"
         elif "Days In Bill" in header:
-            self.number_of_days = "Days In Bill" 
+            self.number_of_days = "Days In Bill"
         else:
             raise ValueError("Number of Days header not found")
 
@@ -124,9 +120,9 @@ def _newline_line_ending(data: str) -> str:
     Returns a string with every line ending in a single newline
     character.
 
-    Each bill CSV or TSV row ends variously, in a newline, 
-    carriage return, and even a carriage return followed by a 
-    newline. The company detection and parsing code crash unless 
+    Each bill CSV or TSV row ends variously, in a newline,
+    carriage return, and even a carriage return followed by a
+    newline. The company detection and parsing code crash unless
     each row ends in one newline and nothing else.
     """
     data = data.replace("\r", "\n")
@@ -138,7 +134,7 @@ def _newline_line_ending(data: str) -> str:
 
 def _remove_double_quotes(data: str) -> str:
     """Return a string with the double quotes removed."""
-    return data.replace('"', '')
+    return data.replace('"', "")
 
 
 def _replace_tabs_with_commas(data: str) -> str:
@@ -146,21 +142,24 @@ def _replace_tabs_with_commas(data: str) -> str:
     return data.replace("\t", ",")
 
 
+def _remove_non_ascii_or_newline_characters(data: str) -> str:
+    """Remove all non-ASCII, non-newline characters"""
+    return "".join(
+        character
+        for character in data
+        if character in _ASCII_CHARACTERS_PLUS_NEWLINE
+    )
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
     """
     header = data.split("\n")[0]
-    print("header", header)
     date_exists = "End Date" in header or "Read Date" in header
     days_exist = "Days In Bill" in header or "Days" in header
     therms_exist = "Usage" in header or "Usage (Therms)" in header
     is_eversource = date_exists and days_exist and therms_exist
-    print("debug logic parser.py:159")
-    print("header", header)
-    print("date_exists", "days_exist", "therms_exist")
-    print(date_exists, days_exist, therms_exist)
-    print()
 
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
         return NaturalGasCompany.NATIONAL_GRID
@@ -169,9 +168,7 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
     else:
         print("bad header")
         print(header)
-        raise ValueError(
-            """Could not detect which company this bill was from"""
-        )
+        raise ValueError("""Could not detect which company this bill was from""")
 
 
 def parse_gas_bill(
@@ -186,15 +183,7 @@ def parse_gas_bill(
     data = _newline_line_ending(data)
     data = _remove_double_quotes(data)
     data = _replace_tabs_with_commas(data)
-
-    lines = data.split("\n")
-    for i, line in enumerate(lines):
-        string = ""
-        for character in line:
-            if character in _ASCII_CHARACTERS and ord(character) != 0:
-                string += character
-        lines[i] = string + "\n"
-    data = "".join(lines)
+    data = _remove_non_ascii_or_newline_characters(data)
 
     if company == None:
         company = _detect_gas_company(data)

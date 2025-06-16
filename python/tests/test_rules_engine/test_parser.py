@@ -44,10 +44,10 @@ class _GasBillPaths:
 
 def _read_gas_bill(path: str) -> str:
     """Read a test natural gas bill from a test CSV"""
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         raw_data = f.read()
         result = chardet.detect(raw_data)
-        encoding = result['encoding']
+        encoding = result["encoding"]
 
     with open(path, encoding=encoding) as f:
         return f.read()
@@ -109,7 +109,7 @@ def test_parse_gas_bill_national_grid_latest():
 
 def test_parse_gas_bill_national_grid_with_blank_line_after_header():
     """
-    Tests parsing a natural gas bill from a National Grid CSV with a 
+    Tests parsing a natural gas bill from a National Grid CSV with a
     blank line after its header.
 
     Name,BOB SMITH
@@ -128,19 +128,19 @@ def test_parse_gas_bill_national_grid_with_blank_line_after_header():
 
 def test_parse_gas_bill_with_m_d_yy():
     """
-    Tests parsing a natural gas bill from a National Grid CSV with 
+    Tests parsing a natural gas bill from a National Grid CSV with
     m-d-yy format.
 
     Example rows:
     Natural gas billing,7/11/17,8/7/17,23,therms,$32.58 ,
 
     Natural gas billing,8/8/17,9/7/17,23,therms,$32.55 ,
-    
+
     m - 1 or 2 digit month
     d - 1 or 2 digit day
     yy - 2 digit year
 
-    The blank line between rows is intentional, as it appears in the 
+    The blank line between rows is intentional, as it appears in the
     CSV.
     """
     parser.parse_gas_bill(
@@ -150,7 +150,7 @@ def test_parse_gas_bill_with_m_d_yy():
 
 def test_parse_gas_bill_with_yyyy_m_d():
     """
-    Tests parsing a natural gas bill from a National Grid CSV with 
+    Tests parsing a natural gas bill from a National Grid CSV with
     yyyy-m-d format.
 
     Example rows
@@ -181,7 +181,7 @@ def test_parse_gas_bill_with_eversource_with_alternate_format():
     "1/9/2021"	"30"	"7962"	"ACTUAL"	"327"	"336"	"$515.54"
     "12/10/2020"	"33"	"7635"	"ACTUAL"	"232"	"238"	"$369.75"
 
-    Note the different column key row from the latest Eversource 
+    Note the different column key row from the latest Eversource
     format, the tab separation of that row and the columns, and the
     double quotation of every column value.
     """
