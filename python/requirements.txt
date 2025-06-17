@@ -6,8 +6,6 @@
 #
 annotated-types==0.5.0
     # via pydantic
-chardet==5.2.0
-    # via rules-engine (pyproject.toml)
 pydantic==2.3.0
     # via rules-engine (pyproject.toml)
 pydantic-core==2.6.3

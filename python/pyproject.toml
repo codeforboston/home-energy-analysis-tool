@@ -7,13 +7,13 @@ name="rules-engine"
 version="0.0.1"
 requires-python=">=3.11.3"
 dependencies = [
-    "chardet",
     "pydantic"
 ]
 
 [project.optional-dependencies]
 dev = [
     "black",
+    "chardet",
     "isort",
     "mypy",
     "openpyxl",

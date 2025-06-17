@@ -1,5 +1,5 @@
 import pathlib
-from datetime import date, datetime
+from datetime import datetime
 import chardet
 
 import pytest
