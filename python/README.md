@@ -5,12 +5,9 @@ For an outline of the logic behind the rules engine and a glossary of common ter
 
 ## Development
 
-### Development Setup
+Using a codespace for environment setup is highly recommended.  Local environment setup can produce small build issues that can be hard to diagnose.  If you prefer setting up locally without using a codespace, see [Appendix A](#appendix-a---local-environment-setup)
 
-### Environment Setup
-Using a codespace for environment setup is highly recommended.  Local environment setup can produce small build issues that can be hard to diagnose.  If you prefer setting up locally without using a codespace, see [Appendix A](#appendix-a---local-environment-setup-no-longer-recommended)
-
-#### Setup Codespace
+### Setup Codespace
 
 If you are coding with another person, only one of you needs to do these steps.
 
@@ -24,17 +21,18 @@ If you are coding with another person, only one of you needs to do these steps.
 
 ![codespaces screenshot](docs/codespaces.png)
 
-### Start Liveshare Sessions
-If you are not coding with others and you want to use the web version of VSCode provided by the codespace, you can skip this session.
+### Co-edit with LiveShare
+If you are not coding with others and you want to use the web version of VSCode provided by the codespace, you can skip this step.
 
 The owner of the codespace:
-1. Install LiveShare extenion
+1. Install LiveShare extenion.
 2. Open LiveShare extension.
 3. Start a new session.  This will copy a LiveShare link into your clipboard.
 4. Open a new terminal.
 
 ### Open Editor
-1. Open the link created for the LiveShare session.  2. When prompted, open in local VSCode or with Codespace on the web.  
+1. Open the link created for the LiveShare session.
+2. When prompted, open in local VSCode or with Codespace on the web.  
 
 ### Open Terminal
 1. To create a new terminal, select the `Terminal => New` menu option.
@@ -57,7 +55,7 @@ git checkout -b feature/341/validate-address
 - get sense of progress
 
 To revert a commmit:
-- `git reset HEAD~1` if you want to go to the previous commit.  If you want to revert 2 commits, do `git reset HEAD~2`.  
+- `git reset --hard HEAD~1` if you want to go to the previous commit.  If you want to revert 2 commits, do `git reset --hard HEAD~2`.  
 - if you have pushed the branch to github, you can either delete the branch from github and push again or do a force push.
 
 ### Adding Python Packages
@@ -66,7 +64,7 @@ Check with a development lead before adding a python package.  Adding python pac
 2. Run pip-compile as described in the comments of requirements-dev.txt.  These instructions will autogenerate requirements-dev.txt.
 
 ### Creating a Pull Request
-1. Rebase from main if not done recently
+1. Rebase from main if not done recently.
 ```
 git checkout main
 git pull origin main
@@ -74,27 +72,23 @@ git checkout <your branch>
 git rebase main
 ```
 
-1. run the following validation commands first and fix any errors:
+2. run the following validation commands first and fix any errors:
 ```
-black .
-mypy .
-lint .
-typecheck .
-pytest
+source check.python.sh
 ```
-2. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`
-3. Create pull request from github.  
-   - Include statement "Closes #<issue number>" if your changes completely fix or address the issue.
+3. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
+4. Create pull request from github.  
+   - Include statement "Closes `#<issue number>`" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
-4. Review file changes.
-5. Include a brief description of changes in each file.
-6. Request reviewers
+5. Review file changes.
+6. Include a brief description of changes in each file.
+7. Request reviewers.
 
-## Appendix A - Local Environment Setup 
+## Appendix A - Local Environment Setup
 
 1. Clone or fork the git repository, if not already done.
 2. Open terminal.
-3. Navigate to python by typing `cd python`
+3. Navigate to python by typing `cd python`.
 4. Type `source setup-python.sh`. 
 5. If you get a message that python version is wrong, modify .bashrc in your home directory (`/Users/<username>`) to add these lines:
 ```
@@ -102,6 +96,6 @@ alias python3 <path to python 3.12 executable, including executable name>
 export PYTHON_CMD=<path to python 3.12 executable, including executable name>
 ```
 6. Run `pytest` and see tests run successfully.
-7. When you open a new interval run `source venv/bin/activate`
+7. When you open a new interval run `source venv/bin/activate`.
 
 
