@@ -43,7 +43,16 @@ class _GasBillPaths:
 
 
 def _read_gas_bill(path: str) -> str:
-    """Read a test natural gas bill from a test CSV"""
+    """
+    Read a test natural gas bill from a test CSV
+
+    This method uses chardet, which might not seem necessary, but
+    these tests receive their data from files read by Python rather
+    than strings passed by Javascript.  Python needs to know what
+    the encoding is to read the files, and chardet retrieves that
+    encoding, which is different for EVERSOURCE_WITH_ALTERNATE_FORMAT.
+    chardet therefore must be included in the development dependencies.
+    """
     with open(path, "rb") as f:
         raw_data = f.read()
         result = chardet.detect(raw_data)
