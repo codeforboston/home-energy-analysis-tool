@@ -8,6 +8,7 @@ import io
 import re
 from datetime import datetime, timedelta
 from enum import StrEnum
+from typing import Dict
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
@@ -39,13 +40,10 @@ class _NaturalGasCompanyBillRegex:
     )
 
 
-class ColumnNamesEversource:
+class _ColumnNamesEversource:
     """Column names of an Eversource natural gas bill"""
 
     def __init__(self, header: str):
-        print("eversource", header)
-        print("read date exists", "Read Date" in header)
-        print("end date exists", "End Date" in header)
         if "Read Date" in header:
             self.read_date = "Read Date"
         elif "End Date" in header:
@@ -85,10 +83,10 @@ class _GasBillRowEversource:
         ...
     """
 
-    def __init__(self, row, column_names: ColumnNamesEversource):
+    def __init__(self, row: Dict[str, str], column_names: _ColumnNamesEversource):
         self.read_date = row[column_names.read_date]
-        self.usage = row[column_names.usage]
-        self.number_of_days = row[column_names.number_of_days]
+        self.usage = float(row[column_names.usage])
+        self.number_of_days = int(row[column_names.number_of_days])
 
 
 class _GasBillRowNationalGrid:
@@ -112,7 +110,7 @@ class _GasBillRowNationalGrid:
     def __init__(self, row):
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
-        self.usage = row["USAGE"]
+        self.usage = float(row["USAGE"])
 
 
 def _newline_line_ending(data: str) -> str:
@@ -145,9 +143,7 @@ def _replace_tabs_with_commas(data: str) -> str:
 def _remove_non_ascii_or_newline_characters(data: str) -> str:
     """Remove all non-ASCII, non-newline characters"""
     return "".join(
-        character
-        for character in data
-        if character in _ASCII_CHARACTERS_PLUS_NEWLINE
+        character for character in data if character in _ASCII_CHARACTERS_PLUS_NEWLINE
     )
 
 
@@ -238,7 +234,7 @@ def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     # Read the header from the first row
     header = f.readline()
     # Pass the header to ColumnNamesEversource
-    column_names = ColumnNamesEversource(header)
+    column_names = _ColumnNamesEversource(header)
     # Reset the file pointer to the beginning
     f.seek(0)
     records = []
