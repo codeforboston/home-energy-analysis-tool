@@ -6,37 +6,75 @@ For an outline of the logic behind the rules engine and a glossary of common ter
 ## Development
 
 ### Development Setup
-Using a codespace for environment setup is highly recommended.  Local environment setup has been tried but is problematic.  
-
-### Note to Windows Users
-When opening a terminal, always use bash.
 
 ### Environment Setup
+Using a codespace for environment setup is highly recommended.  Local environment setup can produce small build issues that can be hard to diagnose.  If you prefer setting up locally without using a codespace, see [Appendix A](#appendix-a---local-environment-setup-no-longer-recommended)
+
 #### Setup Codespace
 
-1. navigate to the green "code" dropdown
-2. select the "codespaces" tab
-3. select the "..." menu
-4. select "new with options"
-5. on the options screen, under "Dev container configuration", select "Rules engine"
-6. click "Create codespace"
+If you are coding with another person, only one of you needs to do these steps.
+
+1. From github, either open the main repo or a fork.
+2. navigate to the green "code" dropdown
+3. select the "codespaces" tab
+4. select the "..." menu
+5. select "new with options"
+6. on the options screen, under "Dev container configuration", select "Rules engine"
+7. click "Create codespace".  This will open a web version of VSCode.  
 
 ![codespaces screenshot](docs/codespaces.png)
 
-### Editing Using Liveshare
-Npte: If you don't want to edit using local VSCode and are not doing collaborative coding, you can directly edit using the buildin web VSCode.
+### Start Liveshare Sessions
+If you are not coding with others and you want to use the web version of VSCode provided by the codespace, you can skip this session.
 
-1. Create a LiveShare session from the codespace.  You may need to install the LiveShare extension.
-2. Open the link created for the LiveShare session.  When prompted, open in local VSCode or with Codespace on the web.  A terminal opened from Codespace and from VSCode both use the same environment.
-### Modifying Code
+The owner of the codespace:
+1. Install LiveShare extenion
+2. Open LiveShare extension.
+3. Start a new session.  This will copy a LiveShare link into your clipboard.
+4. Open a new terminal.
+
+### Open Editor
+1. Open the link created for the LiveShare session.  2. When prompted, open in local VSCode or with Codespace on the web.  
+
+### Open Terminal
+1. To create a new terminal, select the `Terminal => New` menu option.
+2. To open an existing terminal, select the terminal in the terminal pane. 
+3. If you did not create the terminal, you will see a message to press Enter.  This creates a request for the terminal owner to give you read/write access.  
+4. When the terminal owner gives you access, you will see an alert to press any key to focus the terminal.  Press the alert.
+
+### Modifying Code for an Issue
 1. Find an issue to work on
-2. Create a branch from main.  Best practice for naming looks like this: <issue, feature, or other>/<issue number>/<description>.  Separate words in the description using a dash (-).  Consider using the subject as a description.  Example:
+2. Open a bash terminal
+3. Create a branch from main.  Best practice for naming looks like this: <issue, feature, or other>/<issue number>/<description>.  Separate words in the description using a dash (-).  Consider using the subject as a description.  Example:
 ```
 git checkout main
 git checkout -b feature/341/validate-address
 ```
-3. Commit frequently when you have made progress on the issue to avoid possibly losing work, make it possible to incrementaly roll back smaller bits, and make it easier to see the incremental changes.  
-- run the following validation commands first and fix any errors:
+4. Commit frequently when you have made progress on the issue (you can always rollback).  Advantages:
+- incrementaly roll back smaller changes 
+- review smaller changes
+- prevent losing unsaved files
+- get sense of progress
+
+To revert a commmit:
+- `git reset HEAD~1` if you want to go to the previous commit.  If you want to revert 2 commits, do `git reset HEAD~2`.  
+- if you have pushed the branch to github, you can either delete the branch from github and push again or do a force push.
+
+### Adding Python Packages
+Check with a development lead before adding a python package.  Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production src code.  Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated.  To add a package to development:
+1. Add package to the "dev" section of pyproject.toml
+2. Run pip-compile as described in the comments of requirements-dev.txt.  These instructions will autogenerate requirements-dev.txt.
+
+### Creating a Pull Request
+1. Rebase from main if not done recently
+```
+git checkout main
+git pull origin main
+git checkout <your branch>
+git rebase main
+```
+
+1. run the following validation commands first and fix any errors:
 ```
 black .
 mypy .
@@ -44,20 +82,16 @@ lint .
 typecheck .
 pytest
 ```
-- if you decide to revert code, do a `git reset HEAD~1` if you want to go to the previous commit.  If you want to revert 2 commits, do `git reset HEAD~2`.  Doing incremental commits makes it possible to rollback fewer changes.  If you have pushed the branch to github, you will need to delete the branch from github and push again.
-
-### Creating a Pull Request
-1. If you haven't run the validation commands in the previous section.
 2. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`
 3. Create pull request from github.  
    - Include statement "Closes #<issue number>" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
-   - Request reviewers
+4. Review file changes.
+5. Include a brief description of changes in each file.
+6. Request reviewers
 
-## Appendix A - Local Environment Setup (No Longer Recommended)
-#### OBSOLETE (no longer recommended) Setup Locally
+## Appendix A - Local Environment Setup 
 
-**NOT RECOMMMENDED**
 1. Clone or fork the git repository, if not already done.
 2. Open terminal.
 3. Navigate to python by typing `cd python`

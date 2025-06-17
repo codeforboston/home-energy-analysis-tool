@@ -1,7 +1,7 @@
 
 #!/bin/bash
 # Call detect_python.sh and capture its echo output
-echo A $PYTHON_CMD
+echo $PYTHON_CMD
 if [[ -z "$PYTHON_CMD" ]]; then
   echo B
   PYTHON_CMD=$(./get-python-cmd.sh)
