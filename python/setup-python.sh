@@ -1,6 +1,9 @@
 
 #!/bin/bash
 # Call detect_python.sh and capture its echo output
+trap 'echo "An error occurred"; set +x' ERR
+set -x
+
 echo $PYTHON_CMD
 if [[ -z "$PYTHON_CMD" ]]; then
   echo B
@@ -22,3 +25,5 @@ source venv/bin/activate
 pip install -e .
 pip install -r requirements-dev.txt
 pip install --upgrade pip
+
+set +x

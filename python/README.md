@@ -102,5 +102,6 @@ alias python3 <path to python 3.12 executable, including executable name>
 export PYTHON_CMD=<path to python 3.12 executable, including executable name>
 ```
 6. Run `pytest` and see tests run successfully.
+7. When you open a new interval run `source venv/bin/activate`
 
 
