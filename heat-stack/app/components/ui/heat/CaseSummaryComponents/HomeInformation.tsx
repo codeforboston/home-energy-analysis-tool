@@ -100,7 +100,6 @@ export function HomeInformation(props: HomeInformationProps) {
 
 		const address = `${streetAddress}, ${town}, ${state}`
 		try {
-			console.timeLog ("trying")
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json() 
 			if (!data.coordinates) {
