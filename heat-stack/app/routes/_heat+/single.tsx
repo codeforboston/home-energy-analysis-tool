@@ -409,7 +409,7 @@ export default function SubmitAnalysis({
 				street_address: '15 Dale Ave',
 				town: 'Gloucester',
 				// Only the initial state value in the useState of HomeInformation.tsx matters.
-				state: '',
+				state: 'MA',
 				name: 'CIC',
 				// Only the initial fuel_type value in the useState of CurrentHeatingSystem.tsx matters.
 				fuel_type: 'GAS',   
