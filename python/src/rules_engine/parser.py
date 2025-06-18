@@ -12,7 +12,6 @@ from typing import Dict
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
-
 _ASCII_CHARACTERS_PLUS_NEWLINE = set(
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 )

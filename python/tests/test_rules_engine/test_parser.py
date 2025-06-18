@@ -1,7 +1,7 @@
 import pathlib
 from datetime import datetime
-import chardet
 
+import chardet
 import pytest
 
 from rules_engine import parser
