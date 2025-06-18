@@ -9,6 +9,7 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { ErrorPopup } from '#app/components/ui/heat/CaseSummaryComponents/ErrorPopup.tsx'
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -355,7 +356,9 @@ export default function SubmitAnalysis({
 	const [tally, setTally] = useState(0)
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [showPopup, setShowPopup] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+
 
 
 	React.useEffect(() => {
@@ -372,7 +375,12 @@ export default function SubmitAnalysis({
 		if (typedActionData?.caseInfo) {
 			setSavedCase(typedActionData.caseInfo)
 		}
+			if (actionData?.errors?._global) {
+				setShowPopup(true);
+			}
 	}, [actionData])
+
+	
 
 	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
 	let showUsageData = lastResult !== undefined
@@ -435,6 +443,11 @@ export default function SubmitAnalysis({
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
 	return (
 		<>
+			{lastResult?.error && (
+				<p style={{ color: "red", marginTop: "0.5rem" }}>
+					{lastResult.error}
+				</p>
+			)}
 			<Form
 				id={form.id}
 				method="post"
@@ -453,6 +466,12 @@ export default function SubmitAnalysis({
 				{/* if no usage data, show the file upload functionality */}
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
+				{showPopup && actionData?.errors?._global && (
+					<ErrorPopup
+						message={actionData.errors._global}
+						onClose={() => setShowPopup(false)}
+					/>
+				)}
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
