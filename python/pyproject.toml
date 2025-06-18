@@ -13,10 +13,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black",
+    "chardet",
     "isort",
     "mypy",
     "openpyxl",
     "pydantic",
+    "pip-tools",
     "pydocstyle",
     "pytest",
     "types-openpyxl",

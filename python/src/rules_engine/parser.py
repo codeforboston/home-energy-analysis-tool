@@ -8,8 +8,13 @@ import io
 import re
 from datetime import datetime, timedelta
 from enum import StrEnum
+from typing import Dict
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
+
+_ASCII_CHARACTERS_PLUS_NEWLINE = set(
+    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
+)
 
 
 class NaturalGasCompany(StrEnum):
@@ -34,22 +39,53 @@ class _NaturalGasCompanyBillRegex:
     )
 
 
+class _ColumnNamesEversource:
+    """Column names of an Eversource natural gas bill"""
+
+    def __init__(self, header: str):
+        if "Read Date" in header:
+            self.read_date = "Read Date"
+        elif "End Date" in header:
+            self.read_date = "End Date"
+        else:
+            raise ValueError("Date header not found")
+
+        if "Number of Days" in header:
+            self.number_of_days = "Number of Days"
+        elif "Days In Bill" in header:
+            self.number_of_days = "Days In Bill"
+        else:
+            raise ValueError("Number of Days header not found")
+
+        if "Usage (Therms)" in header:
+            self.usage = "Usage (Therms)"
+        elif "Usage" in header:
+            self.usage = "Usage"
+        else:
+            raise ValueError("Usage header not found")
+
+
 class _GasBillRowEversource:
     """
     Holds data for one row of an Eversource gas bill CSV.
 
     The names of the fields correspond to the first row of the Eversource bill.
 
-    Example:
+    Example from latest CSV:
         Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature
         1/18/2022,184.00,32,5.75,$327.58,30.0
         ...
+
+    Example from TSV (alternative to CSV):
+        End Date	Days In Bill	Meter Read	Read Type	Usage (CCF)	Usage (Therms)	Usage (Cost)
+        "7/12/2021"	"32"	"9113"	"ACTUAL"	"18"	"18"	"$30.58"
+        ...
     """
 
-    def __init__(self, row):
-        self.read_date = row["Read Date"]
-        self.usage = row["Usage"]
-        self.number_of_days = row["Number of Days"]
+    def __init__(self, row: Dict[str, str], column_names: _ColumnNamesEversource):
+        self.read_date = row[column_names.read_date]
+        self.usage = float(row[column_names.usage])
+        self.number_of_days = int(row[column_names.number_of_days])
 
 
 class _GasBillRowNationalGrid:
@@ -73,18 +109,18 @@ class _GasBillRowNationalGrid:
     def __init__(self, row):
         self.start_date = row["START DATE"]
         self.end_date = row["END DATE"]
-        self.usage = row["USAGE"]
+        self.usage = float(row["USAGE"])
 
 
 def _newline_line_ending(data: str) -> str:
     """
-    Returns a csv with every line ending in a single newline
+    Returns a string with every line ending in a single newline
     character.
 
-    Each Bill CSVs row ends variously, in a newline, carriage
-    return, and even a carriage return followed by a newline.
-    The company detection and parsing code crash unless each
-    row ends in one newline and nothing else.
+    Each bill CSV or TSV row ends variously, in a newline,
+    carriage return, and even a carriage return followed by a
+    newline. The company detection and parsing code crash unless
+    each row ends in one newline and nothing else.
     """
     data = data.replace("\r", "\n")
     # replaces any number of consecutive newlines with one newline
@@ -93,19 +129,41 @@ def _newline_line_ending(data: str) -> str:
     return data
 
 
+def _remove_double_quotes(data: str) -> str:
+    """Return a string with the double quotes removed."""
+    return data.replace('"', "")
+
+
+def _replace_tabs_with_commas(data: str) -> str:
+    """Return a a string with tabs replaced by commas."""
+    return data.replace("\t", ",")
+
+
+def _remove_non_ascii_or_newline_characters(data: str) -> str:
+    """Remove all non-ASCII, non-newline characters"""
+    return "".join(
+        character for character in data if character in _ASCII_CHARACTERS_PLUS_NEWLINE
+    )
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
     """
+    header = data.split("\n")[0]
+    date_exists = "End Date" in header or "Read Date" in header
+    days_exist = "Days In Bill" in header or "Days" in header
+    therms_exist = "Usage" in header or "Usage (Therms)" in header
+    is_eversource = date_exists and days_exist and therms_exist
+
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
         return NaturalGasCompany.NATIONAL_GRID
-    elif _NaturalGasCompanyBillRegex.EVERSOURCE.search(data):
+    elif is_eversource:
         return NaturalGasCompany.EVERSOURCE
     else:
-        raise ValueError(
-            """Could not detect which company this bill was from:\n 
-                           Regular expressions matched not."""
-        )
+        print("bad header")
+        print(header)
+        raise ValueError("""Could not detect which company this bill was from""")
 
 
 def parse_gas_bill(
@@ -117,15 +175,19 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    data_without_newlines = _newline_line_ending(data)
+    data = _newline_line_ending(data)
+    data = _remove_double_quotes(data)
+    data = _replace_tabs_with_commas(data)
+    data = _remove_non_ascii_or_newline_characters(data)
+
     if company == None:
-        company = _detect_gas_company(data_without_newlines)
+        company = _detect_gas_company(data)
 
     match company:
         case NaturalGasCompany.EVERSOURCE:
-            return _parse_gas_bill_eversource(data_without_newlines)
+            return _parse_gas_bill_eversource(data)
         case NaturalGasCompany.NATIONAL_GRID:
-            return _parse_gas_bill_national_grid(data_without_newlines)
+            return _parse_gas_bill_national_grid(data)
         case _:
             raise ValueError("Wrong CSV format selected: select another format.")
 
@@ -168,9 +230,15 @@ def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
     f = io.StringIO(data)
     reader = csv.DictReader(f)
+    # Read the header from the first row
+    header = f.readline()
+    # Pass the header to ColumnNamesEversource
+    column_names = _ColumnNamesEversource(header)
+    # Reset the file pointer to the beginning
+    f.seek(0)
     records = []
     for row in reader:
-        parsed_row = _GasBillRowEversource(row)
+        parsed_row = _GasBillRowEversource(row, column_names)
         period_end_date = _get_date_from_string(parsed_row.read_date)
         # Calculate period_start_date using the end date and number of days in the bill
         # Care should be taken here to avoid off-by-one errors
