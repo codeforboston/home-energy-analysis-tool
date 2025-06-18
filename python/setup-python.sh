@@ -21,9 +21,13 @@ source check-version.sh || return 1
 # Your other python commands can use $PYTHON_CMD
 
 $PYTHON_CMD -m venv venv
+read -n 1 -s -r -p "Press any key to continue..."
 source venv/bin/activate
+read -n 1 -s -r -p "Press any key to continue..."
 pip install -e .
+read -n 1 -s -r -p "Press any key to continue..."
 pip install -r requirements-dev.txt
+read -n 1 -s -r -p "Press any key to continue..."
 pip install --upgrade pip
 
 set +x
