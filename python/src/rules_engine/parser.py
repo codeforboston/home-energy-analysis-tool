@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Dict
 
+import constants
+
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 _ASCII_CHARACTERS_PLUS_NEWLINE = set(
@@ -49,10 +51,6 @@ class _ColumnNamesEversource:
     one headed by "Usage," causing an error.
     """
 
-    READ_DATE = ["Read Date", "End Date"]
-    NUMBER_OF_DAYS = ["Number of Days", "Days In Bill"]
-    USAGE = ["Usage (Therms)", "Usage"]
-
     @staticmethod
     def find_column(column_names, header):
         for column_name in column_names:
@@ -64,13 +62,13 @@ class _ColumnNamesEversource:
 
     def __init__(self, header: str):
         self.read_date = _ColumnNamesEversource.find_column(
-            _ColumnNamesEversource.READ_DATE, header
+            constants.READ_DATE_NAMES_EVERSOURCE, header
         )
         self.number_of_days = _ColumnNamesEversource.find_column(
-            _ColumnNamesEversource.NUMBER_OF_DAYS, header
+            constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE, header
         )
         self.usage = _ColumnNamesEversource.find_column(
-            _ColumnNamesEversource.USAGE, header
+            constants.USAGE_NAMES_EVERSOURCE, header
         )
 
 
@@ -155,24 +153,21 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
+def _column_name_in_header(column_names: str, header: str) -> bool:
+    for name in column_names:
+        if name in header:
+            return True
+    return False
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
     """
     header = data.split("\n")[0]
-    date_exists, days_exist, therms_exist = False, False, False
-    for read_date in _ColumnNamesEversource.READ_DATE:
-        if read_date in header:
-            date_exists = True
-            break
-    for number_of_days in _ColumnNamesEversource.NUMBER_OF_DAYS:
-        if number_of_days in header:
-            days_exist = True
-            break
-    for usage in _ColumnNamesEversource.USAGE:
-        if usage in header:
-            therms_exist = True
-            break
+    date_exists = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
+    days_exist = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
+    therms_exist = _column_name_in_header(constants.USAGE_NAMES_EVERSOURCE, header)
     is_eversource = date_exists and days_exist and therms_exist
 
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
