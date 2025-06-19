@@ -54,17 +54,25 @@ class _NaturalGasCompanyBillRegex:
 
 class _ColumnNamesEversource:
     """Column names of an Eversource natural gas bill"""
-
-    def __init__(self, header: str):
-        self.read_date, self.number_of_days, self.usage = None, None, None
-
-        for read_date in _EversourceHeaderColumnNames.read_date:
+    @staticmethod
+    def find_column(header_names, header):
+        header_names = _EversourceHeaderColumnNames.read_date
+        end_value = None
+        for read_date in header_names:
             if read_date in header:
-                self.read_date = read_date
+                end_value = read_date
                 break
-        if self.read_date == None:
-            raise ValueError("Date header not found")
-        
+
+        if end_value == None:
+            raise ValueError(header_names[0]+" header does not exist")
+        return end_value
+    
+    def __init__(self, header: str):
+        self.read_date = _ColumnNamesEversource.find_column(
+            _EversourceHeaderColumnNames.read_date, 
+            header
+        )
+        self.number_of_days, self.usage = None, None        
         for number_of_days in _EversourceHeaderColumnNames.number_of_days:
             if number_of_days in header:
                 self.number_of_days = number_of_days
