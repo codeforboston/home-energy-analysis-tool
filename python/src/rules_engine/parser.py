@@ -16,6 +16,19 @@ _ASCII_CHARACTERS_PLUS_NEWLINE = set(
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 )
 
+class _EversourceHeaderColumnNames:
+    """
+    Column names of an Eversource gas bill.
+
+    "Usage (Therms)" MUST come before "Usage" because the code checks
+    if each column name is in the header, and "Usage" is in "Usage (Therms),"
+    and therefore the code can mistake a column headed by "Usage (Therms)" for
+    one headed by "Usage," causing an error.
+    """
+    read_date = ["Read Date", "End Date"]
+    number_of_days = ["Number of Days", "Days In Bill"]
+    usage = ["Usage (Therms)", "Usage"]
+
 
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
@@ -43,26 +56,28 @@ class _ColumnNamesEversource:
     """Column names of an Eversource natural gas bill"""
 
     def __init__(self, header: str):
-        if "Read Date" in header:
-            self.read_date = "Read Date"
-        elif "End Date" in header:
-            self.read_date = "End Date"
-        else:
+        self.read_date, self.number_of_days, self.usage = None, None, None
+
+        for read_date in _EversourceHeaderColumnNames.read_date:
+            if read_date in header:
+                self.read_date = read_date
+                break
+        if self.read_date == None:
             raise ValueError("Date header not found")
-
-        if "Number of Days" in header:
-            self.number_of_days = "Number of Days"
-        elif "Days In Bill" in header:
-            self.number_of_days = "Days In Bill"
-        else:
+        
+        for number_of_days in _EversourceHeaderColumnNames.number_of_days:
+            if number_of_days in header:
+                self.number_of_days = number_of_days
+                break
+        if self.number_of_days == None:
             raise ValueError("Number of Days header not found")
-
-        if "Usage (Therms)" in header:
-            self.usage = "Usage (Therms)"
-        elif "Usage" in header:
-            self.usage = "Usage"
-        else:
-            raise ValueError("Usage header not found")
+        
+        for usage in _EversourceHeaderColumnNames.usage:
+            if usage in header:
+                self.usage = usage
+                break
+        if self.usage == None:
+            raise ValueError("Usage header not found")    
 
 
 class _GasBillRowEversource:
