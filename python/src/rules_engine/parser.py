@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Dict
 
-import constants
+import rules_engine.constants as constants
 
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
@@ -153,7 +153,7 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
-def _column_name_in_header(column_names: str, header: str) -> bool:
+def _column_name_in_header(column_names: list[str], header: str) -> bool:
     for name in column_names:
         if name in header:
             return True
