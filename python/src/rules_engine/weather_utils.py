@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from urllib import request, parse, error
-from .pydantic_models import TemperatureInput
 
 BASE_URL = "https://archive-api.open-meteo.com"
 WHATEVER_PATH = "/v1/archive"
@@ -24,7 +23,6 @@ class WeatherUtil:
         :param end_date: End date in YYYY-MM-DD format
         :return: Dictionary with 'dates' (list of datetime objects) and 'temperatures' (list of floats or None)
         """
-        print("debug new start, end", start_date, end_date)
         params = {
             "latitude": str(latitude),
             "longitude": str(longitude),
@@ -47,23 +45,11 @@ class WeatherUtil:
                         raise Exception(f"HTTP error {response.status}")
                     body = response.read().decode()
                     data = json.loads(body)
-                    print("debug python start end", start_date, end_date )
 
-                    dates = data["daily"]["time"]
-                    for d in [0, 1, 2, 3, 4]:
-                        print("original", dates[d])
-                    print("debug b", dates[0], type(dates[0]))
-                    for t in data["daily"]["temperature_2m_mean"]:
-                        if isinstance(t, (str, int, float)):
-                            print("ok", type(t))
-                        else:
-                            print(f"unexpected value: {t}, type: {type(t)}")
-                    temperatures = [float(t) for t in data["daily"]["temperature_2m_mean"] if type(t) in (str,int,float)]
+                    dates = [datetime.fromisoformat(date_str) for date_str in data["daily"]["time"]]
+                    temperatures = data["daily"]["temperature_2m_mean"]
 
-
-                    result = TemperatureInput(dates=dates, temperatures=temperatures)
-                    print("debug result",len(temperatures), len(dates))
-                    return result
+                    return {"dates": dates, "temperatures": temperatures}
 
             except Exception as e:
                 retry_count += 1
@@ -74,8 +60,6 @@ class WeatherUtil:
                 else:
                     print("Failed to fetch weather data after multiple attempts:", e)
                     raise
-                 
-                 
 
 # Example usage
 if __name__ == "__main__":
@@ -86,4 +70,3 @@ if __name__ == "__main__":
         end_date="2022-06-10"
     )
     print(result)
- 
