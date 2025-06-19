@@ -166,9 +166,19 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
     Return which natural gas company issued this bill.
     """
     header = data.split("\n")[0]
-    date_exists = "End Date" in header or "Read Date" in header
-    days_exist = "Days In Bill" in header or "Days" in header
-    therms_exist = "Usage" in header or "Usage (Therms)" in header
+    date_exists, days_exist, therms_exist = False, False, False
+    for read_date in _EversourceHeaderColumnNames.read_date:
+        if read_date in header:
+            date_exists = True
+            break
+    for number_of_days in _EversourceHeaderColumnNames.number_of_days:
+        if number_of_days in header:
+            days_exist = True
+            break
+    for usage in _EversourceHeaderColumnNames.usage:
+        if usage in header:
+            therms_exist = True
+            break
     is_eversource = date_exists and days_exist and therms_exist
 
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
