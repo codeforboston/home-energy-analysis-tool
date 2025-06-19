@@ -56,8 +56,8 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
 
     try:
         weather_result = WeatherUtil.get_that_weatha_data(
-            longitude = geo_result.coordinates.x,
-            latitude = geo_result.coordinates.y,
+            longitude = geo_result.coordinates["x"],
+            latitude = geo_result.coordinates["y"],
             start_date = start_date_str,
             end_date = end_date_str      
         )
