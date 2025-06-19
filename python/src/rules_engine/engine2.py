@@ -4,11 +4,11 @@ TODO: Add module description
 
 from __future__ import annotations
 from datetime import datetime, timedelta
-from rules_engine import parser, engine
+from . import parser, engine
 
 # Replace this with your real geocode + weather module
-from geocode_utils import GeocodeUtil
-from weather_utils import WeatherUtil
+from .geocode_utils import GeocodeUtil
+from .weather_utils import WeatherUtil
 
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
@@ -86,7 +86,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
 
 def main():
     # Provide your input file path here
-    csv_file_path = "path/to/your/csvfile.csv"
+    csv_file_path = "./rules_engine/alternate.csv"
 
     # Load CSV text
     with open(csv_file_path, "r", encoding="utf-8") as f:
