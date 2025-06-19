@@ -1,8 +1,10 @@
 import csv
 import pathlib
-from pydantic import BaseModel
-import requests
 import io
+import json
+from pydantic import BaseModel
+from urllib import request as urlrequest
+from urllib.error import URLError
 
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent
 CENSUS_DOCS_BASE_URL = "https://www2.census.gov/geo/docs/reference"
@@ -46,7 +48,7 @@ def load_design_temp_data():
         reader = csv.DictReader(f)
         for row in reader:
             item = DTBC(
-                state=row["state"], county=row["county"], temp=row["design_temp"]
+                state=row["state"], county=row["county"], temp=int(row["design_temp"])
             )
             if row["state"] in _dtbc:
                 _dtbc[row["state"]].append(item)
@@ -54,11 +56,19 @@ def load_design_temp_data():
                 _dtbc[row["state"]] = [item]
 
 
+def fetch_text_from_url(url: str) -> str:
+    try:
+        with urlrequest.urlopen(url) as response:
+            return response.read().decode()
+    except URLError as e:
+        print(f"Failed to fetch URL: {url}, error: {e}")
+        raise
+
+
 def fetch_census_counties():
     census_url = CENSUS_DOCS_BASE_URL + CENSUS_COUNTY_PATH
-
-    response = requests.get(census_url)
-    reader = csv.DictReader(f=io.StringIO(response.text), delimiter=CENSUS_DELIMETER)
+    text_data = fetch_text_from_url(census_url)
+    reader = csv.DictReader(f=io.StringIO(text_data), delimiter=CENSUS_DELIMETER)
 
     for row in reader:
         sid = row["STATEFP"]
@@ -76,9 +86,8 @@ def fetch_census_counties():
 
 def fetch_census_states():
     states_url = CENSUS_DOCS_BASE_URL + CENSUS_STATE_PATH
-
-    response = requests.get(states_url)
-    reader = csv.DictReader(f=io.StringIO(response.text), delimiter=CENSUS_DELIMETER)
+    text_data = fetch_text_from_url(states_url)
+    reader = csv.DictReader(f=io.StringIO(text_data), delimiter=CENSUS_DELIMETER)
 
     for row in reader:
         _counties[row["STATE_NAME"]] = []
@@ -93,7 +102,6 @@ def fetch_census_states():
 if __name__ == "__main__":
     fetch_census_states()
     fetch_census_counties()
-
     load_design_temp_data()
 
     with open(
