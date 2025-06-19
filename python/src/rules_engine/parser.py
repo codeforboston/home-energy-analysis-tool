@@ -16,19 +16,6 @@ _ASCII_CHARACTERS_PLUS_NEWLINE = set(
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 )
 
-class _EversourceHeaderColumnNames:
-    """
-    Column names of an Eversource gas bill.
-
-    "Usage (Therms)" MUST come before "Usage" because the code checks
-    if each column name is in the header, and "Usage" is in "Usage (Therms),"
-    and therefore the code can mistake a column headed by "Usage (Therms)" for
-    one headed by "Usage," causing an error.
-    """
-    read_date = ["Read Date", "End Date"]
-    number_of_days = ["Number of Days", "Days In Bill"]
-    usage = ["Usage (Therms)", "Usage"]
-
 
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
@@ -53,39 +40,38 @@ class _NaturalGasCompanyBillRegex:
 
 
 class _ColumnNamesEversource:
-    """Column names of an Eversource natural gas bill"""
-    @staticmethod
-    def find_column(header_names, header):
-        header_names = _EversourceHeaderColumnNames.read_date
-        end_value = None
-        for read_date in header_names:
-            if read_date in header:
-                end_value = read_date
-                break
+    """
+    Column names of an Eversource gas bill.
 
-        if end_value == None:
-            raise ValueError(header_names[0]+" header does not exist")
-        return end_value
-    
+    "Usage (Therms)" MUST come before "Usage" because the code checks
+    if each column name is in the header, and "Usage" is in "Usage (Therms),"
+    and therefore the code can mistake a column headed by "Usage (Therms)" for
+    one headed by "Usage," causing an error.
+    """
+
+    READ_DATE = ["Read Date", "End Date"]
+    NUMBER_OF_DAYS = ["Number of Days", "Days In Bill"]
+    USAGE = ["Usage (Therms)", "Usage"]
+
+    @staticmethod
+    def find_column(column_names, header):
+        for column_name in column_names:
+            if column_name in header:
+                return column_name
+        raise ValueError(
+            "Column not found in header.  Column names tried:", column_names
+        )
+
     def __init__(self, header: str):
         self.read_date = _ColumnNamesEversource.find_column(
-            _EversourceHeaderColumnNames.read_date, 
-            header
+            _ColumnNamesEversource.READ_DATE, header
         )
-        self.number_of_days, self.usage = None, None        
-        for number_of_days in _EversourceHeaderColumnNames.number_of_days:
-            if number_of_days in header:
-                self.number_of_days = number_of_days
-                break
-        if self.number_of_days == None:
-            raise ValueError("Number of Days header not found")
-        
-        for usage in _EversourceHeaderColumnNames.usage:
-            if usage in header:
-                self.usage = usage
-                break
-        if self.usage == None:
-            raise ValueError("Usage header not found")    
+        self.number_of_days = _ColumnNamesEversource.find_column(
+            _ColumnNamesEversource.NUMBER_OF_DAYS, header
+        )
+        self.usage = _ColumnNamesEversource.find_column(
+            _ColumnNamesEversource.USAGE, header
+        )
 
 
 class _GasBillRowEversource:
@@ -175,15 +161,15 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     header = data.split("\n")[0]
     date_exists, days_exist, therms_exist = False, False, False
-    for read_date in _EversourceHeaderColumnNames.read_date:
+    for read_date in _ColumnNamesEversource.READ_DATE:
         if read_date in header:
             date_exists = True
             break
-    for number_of_days in _EversourceHeaderColumnNames.number_of_days:
+    for number_of_days in _ColumnNamesEversource.NUMBER_OF_DAYS:
         if number_of_days in header:
             days_exist = True
             break
-    for usage in _EversourceHeaderColumnNames.usage:
+    for usage in _ColumnNamesEversource.USAGE:
         if usage in header:
             therms_exist = True
             break
