@@ -46,18 +46,17 @@ def get_converted_dates_tiwd(
         start_date = datetime.fromisoformat(start_date_string)
     except Exception:
         print("Invalid start date, using date from 2 years ago")
-        # start_date = two_years_ago
+        start_date = two_years_ago
 
     try:
         end_date = datetime.fromisoformat(end_date_string)
     except Exception:
         print("Invalid end date, using today's date")
-        # end_date = today
+        end_date = today
 
     def format_date_string(date: datetime) -> str:
         return date.date().isoformat()
 
-    print("just before weather api", start_date, end_date)
     weather_data = WeatherUtil.get_that_weatha_data(
         x, y,
         format_date_string(start_date),

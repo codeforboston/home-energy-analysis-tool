@@ -1,11 +1,10 @@
 import csv
-import io
 import pathlib
-
-import requests
-from pydantic import BaseModel
-import requests
 import io
+import json
+from pydantic import BaseModel
+from urllib import request as urlrequest
+from urllib.error import URLError
 
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent
 CENSUS_DOCS_BASE_URL = "https://www2.census.gov/geo/docs/reference"
