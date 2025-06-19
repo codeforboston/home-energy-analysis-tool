@@ -4,6 +4,7 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt pyproject.toml
 #
+requests==2.32.4
 annotated-types==0.5.0
     # via pydantic
 black==23.3.0
