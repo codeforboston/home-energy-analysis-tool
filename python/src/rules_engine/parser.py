@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Dict
 
+import rules_engine.constants as constants
+
 from .pydantic_models import NaturalGasBillingInput, NaturalGasBillingRecordInput
 
 _ASCII_CHARACTERS_PLUS_NEWLINE = set(
@@ -40,29 +42,34 @@ class _NaturalGasCompanyBillRegex:
 
 
 class _ColumnNamesEversource:
-    """Column names of an Eversource natural gas bill"""
+    """
+    Column names of an Eversource gas bill.
+
+    "Usage (Therms)" MUST come before "Usage" because the code checks
+    if each column name is in the header, and "Usage" is in "Usage (Therms),"
+    and therefore the code can mistake a column headed by "Usage (Therms)" for
+    one headed by "Usage," causing an error.
+    """
+
+    @staticmethod
+    def find_column(column_names, header):
+        for column_name in column_names:
+            if column_name in header:
+                return column_name
+        raise ValueError(
+            "Column not found in header.  Column names tried:", column_names
+        )
 
     def __init__(self, header: str):
-        if "Read Date" in header:
-            self.read_date = "Read Date"
-        elif "End Date" in header:
-            self.read_date = "End Date"
-        else:
-            raise ValueError("Date header not found")
-
-        if "Number of Days" in header:
-            self.number_of_days = "Number of Days"
-        elif "Days In Bill" in header:
-            self.number_of_days = "Days In Bill"
-        else:
-            raise ValueError("Number of Days header not found")
-
-        if "Usage (Therms)" in header:
-            self.usage = "Usage (Therms)"
-        elif "Usage" in header:
-            self.usage = "Usage"
-        else:
-            raise ValueError("Usage header not found")
+        self.read_date = _ColumnNamesEversource.find_column(
+            constants.READ_DATE_NAMES_EVERSOURCE, header
+        )
+        self.number_of_days = _ColumnNamesEversource.find_column(
+            constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE, header
+        )
+        self.usage = _ColumnNamesEversource.find_column(
+            constants.USAGE_NAMES_EVERSOURCE, header
+        )
 
 
 class _GasBillRowEversource:
@@ -146,14 +153,21 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
+def _column_name_in_header(column_names: list[str], header: str) -> bool:
+    for name in column_names:
+        if name in header:
+            return True
+    return False
+
+
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """
     Return which natural gas company issued this bill.
     """
     header = data.split("\n")[0]
-    date_exists = "End Date" in header or "Read Date" in header
-    days_exist = "Days In Bill" in header or "Days" in header
-    therms_exist = "Usage" in header or "Usage (Therms)" in header
+    date_exists = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
+    days_exist = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
+    therms_exist = _column_name_in_header(constants.USAGE_NAMES_EVERSOURCE, header)
     is_eversource = date_exists and days_exist and therms_exist
 
     if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
