@@ -7,8 +7,9 @@ from datetime import datetime, timedelta
 from rules_engine import parser, engine
 
 # Replace this with your real geocode + weather module
-from geocode_utils import GeocodeUtil
-from weather_utils import WeatherUtil
+from .geocode_utils import GeocodeUtil
+from .weather_utils import WeatherUtil
+from .get_analytics import get_analytics
 
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
@@ -67,19 +68,15 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     # --- Run rules engine ---
     try:
         form_data["name"] = f"{form_data['name']}'s home"
-        result = engine.get_analytics_from_form(
-            form_fields=form_data,
-            converted_dates_tiwd=weather_result["convertedDatesTIWD"],
-            csv_data=csv_data,
-            state_id=geo_result["state_id"],
-            county_id=geo_result["county_id"],
+        result = get_analytics(
+            form_data, weather_result, csv_data, form_data.get("state"), form_data.get("county_id")
         )
     except Exception as e:
-        return {"errors": {"engine": str(e)}}
+        raise e
 
     return {
-        "convertedDatesTIWD": geo_result["convertedDatesTIWD"],
-        "state_id": geo_result["state_id"],
+        "convertedDatesTIWD": weather_result,
+        "state_id": geo_result.state,
         "county_id": geo_result["county_id"],
         "analysisResults": result,
     }

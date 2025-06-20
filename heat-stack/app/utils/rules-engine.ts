@@ -14,7 +14,7 @@ const isServer = typeof window === 'undefined'
 const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/'
 
 /* 
-    LOAD PYODIDE 
+    LOAD PYODIDE x
 */
 const getPyodide = async (): Promise<PyodideInterface> => {
 	return await pyodideModule.loadPyodide({
