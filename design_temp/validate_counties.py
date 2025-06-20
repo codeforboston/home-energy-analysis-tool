@@ -74,7 +74,7 @@ def fetch_census_counties():
         sid = row["STATEFP"]
         sn = _states[sid].state_name
         item = County(
-            state_id=sid,
+            state=sid,
             state_abbr=_states[sid].state_abbr,
             state_name=sn,
             county_fp=row["COUNTYFP"],
