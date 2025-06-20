@@ -11,6 +11,7 @@ from . import parser, engine
 from .geocode_utils import GeocodeUtil
 from .weather_utils import WeatherUtil
 from .get_analytics import get_analytics
+from .pydantic_models import HeatLoadInput
 
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
@@ -22,8 +23,26 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
 
     # --- Validate and fix start/end dates ---
     try:
-        start_date = parsed_gas_data.overall_start_date
-        end_date = parsed_gas_data.overall_end_date   
+        start_date_str = parsed_gas_data.overall_start_date
+        end_date_str = parsed_gas_data.overall_end_date
+
+        today = datetime.today()
+        two_years_ago = today - timedelta(days=730)
+        print("a")
+
+        try:
+            start_date = datetime.fromisoformat(start_date_str)
+        except:
+            print("Invalid start date, defaulting to 2 years ago")
+            start_date = two_years_ago
+
+        print("b")
+        try:
+            end_date = datetime.fromisoformat(end_date_str)
+        except:
+            print("Invalid end date, defaulting to today")
+            end_date = today
+
         # Format as yyyy-mm-dd strings
         start_date_str = start_date.strftime('%Y-%m-%d')
         end_date_str = end_date.strftime('%Y-%m-%d')
@@ -63,7 +82,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
         form_data["name"] = f"{form_data['name']}'s home"
         result = get_analytics(
-            form_data, weather_result, csv_data, form_data.get("state"), form_data.get("county_id")
+            form_data, weather_result, csv_data
         )
     except Exception as e:
         raise e

@@ -209,9 +209,7 @@ def convert_to_intermediate_processed_energy_bills(
             )
         else:
             raise ValueError("Unsupported fuel type.")
-        print("debug convert", len(temperature_input.temperatures), len(temperature_input.dates),start_idx, end_idx, 
-              processed_energy_bill_input.period_start_date,
-                processed_energy_bill_input.period_end_date)
+        print("debug convert", len(temperature_input.temperatures), start_idx, end_idx)
 
         intermediate_energy_bill = IntermediateEnergyBill(
             input=processed_energy_bill_input,
