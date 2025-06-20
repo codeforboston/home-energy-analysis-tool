@@ -10,6 +10,7 @@ from . import parser, engine
 # Replace this with your real geocode + weather module
 from .geocode_utils import GeocodeUtil
 from .weather_utils import WeatherUtil
+from .get_analytics import get_analytics
 
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
@@ -62,7 +63,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
         form_data["name"] = f"{form_data['name']}'s home"
         result = get_analytics(
-            form_data, weather_result, csv_data
+            form_data, weather_result, csv_data, form_data.get("state"), form_data.get("county_id")
         )
     except Exception as e:
         raise e
@@ -70,7 +71,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     return {
         "convertedDatesTIWD": weather_result,
         "state_id": geo_result.state,
-        "county_id": geo_result.county_id,
+        "county_id": geo_result["county_id"],
         "analysisResults": result,
     }
 
