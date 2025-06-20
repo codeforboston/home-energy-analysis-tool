@@ -10,6 +10,7 @@ from . import parser, engine
 from .geocode_utils import GeocodeUtil
 from .weather_utils import WeatherUtil
 from .get_analytics import get_analytics
+from .pydantic_models import HeatLoadInput
 
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
@@ -24,6 +25,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
 
         today = datetime.today()
         two_years_ago = today - timedelta(days=730)
+        print("a")
 
         try:
             start_date = datetime.fromisoformat(start_date_str)
@@ -31,6 +33,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
             print("Invalid start date, defaulting to 2 years ago")
             start_date = two_years_ago
 
+        print("b")
         try:
             end_date = datetime.fromisoformat(end_date_str)
         except:
@@ -51,10 +54,13 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
         state = form_data["state"]
         full_address = street_address + ", " + city +", "+state
         geo_result = GeocodeUtil.get_ll(full_address)
-    except(e):
+    except:
         raise ValueError("Unable to get address")
      
-
+    print("geo_result",  geo_result.coordinates["x"],
+            geo_result.coordinates["y"],
+            start_date_str,
+            type(start_date_str)   )
     try:
         weather_result = WeatherUtil.get_that_weatha_data(
             longitude = geo_result.coordinates["x"],
@@ -62,14 +68,18 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
             start_date = start_date_str,
             end_date = end_date_str      
         )
+
     except Exception as e:
+        print("debug exception")
         return {"errors": {"geo_weather": str(e)}}
+    print("debug", weather_result)
+    print("debug 2", geo_result)
 
     # --- Run rules engine ---
     try:
         form_data["name"] = f"{form_data['name']}'s home"
         result = get_analytics(
-            form_data, weather_result, csv_data, form_data.get("state"), form_data.get("county_id")
+            form_data, weather_result, csv_data
         )
     except Exception as e:
         raise e
@@ -90,11 +100,19 @@ def main():
         csv_text = f.read()
 
     # Provide form data here - fill these in as needed
+
     form_data = {
         "street_address": "1 Broadway",
         "city": "Cambridge",
         "state": "MA",
-        "name": "Ethan"  # Your name or user's name
+        "name": "Ethan",  # Your name or user's name,,
+        "living_area":2200,
+        "fuel_type": "GAS" ,
+        "heating_system_efficiency": 97,
+        "thermostat_set_point": 68,
+        "setback_temperature": 65,
+        "setback_hours_per_day":8,
+        "design_temperature": 60,
     }
 
     # Call the analysis function

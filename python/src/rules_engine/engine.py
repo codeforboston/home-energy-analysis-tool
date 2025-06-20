@@ -207,6 +207,7 @@ def convert_to_intermediate_processed_energy_bills(
             )
         else:
             raise ValueError("Unsupported fuel type.")
+        print("debug convert", len(temperature_input.temperatures), start_idx, end_idx)
 
         intermediate_energy_bill = IntermediateEnergyBill(
             input=processed_energy_bill_input,
@@ -293,6 +294,7 @@ def hdd(avg_temp: float, balance_point: float) -> float:
         balance_point: outdoor temperature (F) above which no heating
         is required in a given home
     """
+    print("avg temp", balance_point, avg_temp)
     return max(0, balance_point - avg_temp)
 
 
@@ -698,6 +700,7 @@ class Home:
                 heat_load_input.fuel_type,
                 heat_load_input.heating_system_efficiency,
             )
+            print("winter bills",processed_energy_bill.partial_ua )
             processed_energy_bill.ua = (
                 processed_energy_bill.partial_ua / processed_energy_bill.total_hdd
             )
@@ -788,10 +791,12 @@ class IntermediateEnergyBill:
         self.ua = None
 
         self.days = len(self.avg_temps)
+        print("debug days", self.avg_temps)
 
     def set_initial_balance_point(self, balance_point: float) -> None:
         self.balance_point = balance_point
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
+        print("total hdd", self.total_hdd, self.avg_temps, self.balance_point)
 
     def __str__(self) -> str:
         return f"{self.input}, {self.ua}, {self.eliminated_as_outlier}, {self.days}, {self.avg_temps}, {self.usage}, {self.analysis_type}, {self.default_inclusion}"
