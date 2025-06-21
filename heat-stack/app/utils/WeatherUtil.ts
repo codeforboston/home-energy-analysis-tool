@@ -61,6 +61,7 @@ class WeatherUtil {
         let url = new URL(BASE_URL+WHATEVER_PATH+"?"+params.toString());
         const maxRetries = 3;
         let retryCount = 0;
+        console.log("start", startDate, endDate)
         
         while (retryCount <= maxRetries) {
           try {
@@ -77,7 +78,9 @@ class WeatherUtil {
             jrez.daily.time.forEach((timeStr: string) => {
               dates.push(new Date(timeStr));
             });
-            
+            for (let x = 0; x < 5; x++){
+              console.log("debug dates in ts", dates[x])
+            }
             let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean;
             // console.log({dates,temperatures});
             
