@@ -276,11 +276,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 	gasBillDataFromTextFilePyProxy.destroy()
 
-	console.log(
-		'***** Rules-engine Output from CSV upload:',
-		gasBillDataFromTextFile,
-	)
-
 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
