@@ -108,7 +108,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
-            state,
+            state_id,
             county_id } = { ...lastResult }
 
         recalculateFn(

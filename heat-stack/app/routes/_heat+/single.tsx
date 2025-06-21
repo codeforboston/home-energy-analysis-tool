@@ -56,7 +56,7 @@ import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryCompon
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
 
 const HomeFormSchema = HomeSchema.pick({ living_area: true })
-	.and(LocationSchema.pick({ street_address: true, city: true, state: true }))
+	.and(LocationSchema.pick({ street_address: true, town: true, state: true }))
 	.and(CaseSchema.pick({ name: true }))
 
 const CurrentHeatingSystemSchema = HomeSchema.pick({
@@ -122,7 +122,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const {
 		name,
 		street_address,
-		city,
+		town,
 		state,
 		living_area,
 		fuel_type,
@@ -145,7 +145,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
 		street_address,
-		city,
+		town,
 		state,
 		name: `${name}'s home`,
 		fuel_type,
@@ -178,7 +178,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		const result = await getConvertedDatesTIWD(
 			pyodideResultsFromTextFile,
 			street_address,
-			city,
+			town,
 			state
 		)
 		convertedDatesTIWD = result.convertedDatesTIWD
@@ -206,7 +206,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const location = await prisma.location.create({
 				data: {
 					address: result.addressComponents?.street || street_address,
-					city: result.addressComponents?.city || city,
+					city: result.addressComponents?.city || town,
 					state: result.addressComponents?.state || state,
 					zipcode: result.addressComponents?.zip || '',
 					country: 'USA',
@@ -407,7 +407,7 @@ export default function SubmitAnalysis({
 			? {
 				living_area: 2155,
 				street_address: '15 Dale Ave',
-				city: 'Gloucester',
+				town: 'Gloucester',
 				// Only the initial state value in the useState of HomeInformation.tsx matters.
 				state: '',
 				name: 'CIC',
