@@ -64,7 +64,7 @@ export const HomeSchema = z.object({
 
 export const LocationSchema = z.object({
 	street_address: z.string(),
-	city: z.string(),
+	town: z.string(),
 	state: z.string(),
 });
 
