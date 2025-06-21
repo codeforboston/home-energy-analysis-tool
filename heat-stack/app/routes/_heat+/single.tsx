@@ -262,16 +262,21 @@ export async function action({ request, params }: Route.ActionArgs) {
 		/** Main form entrypoint
 		 */
 
-		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			uploadedTextFile,
-			state_id,
-			county_id,
-		)
-		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-		gasBillDataFromTextFilePyProxy.destroy()
+	// Call to the rules-engine with raw text file
+	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
+		parsedAndValidatedFormSchema,
+		convertedDatesTIWD,
+		uploadedTextFile,
+		state_id,
+		county_id,
+	)
+	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
+	gasBillDataFromTextFilePyProxy.destroy()
+
+	console.log(
+		'***** Rules-engine Output from CSV upload:',
+		gasBillDataFromTextFile,
+	)
 
 		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()

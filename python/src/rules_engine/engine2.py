@@ -19,24 +19,8 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
 
     # --- Validate and fix start/end dates ---
     try:
-        start_date_str = parsed_gas_data.overall_start_date
-        end_date_str = parsed_gas_data.overall_end_date
-
-        today = datetime.today()
-        two_years_ago = today - timedelta(days=730)
-
-        try:
-            start_date = datetime.fromisoformat(start_date_str)
-        except:
-            print("Invalid start date, defaulting to 2 years ago")
-            start_date = two_years_ago
-
-        try:
-            end_date = datetime.fromisoformat(end_date_str)
-        except:
-            print("Invalid end date, defaulting to today")
-            end_date = today
-
+        start_date = parsed_gas_data.overall_start_date
+        end_date = parsed_gas_data.overall_end_date   
         # Format as yyyy-mm-dd strings
         start_date_str = start_date.strftime('%Y-%m-%d')
         end_date_str = end_date.strftime('%Y-%m-%d')
@@ -77,7 +61,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     return {
         "convertedDatesTIWD": weather_result,
         "state_id": geo_result.state,
-        "county_id": geo_result["county_id"],
+        "county_id": geo_result.county_id,
         "analysisResults": result,
     }
 
@@ -91,8 +75,8 @@ def main():
 
     # Provide form data here - fill these in as needed
     form_data = {
-        "street_address": "1 Broadway",
-        "city": "Cambridge",
+        "street_address": "15 Main St",
+        "city": "Glouceter",
         "state": "MA",
         "name": "Ethan"  # Your name or user's name
     }
