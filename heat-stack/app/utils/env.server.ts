@@ -28,7 +28,7 @@ const schema = z.object({
 	AWS_REGION: z.string(),
 	AWS_ENDPOINT_URL_S3: z.string().url(),
 	BUCKET_NAME: z.string(),
-	FEATUREFLAG_PRISMA_HEAT_BETA2: z.enum(['true', 'false']).optional()
+	FEATUREFLAG_PRISMA_HEAT_BETA2: z.enum(['true', 'false']).optional(),
 })
 
 declare global {
