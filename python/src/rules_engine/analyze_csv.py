@@ -12,7 +12,7 @@ from .weather_utils import WeatherUtil
 from .get_analytics import get_analytics
 from .pydantic_models import HeatLoadInput
 
-def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
+def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
     except Exception as e:
@@ -39,10 +39,6 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     except:
         raise ValueError("Unable to get address")
      
-    print("geo_result",  geo_result.coordinates["x"],
-            geo_result.coordinates["y"],
-            start_date_str,
-            type(start_date_str)   )
     try:
         weather_result = WeatherUtil.get_that_weatha_data(
             longitude = geo_result.coordinates["x"],
@@ -52,10 +48,8 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
         )
 
     except Exception as e:
-        print("debug exception")
         return {"errors": {"geo_weather": str(e)}}
-    print("debug", weather_result)
-    print("debug 2", geo_result)
+    
 
     # --- Run rules engine ---
     try:
@@ -98,10 +92,9 @@ def main():
     }
 
     # Call the analysis function
-    result = analyze_energy_case(csv_text, form_data)
+    result = parse_and_analyze_csv(csv_text, form_data)
 
     # Print results (or handle them as needed)
-    print(result)
 
 
 if __name__ == "__main__":
