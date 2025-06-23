@@ -34,7 +34,7 @@ heat-tmp
 /heat-stack/public/pyodide-env/pyodide-whl.zip
 
 # generated files
-/heat-stack/app/components/ui/icons
+/heat-stack/app/components/ui/icons/*
 
 # react router v7 generated types
 .react-router
