@@ -96,28 +96,21 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
 ### Install Dependencies and Build
 
 1. Install project dependencies:
-
    ```bash
    npm install
    ```
-
 2. Build the rules engine into the `public/pyodide-env` folder:
-
    ```bash
    npm run buildpy
    ```
-
 3. Setup the SQLite Database:
    ```bash
    npm run setup
    ```
-
 4. Copy the example environment file into a new `.env` file:
-
    ```bash
    cp .env.example .env
    ```
-
 5. Start the development server:
    ```bash
    npm run dev
@@ -145,33 +138,25 @@ If you encounter errors during this process, try the following steps:
 If using GitHub Codespaces, follow these steps:
 
 1. Navigate to the project directory:
-
    ```bash
    cd heat-stack
    ```
-
 2. Create an environment file:
-
    ```bash
    cp .env.example .env
    ```
-
 3. Use Node.js version 22:
-
    ```bash
    nvm install 22
    nvm use 22
    ```
-
 4. Install dependencies and build:
-
    ```bash
    npm install
    npm run buildpy
    npm run setup
    npm run dev
    ```
-
 5. Disable auto-save in VSCode (this is to avoid auto recompiling and page
    refresh while making changes):
    - Go to **File** > **Preferences** > **Settings**.
@@ -179,6 +164,11 @@ If using GitHub Codespaces, follow these steps:
    - For reference, see
      [this Stack Overflow post](https://stackoverflow.com/a/76659316/14144258).
 
+---
+
+### Committing your changes
+Before committing your changes, go to the `heat-stack` directory and run `source prepare.sh` from the terminal to format
+your code via `Prettier`.
 ---
 
 ### Handling Special Cases
