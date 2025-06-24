@@ -427,7 +427,6 @@ export default function SubmitAnalysis({
 		shouldRevalidate: 'onInput'
 	})
 
-	const actionUrl = loaderData.isDevMode ? "/single?dev=true" : "/single"
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
 	return (
 		<>
@@ -435,7 +434,7 @@ export default function SubmitAnalysis({
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
-				action={actionUrl}
+				action="/single"
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
