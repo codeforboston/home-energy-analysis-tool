@@ -193,6 +193,7 @@ function App() {
 	})
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
+	console.log("Home page rendered.")
 
 	return (
 		<OpenImgContextProvider
