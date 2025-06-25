@@ -1,8 +1,9 @@
 // app/routes/api/geocode.ts
-import { type LoaderFunctionArgs } from '@remix-run/node'
+// import { type LoaderFunctionArgs } from '@remix-run/node'
 import Geocode from '#/app/utils/GeocodeUtil.ts' // Make sure this file is server-only
+import { type Route } from './+types/geocode.ts'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
 	const url = new URL(request.url)
 	const address = url.searchParams.get('address')
 

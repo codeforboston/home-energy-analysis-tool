@@ -1,6 +1,5 @@
-import { useForm, getInputProps, useInputControl } from '@conform-to/react'
-import { useEffect, useMemo, useState, useRef } from 'react'
-import { Button } from '#/app/components/ui/button.tsx'
+import { getInputProps } from '@conform-to/react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
@@ -29,9 +28,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.defaultValue
 		return value ? Math.round(parseFloat(value) * 100).toString() : ''
 	})
-	const [state, setState] = useState(
-		props.fields.state.value || props.fields.state.defaultValue || ''
-	)
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {

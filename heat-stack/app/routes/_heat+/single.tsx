@@ -5,6 +5,7 @@ import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.
 import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
@@ -13,6 +14,7 @@ import {
 	fileUploadHandler,
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
+import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import {
 	buildCurrentUsageData,
 	objectToString,
@@ -36,16 +38,14 @@ import {
 	type UsageDataSchema,
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
-import { type Route } from './+types/single.tsx'
+import { type Route } from './+types/single.ts'
 
-import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
-import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 
 /** TODO: Use url param "dev" to set defaults */
 

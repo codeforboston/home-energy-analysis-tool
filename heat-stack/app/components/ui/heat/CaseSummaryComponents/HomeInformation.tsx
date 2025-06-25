@@ -6,43 +6,6 @@ import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
-// /** THE BELOW PROBABLY NEED TO MOVE TO A ROUTE RATHER THAN A COMPONENT, including action function, */
-// // import { redirect } from '@remix-run/react'
-// import { json, ActionFunctionArgs } from '@remix-run/node'
-// import { invariantResponse } from '@epic-web/invariant'
-// import { parseWithZod } from '@conform-to/zod'
-// import { z } from 'zod'
-
-// const nameMaxLength = 1
-// const addressMaxLength = 1
-
-// /** Modeled off the conform example at
-//  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
-// const HomeInformationSchema = z.object({
-// 	name: z.string().max(nameMaxLength),
-// 	address: z.string().max(addressMaxLength),
-// 	livingSpace: z.number().min(1),
-// })
-
-// export async function action({ request, params }: ActionFunctionArgs) {
-// 	invariantResponse(params.homeId, 'homeId param is required')
-
-// 	const formData = await request.formData()
-// 	const submission = parseWithZod(formData, {
-// 		schema: HomeInformationSchema,
-// 	})
-
-// 	if (!submission.value) {
-// 		return json({ status: 'error', submission } as const, {
-// 			status: 400,
-// 		})
-// 	}
-// 	const { name, address, livingSpace } = submission.value
-
-// 	// await updateNote({ id: params.noteId, title, content })
-
-// 	// return redirect(`/inputs1`)
-// }
 
 type HomeInformationProps = { fields: any }
 
@@ -74,7 +37,7 @@ export function HomeInformation(props: HomeInformationProps) {
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town
 	  );
-	const [state, setState] = useState(
+	const [usaStateAbbrev, setUsaStateAbbrev] = useState(
 		props.fields.state.value || props.fields.state.defaultValue?.state
 	);
 	const [geoError, setGeoError] = useState<string | null>(null);
@@ -93,12 +56,12 @@ export function HomeInformation(props: HomeInformationProps) {
 
 
 	async function validateGeocode() {
-		if (!streetAddress || !town || !state) {
+		if (!streetAddress || !town || !usaStateAbbrev) {
 			setGeoError(null)
 			return
 		}
 
-		const address = `${streetAddress}, ${town}, ${state}`
+		const address = `${streetAddress}, ${town}, ${usaStateAbbrev}`
 		try {
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json() 
@@ -209,8 +172,8 @@ export function HomeInformation(props: HomeInformationProps) {
 						<div className="mt-4">
 							<StateDropdown
 								fields={props.fields}
-								value={state}
-								onChange={(val) => { setState(val)}}
+								value={usaStateAbbrev}
+								onChange={(val) => { setUsaStateAbbrev(val)}}
 								onBlur={handleStateBlur}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">

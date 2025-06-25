@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Input } from '#/app/components/ui/input.tsx'
 import {
 	Select,
@@ -63,14 +62,14 @@ const states = [
 	{ value: 'WY', label: 'WY' },
 ]
 
-type CurrentHeatingSystemProps = { fields: any,
+type StateDropDownProps = { fields: any,
 	value: string,
 	onChange?: (s: string) => void,	onBlur?: () => void ,
 
 }
 
 
-export function StateDropdown(props: CurrentHeatingSystemProps) {
+export function StateDropdown(props: StateDropDownProps) {
 
 	return (
 		<div>
@@ -86,11 +85,11 @@ export function StateDropdown(props: CurrentHeatingSystemProps) {
 								<SelectValue placeholder="State" />
 							</SelectTrigger>
 							<SelectContent>
-								{states.map((state) => (
+								{states.map((UsaStateAbbrev) => (
 									<SelectItem
-										key={state.value}
-										value={state.value}
-									>{state.label}
+										key={UsaStateAbbrev.value}
+										value={UsaStateAbbrev.value}
+									>{UsaStateAbbrev.label}
 									</SelectItem>
 								))}
 							</SelectContent>
