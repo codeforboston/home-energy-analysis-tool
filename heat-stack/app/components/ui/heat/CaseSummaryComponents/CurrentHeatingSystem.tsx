@@ -16,19 +16,21 @@ import {
 type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
+	const titleClass = 'text-3xl font-bold tracking-wide  '
+	const subtitleClass = 'text-lg font-semibold text-zinc-950  mt-5 '
+	const descriptiveClass = 'mt-2 text-xs text-slate-500'
 	const componentMargin = 'mt-10'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	// Create a state to track the percentage value
-	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(() => {
-		// Initialize from the field's default value or initial value
-		const value =
-			props.fields.heating_system_efficiency.value ||
-			props.fields.heating_system_efficiency.defaultValue
-		return value ? Math.round(parseFloat(value) * 100).toString() : ''
-	})
+	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
+		() => {
+			// Initialize from the field's default value or initial value
+			const value =
+				props.fields.heating_system_efficiency.value ||
+				props.fields.heating_system_efficiency.defaultValue
+			return value ? Math.round(parseFloat(value) * 100).toString() : ''
+		},
+	)
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
@@ -42,7 +44,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.value ||
 			props.fields.heating_system_efficiency.defaultValue
 		if (value) {
-			setPercentageValueDisplayed(Math.round(parseFloat(value) * 100).toString())
+			setPercentageValueDisplayed(
+				Math.round(parseFloat(value) * 100).toString(),
+			)
 		}
 	}, [
 		props.fields.heating_system_efficiency.value,
@@ -128,7 +132,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 			<fieldset>
 				<legend className={`${subtitleClass}`}>Thermostat Settings</legend>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-4 flex flex-col md:flex-row md:space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="thermostat_set_point" className="font-bold">
 							Set Point (°F)
@@ -139,10 +143,11 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 								type: 'text',
 							})}
 						/>
+
 						<span className={`${descriptiveClass}`}>
 							Usual thermostat setting for heating
 						</span>
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<div className="pb-3 pt-1">
 							<ErrorList
 								id={props.fields.thermostat_set_point.errorId}
 								errors={props.fields.thermostat_set_point.errors}

@@ -9,7 +9,6 @@ import {
 } from '#/app/components/ui/select.tsx'
 import { ErrorList } from './ErrorList.tsx'
 
-
 const states = [
 	{ value: 'AL', label: 'AL' },
 	{ value: 'AK', label: 'AK' },
@@ -83,10 +82,8 @@ export function StateDropdown(props: CurrentHeatingSystemProps) {
 							</SelectTrigger>
 							<SelectContent>
 								{states.map((state) => (
-									<SelectItem
-										key={state.value}
-										value={state.value}
-									>{state.label}
+									<SelectItem key={state.value} value={state.value}>
+										{state.label}
 									</SelectItem>
 								))}
 							</SelectContent>
