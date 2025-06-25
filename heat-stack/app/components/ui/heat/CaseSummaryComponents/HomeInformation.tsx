@@ -1,7 +1,6 @@
-import { FieldMetadata, useForm, getInputProps } from '@conform-to/react'
+import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
-import { Button } from '#/app/components/ui/button.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { ErrorList } from './ErrorList.tsx'
@@ -69,6 +68,53 @@ export function HomeInformation(props: HomeInformationProps) {
 		return !isNaN(convertedNumber) ? convertedNumber.toString() : ''
 	}, [livingAreaStringDisplayed])
 
+	const [streetAddress, setStreetAddress] = useState(
+		props.fields.street_address.value || props.fields.street_address.defaultValue
+	);
+	const [town, setTown] = useState(
+		props.fields.town.value || props.fields.town.defaultValue?.town
+	  );
+	const [state, setState] = useState(
+		props.fields.state.value || props.fields.state.defaultValue?.state
+	);
+	const [geoError, setGeoError] = useState<string | null>(null);
+
+	const handleStreetAddressBlur = async () => {
+		await validateGeocode()
+	}
+
+	const handleTownBlur = async () => {
+		await validateGeocode()
+	}
+
+	const handleStateBlur = async () => {
+		await validateGeocode()
+	}
+
+
+	async function validateGeocode() {
+		if (!streetAddress || !town || !state) {
+			setGeoError(null)
+			return
+		}
+
+		const address = `${streetAddress}, ${town}, ${state}`
+		try {
+			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
+			const data: any = await res.json() 
+			if (!data.coordinates) {
+				setGeoError( data.message )
+			} else {
+				setGeoError(null)
+			}
+		} catch (error) {
+			setGeoError("Error connecting to geocoding service" + error)
+		}
+	}
+
+
+
+
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
@@ -109,15 +155,21 @@ export function HomeInformation(props: HomeInformationProps) {
 				<legend className={`${subtitleClass}`}>Address Information</legend>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="street_address">
-							Street Address
-						</Label>
+						<Label htmlFor={props.fields.street_address.id}>Street Address</Label>
 						<div className="mt-4">
 							<Input
-								{...getInputProps(props.fields.street_address, {
-									type: 'text',
-								})}
+								id={props.fields.street_address.id}
+								name={props.fields.street_address.name}
+								type="text"
+								value={streetAddress}
+								onChange={(e) => setStreetAddress(e.target.value)}
+								onBlur={handleStreetAddressBlur}
+								aria-invalid={props.fields.street_address.errors?.length ? true : undefined}
+								aria-describedby={props.fields.street_address.errorId}
 							/>
+							{geoError && (
+								<div style={{ color: "red", marginTop: "0.5rem" }}>{geoError}</div>
+							)}
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.street_address.errorId}
@@ -128,11 +180,18 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="town">
-							City/Town
-						</Label>
+						<Label htmlFor={props.fields.town.id}>City/Town</Label>
 						<div className="mt-4">
-							<Input {...getInputProps(props.fields.town, { type: 'text' })} />
+							<Input
+								id={props.fields.town.id}
+								name={props.fields.town.name}
+								type="text"
+								value={town}
+								onChange={(e) => setTown(e.target.value)}
+								onBlur={handleTownBlur}
+								aria-invalid={props.fields.town.errors?.length ? true : undefined}
+								aria-describedby={props.fields.town.errorId}
+							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.town.errorId}
@@ -142,6 +201,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
+
 					<div className="basis-1/3">
 						<Label htmlFor="state">
 							State
@@ -149,6 +209,9 @@ export function HomeInformation(props: HomeInformationProps) {
 						<div className="mt-4">
 							<StateDropdown
 								fields={props.fields}
+								value={state}
+								onChange={(val) => { setState(val)}}
+								onBlur={handleStateBlur}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
