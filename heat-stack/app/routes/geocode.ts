@@ -24,7 +24,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 		const { coordinates } = await geocodeUtil.getLL(address)
 
 		if (!coordinates) {
-			return new Response(JSON.stringify({ message: 'Address not found', status: 400}))
+			return new Response(JSON.stringify({ message: 'Address, town. and state combination not found', status: 400}))
 		}
 	
 		return new Response(JSON.stringify({coordinates}))
