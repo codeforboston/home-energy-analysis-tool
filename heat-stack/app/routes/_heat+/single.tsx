@@ -19,10 +19,7 @@ import {
 	hasDataProperty,
 	hasParsedAndValidatedFormSchemaProperty,
 } from '#app/utils/index.ts'
-import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
-
 import {
-	cleanupPyodideResources,
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
 } from '#app/utils/rules-engine.ts'
@@ -47,8 +44,8 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import { type Route } from './+types/single.tsx'
 
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
+import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -356,14 +353,7 @@ export default function SubmitAnalysis({
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-
-
-	React.useEffect(() => {
-		return () => {
-			// Memory cleanup of pyodide fn's when component unmounts
-			cleanupPyodideResources()
-		}
-	}, [])
+	const {lazyLoadRulesEngine, recalculateFromBillingRecordsChange} = useRulesEngine()
 
 	React.useEffect(() => {
 		// Set case info if available
@@ -427,6 +417,11 @@ export default function SubmitAnalysis({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
+		
+		onSubmit(){
+			lazyLoadRulesEngine()
+		},
+
 		defaultValue,
 		shouldValidate: 'onBlur',
 		shouldRevalidate: 'onInput'
@@ -453,7 +448,7 @@ export default function SubmitAnalysis({
 				{/* if no usage data, show the file upload functionality */}
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
-				{showUsageData && usageData && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
