@@ -195,7 +195,7 @@ def convert_to_intermediate_processed_energy_bills(
             )
             + 1
         )
-        for x in [0,1,2,3,4,5]:
+        for x in [0, 1, 2, 3, 4, 5]:
             print(temperature_input.dates[x])
 
         if fuel_type == FuelType.GAS:
@@ -209,9 +209,15 @@ def convert_to_intermediate_processed_energy_bills(
             )
         else:
             raise ValueError("Unsupported fuel type.")
-        print("debug convert", len(temperature_input.temperatures), len(temperature_input.dates),start_idx, end_idx, 
-              processed_energy_bill_input.period_start_date,
-                processed_energy_bill_input.period_end_date)
+        print(
+            "debug convert",
+            len(temperature_input.temperatures),
+            len(temperature_input.dates),
+            start_idx,
+            end_idx,
+            processed_energy_bill_input.period_start_date,
+            processed_energy_bill_input.period_end_date,
+        )
 
         intermediate_energy_bill = IntermediateEnergyBill(
             input=processed_energy_bill_input,
@@ -704,7 +710,7 @@ class Home:
                 heat_load_input.fuel_type,
                 heat_load_input.heating_system_efficiency,
             )
-            print("winter bills",processed_energy_bill.partial_ua )
+            print("winter bills", processed_energy_bill.partial_ua)
             processed_energy_bill.ua = (
                 processed_energy_bill.partial_ua / processed_energy_bill.total_hdd
             )

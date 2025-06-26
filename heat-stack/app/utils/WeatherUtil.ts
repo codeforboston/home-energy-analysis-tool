@@ -67,88 +67,54 @@ class WeatherUtil {
 		let retryCount = 0
 
 		while (retryCount <= maxRetries) {
-			try {
-				// Using undici's fetch
-				const rezzy = await fetch(url.toString())
+			let url = new URL(BASE_URL + WHATEVER_PATH + '?' + params.toString())
+			const maxRetries = 3
+			let retryCount = 0
+			console.log('start', startDate, endDate)
 
-				if (!rezzy.ok) {
-					throw new Error(`HTTP error! Status: ${rezzy.status}`)
-				}
+			while (retryCount <= maxRetries) {
+				try {
+					// Using undici's fetch
+					const rezzy = await fetch(url.toString())
 
-				const jrez = (await rezzy.json()) as ArchiveApiResponse
+					if (!rezzy.ok) {
+						throw new Error(`HTTP error! Status: ${rezzy.status}`)
+					}
 
-				let dates: Date[] = []
-				jrez.daily.time.forEach((timeStr: string) => {
-					dates.push(new Date(timeStr))
-				})
+					const jrez = (await rezzy.json()) as ArchiveApiResponse
 
-				let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean
-				// console.log({dates,temperatures});
+					let dates: Date[] = []
+					jrez.daily.time.forEach((timeStr: string) => {
+						dates.push(new Date(timeStr))
+					})
+					for (let x = 0; x < 5; x++) {
+						console.log('debug dates in ts', dates[x])
+					}
+					let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean
+					// console.log({dates,temperatures});
 
-				return { dates, temperatures }
-			} catch (error) {
-				retryCount++
+					return { dates, temperatures }
+				} catch (error) {
+					retryCount++
 
-<<<<<<< chore/434/move-engine-related-code-from-react-to-python
-        let url = new URL(BASE_URL+WHATEVER_PATH+"?"+params.toString());
-        const maxRetries = 3;
-        let retryCount = 0;
-        console.log("start", startDate, endDate)
-        
-        while (retryCount <= maxRetries) {
-          try {
-            // Using undici's fetch
-            const rezzy = await fetch(url.toString());
-            
-            if (!rezzy.ok) {
-              throw new Error(`HTTP error! Status: ${rezzy.status}`);
-            }
-            
-            const jrez = await rezzy.json() as ArchiveApiResponse;
-            
-            let dates: Date[] = [];
-            jrez.daily.time.forEach((timeStr: string) => {
-              dates.push(new Date(timeStr));
-            });
-            for (let x = 0; x < 5; x++){
-              console.log("debug dates in ts", dates[x])
-            }
-            let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean;
-            // console.log({dates,temperatures});
-            
-            return { dates, temperatures };
-          } catch (error) {
-            retryCount++;
-            
-            if (retryCount <= maxRetries) {
-              // Exponential backoff
-              const delay = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
-              console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-            } else {
-              console.error("Failed to fetch weather data after multiple attempts:", error);
-              throw error;
-            }
-          }
-    }
-  }
-=======
-				if (retryCount <= maxRetries) {
-					// Exponential backoff
-					const delay = Math.pow(2, retryCount) * 1000 // 2s, 4s, 8s
-					console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`)
-					await new Promise((resolve) => setTimeout(resolve, delay))
-				} else {
-					console.error(
-						'Failed to fetch weather data after multiple attempts:',
-						error,
-					)
-					throw error
+					if (retryCount <= maxRetries) {
+						// Exponential backoff
+						const delay = Math.pow(2, retryCount) * 1000 // 2s, 4s, 8s
+						console.log(
+							`Attempt ${retryCount} failed. Retrying in ${delay}ms...`,
+						)
+						await new Promise((resolve) => setTimeout(resolve, delay))
+					} else {
+						console.error(
+							'Failed to fetch weather data after multiple attempts:',
+							error,
+						)
+						throw error
+					}
 				}
 			}
 		}
 	}
->>>>>>> main
 }
 
 export default WeatherUtil
