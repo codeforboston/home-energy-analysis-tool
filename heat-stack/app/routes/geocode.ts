@@ -8,29 +8,33 @@ export async function loader({ request }: Route.LoaderArgs) {
 	const address = url.searchParams.get('address')
 
 	if (!address) {
-        return new Response(
-            JSON.stringify({ status: 'error', message: 'Missing address parameter' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            }
-          )
-        }
-        
-          
+		return new Response(
+			JSON.stringify({ status: 'error', message: 'Missing address parameter' }),
+			{
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			},
+		)
+	}
 
 	try {
 		const geocodeUtil = new Geocode()
 		const { coordinates } = await geocodeUtil.getLL(address)
 
 		if (!coordinates) {
-			return new Response(JSON.stringify({ message: 'Address, town. and state combination not found', status: 400}))
+			return new Response(
+				JSON.stringify({
+					message: 'Address, town. and state combination not found',
+					status: 400,
+				}),
+			)
 		}
-	
-		return new Response(JSON.stringify({coordinates}))
 
+		return new Response(JSON.stringify({ coordinates }))
 	} catch (error) {
 		console.error('Geocoding error:', error)
-		return new Response(JSON.stringify({ message: 'Server error' , status: 500 }))
+		return new Response(
+			JSON.stringify({ message: 'Server error', status: 500 }),
+		)
 	}
 }
