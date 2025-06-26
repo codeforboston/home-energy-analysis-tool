@@ -85,11 +85,11 @@ export function StateDropdown(props: StateDropDownProps) {
 								<SelectValue placeholder="State" />
 							</SelectTrigger>
 							<SelectContent>
-								{states.map((UsaStateAbbrev) => (
+								{states.map((usaStateAbbrev) => (
 									<SelectItem
-										key={UsaStateAbbrev.value}
-										value={UsaStateAbbrev.value}
-									>{UsaStateAbbrev.label}
+										key={usaStateAbbrev.value}
+										value={usaStateAbbrev.value}
+									>{usaStateAbbrev.label}
 									</SelectItem>
 								))}
 							</SelectContent>
