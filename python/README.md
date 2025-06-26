@@ -63,6 +63,9 @@ Check with a development lead before adding a python package.  Adding python pac
 1. Add package to the "dev" section of pyproject.toml
 2. Run pip-compile as described in the comments of requirements-dev.txt.  These instructions will autogenerate requirements-dev.txt.
 
+### Committing Your Changes
+Before committing your changes, go to the `python` directory and run `source prepare.sh` from the terminal to format, check for typing errors, and run all tests via `pytest`.
+
 ### Creating a Pull Request
 1. Rebase from main if not done recently.
 ```
@@ -71,7 +74,6 @@ git pull origin main
 git checkout <your branch>
 git rebase main
 ```
-
 2. run the following validation commands first and fix any errors:
 ```
 source check.python.sh

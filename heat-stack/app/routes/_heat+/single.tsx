@@ -5,6 +5,7 @@ import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.
 import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
+import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
@@ -13,16 +14,14 @@ import {
 	fileUploadHandler,
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
+import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import {
 	buildCurrentUsageData,
 	objectToString,
 	hasDataProperty,
 	hasParsedAndValidatedFormSchemaProperty,
 } from '#app/utils/index.ts'
-import { recalculateFromBillingRecordsChange } from '#app/utils/recalculateFromBillingRecordsChange.ts'
-
 import {
-	cleanupPyodideResources,
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
 } from '#app/utils/rules-engine.ts'
@@ -39,16 +38,14 @@ import {
 	type UsageDataSchema,
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
+import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
 import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
-import { type Route } from './+types/single.tsx'
+import { type Route } from './+types/single.ts'
 
-import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
-import { type RecalculateFunction } from '#app/utils/recalculateFromBillingRecordsChange.ts';
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -351,14 +348,7 @@ export default function SubmitAnalysis({
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-
-
-	React.useEffect(() => {
-		return () => {
-			// Memory cleanup of pyodide fn's when component unmounts
-			cleanupPyodideResources()
-		}
-	}, [])
+	const {lazyLoadRulesEngine, recalculateFromBillingRecordsChange} = useRulesEngine()
 
 	React.useEffect(() => {
 		// Set case info if available
@@ -404,7 +394,7 @@ export default function SubmitAnalysis({
 				street_address: '15 Dale Ave',
 				town: 'Gloucester',
 				// Only the initial state value in the useState of HomeInformation.tsx matters.
-				state: '',
+				state: 'MA',
 				name: 'CIC',
 				// Only the initial fuel_type value in the useState of CurrentHeatingSystem.tsx matters.
 				fuel_type: 'GAS',   
@@ -422,6 +412,11 @@ export default function SubmitAnalysis({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
+		
+		onSubmit(){
+			lazyLoadRulesEngine()
+		},
+
 		defaultValue,
 		shouldValidate: 'onBlur',
 		shouldRevalidate: 'onInput'
@@ -448,7 +443,7 @@ export default function SubmitAnalysis({
 				{/* if no usage data, show the file upload functionality */}
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
-				{showUsageData && usageData && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}

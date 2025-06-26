@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Input } from '#/app/components/ui/input.tsx'
 import {
 	Select,
@@ -63,10 +62,14 @@ const states = [
 	{ value: 'WY', label: 'WY' },
 ]
 
-type CurrentHeatingSystemProps = { fields: any }
+type StateDropDownProps = { fields: any,
+	value: string,
+	onChange?: (s: string) => void,	onBlur?: () => void ,
 
-export function StateDropdown(props: CurrentHeatingSystemProps) {
-	const [stateSelected, setStateSelected] = useState('MA')
+}
+
+
+export function StateDropdown(props: StateDropDownProps) {
 
 	return (
 		<div>
@@ -75,25 +78,25 @@ export function StateDropdown(props: CurrentHeatingSystemProps) {
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
 						<Select
-							onValueChange={(val) => setStateSelected(val)}
-							value={stateSelected}
+							onValueChange={(val) => props.onChange && props.onChange(val)}
+							value={props.value}
 						>
 							<SelectTrigger className="w-[180px]">
 								<SelectValue placeholder="State" />
 							</SelectTrigger>
 							<SelectContent>
-								{states.map((state) => (
+								{states.map((usaStateAbbrev) => (
 									<SelectItem
-										key={state.value}
-										value={state.value}
-									>{state.label}
+										key={usaStateAbbrev.value}
+										value={usaStateAbbrev.value}
+									>{usaStateAbbrev.label}
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
 
 						{/* This hidden field submits the same value instead. */}
-						<Input type="hidden" name="state" value={stateSelected} />
+						<Input type="hidden" name="state" value={props.value} />
 					</div>
 				</div>
 				<div className="min-h-[32px] px-4 pb-3 pt-1">
