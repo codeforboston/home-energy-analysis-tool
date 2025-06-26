@@ -1,7 +1,8 @@
 import json
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
-from urllib import request as urlrequest, parse as urlparse
+from typing import Any, Dict, Optional
+from urllib import parse as urlparse
+from urllib import request as urlrequest
 
 BASE_URL = "https://geocoding.geo.census.gov"
 ADDRESS_ENDPOINT = "/geocoder/geographies/onelineaddress"
@@ -34,7 +35,7 @@ class GeocodeUtil:
             "address": address,
             "format": "json",
             "benchmark": "2020",
-            "vintage": "Census2020_Census2020"
+            "vintage": "Census2020_Census2020",
         }
 
         query_string = urlparse.urlencode(params)
@@ -64,11 +65,14 @@ class GeocodeUtil:
 
         # Combine parts to form a street
         street = " ".join(
-            filter(None, [
-                address_components.get("preDirection"),
-                address_components.get("streetName"),
-                address_components.get("suffixType")
-            ])
+            filter(
+                None,
+                [
+                    address_components.get("preDirection"),
+                    address_components.get("streetName"),
+                    address_components.get("suffixType"),
+                ],
+            )
         )
 
         return Location(
@@ -80,8 +84,8 @@ class GeocodeUtil:
                 city=address_components.get("city"),
                 state=address_components.get("state"),
                 zip=address_components.get("zip"),
-                formattedAddress=address_match.get("matchedAddress", address)
-            )
+                formattedAddress=address_match.get("matchedAddress", address),
+            ),
         )
 
 

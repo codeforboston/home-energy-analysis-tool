@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List, Union, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Union
 
-from geocode_utils import GeocodeUtil
-from weather_utils import WeatherUtil
-
+from .geocode_utils import GeocodeUtil
+from .weather_utils import WeatherUtil
 
 # You can define this more strictly with dataclasses or TypedDict if needed
 AddressComponents = Dict[str, str]
@@ -15,7 +14,7 @@ def get_converted_dates_tiwd(
     pyodide_results_from_text_file: NaturalGasUsageDataSchema,
     street_address: str,
     city: str,
-    state: str
+    state: str,
 ) -> Dict[str, Any]:
     """
     Takes CSV-derived data and an address, returns converted weather data
@@ -23,11 +22,13 @@ def get_converted_dates_tiwd(
     """
     print("Loading geocode_util/weather_util")
 
-
     combined_address = f"{street_address}, {city}, {state}"
     geocode_result = GeocodeUtil.get_ll(combined_address)
 
-    coordinates = geocode_result.get("coordinates", {"x": 0, "y": 0})
+    if geocode_result is None:
+        raise ValueError("No geocode result found")
+
+    coordinates = geocode_result.coordinates
     x = coordinates.get("x", 0)
     y = coordinates.get("y", 0)
 
@@ -38,9 +39,6 @@ def get_converted_dates_tiwd(
 
     if not isinstance(start_date_string, str) or not isinstance(end_date_string, str):
         raise ValueError("Start date or end date is missing or invalid")
-
-    today = datetime.today()
-    two_years_ago = today.replace(year=today.year - 2)
 
     try:
         start_date = datetime.fromisoformat(start_date_string)
@@ -59,9 +57,7 @@ def get_converted_dates_tiwd(
 
     print("just before weather api", start_date, end_date)
     weather_data = WeatherUtil.get_that_weatha_data(
-        x, y,
-        format_date_string(start_date),
-        format_date_string(end_date)
+        x, y, format_date_string(start_date), format_date_string(end_date)
     )
 
     if weather_data is None:
@@ -69,18 +65,18 @@ def get_converted_dates_tiwd(
 
     dates_from_tiwd = [
         d.date().isoformat() if isinstance(d, datetime) else str(d)
-        for d in weather_data["dates"]
+        for d in weather_data.dates
     ]
 
     converted_dates_tiwd: TemperatureInputDataConverted = {
         "dates": dates_from_tiwd,
-        "temperatures": weather_data["temperatures"]
+        "temperatures": weather_data.temperatures,
     }
 
     return {
         "convertedDatesTIWD": converted_dates_tiwd,
-        "state_id": geocode_result.get("state_id"),
-        "county_id": geocode_result.get("county_id"),
+        "state_id": geocode_result.state,
+        "county_id": geocode_result.county_id,
         "coordinates": coordinates,
-        "addressComponents": geocode_result.get("addressComponents")
+        "addressComponents": geocode_result.addressComponents,
     }
