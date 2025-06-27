@@ -77,10 +77,10 @@ class WeatherUtil:
                 else:
                     print("Failed to fetch weather data after multiple attempts:", e)
                     raise ValueError(
-                        "Failed to fetch weather data after multiple attempts: " + e.m
+                        "Failed to fetch weather data after multiple attempts: " + e
                     )
 
-    raise ValueError("Failed to fetch weather error")
+        raise ValueError("Failed to fetch weather error")
 
 
 # Example usage
