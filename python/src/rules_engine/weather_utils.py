@@ -76,7 +76,11 @@ class WeatherUtil:
                     time.sleep(delay)
                 else:
                     print("Failed to fetch weather data after multiple attempts:", e)
-                    raise
+                    raise ValueError(
+                        "Failed to fetch weather data after multiple attempts: " + e.m
+                    )
+
+    raise ValueError("Failed to fetch weather error")
 
 
 # Example usage
