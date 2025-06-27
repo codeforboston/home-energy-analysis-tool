@@ -20,3 +20,17 @@
 - Post MVP II
   - handle oil
   - persistence 
+
+- Issues to work on
+  - Branch
+    - Case persistence and update
+    - * Handle oil
+
+  - * Refactor engine.py
+  - Discuss 154
+
+  - Check for issues
+    - On the Whole-Home Heat Loss Comparison, display the equation for the Trend Line and the Rsquared value for the fit.
+    - On the Whole-Home Heat Loss Comparison graph, display the trend line in the same color and thickness as the legend.
+    - In the label below the Setback Temperature field, change working to work (for grammatical consistency with sleep)
+  
