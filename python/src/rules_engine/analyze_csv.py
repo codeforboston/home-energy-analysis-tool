@@ -11,15 +11,14 @@ from . import engine, parser
 # Replace this with your real geocode + weather module
 from .geocode_utils import GeocodeUtil
 from .get_analytics import get_analytics
-from .pydantic_models import HeatLoadInput
 from .weather_utils import WeatherUtil
 
 
-def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
+def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> an:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
     except Exception as e:
-        return {"errors": {"parse": str(e)}}
+        return {"error": "Error parsing.", "detail": str(e)}
 
     # --- Validate and fix start/end dates ---
     try:
@@ -28,23 +27,23 @@ def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
         # Format as yyyy-mm-dd strings
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
-
     except Exception as e:
-        return {"errors": {"date_handling": f"Date error: {str(e)}"}}
+        return {"error": "Date handling.", "detail": str(e)}
 
-    # --- Geocode and fetch weather ---
+    # --- Parse address and fetch geo info ---
     try:
-        street_address = form_data["street_address"]
+        street_address = form_data["street_address"] 
         city = form_data["city"]
         state = form_data["state"]
         full_address = street_address + ", " + city + ", " + state
         geo_result = GeocodeUtil.get_ll(full_address)
-    except:
-        raise ValueError("Unable to get address")
-
+    except Exception as e:
+        return {"error": "Error parsing.", "detail": str(e)}
     if geo_result is None:
-        raise ValueError("Could not get geocode result")
+        return {"error": "Unable to get geo info."}
 
+
+    # --- Fetch weather info ---
     try:
         weather_result = WeatherUtil.get_that_weatha_data(
             longitude=geo_result.coordinates["x"],
@@ -52,22 +51,25 @@ def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
             start_date=start_date_str,
             end_date=end_date_str,
         )
-
     except Exception as e:
-        return {"errors": {"geo_weather": str(e)}}
+        return {"error": "Problem getting weather data", "detail": str(e)}
 
     # --- Run rules engine ---
     try:
         form_data["name"] = f"{form_data['name']}'s home"
         result = get_analytics(form_data, weather_result, csv_data)
     except Exception as e:
-        raise e
+        return {"error": "Error analyzing.", "exception": str(e)}
 
+    temperatures_str = weather_result.temperatures.map(t => str(t))
+        "temperatures": [],
+        "dates": [],
+    }
     return {
-        "convertedDatesTIWD": weather_result,
-        "state_id": geo_result.state,
-        "county_id": geo_result.county_id,
-        "analysisResults": result,
+        "convertedDatesTIWD": weather_result_json,
+        "state_id": geo_result.state or "",
+        "county_id": geo_result.county_id or "",
+        "analysisResults": result or "",
     }
 
 
@@ -96,9 +98,8 @@ def main():
     }
 
     # Call the analysis function
-    result = parse_and_analyze_csv(csv_text, form_data)
+    return parse_and_analyze_csv(csv_text, form_data)
 
-    # Print results (or handle them as needed)
 
 
 if __name__ == "__main__":
