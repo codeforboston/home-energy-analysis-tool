@@ -12,9 +12,8 @@ from . import engine, parser
 from .geocode_utils import GeocodeUtil
 from .get_analytics import get_analytics
 from .weather_utils import WeatherUtil
-import typing
 
-def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> dict[str, typing.Any]:
+def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> dict[str,str | list[str]]:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
     except Exception as e:
