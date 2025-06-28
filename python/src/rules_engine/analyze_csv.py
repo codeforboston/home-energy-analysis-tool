@@ -12,9 +12,9 @@ from . import engine, parser
 from .geocode_utils import GeocodeUtil
 from .get_analytics import get_analytics
 from .weather_utils import WeatherUtil
+import typing
 
-
-def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> an:
+def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> dict[str, typing.Any]:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
     except Exception as e:
@@ -61,12 +61,14 @@ def parse_and_analyze_csv(csv_data: str, form_data: dict[str, str]) -> an:
     except Exception as e:
         return {"error": "Error analyzing.", "exception": str(e)}
 
-    temperatures_str = weather_result.temperatures.map(t => str(t))
-        "temperatures": [],
-        "dates": [],
-    }
+    temperatures_string = [str(temperature) for temperature in weather_result.temperatures]
+    dates_string = [d.strftime('%Y-%m-%d') for d in weather_result.dates]
+
     return {
-        "convertedDatesTIWD": weather_result_json,
+        "convertedDatesTIWD": {
+            "temperatures": temperatures_string,
+            "dates": dates_string,
+        },
         "state_id": geo_result.state or "",
         "county_id": geo_result.county_id or "",
         "analysisResults": result or "",
