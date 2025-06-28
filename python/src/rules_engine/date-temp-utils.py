@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Any, Dict, List, Union
 
+from .pydantic_models import TemperatureInput
+
 from .geocode_utils import GeocodeUtil
 from .weather_utils import WeatherUtil
 
@@ -64,14 +66,14 @@ def get_converted_dates_tiwd(
         raise RuntimeError("Weather data failed to fetch")
 
     dates_from_tiwd = [
-        d.date().isoformat() if isinstance(d, datetime) else str(d)
+        d
         for d in weather_data.dates
     ]
 
-    converted_dates_tiwd: TemperatureInputDataConverted = {
-        "dates": dates_from_tiwd,
-        "temperatures": weather_data.temperatures,
-    }
+    converted_dates_tiwd = TemperatureInput (
+        dates = dates_from_tiwd,
+        temperatures = weather_data.temperatures,
+    )
 
     return {
         "convertedDatesTIWD": converted_dates_tiwd,

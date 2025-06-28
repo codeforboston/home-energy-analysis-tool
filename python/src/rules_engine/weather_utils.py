@@ -1,8 +1,6 @@
 import json
 import time
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from urllib import error, parse, request
+from urllib import parse, request
 
 from .pydantic_models import TemperatureInput
 
@@ -76,9 +74,7 @@ class WeatherUtil:
                     time.sleep(delay)
                 else:
                     print("Failed to fetch weather data after multiple attempts:", e)
-                    raise ValueError(
-                        "Failed to fetch weather data after multiple attempts: " + e
-                    )
+                    raise ValueError("Failed to fetch weather data after multiple attempts: "+repr(e))
 
         raise ValueError("Failed to fetch weather error")
 
