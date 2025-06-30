@@ -5,7 +5,7 @@ import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.
 import React, { useState } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
+import { EnergyUseHistoryTable as EnergyUseHistoryTable } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryTable.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer, reviver } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
@@ -91,7 +91,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
-	const uploadedTextFile: string = await fileUploadHandler(formData)
+	const uploadedString: string = await fileUploadHandler(formData)
 
 	const submission = parseWithZod(formData, {
 		schema: Schema,
@@ -157,11 +157,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// This assignment of the same name is a special thing. We don't remember the name right now.
 	// It's not necessary, but it is possible.
-	const pyodideResultsFromTextFilePyProxy: PyProxy =
-		executeParseGasBillPy(uploadedTextFile)
-	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-		executeParseGasBillPy(uploadedTextFile).toJs()
-	pyodideResultsFromTextFilePyProxy.destroy()
+	const pyodideResultsFromUploadedStringPyProxy: PyProxy =
+		executeParseGasBillPy(uploadedString)
+	const pyodideResultsFromUploadedString: NaturalGasUsageDataSchema =
+		executeParseGasBillPy(uploadedString).toJs()
+	pyodideResultsFromUploadedStringPyProxy.destroy()
 
 	/** This function takes a CSV string and an address
 	 * and returns date and weather data,
@@ -173,7 +173,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	let caseRecord, analysis, heatingInput
 	try {
 		const result = await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
+			pyodideResultsFromUploadedString,
 			street_address,
 			town,
 			state
@@ -266,18 +266,18 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
 		parsedAndValidatedFormSchema,
 		convertedDatesTIWD,
-		uploadedTextFile,
+		uploadedString,
 		state_id,
 		county_id,
 	)
-	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
+	const gasBillDataFromUploadedString = gasBillDataFromTextFilePyProxy.toJs()
 	gasBillDataFromTextFilePyProxy.destroy()
 
 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
-	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
-
+	const str_version = JSON.stringify(gasBillDataFromUploadedString, replacer)
+	
 	return {
 		data: str_version,
 		parsedAndValidatedFormSchema,
@@ -322,7 +322,7 @@ export default function SubmitAnalysis({
 	 * 
 	 * 
 	 * 2 of 3: processed_energy_bills
-	 * console.log("EnergyUseHistoryChart table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
+	 * console.log("EnergyUseHistoryTable table data", lastResult !== undefined ? JSON.parse(lastResult.data, reviver)?.get('processed_energy_bills'): undefined)
 	 *
 	 * temp1.get('processed_energy_bills')
 	 * Array(25) [ Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), Map(9), … ]
@@ -450,7 +450,7 @@ export default function SubmitAnalysis({
 							scrollAfterSubmit={scrollAfterSubmit}
 							setScrollAfterSubmit={setScrollAfterSubmit}
 						/>
-						<EnergyUseHistoryChart
+						<EnergyUseHistoryTable
 							usageData={usageData}
 							setUsageData={setUsageData}
 							lastResult={lastResult}

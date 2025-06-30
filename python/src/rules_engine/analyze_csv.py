@@ -4,18 +4,15 @@ TODO: Add module description
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-
-from . import engine, parser
+from . import parser
 
 # Replace this with your real geocode + weather module
 from .geocode_utils import GeocodeUtil
-from .get_analytics import get_analytics
-from .pydantic_models import HeatLoadInput
+from .natural_gas_analysis_and_data import all_natural_gas_data
 from .weather_utils import WeatherUtil
 
 
-def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
+def parse_and_analyze_natural_gas_bill_string(csv_data: str, form_data: dict) -> dict:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
     except Exception as e:
@@ -52,28 +49,24 @@ def parse_and_analyze_csv(csv_data: str, form_data: dict) -> dict:
             start_date=start_date_str,
             end_date=end_date_str,
         )
-
     except Exception as e:
         return {"errors": {"geo_weather": str(e)}}
 
     # --- Run rules engine ---
     try:
         form_data["name"] = f"{form_data['name']}'s home"
-        result = get_analytics(form_data, weather_result, csv_data)
+        result = all_natural_gas_data(form_data, weather_result, csv_data)
     except Exception as e:
         raise e
-
-    return {
-        "convertedDatesTIWD": weather_result,
-        "state_id": geo_result.state,
-        "county_id": geo_result.county_id,
-        "analysisResults": result,
-    }
+    
+    return result
 
 
 def main():
     # Provide your input file path here
-    csv_file_path = "./rules_engine/alternate.csv"
+    import pathlib
+    ROOT_DIR = pathlib.Path(__file__).parent
+    csv_file_path = ROOT_DIR / "natural-gas-eversource.csv"
 
     # Load CSV text
     with open(csv_file_path, "r", encoding="utf-8") as f:
@@ -96,10 +89,7 @@ def main():
     }
 
     # Call the analysis function
-    result = parse_and_analyze_csv(csv_text, form_data)
-
-    # Print results (or handle them as needed)
-
+    result = parse_and_analyze_natural_gas_bill_string(csv_text, form_data)
 
 if __name__ == "__main__":
     main()

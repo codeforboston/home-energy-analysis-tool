@@ -1,6 +1,5 @@
 from rules_engine import parser
 from rules_engine.pydantic_models import (
-    FuelType,
     HeatLoadInput,
     TemperatureInput
 )
@@ -26,5 +25,5 @@ def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, s
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
-    outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
+    outputs = engine.outputs_natural_gas(summaryInput, temperatureInput, naturalGasInputRecords)
     return outputs.model_dump(mode="json")
