@@ -78,6 +78,9 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
    ```
+   If curl does not work, please download node.js manually: https://nodejs.org/en/download/current
+   If using mac, install with `brew install nvm`.
+
 2. Restart your terminal. Ensure NVM is installed by running:
    ```bash
    nvm --version
