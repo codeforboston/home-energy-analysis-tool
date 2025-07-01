@@ -21,7 +21,12 @@ source check-version.sh || return 1
 # Your other python commands can use $PYTHON_CMD
 
 $PYTHON_CMD -m venv venv
-source venv/bin/activate
+
+case "$OSTYPE" in
+  msys*) source venv/Scripts/activate;;
+  *) source venv/bin/activate;;
+esac
+
 pip install -e .
 pip install -r requirements-dev.txt
 pip install --upgrade pip
