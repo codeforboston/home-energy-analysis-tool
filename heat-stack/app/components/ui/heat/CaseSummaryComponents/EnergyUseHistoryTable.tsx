@@ -52,7 +52,7 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // 	naturalGasBillRecord04,
 // ]
 
-interface EnergyUseHistoryChartProps {
+interface EnergyUseHistoryTableProps {
     lastResult: any;
     parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
@@ -78,7 +78,7 @@ function objectToString(obj: any): any {
     return retval as any;
 }
 
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
+export function EnergyUseHistoryTable({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryTableProps) {
 
 
     const handleOverrideCheckboxChange = (index: number) => {
@@ -123,7 +123,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
     }
 
     return (
-        <Table id="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
+        <Table id="EnergyUseHistoryTable" className='text-center border rounded-md border-neutral-300'>
             <TableHeader>
                 <TableRow className='text-xs text-muted-foreground bg-neutral-50'>
                     <TableHead className="text-center">#</TableHead>
