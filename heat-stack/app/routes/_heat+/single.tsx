@@ -476,10 +476,11 @@ export default function SubmitAnalysis({
 			<div>display exception {displayException} </div>
 			{isCustomError(lastResult) && (
 				<div>
-					{displayException && 
-						<div>
-							{lastResult.error[""][0]}
-						</div>}
+						{lastResult && "error" in lastResult && lastResult.error && lastResult.error[""]
+							&& Array.isArray(lastResult.error[""]) && 
+						(<div>
+							{lastResult.error[""][0] as string}
+						</div>)}
 				</div>
 			)}
 		</div>
