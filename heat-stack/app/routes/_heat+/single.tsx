@@ -289,7 +289,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 		}
 	} catch (error: unknown) {
-		console.log("returning error")
+		console.log("Returning error:")
 		if (error instanceof Error) {
 			return data(
 				submission.reply({
@@ -380,13 +380,19 @@ export default function SubmitAnalysis({
 		}
 	}, [actionData])
 
-	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
+
+	interface CustomError {
+		[key: string]: any;
+		"": string[];
+	}
+
+	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | CustomError | undefined = actionData
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
-	console.log("last result", lastResult)
+	console.log("debug last result", lastResult);
 	// 
-	// console.log(lastResult?.error.[0])
+
 
 	if (showUsageData && hasDataProperty(lastResult)) {
 		// Parse the JSON string from lastResult.data
@@ -440,9 +446,43 @@ export default function SubmitAnalysis({
 		shouldRevalidate: 'onInput'
 	})
 
+	const isCustomError = (obj: any): obj is CustomError => {
+		console.log("debug obj", obj);
+		if (obj) {
+			console.log("debug Array.isArray(obj.error", Array.isArray(obj.error));
+		}
+        return obj && Array.isArray(obj.error);
+    };
+
+	console.log("debug isCustomError(lastResult)", isCustomError(lastResult));
+	console.log("debug lastResult:457", lastResult)
+	if (lastResult && "error" in lastResult && lastResult.error && lastResult.error[""] 
+		&& Array.isArray(lastResult.error[""])){
+		console.log(lastResult.error[""][0])
+		if (lastResult.error[""]) {
+
+		}
+	}
+	const displayException = lastResult && "error" in lastResult && lastResult.error && lastResult.error[""] 
+	&& Array.isArray(lastResult.error[""])
+	console.log("debug single.tsx:468 displayException:", displayException)
+
+
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
 	return (
-		<>
+		<>	
+		<div>I am here</div>		
+		<div>
+			<div>display exception {displayException} </div>
+			{isCustomError(lastResult) && (
+				<div>
+					{displayException && 
+						<div>
+							{lastResult.error[""][0]}
+						</div>}
+				</div>
+			)}
+		</div>
 			<Form
 				id={form.id}
 				method="post"
@@ -511,6 +551,9 @@ export default function SubmitAnalysis({
 					</p>
 				</div>
 			)}
+
+
+
 			{/* // TODO: This is good to display errors from Conform which accidentally haven't been explicitly shown anywhere else
 			 {Object.entries(form.allErrors ?? {}).map(([fieldName, errors]) => (
 				<ErrorList
