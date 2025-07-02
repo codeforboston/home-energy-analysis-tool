@@ -213,7 +213,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 						zipcode: result.addressComponents?.zip || '',
 						country: 'USA',
 						livingAreaSquareFeet: Math.round(living_area),
-						latitude: result.coordinates?.z || 0,
+						latitude: result.coordinates?.y || 0,
 						longitude: result.coordinates?.x || 0,
 					},
 				})
