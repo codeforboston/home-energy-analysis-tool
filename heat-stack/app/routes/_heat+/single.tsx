@@ -3,7 +3,7 @@ import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useState } from 'react'
-import { Form } from 'react-router'
+import { Form, data } from 'react-router'
 import { type z } from 'zod'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -45,7 +45,6 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-import { data } from 'react-router'
 
 
 /** TODO: Use url param "dev" to set defaults */
@@ -77,10 +76,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { isDevMode }
 }
 
-interface ErrorWithExceptionMessage extends Error {
-	exceptionMessage?: string;
-}
-
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
 	caseId?: number;
@@ -88,6 +83,7 @@ export interface CaseInfo {
 	heatingInputId?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function action({ request, params }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
@@ -155,10 +151,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 		energy_use_upload
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
-
-	interface CustomError extends Error {
-		message: string;
-	}
 
 	try {
 		// This assignment of the same name is a special thing. We don't remember the name right now.
