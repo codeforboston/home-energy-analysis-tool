@@ -156,6 +156,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
+	interface CustomError extends Error {
+		message: string;
+	}
+
 	try {
 		// This assignment of the same name is a special thing. We don't remember the name right now.
 		// It's not necessary, but it is possible.
@@ -292,14 +296,23 @@ export async function action({ request, params }: Route.ActionArgs) {
 				heatingInputId: heatingInput?.id
 			}
 		}
-	} catch (error) {
+	} catch (error: unknown) {
 		console.log("returning error")
-		return data(
-			submission.reply({
-				formErrors: ['Error elephant.'],
-			}),
-			{ status: 400 }
-		)
+		if (error instanceof Error) {
+			return data(
+				submission.reply({
+					formErrors: [error.message || 'Unknown Error'],
+				}),
+				{ status: 400 }
+			);
+		} else {
+			return data(
+				submission.reply({
+					formErrors: ['Unknown Error'],
+				}),
+				{ status: 400 }
+			);
+		}
 		// const errorWithExceptionMessage = error as ErrorWithExceptionMessage
 		// if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
 		// 	submission.errors = { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
