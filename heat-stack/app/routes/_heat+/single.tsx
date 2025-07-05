@@ -1,5 +1,5 @@
 //heat-stack/app/routes/_heat+/single.tsx
-import { useForm } from '@conform-to/react'
+import { SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useState } from 'react'
@@ -100,17 +100,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 			console.error('submission failed', submission)
 		}
 		return submission.reply()
-		// submission.reply({
-		// 	// You can also pass additional error to the `reply` method
-		// 	formErrors: ['Submission failed'],
-		// 	fieldErrors: {
-		// 		address: ['Address is invalid'],
-		// 	},
-
-		// 	// or avoid sending the the field value back to client by specifying the field names
-		// 	hideFields: ['password'],
-		// }),
-		// {status: submission.status === "error" ? 400 : 200}
 	}
 
 	const {
@@ -247,6 +236,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 				/* TODO: store rules-engine output in database too */
 			}
+			
 
 		// } catch (error) {
 		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
@@ -288,7 +278,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 				heatingInputId: heatingInput?.id
 			}
 		}
-	} catch (error: unknown) {
+	} 
+	catch (error: unknown) {
 		console.log("Returning error:")
 		if (error instanceof Error) {
 			return data(
@@ -305,16 +296,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 				{ status: 500 }
 			);
 		}
-		// const errorWithExceptionMessage = error as ErrorWithExceptionMessage
-		// if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
-		// 	submission.errors = { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
-		// } else {
-		// 	form.errors = { message: 'An unexpected error occurred' }
-		// }
-		// throw error
 	}
 	// return redirect(`/single`)
 } //END OF action
+
 
 export default function SubmitAnalysis({
 	loaderData,
@@ -367,6 +352,7 @@ export default function SubmitAnalysis({
 
 	// ✅ Pass `result` as `lastResult`
 	const [form, fields] = useForm({
+		lastResult: actionData as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
