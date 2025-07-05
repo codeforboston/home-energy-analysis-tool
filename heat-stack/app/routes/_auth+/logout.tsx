@@ -1,11 +1,11 @@
-import { redirect } from 'react-router'
 import { logout } from '#app/utils/auth.server.ts'
 import { type Route } from './+types/logout.ts'
 
-export async function loader() {
-	return redirect('/')
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	return logout({ request })
 }
 
-export async function action({ request }: Route.ActionArgs) {
+// Optional: remove action if you're not using a POST logout anywhere
+export const action = async ({ request }: Route.ActionArgs) => {
 	return logout({ request })
 }
