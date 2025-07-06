@@ -45,6 +45,7 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
+import { last } from 'lodash'
 
 
 /** TODO: Use url param "dev" to set defaults */
@@ -279,16 +280,19 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 		}
 	} 
-	catch (error: unknown) {
-		console.log("Returning error:")
-		if (error instanceof Error) {
-			return data(
-				submission.reply({
-					formErrors: [error.message || 'Unknown Error'],
-				}),
-				{ status: 500 }
-			);
-		} else {
+		catch (error: unknown) {
+			console.error("Calculate failed")
+			if (error instanceof Error) {
+				console.error(error.message)
+				const errorLines = error.message.split("\n").filter(Boolean)
+				const lastLine =  errorLines[errorLines.length-1] || error.message
+				return data(
+					submission.reply({
+						formErrors: [lastLine],
+					}),
+					{ status: 500 }
+				);
+			} else {
 			return data(
 				submission.reply({
 					formErrors: ['Unknown Error'],
