@@ -99,6 +99,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 			console.error('submission failed', submission)
 		}
 		return submission.reply()
+		// submission.reply({
+		// 	// You can also pass additional error to the `reply` method
+		// 	formErrors: ['Submission failed'],
+		// 	fieldErrors: {
+		// 		address: ['Address is invalid'],
+		// 	},
+
+		// 	// or avoid sending the the field value back to client by specifying the field names
+		// 	hideFields: ['password'],
+		// }),
+		// {status: submission.status === "error" ? 400 : 200}
 	}
 
 	const {
@@ -285,6 +296,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				const errorLines = error.message.split("\n").filter(Boolean)
 				const lastLine =  errorLines[errorLines.length-1] || error.message
 				return data(
+					// see comment for first submission.reply for additional options
 					submission.reply({
 						formErrors: [lastLine],
 					}),
@@ -292,7 +304,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 				);
 			} else {
 			return data(
-				submission.reply({
+				// see comment for first submission.reply for additional options
+					submission.reply({
 					formErrors: ['Unknown Error'],
 				}),
 				{ status: 500 }
