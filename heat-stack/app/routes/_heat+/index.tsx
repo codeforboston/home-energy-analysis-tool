@@ -4,7 +4,7 @@ export default function HEATLandingPage() {
 	return (
 		<div className="flex flex-col min-h-screen">
 			{/* Hero Section */}
-			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white">
+			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white" style={{ borderRadius: '10px' }}>
 				<div className="max-w-5xl mx-auto text-center">
 					<h1 className="text-5xl md:text-6xl font-bold">Home Energy Analysis Tool (HEAT) </h1>
 					<p className="text-xl md:text-2xl mt-6 mb-8">
