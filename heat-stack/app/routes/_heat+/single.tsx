@@ -365,8 +365,6 @@ export default function SubmitAnalysis({
 		shouldValidate: 'onBlur',
 		shouldRevalidate: 'onInput',
 	})
-	console.log("result", lastResult)
-	console.log("form.errors", form.errors)
 
 
 	return (
