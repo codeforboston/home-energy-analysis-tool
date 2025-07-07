@@ -289,28 +289,28 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 		}
 	} 
-		catch (error: unknown) {
-			console.error("Calculate failed")
-			if (error instanceof Error) {
-				console.error(error.message)
-				const errorLines = error.message.split("\n").filter(Boolean)
-				const lastLine =  errorLines[errorLines.length-1] || error.message
-				return data(
-					// see comment for first submission.reply for additional options
-					submission.reply({
-						formErrors: [lastLine],
-					}),
-					{ status: 500 }
-				);
-			} else {
+	catch (error: unknown) {
+		console.error("Calculate failed")
+		if (error instanceof Error) {
+			console.error(error.message)
+			const errorLines = error.message.split("\n").filter(Boolean)
+			const lastLine =  errorLines[errorLines.length-1] || error.message
 			return data(
-					// see comment for first submission.reply for additional options
-					submission.reply({
-					formErrors: ['Unknown Error'],
+				// see comment for first submission.reply for additional options
+				submission.reply({
+					formErrors: [lastLine],
 				}),
 				{ status: 500 }
 			);
-		}
+		} else {
+		return data(
+				// see comment for first submission.reply for additional options
+				submission.reply({
+				formErrors: ['Unknown Error'],
+			}),
+			{ status: 500 }
+		);
+	}
 	}
 	// return redirect(`/single`)
 } //END OF action
