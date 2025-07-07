@@ -1,5 +1,5 @@
 //heat-stack/app/routes/_heat+/single.tsx
-import { SubmissionResult, useForm } from '@conform-to/react'
+import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useState } from 'react'
@@ -45,8 +45,6 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-import { last } from 'lodash'
-
 
 /** TODO: Use url param "dev" to set defaults */
 
