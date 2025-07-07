@@ -118,7 +118,7 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-16 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
+			<section className="py-16 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-t-lg">
 				<div className="max-w-3xl mx-auto text-center">
 					<h2 className="text-4xl font-bold mb-6">Ready to Find Your Perfect Heat Pump?</h2>
 					<p className="text-xl mb-8">
@@ -131,7 +131,7 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* Footer */}
-			<footer className="py-8 px-4 bg-gray-800 text-gray-300">
+			<footer className="py-8 px-4 bg-gray-800 text-gray-300 rounded-b-lg">
 				<div className="max-w-5xl mx-auto">
 					<p className="text-center">
 						Developed by Code for Boston | <a href="https://github.com/codeforboston/home-energy-analysis-tool" className="text-white hover:underline">Open Source on GitHub</a>
