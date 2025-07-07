@@ -17,7 +17,7 @@ It will also get information from the weather station API that the rules engine 
 
 ### Rules Engine
 
-This team will help convert or read the existing spreadsheet logic into something the app can act upon. Uses numpy and Python: likely to run in-browser rather than on backend.
+This team will help convert or read the existing spreadsheet logic into something the app can act upon. Uses Python: runs in-browser rather than on backend.
 
 ### Auth/Persistence
 
