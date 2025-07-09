@@ -1,9 +1,6 @@
-import csv
 import json
 import os
 import pathlib
-from datetime import datetime
-from typing import Any
 
 import pytest
 from pydantic import BaseModel
@@ -11,6 +8,7 @@ from pytest import approx
 
 from rules_engine import engine
 from rules_engine.pydantic_models import FuelType, TemperatureInput
+from rules_engine.analyze_csv import parse_and_analyze_natural_gas_csv
 
 from .test_utils import (
     NaturalGasBillingExampleInput,
@@ -39,10 +37,15 @@ class Example(BaseModel):
     temperature_data: TemperatureInput
 
 
-def load_summary(folder: str) -> Summary:
+def summary(folder: str) -> Summary:
     with open(NATURAL_GAS_DIR / folder / "summary.json") as f:
         d = json.load(f)
         return Summary(**d)
+    
+
+def feldman_csv() -> str:
+    with open(NATURAL_GAS_DIR / "feldman" / "natural-gas-eversource.csv") as f:
+        return f.read()
 
 
 @pytest.fixture(scope="module", params=INPUT_DATA)
@@ -51,7 +54,7 @@ def data(request):
     Loads the usage and temperature data and summary inputs into an
     Example instance.
     """
-    summary = load_summary(request.param)
+    summary = summary(request.param)
 
     if summary.fuel_type == FuelType.GAS:
         natural_gas_usage = load_fuel_billing_example_input(
@@ -85,7 +88,7 @@ def test_average_indoor_temp(data: Example) -> None:
 
 
 def test_balance_point_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert data.summary.estimated_balance_point == approx(
@@ -93,8 +96,33 @@ def test_balance_point_natural_gas(data: Example) -> None:
     )
 
 
+def test_balance_point_natural_gas_from_beginning(data: Example) -> None:
+    summary = summary("feldman")
+    csv = feldman_csv()
+    form_data = {
+        "street_address": "15 Main St",
+        "city": "Glouceter",
+        "state": "MA",
+        "name": "Ethan",  # Your name or user's name,,
+        "living_area": 2200,
+        "fuel_type": "GAS",
+        "heating_system_efficiency": 97,
+        "thermostat_set_point": 68,
+        "setback_temperature": 65,
+        "setback_hours_per_day": 8,
+        "design_temperature": 60,
+    }
+    rules_engine_result = parse_and_analyze_natural_gas_csv(csv, form_data)
+    assert data.summary.estimated_balance_point == approx(rules_engine_result, abs=0.1)
+
+
+def test_example(data: Example):
+    from pprint import pprint
+    pprint(data.summary)
+
+
 def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert rules_engine_result.heat_load_output.whole_home_heat_loss_rate == approx(
@@ -103,7 +131,7 @@ def test_whole_home_heat_loss_rate_natural_gas(data: Example) -> None:
 
 
 def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert (
@@ -113,7 +141,7 @@ def test_standard_deviation_of_heat_loss_rate_natural_gas(data: Example) -> None
 
 
 def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert rules_engine_result.heat_load_output.difference_between_ti_and_tbp == approx(
@@ -122,7 +150,7 @@ def test_difference_between_ti_and_tbp_natural_gas(data: Example) -> None:
 
 
 def test_average_heat_load_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert rules_engine_result.heat_load_output.average_heat_load == approx(
@@ -131,7 +159,7 @@ def test_average_heat_load_natural_gas(data: Example) -> None:
 
 
 def test_design_temperature_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert rules_engine_result.heat_load_output.design_temperature == approx(
@@ -140,7 +168,7 @@ def test_design_temperature_natural_gas(data: Example) -> None:
 
 
 def test_maximum_heat_load_natural_gas(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
     assert rules_engine_result.heat_load_output.maximum_heat_load == approx(
@@ -149,7 +177,7 @@ def test_maximum_heat_load_natural_gas(data: Example) -> None:
 
 
 def test_processed_energy_bills_whole_home_heat_loss_rate(data: Example) -> None:
-    rules_engine_result = engine.get_outputs_natural_gas(
+    rules_engine_result = engine.outputs_natural_gas(
         data.summary, data.temperature_data, data.natural_gas_usage
     )
 

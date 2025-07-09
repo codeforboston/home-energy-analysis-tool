@@ -58,7 +58,7 @@ def get_outputs_oil_propane(
     )
 
 
-def get_outputs_natural_gas(
+def outputs_natural_gas(
     heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
     natural_gas_billing_input: NaturalGasBillingInput,
@@ -786,7 +786,6 @@ class IntermediateEnergyBill:
         self.inclusion_override = inclusion_override
         self.eliminated_as_outlier = False
         self.ua = None
-
         self.days = len(self.avg_temps)
 
     def set_initial_balance_point(self, balance_point: float) -> None:

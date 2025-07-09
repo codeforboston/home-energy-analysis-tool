@@ -7,12 +7,9 @@ from pytest import approx
 from rules_engine import engine
 from rules_engine.pydantic_models import (
     AnalysisType,
-    BalancePointGraph,
     DhwInput,
     FuelType,
     HeatLoadInput,
-    HeatLoadOutput,
-    NaturalGasBillingInput,
     ProcessedEnergyBillInput,
     TemperatureInput,
 )
