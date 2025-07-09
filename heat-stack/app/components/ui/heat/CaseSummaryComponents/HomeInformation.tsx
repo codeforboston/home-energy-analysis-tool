@@ -27,7 +27,8 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	// Calculate the decimal value whenever percentage changes
 	const livingAreaNumberHidden = useMemo(() => {
-		const convertedNumber = Number(livingAreaStringDisplayed)
+		const commaFreeString = livingAreaStringDisplayed.replace(/,/g, '');
+		const convertedNumber = Number(commaFreeString);
 		return !isNaN(convertedNumber) ? convertedNumber.toString() : ''
 	}, [livingAreaStringDisplayed])
 
@@ -54,7 +55,6 @@ export function HomeInformation(props: HomeInformationProps) {
 		await validateGeocode()
 	}
 
-
 	async function validateGeocode() {
 		if (!streetAddress || !town || !usaStateAbbrev) {
 			setGeoError(null)
@@ -75,9 +75,6 @@ export function HomeInformation(props: HomeInformationProps) {
 		}
 	}
 
-
-
-
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
@@ -89,7 +86,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	// Handle the percentage input change
 	const handleLivingAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setLivingAreaStringDisplayed(e.target.value)
+		setLivingAreaStringDisplayed(e.target.value);
 	}
 
 	return (
@@ -163,7 +160,6 @@ export function HomeInformation(props: HomeInformationProps) {
 							</div>
 						</div>
 					</div>
-
 
 					<div className="basis-1/3">
 						<Label htmlFor="state">
