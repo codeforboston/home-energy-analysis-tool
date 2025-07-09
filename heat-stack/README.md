@@ -106,13 +106,13 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    ```bash
    npm run buildpy
    ```
-3. Setup the SQLite Database:
-   ```bash
-   npm run setup
-   ```
-4. Copy the example environment file into a new `.env` file:
+3. Copy the example environment file into a new `.env` file:
    ```bash
    cp .env.example .env
+   ```
+4. Setup the SQLite Database:
+   ```bash
+   npm run setup
    ```
 5. Start the development server:
    ```bash
