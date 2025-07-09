@@ -49,9 +49,9 @@ export default function Cases({
                     <p className="mb-4 text-gray-500">Get started by creating your first case analysis.</p>
                     <Link
                         to="/single?dev=true"
-                        className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                        className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                     >
-                        Create New Case
+                        📈 Create New Case
                     </Link>
                 </div>
             ) : (
