@@ -26,7 +26,7 @@ def _load_design_temps():
             _DESIGN_TEMPS[key] = value
 
 
-def get_design_temp(state_id: str, county_id: str) -> str:
+def get_design_temp(state_id: str, county_id: str) -> int:
     global _DESIGN_TEMPS
 
     if _DESIGN_TEMPS is None:
