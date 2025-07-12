@@ -100,6 +100,7 @@
     "litefs-js": "^1.1.2",
     "lru-cache": "^11.0.2",
     "lucide-react": "^0.428.0",
+    "mark": "^0.10.0",
     "mime-types": "^2.1.35",
     "morgan": "^1.10.0",
     "openimg": "^0.5.1",

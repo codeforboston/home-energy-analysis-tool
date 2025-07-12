@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
@@ -101,6 +102,8 @@ export function HomeInformation(props: HomeInformationProps) {
 				Resident/Client Name(s)
 			</Label>
 			{/* <Form method="post" action="/inputs1"> */}
+			<HelpButton keyName='foo' />
+
 			<div className={`${componentMargin}`}>
 				<div className="mt-4 flex space-x-4">
 					<div>
