@@ -14,7 +14,7 @@ export function HelpButton({ keyName }: HelpButtonProps) {
         <>
             <button
                 onClick={() => setModalOpen(true)}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm"
             >
                 <HelpCircle size={18} /> {/* 18px icon size */}
         </button>

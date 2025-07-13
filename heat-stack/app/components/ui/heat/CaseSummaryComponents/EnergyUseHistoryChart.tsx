@@ -1,4 +1,3 @@
-import { type z } from 'zod'
 import { type UsageDataSchema, type BillingRecordsSchema, type BalancePointGraphSchema, type SummaryOutputSchema } from '#/types/types.ts'
 import { type RecalculateFunction } from '#app/utils/hooks/use-rules-engine.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
@@ -12,7 +11,6 @@ import {
 } from '../../../../components/ui/table.tsx'
 
 import HeatingUsage from './assets/HeatingUsage.svg'
-import HelpCircle from './assets/help-circle.svg'
 import NonHeatingUsage from './assets/NonHeatingUsage.svg'
 import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 

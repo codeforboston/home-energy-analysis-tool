@@ -1,11 +1,20 @@
 import * as Dialog from "@radix-ui/react-dialog"
-import { marked } from "marked"
+import { marked, Renderer } from "marked"
 import { useEffect, useState } from "react"
+import { Button } from "./button"
 
 type HelpModalProps = {
     keyName: string
     open: boolean
     onClose: () => void
+}
+
+
+// Create a custom renderer
+const renderer = new Renderer()
+renderer.link = function (href, title, text) {
+    // Return the link with target="_blank" and rel="noopener noreferrer"
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" title="${title ?? ""}">${text}</a>`
 }
 
 export function HelpModal({ keyName, open, onClose }: HelpModalProps) {
@@ -17,7 +26,7 @@ export function HelpModal({ keyName, open, onClose }: HelpModalProps) {
             try {
                 const res = await fetch(`/help/${keyName}.md`)
                 const markdown = await res.text()
-                const html = marked(markdown)
+                const html = marked(markdown, { renderer })
                 setHtmlContent(html)
             } catch {
                 setHtmlContent("<p>Help not available.</p>")
@@ -38,7 +47,7 @@ export function HelpModal({ keyName, open, onClose }: HelpModalProps) {
                         dangerouslySetInnerHTML={{ __html: htmlContent }}
                     />
                     <Dialog.Close asChild>
-                        <button className="mt-4 text-sm text-blue-600 hover:underline">Close</button>
+                        <Button>Close</Button>
                     </Dialog.Close>
                 </Dialog.Content>
             </Dialog.Portal>
