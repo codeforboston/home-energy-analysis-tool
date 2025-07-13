@@ -1,10 +1,11 @@
+import typographyPlugin from '@tailwindcss/typography'
 import { type Config } from 'tailwindcss'
 import animatePlugin from 'tailwindcss-animate'
 import radixPlugin from 'tailwindcss-radix'
 import { marketingPreset } from './app/routes/_marketing+/tailwind-preset'
 import { extendedTheme } from './app/utils/extended-theme.ts'
 
-export default {
+const config: Config = {
 	content: ['./app/**/*.{ts,tsx,jsx,js}'],
 	darkMode: 'class',
 	theme: {
@@ -15,8 +16,26 @@ export default {
 				'2xl': '1400px',
 			},
 		},
-		extend: extendedTheme,
+		extend: {
+			...extendedTheme,
+			typography: (theme) => ({
+				DEFAULT: {
+					css: {
+						a: {
+							color: theme('colors.blue.600'),
+							fontWeight: 'normal', // remove bold
+							textDecoration: 'underline',
+							'&:hover': {
+								color: theme('colors.blue.800'),
+							},
+						},
+					},
+				},
+			}),
+		},
 	},
 	presets: [marketingPreset],
-	plugins: [animatePlugin, radixPlugin],
-} satisfies Config
+	plugins: [animatePlugin, radixPlugin, typographyPlugin],
+}
+
+export default config satisfies Config
