@@ -149,177 +149,162 @@ export async function action({ request, params }: Route.ActionArgs) {
 		energy_use_upload
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
+	const str_version = JSON.stringify(parsedAndValidatedFormSchema, replacer)
+	const pyodideResultsFromTextFilePyProxy: PyProxy =
+			executeCalculation(str_version)
+	console.log("debug", pyodideResultsFromTextFilePyProxy);
 
-	try {
-		// This assignment of the same name is a special thing. We don't remember the name right now.
-		// It's not necessary, but it is possible.
-		const pyodideResultsFromTextFilePyProxy: PyProxy =
-			executeParseGasBillPy(uploadedTextFile)
-		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-			executeParseGasBillPy(uploadedTextFile).toJs()
-		pyodideResultsFromTextFilePyProxy.destroy()
-
-		/** This function takes a CSV string and an address
-		 * and returns date and weather data,
-		 * and geolocation information
-		 */
-
-	let convertedDatesTIWD, state_id, county_id
-	// Define variables at function scope for access in the return statement
-	let caseRecord, analysis, heatingInput
-	try {
-		const result = await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			street_address,
-			town,
-			state
-		)
-		convertedDatesTIWD = result.convertedDatesTIWD
-		state_id = result.state_id
-		county_id = result.county_id
-
-			if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-				/* TODO: refactor out into a separate file. 
-						for args, use submission.values, result
-				*/
-				// Save to database using Prisma
-				// First create or find HomeOwner
-				const homeOwner = await prisma.homeOwner.create({
-					data: {
-						firstName1: name.split(' ')[0] || 'Unknown',
-						lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-						email1: '', // We'll need to add these to the form
-						firstName2: '',
-						lastName2: '',
-						email2: '',
-					},
-				})
-
-				// Create location using geocoded information
-				const location = await prisma.location.create({
-					data: {
-						address: result.addressComponents?.street || street_address,
-						city: result.addressComponents?.city || town,
-						state: result.addressComponents?.state || state,
-						zipcode: result.addressComponents?.zip || '',
-						country: 'USA',
-						livingAreaSquareFeet: Math.round(living_area),
-						latitude: result.coordinates?.y || 0,
-						longitude: result.coordinates?.x || 0,
-					},
-				})
-
-				// Create Case
-				caseRecord = await prisma.case.create({
-					data: {
-						homeOwnerId: homeOwner.id,
-						locationId: location.id,
-					},
-				})
-
-				// Create Analysis
-				analysis = await prisma.analysis.create({
-					data: {
-						caseId: caseRecord.id,
-						rules_engine_version: '0.0.1',
-					},
-				})
-
-				// Create HeatingInput
-				heatingInput = await prisma.heatingInput.create({
-					data: {
-						analysisId: analysis.id,
-						fuelType: fuel_type,
-						designTemperatureOverride: Boolean(design_temperature_override),
-						heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-						thermostatSetPoint: thermostat_set_point,
-						setbackTemperature: setback_temperature || 65,
-						setbackHoursPerDay: setback_hours_per_day || 0,
-						numberOfOccupants: 2, // Default value until we add to form
-						estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-						standByLosses: 5, // Default value until we add to form
-						livingArea: living_area,
-					},
-				})
-
-				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
-
-				/* TODO: store rules-engine output in database too */
-			}
-			
-
-		// } catch (error) {
-		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
-		// 	if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
-		// 		return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
-		// 	}
-		// 	throw error
-		// }
-
-		/** Main form entrypoint
-		 */
-
-	// Call to the rules-engine with raw text file
-	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
+	return {
+		data:"",
 		parsedAndValidatedFormSchema,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-	gasBillDataFromTextFilePyProxy.destroy()
-
-	console.log(
-		'***** Rules-engine Output from CSV upload:',
-		gasBillDataFromTextFile,
-	)
-
-		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
-
-		const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
-
-		return {
-			data: str_version,
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			state_id,
-			county_id,
-			// Return case information for linking to case details
-			caseInfo: {
-				caseId: caseRecord?.id,
-				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id
-			}
+		convertedDatesTIWD:"",
+		state_id:"MA",
+		county_id:"12",
+		// Return case information for linking to case details
+		caseInfo: {
+			caseId: 0,
+			analysisId: 0,
+			heatingInputId: 0
 		}
-	} 
-	catch (error: unknown) {
-		console.error("Calculate failed")
-		if (error instanceof Error) {
-			console.error(error.message)
-			const errorLines = error.message.split("\n").filter(Boolean)
-			const lastLine =  errorLines[errorLines.length-1] || error.message
-			return data(
-				// see comment for first submission.reply for additional options
-				submission.reply({
-					formErrors: [lastLine],
-				}),
-				{ status: 500 }
-			);
-		} else {
-		return data(
-				// see comment for first submission.reply for additional options
-				submission.reply({
-				formErrors: ['Unknown Error'],
-			}),
-			{ status: 500 }
-		);
 	}
-	}
-	// return redirect(`/single`)
-} //END OF action
+	// return {
+	// 	data: str_version,
+	// 	parsedAndValidatedFormSchema,
+	// 	convertedDatesTIWD,
+	// 	state_id,
+	// 	county_id,
+	// 	// Return case information for linking to case details
+	// 	caseInfo: {
+	// 		caseId: caseRecord?.id,
+	// 		analysisId: analysis?.id,
+	// 		heatingInputId: heatingInput?.id
+	// 	}
+	// }
+	// This assignment of the same name is a special thing. We don't remember the name right now.
+	// It's not necessary, but it is possible.
+// 	const pyodideResultsFromTextFilePyProxy: PyProxy =
+// 		executeParseGasBillPy(uploadedTextFile)
+// 	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
+// 		executeParseGasBillPy(uploadedTextFile).toJs()
+// 	pyodideResultsFromTextFilePyProxy.destroy()
 
+// 	/** This function takes a CSV string and an address
+// 	 * and returns date and weather data,
+// 	 * and geolocation information
+// 	 */
+
+// 	let convertedDatesTIWD, state_id, county_id
+// 	// Define variables at function scope for access in the return statement
+// 	let caseRecord, analysis, heatingInput
+// 	try {
+// 		const result = await getConvertedDatesTIWD(
+// 			pyodideResultsFromTextFile,
+// 			street_address,
+// 			town,
+// 			state
+// 		)
+// 		convertedDatesTIWD = result.convertedDatesTIWD
+// 		state_id = result.state_id
+// 		county_id = result.county_id
+
+// 		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+// 			/* TODO: refactor out into a separate file. 
+// 					for args, use submission.values, result
+// 			*/
+// 			// Save to database using Prisma
+// 			// First create or find HomeOwner
+// 			const homeOwner = await prisma.homeOwner.create({
+// 				data: {
+// 					firstName1: name.split(' ')[0] || 'Unknown',
+// 					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+// 					email1: '', // We'll need to add these to the form
+// 					firstName2: '',
+// 					lastName2: '',
+// 					email2: '',
+// 				},
+// 			})
+
+// 			// Create location using geocoded information
+// 			const location = await prisma.location.create({
+// 				data: {
+// 					address: result.addressComponents?.street || street_address,
+// 					city: result.addressComponents?.city || town,
+// 					state: result.addressComponents?.state || state,
+// 					zipcode: result.addressComponents?.zip || '',
+// 					country: 'USA',
+// 					livingAreaSquareFeet: Math.round(living_area),
+// 					latitude: result.coordinates?.y || 0,
+// 					longitude: result.coordinates?.x || 0,
+// 				},
+// 			})
+
+// 			// Create Case
+// 			caseRecord = await prisma.case.create({
+// 				data: {
+// 					homeOwnerId: homeOwner.id,
+// 					locationId: location.id,
+// 				},
+// 			})
+
+// 			// Create Analysis
+// 			analysis = await prisma.analysis.create({
+// 				data: {
+// 					caseId: caseRecord.id,
+// 					rules_engine_version: '0.0.1',
+// 				},
+// 			})
+
+// 			// Create HeatingInput
+// 			heatingInput = await prisma.heatingInput.create({
+// 				data: {
+// 					analysisId: analysis.id,
+// 					fuelType: fuel_type,
+// 					designTemperatureOverride: Boolean(design_temperature_override),
+// 					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+// 					thermostatSetPoint: thermostat_set_point,
+// 					setbackTemperature: setback_temperature || 65,
+// 					setbackHoursPerDay: setback_hours_per_day || 0,
+// 					numberOfOccupants: 2, // Default value until we add to form
+// 					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+// 					standByLosses: 5, // Default value until we add to form
+// 					livingArea: living_area,
+// 				},
+// 			})
+
+// 			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+
+// 			/* TODO: store rules-engine output in database too */
+// 		}
+
+// 	} catch (error) {
+// 		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
+// 		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
+// 			return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
+// 		}
+// 		throw error
+// 	}
+
+// 	/** Main form entrypoint
+// 	 */
+
+// 	// Call to the rules-engine with raw text file
+// 	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
+// 		parsedAndValidatedFormSchema,
+// 		convertedDatesTIWD,
+// 		uploadedTextFile,
+// 		state_id,
+// 		county_id,
+// 	)
+// 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
+// 	gasBillDataFromTextFilePyProxy.destroy()
+
+// 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
+// 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
+
+// 	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
+// 
+	// return redirect(`/single`)
+} //END OF action 
 
 export default function SubmitAnalysis({
 	loaderData,
