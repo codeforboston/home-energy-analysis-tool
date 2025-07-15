@@ -18,7 +18,7 @@ const config: Config = {
 		},
 		extend: {
 			...extendedTheme,
-			typography: (theme) => ({
+			typography: (theme: (arg0: string) => any) => ({
 				DEFAULT: {
 					css: {
 						a: {
