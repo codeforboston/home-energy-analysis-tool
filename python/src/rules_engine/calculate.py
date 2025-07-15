@@ -13,7 +13,7 @@ from .weather_utils import WeatherUtil
 from .get_analytics import get_analytics
 from .pydantic_models import HeatLoadInput
 
-def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
+def calculate(csv_data: str, form_data: dict) -> dict:
     try:
         print("debug csv", csv_data)
         parsed_gas_data = parser.parse_gas_bill(csv_data)
