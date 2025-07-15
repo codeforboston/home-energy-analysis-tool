@@ -6,6 +6,7 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type TemperatureInputDataConverted } from './WeatherUtil';
 
 // Import Python code as raw string assets
+import executeCalculationPyCode from '../pycode/parse_all.py?raw';
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw';
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw';
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw';
@@ -78,7 +79,7 @@ await pyodide.loadPackage(
     * 'overall_end_date' => '2022-11-03'
  */
 export const executeParseGasBillPy: ExecuteParseFunction = await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse');
-
+export const executeCalculation: ExecuteParseFunction = await pyodide.runPythonAsync(executeCalculationPyCode + '\nexecuteParse');
 /**
  * Full call with csv data
  * call to get_outputs_natural_gas

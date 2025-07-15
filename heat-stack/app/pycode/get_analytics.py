@@ -6,6 +6,7 @@ from rules_engine.pydantic_models import (
 )
 from rules_engine import engine, helpers
 
+
 def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id):
     """
     second step: this will be the first time to draw the table
