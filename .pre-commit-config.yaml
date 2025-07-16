@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        args: [“--config-file=mypy.ini”]
+        files: ^heat-stack/python/
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest before push
+        entry: pytest
+        language: system
+        types: [python]
+        stages: [pre-push]
+        exclude: ^heat-stack/app/pycode/
