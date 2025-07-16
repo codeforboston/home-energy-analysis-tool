@@ -114,9 +114,15 @@ export default function Cases({
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <Link
                                                 to={`/cases/${firstAnalysis?.id}`}
-                                                className="text-indigo-600 hover:text-indigo-900"
+                                                className="text-indigo-600 hover:text-indigo-900 mx-1"
                                             >
-                                                View Details
+                                                View
+                                            </Link>
+                                            <Link
+                                                to={`/cases/${firstAnalysis?.id}/edit`}
+                                                className="text-indigo-600 hover:text-indigo-900 mx-1"
+                                            >
+                                                Edit
                                             </Link>
                                         </td>
                                     </tr>
