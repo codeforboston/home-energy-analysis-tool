@@ -124,6 +124,12 @@ export default function Cases({
                                             >
                                                 Edit
                                             </Link>
+                                            <Link
+                                                to={`/cases/${firstAnalysis?.id}/delete`}
+                                                className="text-indigo-600 hover:text-indigo-9001 mx-1"
+                                            >
+                                                Delete
+                                            </Link>
                                         </td>
                                     </tr>
                                 )
