@@ -2,7 +2,6 @@ import csv
 import re
 from dataclasses import dataclass
 
-
 # Number of counties (according to PDF) for each of the 50 states and for DC
 # Same order as PDF
 REGIONS = {
