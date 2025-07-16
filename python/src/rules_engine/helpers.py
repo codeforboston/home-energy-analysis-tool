@@ -11,7 +11,7 @@ DESIGN_TEMP_FILE = DESIGN_TEMP_DIR / "merged_structure_temps.csv"
 _DESIGN_TEMPS = None
 
 
-def load_design_temps():
+def _load_design_temps():
     global _DESIGN_TEMPS
 
     _DESIGN_TEMPS = {}
@@ -30,7 +30,7 @@ def get_design_temp(state_id: str, county_id: str) -> int:
     global _DESIGN_TEMPS
 
     if _DESIGN_TEMPS is None:
-        load_design_temps()
+        _load_design_temps()
 
     key = (state_id, county_id)
     if _DESIGN_TEMPS is not None:
@@ -41,4 +41,4 @@ def get_design_temp(state_id: str, county_id: str) -> int:
             "Ensure that the ids are valid and that design temperature data is up to date."
         )
 
-    return design_temp
+    return int(design_temp)
