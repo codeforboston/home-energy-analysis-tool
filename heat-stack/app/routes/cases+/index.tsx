@@ -2,8 +2,10 @@ import { data, useLoaderData, Link } from 'react-router'
 import { format } from 'date-fns'
 import { prisma } from '#app/utils/db.server.ts'
 import { type Route } from './+types/index.ts'
+import { getUserId } from '#app/utils/auth.server.ts'
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+    const userID = getUserId(request)
     // Fetch all cases with their related data
     const cases = await prisma.case.findMany({
         include: {
@@ -49,9 +51,9 @@ export default function Cases({
                     <p className="mb-4 text-gray-500">Get started by creating your first case analysis.</p>
                     <Link
                         to="/single?dev=true"
-                        className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                        className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                     >
-                        Create New Case
+                        📈 Create New Case
                     </Link>
                 </div>
             ) : (
@@ -114,9 +116,21 @@ export default function Cases({
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <Link
                                                 to={`/cases/${firstAnalysis?.id}`}
-                                                className="text-indigo-600 hover:text-indigo-900"
+                                                className="text-indigo-600 hover:text-indigo-900 mx-1"
                                             >
-                                                View Details
+                                                View
+                                            </Link>
+                                            <Link
+                                                to={`/cases/${firstAnalysis?.id}/edit`}
+                                                className="text-indigo-600 hover:text-indigo-900 mx-1"
+                                            >
+                                                Edit
+                                            </Link>
+                                            <Link
+                                                to={`/cases/${firstAnalysis?.id}/delete`}
+                                                className="text-indigo-600 hover:text-indigo-9001 mx-1"
+                                            >
+                                                Delete
                                             </Link>
                                         </td>
                                     </tr>
