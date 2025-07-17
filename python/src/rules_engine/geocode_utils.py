@@ -34,7 +34,7 @@ class GeocodeUtil:
             "address": address,
             "format": "json",
             "benchmark": "2020",
-            "vintage": "Census2020_Census2020"
+            "vintage": "Census2020_Census2020",
         }
 
         query_string = urlparse.urlencode(params)
@@ -64,11 +64,14 @@ class GeocodeUtil:
 
         # Combine parts to form a street
         street = " ".join(
-            filter(None, [
-                address_components.get("preDirection"),
-                address_components.get("streetName"),
-                address_components.get("suffixType")
-            ])
+            filter(
+                None,
+                [
+                    address_components.get("preDirection"),
+                    address_components.get("streetName"),
+                    address_components.get("suffixType"),
+                ],
+            )
         )
 
         return Location(
@@ -80,8 +83,8 @@ class GeocodeUtil:
                 city=address_components.get("city"),
                 state=address_components.get("state"),
                 zip=address_components.get("zip"),
-                formattedAddress=address_match.get("matchedAddress", address)
-            )
+                formattedAddress=address_match.get("matchedAddress", address),
+            ),
         )
 
 

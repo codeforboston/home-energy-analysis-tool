@@ -12,6 +12,7 @@ from .weather_utils import WeatherUtil
 from .get_analytics import get_analytics
 from .pydantic_models import HeatLoadInput
 
+
 def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     try:
         parsed_gas_data = parser.parse_gas_bill(csv_data)
@@ -41,8 +42,8 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
             end_date = today
 
         # Format as yyyy-mm-dd strings
-        start_date_str = start_date.strftime('%Y-%m-%d')
-        end_date_str = end_date.strftime('%Y-%m-%d')
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        end_date_str = end_date.strftime("%Y-%m-%d")
 
     except Exception as e:
         return {"errors": {"date_handling": f"Date error: {str(e)}"}}
@@ -52,21 +53,24 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
         street_address = form_data["street_address"]
         city = form_data["city"]
         state = form_data["state"]
-        full_address = street_address + ", " + city +", "+state
+        full_address = street_address + ", " + city + ", " + state
         geo_result = GeocodeUtil.get_ll(full_address)
     except:
         raise ValueError("Unable to get address")
-     
-    print("geo_result",  geo_result.coordinates["x"],
-            geo_result.coordinates["y"],
-            start_date_str,
-            type(start_date_str)   )
+
+    print(
+        "geo_result",
+        geo_result.coordinates["x"],
+        geo_result.coordinates["y"],
+        start_date_str,
+        type(start_date_str),
+    )
     try:
         weather_result = WeatherUtil.get_that_weatha_data(
-            longitude = geo_result.coordinates["x"],
-            latitude = geo_result.coordinates["y"],
-            start_date = start_date_str,
-            end_date = end_date_str      
+            longitude=geo_result.coordinates["x"],
+            latitude=geo_result.coordinates["y"],
+            start_date=start_date_str,
+            end_date=end_date_str,
         )
 
     except Exception as e:
@@ -78,9 +82,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
     # --- Run rules engine ---
     try:
         form_data["name"] = f"{form_data['name']}'s home"
-        result = get_analytics(
-            form_data, weather_result, csv_data
-        )
+        result = get_analytics(form_data, weather_result, csv_data)
     except Exception as e:
         raise e
 
@@ -90,6 +92,7 @@ def analyze_energy_case(csv_data: str, form_data: dict) -> dict:
         "county_id": geo_result["county_id"],
         "analysisResults": result,
     }
+
 
 def main():
     # Provide your input file path here
@@ -106,12 +109,12 @@ def main():
         "city": "Cambridge",
         "state": "MA",
         "name": "Ethan",  # Your name or user's name,,
-        "living_area":2200,
-        "fuel_type": "GAS" ,
+        "living_area": 2200,
+        "fuel_type": "GAS",
         "heating_system_efficiency": 97,
         "thermostat_set_point": 68,
         "setback_temperature": 65,
-        "setback_hours_per_day":8,
+        "setback_hours_per_day": 8,
         "design_temperature": 60,
     }
 
@@ -124,4 +127,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

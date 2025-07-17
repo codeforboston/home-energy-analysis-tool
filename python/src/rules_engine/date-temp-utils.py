@@ -15,14 +15,13 @@ def get_converted_dates_tiwd(
     pyodide_results_from_text_file: NaturalGasUsageDataSchema,
     street_address: str,
     city: str,
-    state: str
+    state: str,
 ) -> Dict[str, Any]:
     """
     Takes CSV-derived data and an address, returns converted weather data
     and geocoding information.
     """
     print("Loading geocode_util/weather_util")
-
 
     combined_address = f"{street_address}, {city}, {state}"
     geocode_result = GeocodeUtil.get_ll(combined_address)
@@ -58,9 +57,7 @@ def get_converted_dates_tiwd(
         return date.date().isoformat()
 
     weather_data = WeatherUtil.get_that_weatha_data(
-        x, y,
-        format_date_string(start_date),
-        format_date_string(end_date)
+        x, y, format_date_string(start_date), format_date_string(end_date)
     )
 
     if weather_data is None:
@@ -73,7 +70,7 @@ def get_converted_dates_tiwd(
 
     converted_dates_tiwd: TemperatureInputDataConverted = {
         "dates": dates_from_tiwd,
-        "temperatures": weather_data["temperatures"]
+        "temperatures": weather_data["temperatures"],
     }
 
     return {
@@ -81,5 +78,5 @@ def get_converted_dates_tiwd(
         "state_id": geocode_result.get("state_id"),
         "county_id": geocode_result.get("county_id"),
         "coordinates": coordinates,
-        "addressComponents": geocode_result.get("addressComponents")
+        "addressComponents": geocode_result.get("addressComponents"),
     }

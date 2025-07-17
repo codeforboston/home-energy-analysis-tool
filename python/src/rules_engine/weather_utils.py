@@ -12,10 +12,7 @@ WHATEVER_PATH = "/v1/archive"
 class WeatherUtil:
     @staticmethod
     def get_that_weatha_data(
-        longitude: float,
-        latitude: float,
-        start_date: str,
-        end_date: str
+        longitude: float, latitude: float, start_date: str, end_date: str
     ) -> Optional[Dict[str, List[Any]]]:
         """
         :param longitude: Longitude of the location
@@ -31,7 +28,7 @@ class WeatherUtil:
             "timezone": "America/New_York",
             "start_date": start_date,
             "end_date": end_date,
-            "temperature_unit": "fahrenheit"
+            "temperature_unit": "fahrenheit",
         }
 
         query_string = parse.urlencode(params)
@@ -55,23 +52,30 @@ class WeatherUtil:
                             print("ok", type(t))
                         else:
                             print(f"unexpected value: {t}, type: {type(t)}")
-                    temperatures = [float(t) for t in data["daily"]["temperature_2m_mean"] if type(t) in (str,int,float)]
-
+                    temperatures = [
+                        float(t)
+                        for t in data["daily"]["temperature_2m_mean"]
+                        if type(t) in (str, int, float)
+                    ]
 
                     result = TemperatureInput(dates=dates, temperatures=temperatures)
-                    print("result",)
+                    print(
+                        "result",
+                    )
                     return result
 
             except Exception as e:
                 retry_count += 1
                 if retry_count <= max_retries:
-                    delay = 2 ** retry_count
-                    print(f"Attempt {retry_count} failed. Retrying in {delay} seconds...")
+                    delay = 2**retry_count
+                    print(
+                        f"Attempt {retry_count} failed. Retrying in {delay} seconds..."
+                    )
                     time.sleep(delay)
                 else:
                     print("Failed to fetch weather data after multiple attempts:", e)
                     raise
-                 
+
 
 # Example usage
 if __name__ == "__main__":
@@ -79,7 +83,6 @@ if __name__ == "__main__":
         longitude=-73.935242,
         latitude=40.730610,
         start_date="2022-06-04",
-        end_date="2022-06-10"
+        end_date="2022-06-10",
     )
     print(result)
- 
