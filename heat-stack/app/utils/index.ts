@@ -78,15 +78,10 @@ export const buildCurrentUsageData = (
 	return newUsageData
 }
 
-type ActionResult =
-	| (SubmissionResult<string[]> & { caseInfo?: CaseInfo })
-	| ({ data: string } & { caseInfo?: CaseInfo })
-	| undefined
+type ActionResult = SubmissionResult<string[]> & { caseInfo?: CaseInfo }  | { data: string } & { caseInfo?: CaseInfo }  | undefined
 
 /** typeguard for useAction between string[] and {data: string} */
-export function hasDataProperty(
-	result: ActionResult,
-): result is { data: string } {
+export function hasDataProperty(result: ActionResult): result is { data: string } {
 	return (
 		result !== undefined &&
 		'data' in result &&
@@ -94,20 +89,12 @@ export function hasDataProperty(
 	)
 }
 interface HasParsedAndValidatedFormSchema {
-	parsedAndValidatedFormSchema: unknown
-}
-export function hasParsedAndValidatedFormSchemaProperty(
-	value: unknown,
-): value is HasParsedAndValidatedFormSchema {
-	if (
-		!(
-			value !== null &&
-			typeof value === 'object' &&
-			'parsedAndValidatedFormSchema' in value
-		)
-	) {
-		return false
+	parsedAndValidatedFormSchema: unknown;
+  }
+export function hasParsedAndValidatedFormSchemaProperty(value: unknown): value is HasParsedAndValidatedFormSchema {
+	if (!(value !== null && typeof value === 'object' && 'parsedAndValidatedFormSchema' in value)) {
+	  return false;
 	}
-
-	return Schema.safeParse(value.parsedAndValidatedFormSchema).success
-}
+	
+	return Schema.safeParse(value.parsedAndValidatedFormSchema).success;
+  }

@@ -123,8 +123,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 	// Connection exists already? Make a new session
 	if (existingConnection) {
-		// HEAT app changed the below arguments to include redirectTo explicitly & allow sending to explicit desired route, not root: 
-		return makeSession({ request, userId: existingConnection.userId, redirectTo })
+		return makeSession({ request, userId: existingConnection.userId })
 	}
 
 	// if the email matches a user in the db, then link the account and

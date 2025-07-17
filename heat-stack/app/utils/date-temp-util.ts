@@ -63,7 +63,7 @@ export default async function getConvertedDatesTIWD(
 
 	// Use default dates if parsing fails
 	if (isNaN(start_date.getTime())) {
-		console.warn('Invalid start date, using date from 2 years ago')
+		console.warn('date, using date from 2 years ago')
 		start_date = twoYearsAgo
 	}
 	if (isNaN(end_date.getTime())) {

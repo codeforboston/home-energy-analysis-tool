@@ -107,16 +107,13 @@ class GeocodeUtil {
 			coordinates: coordz,
 			state_id: addressMatch?.geographies.Counties?.[0]?.['STATE'],
 			county_id: addressMatch?.geographies?.Counties?.[0]?.['COUNTY'],
-			addressComponents: addressComponents
-				? {
-						street:
-							`${addressComponents.preDirection || ''} ${addressComponents.streetName || ''} ${addressComponents.suffixType || ''}`.trim(),
-						city: addressComponents.city || '',
-						state: addressComponents.state || '',
-						zip: addressComponents.zip || '',
-						formattedAddress: addressMatch?.matchedAddress || address,
-					}
-				: null,
+			addressComponents: addressComponents ? {
+				street: `${addressComponents.preDirection || ''} ${addressComponents.streetName || ''} ${addressComponents.suffixType || ''}`.trim(),
+				city: addressComponents.city || '',
+				state: addressComponents.state || '',
+				zip: addressComponents.zip || '',
+				formattedAddress: addressMatch?.matchedAddress || address
+			} : null
 		}
 	}
 }

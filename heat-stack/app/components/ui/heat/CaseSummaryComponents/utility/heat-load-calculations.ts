@@ -39,13 +39,13 @@ export function calculateAvgHeatLoad(
 		estimated_balance_point,
 	} = heatLoadSummary
 	return Math.max(
-		0,
-		(designSetPoint -
-			average_indoor_temperature +
-			estimated_balance_point -
-			temperature) *
-			whole_home_heat_loss_rate,
-	)
+			0,
+			(designSetPoint -
+				average_indoor_temperature +
+				estimated_balance_point -
+				temperature) *
+				whole_home_heat_loss_rate,
+		)
 }
 
 /**
@@ -65,5 +65,5 @@ export function calculateAvgHeatLoadEndPoint(
 	designSetPoint: number,
 	averageIndoorTemperature: number,
 ): number {
-	return balancePointTemperature + designSetPoint - averageIndoorTemperature
+	return balancePointTemperature + designSetPoint - averageIndoorTemperature;
 }

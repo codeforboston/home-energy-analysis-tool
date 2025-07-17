@@ -85,7 +85,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function LoginPage({ actionData }: Route.ComponentProps) {
 	const isPending = useIsPending()
 	const [searchParams] = useSearchParams()
-	const redirectTo = searchParams.get('redirectTo') || '/cases'
+	const redirectTo = searchParams.get('redirectTo')
 
 	const [form, fields] = useForm({
 		id: 'login-form',

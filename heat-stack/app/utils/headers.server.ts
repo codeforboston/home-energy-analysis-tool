@@ -16,7 +16,7 @@ export function pipeHeaders({
 	errorHeaders,
 }: HeadersArgs) {
 	const headers = new Headers()
-
+	
 	// get the one that's actually in use
 	let currentHeaders: Headers
 	if (errorHeaders !== undefined) {

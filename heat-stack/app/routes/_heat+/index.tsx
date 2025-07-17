@@ -4,7 +4,7 @@ export default function HEATLandingPage() {
 	return (
 		<div className="flex flex-col min-h-screen">
 			{/* Hero Section */}
-			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white" style={{ borderRadius: '10px' }}>
+			<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-20 px-4 text-white">
 				<div className="max-w-5xl mx-auto text-center">
 					<h1 className="text-5xl md:text-6xl font-bold">Home Energy Analysis Tool (HEAT) </h1>
 					<p className="text-xl md:text-2xl mt-6 mb-8">
@@ -118,7 +118,7 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-16 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-t-lg">
+			<section className="py-16 px-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
 				<div className="max-w-3xl mx-auto text-center">
 					<h2 className="text-4xl font-bold mb-6">Ready to Find Your Perfect Heat Pump?</h2>
 					<p className="text-xl mb-8">
@@ -131,7 +131,7 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* Footer */}
-			<footer className="py-8 px-4 bg-gray-800 text-gray-300 rounded-b-lg">
+			<footer className="py-8 px-4 bg-gray-800 text-gray-300">
 				<div className="max-w-5xl mx-auto">
 					<p className="text-center">
 						Developed by Code for Boston | <a href="https://github.com/codeforboston/home-energy-analysis-tool" className="text-white hover:underline">Open Source on GitHub</a>

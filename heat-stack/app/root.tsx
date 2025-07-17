@@ -193,7 +193,6 @@ function App() {
 	})
 	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
-	console.log("Home page rendered.")
 
 	return (
 		<OpenImgContextProvider
@@ -203,7 +202,7 @@ function App() {
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6 px-0">
 					{!isOnHomePage ? <Link to="/">
-						<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white" style={{ borderRadius:'10px' }}>
+						<section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white">
 							<div className="max-w-5xl mx-auto text-center">
 								<h1 className="text-4xl md:text-4xl font-bold">Home Energy Analysis Tool (HEAT)</h1>
 							</div>
