@@ -2,10 +2,16 @@ from rules_engine import engine, helpers, parser
 from rules_engine.pydantic_models import (FuelType, HeatLoadInput,
                                           TemperatureInput)
 
+from rules_engine import parser
+from rules_engine.pydantic_models import (
+    FuelType,
+    HeatLoadInput,
+    TemperatureInput
+)
+from rules_engine import engine, helpers
 
-def executeGetAnalyticsFromForm(
-    summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id
-):
+
+def executeGetAnalyticsFromForm(summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id):
     """
     second step: this will be the first time to draw the table
     # two new geocode parameters may be needed for design temp:
