@@ -1,0 +1,3 @@
+Living Area
+
+Enter the square footage of the home's above-grade conditioned space.  If the basement includes conditioned space and has walk-out doors at grade level (not just a bulkhead), add 50% of the total basement area. Assessor property cards usually report above-grade conditioned space as “living area” or “finished area”. If the property card value is substantially lower than reported on the homeowner questionnaire, check whether the property card includes additions to the home. Total basement area is provided by, or can be estimated from, the property card. This input is used only for placing the home in the comparison graph \- it does NOT affect the heat load estimate.
