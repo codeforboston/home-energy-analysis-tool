@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./heat-stack:/app:cached
+      - ./python:/py/python:cached
+      - sqlite-data:/app/data
+    ports:
+      - "3000:3000"  # Remix dev server
+      - "5555:5555"  # Prisma Studio (optional)
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: "file:/app/data/sqlite.db"
+    command: npm run dev
+
+volumes:
+  sqlite-data:
