@@ -98,6 +98,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				Resident/Client Name(s)
 			</Label>
 			{/* <Form method="post" action="/inputs1"> */}
+
 			<div className={`${componentMargin}`}>
 				<div className="mt-4 flex space-x-4">
 					<div>
