@@ -89,17 +89,6 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
                     <div className="prose max-w-none px-6 py-4 overflow-y-auto max-h-[calc(80vh-100px)]">
                         <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
                     </div>
-
-                    {/* Close button */}
-                    <div className="px-6 pb-4 text-right">
-                        <button
-                            onClick={onClose}
-                            className="mt-2 inline-flex items-center rounded bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300"
-                            type="button"
-                        >
-                            Close
-                        </button>
-                    </div>
                 </Dialog.Content>
             </Dialog.Portal>
         </Dialog.Root>
