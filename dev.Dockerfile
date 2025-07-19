@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y \
   sqlite3 build-essential openssl ca-certificates \
   && apt-get clean
 
+WORKDIR /py
+RUN python3 -m venv venv && \
+  . venv/bin/activate && \
+  pip install build
+
 # Create working directory for Remix app
 WORKDIR /app
 
@@ -15,15 +20,13 @@ WORKDIR /app
 COPY heat-stack/package.json ./
 COPY heat-stack/package-lock.json ./
 COPY heat-stack/.npmrc ./
+COPY heat-stack/.env.example ./.env
 
 # Install dependencies
+# Set up working directory for Python
+
 RUN npm install
 
-# Set up working directory for Python
-WORKDIR /py
-RUN python3 -m venv venv && \
-  . venv/bin/activate && \
-  pip install build
 
 # Add SQLite CLI shortcut
 RUN echo '#!/bin/sh\nsqlite3 $DATABASE_URL' > /usr/local/bin/database-cli && chmod +x /usr/local/bin/database-cli
