@@ -2,6 +2,8 @@
 
 FROM node:22-bookworm-slim
 
+RUN echo "⚠️ This Dockerfile is not recommended for current development use. See docs/decision-records/docker-for-dev.md for more info." && exit 1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
   python3 python3-pip python3-venv \
@@ -26,7 +28,6 @@ COPY heat-stack/.env.example ./.env
 # Set up working directory for Python
 
 RUN npm install
-
 
 # Add SQLite CLI shortcut
 RUN echo '#!/bin/sh\nsqlite3 $DATABASE_URL' > /usr/local/bin/database-cli && chmod +x /usr/local/bin/database-cli

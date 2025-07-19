@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: dev.Dockerfile
     volumes:
-      - ./heat-stack:/app:cached
+      - ./heat-stack:/app
       - /app/node_modules
-      - ./python:/py/python:cached
+      - ./python:/py/python
       - sqlite-data:/app/data
     ports:
       - "3000:3000"  # Remix dev server
@@ -16,7 +16,9 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: "file:/app/data/sqlite.db"
-    command: sh -c "npm run setup && npm run buildpy-docker && npm run dev"
+      command: sh -c "echo '⚠️ This Docker setup is currently not recommended for development. See docs/decision-records/docker-for-dev.md for details.' && exit 1"
+
+    # command: sh -c "npm run setup && npm run buildpy-docker && npm run dev"
 
 
 volumes:
