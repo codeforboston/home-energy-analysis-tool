@@ -92,7 +92,7 @@ test('pyodide solves climate change', async () => {
               get it from https://github.com/pydantic/pydantic-core/releases e.g. https://github.com/pydantic/pydantic-core/releases/download/v2.14.5/pydantic_core-2.14.5-cp311-cp311-emscripten_3_1_32_wasm32.whl
         */
 		await pyodide.loadPackage(
-			'public/pyodide-env/pydantic_core-2.27.2-cp312-cp312-pyodide_2024_0_wasm32.whl',
+			'public/pyodide-env/pydantic_core-2.27.2-cp313-cp313-pyodide_2025_0_wasm32.whl',
 		)
 
 		/* NOTES for pydantic, typing-extensions, annotated_types: 
@@ -104,13 +104,13 @@ test('pyodide solves climate change', async () => {
                - https://pypi.org/project/annotated-types/#files
         */
 		await pyodide.loadPackage(
-			'public/pyodide-env/pydantic-2.10.5-py3-none-any.whl',
+			'public/pyodide-env/pydantic-2.10.6-py3-none-any.whl',
 		)
 		await pyodide.loadPackage(
-			'public/pyodide-env/typing_extensions-4.11.0-py3-none-any.whl',
+			'public/pyodide-env/typing_extensions-4.14.0-py3-none-any.whl',
 		)
 		await pyodide.loadPackage(
-			'public/pyodide-env/annotated_types-0.6.0-py3-none-any.whl',
+			'public/pyodide-env/annotated_types-0.7.0-py3-none-any.whl',
 		)
 
 		/* NOTES FOR DEBUGGING new requirements.txt

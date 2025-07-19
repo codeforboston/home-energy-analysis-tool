@@ -4,7 +4,7 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt pyproject.toml
 #
-annotated-types==0.5.0
+annotated-types==0.7.0
     # via pydantic
 black==23.3.0
     # via rules-engine (pyproject.toml)
@@ -43,9 +43,9 @@ platformdirs==3.7.0
     # via black
 pluggy==1.0.0
     # via pytest
-pydantic==2.3.0
+pydantic==2.10.6
     # via rules-engine (pyproject.toml)
-pydantic-core==2.6.3
+pydantic-core==2.27.2
     # via pydantic
 pydocstyle==6.3.0
     # via rules-engine (pyproject.toml)
@@ -59,7 +59,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 types-openpyxl==3.1.4.20240626
     # via rules-engine (pyproject.toml)
-typing-extensions==4.6.3
+typing-extensions==4.14.0
     # via
     #   mypy
     #   pydantic

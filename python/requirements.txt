@@ -4,13 +4,13 @@
 #
 #    pip-compile pyproject.toml
 #
-annotated-types==0.5.0
+annotated-types==0.7.0
     # via pydantic
-pydantic==2.3.0
+pydantic==2.10.6
     # via rules-engine (pyproject.toml)
-pydantic-core==2.6.3
+pydantic-core==2.27.2
     # via pydantic
-typing-extensions==4.8.0
+typing-extensions==4.14.0
     # via
     #   pydantic
     #   pydantic-core

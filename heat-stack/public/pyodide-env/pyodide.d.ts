@@ -44,7 +44,9 @@ type FSNode = {
 	mode: number;
 };
 type FSStream = {
-	tty?: boolean;
+	tty?: {
+		ops: object;
+	};
 	seekable?: boolean;
 	stream_ops: FSStreamOps;
 	node: FSNode;
@@ -57,7 +59,7 @@ type FSStreamOpsGen<T> = {
 	read: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
 	write: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
 };
-interface FS {
+interface FSType {
 	unlink: (path: string) => void;
 	mkdirTree: (path: string, mode?: number) => void;
 	chdir: (path: string) => void;
@@ -94,9 +96,18 @@ interface FS {
 	};
 	registerDevice<T>(dev: number, ops: FSStreamOpsGen<T>): void;
 	syncfs(dir: boolean, oncomplete: (val: void) => void): void;
-	findObject(a: string, dontResolveLastLink?: boolean): any;
-	readFile(a: string): Uint8Array;
 }
+type LockfileInfo = {
+	arch: "wasm32" | "wasm64";
+	abi_version: string;
+	platform: string;
+	version: string;
+	python: string;
+};
+type Lockfile = {
+	info: LockfileInfo;
+	packages: Record<string, InternalPackageData>;
+};
 type PackageType = "package" | "cpython_module" | "shared_library" | "static_library";
 interface PackageData {
 	name: string;
@@ -106,6 +117,16 @@ interface PackageData {
 	packageType: PackageType;
 }
 type LoadedPackages = Record<string, string>;
+type InternalPackageData = {
+	name: string;
+	version: string;
+	file_name: string;
+	package_type: PackageType;
+	install_dir: string;
+	sha256: string;
+	imports: string[];
+	depends: string[];
+};
 /** @deprecated Use `import type { PyProxy } from "pyodide/ffi"` instead */
 interface PyProxy {
 	[x: string]: any;
@@ -173,7 +194,7 @@ declare class PyProxy {
 	 * @param options
 	 * @return The JavaScript object resulting from the conversion.
 	 */
-	toJs({ depth, pyproxies, create_pyproxies, dict_converter, default_converter, }?: {
+	toJs({ depth, pyproxies, create_pyproxies, dict_converter, default_converter, eager_converter, }?: {
 		/** How many layers deep to perform the conversion. Defaults to infinite */
 		depth?: number;
 		/**
@@ -208,6 +229,15 @@ declare class PyProxy {
 		 * documentation of :meth:`~pyodide.ffi.to_js`.
 		 */
 		default_converter?: (obj: PyProxy, convert: (obj: PyProxy) => any, cacheConversion: (obj: PyProxy, result: any) => void) => any;
+		/**
+		 * Optional callback to convert objects which gets called after ``str``,
+		 * ``int``, ``float``, ``bool``, ``None``, and ``JsProxy`` are converted but
+		 * *before* any default conversions are applied to standard data structures.
+		 *
+		 * Its arguments are the same as `dict_converter`.
+		 * See the documentation of :meth:`~pyodide.ffi.to_js`.
+		 */
+		eager_converter?: (obj: PyProxy, convert: (obj: PyProxy) => any, cacheConversion: (obj: PyProxy, result: any) => void) => any;
 	}): any;
 }
 declare class PyProxyWithLength extends PyProxy {
@@ -1073,7 +1103,7 @@ declare class PyodideAPI {
 		messageCallback?: (message: string) => void;
 		errorCallback?: (message: string) => void;
 		checkIntegrity?: boolean;
-	}) => Promise<Array<PackageData>>;
+	}) => Promise<PackageData[]>;
 	/** @hidden */
 	static loadedPackages: LoadedPackages;
 	/** @hidden */
@@ -1127,7 +1157,7 @@ declare class PyodideAPI {
 	 * are available as members of ``FS.filesystems``:
 	 * ``IDBFS``, ``NODEFS``, ``PROXYFS``, ``WORKERFS``.
 	 */
-	static FS: FS;
+	static FS: FSType;
 	/**
 	 * An alias to the `Emscripten Path API
 	 * <https://github.com/emscripten-core/emscripten/blob/main/src/library_path.js>`_.
@@ -1450,6 +1480,17 @@ declare class PyodideAPI {
 	static makeMemorySnapshot({ serializer, }?: {
 		serializer?: (obj: any) => any;
 	}): Uint8Array;
+	/**
+	 * Returns the pyodide lockfile used to load the current Pyodide instance.
+	 * The format of the lockfile is defined in the `pyodide/pyodide-lock
+	 * <https://github.com/pyodide/pyodide-lock>`_ repository.
+	 */
+	static get lockfile(): Lockfile;
+	/**
+	 * Returns the base URL of the lockfile, which is used to locate the packages
+	 * distributed with the lockfile.
+	 */
+	static get lockfileBaseUrl(): string;
 }
 /** @hidden */
 export type PyodideInterface = typeof PyodideAPI;
@@ -1467,8 +1508,11 @@ type ConfigType = {
 	stdout?: (msg: string) => void;
 	stderr?: (msg: string) => void;
 	jsglobals?: object;
+	_sysExecutable?: string;
 	args: string[];
-	_node_mounts: string[];
+	fsInit?: (FS: FSType, info: {
+		sitePackages: string;
+	}) => Promise<void>;
 	env: {
 		[key: string]: string;
 	};
@@ -1559,6 +1603,11 @@ export declare function loadPyodide(options?: {
 	 */
 	jsglobals?: object;
 	/**
+	 * Determine the value of ``sys.executable``.
+	 * @ignore
+	 */
+	_sysExecutable?: string;
+	/**
 	 * Command line arguments to pass to Python on startup. See `Python command
 	 * line interface options
 	 * <https://docs.python.org/3.10/using/cmdline.html#interface-options>`_ for
@@ -1588,12 +1637,13 @@ export declare function loadPyodide(options?: {
 	packages?: string[];
 	/**
 	 * Opt into the old behavior where :js:func:`PyProxy.toString() <pyodide.ffi.PyProxy.toString>`
-	 * calls :py:func:`repr` and not :py:class:`str() <str>`.
+	 * calls :py:func:`repr` and not :py:class:`str() <str>`. Deprecated.
 	 * @deprecated
 	 */
 	pyproxyToStringRepr?: boolean;
 	/**
-	 * Make loop.run_until_complete() function correctly using stack switching
+	 * Make loop.run_until_complete() function correctly using stack switching.
+	 * Default: ``true``.
 	 */
 	enableRunUntilComplete?: boolean;
 	/**
@@ -1602,14 +1652,20 @@ export declare function loadPyodide(options?: {
 	 */
 	checkAPIVersion?: boolean;
 	/**
-	 * Used by the cli runner. If we want to detect a virtual environment from
-	 * the host file system, it needs to be visible from when `main()` is
-	 * called. The directories in this list will be mounted at the same address
-	 * into the Emscripten file system so that virtual environments work in the
-	 * cli runner.
-	 * @ignore
+	 * This is a hook that allows modification of the file system before the
+	 * main() function is called and the intereter is started. When this is
+	 * called, it is guaranteed that there is an empty site-packages directory.
+	 * @experimental
 	 */
-	_node_mounts?: string[];
+	fsInit?: (FS: FSType, info: {
+		sitePackages: string;
+	}) => Promise<void>;
+	/**
+	 * Opt into the old behavior where JavaScript `null` is converted to `None`
+	 * instead of `jsnull`. Deprecated.
+	 * @deprecated
+	 */
+	convertNullToNone?: boolean;
 	/** @ignore */
 	_makeSnapshot?: boolean;
 	/** @ignore */
