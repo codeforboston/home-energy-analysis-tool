@@ -31,7 +31,7 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import {
 	HomeSchema,
 	LocationSchema,
-	CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */
+	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
 	UploadEnergyUseFileSchema,
 } from '../../../types/index.ts'
 import {
@@ -45,7 +45,6 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -65,9 +64,8 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 	setback_hours_per_day: true,
 })
 
-
-export const Schema = UploadEnergyUseFileSchema.and(HomeFormSchema.and(
-	CurrentHeatingSystemSchema)
+export const Schema = UploadEnergyUseFileSchema.and(
+	HomeFormSchema.and(CurrentHeatingSystemSchema),
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -77,14 +75,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 interface ErrorWithExceptionMessage extends Error {
-	exceptionMessage?: string;
+	exceptionMessage?: string
 }
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-	caseId?: number;
-	analysisId?: number;
-	heatingInputId?: number;
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -128,7 +126,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -151,7 +149,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
@@ -176,84 +174,84 @@ export async function action({ request, params }: Route.ActionArgs) {
 			pyodideResultsFromTextFile,
 			street_address,
 			town,
-			state
+			state,
 		)
 		convertedDatesTIWD = result.convertedDatesTIWD
 		state_id = result.state_id
 		county_id = result.county_id
 
-		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-			/* TODO: refactor out into a separate file. 
+		/* TODO: refactor out into a separate file. 
 					for args, use submission.values, result
 			*/
-			// Save to database using Prisma
-			// First create or find HomeOwner
-			const homeOwner = await prisma.homeOwner.create({
-				data: {
-					firstName1: name.split(' ')[0] || 'Unknown',
-					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-					email1: '', // We'll need to add these to the form
-					firstName2: '',
-					lastName2: '',
-					email2: '',
-				},
-			})
+		// Save to database using Prisma
+		// First create or find HomeOwner
+		const homeOwner = await prisma.homeOwner.create({
+			data: {
+				firstName1: name.split(' ')[0] || 'Unknown',
+				lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+				email1: '', // We'll need to add these to the form
+				firstName2: '',
+				lastName2: '',
+				email2: '',
+			},
+		})
 
-			// Create location using geocoded information
-			const location = await prisma.location.create({
-				data: {
-					address: result.addressComponents?.street || street_address,
-					city: result.addressComponents?.city || town,
-					state: result.addressComponents?.state || state,
-					zipcode: result.addressComponents?.zip || '',
-					country: 'USA',
-					livingAreaSquareFeet: Math.round(living_area),
-					latitude: result.coordinates?.y || 0,
-					longitude: result.coordinates?.x || 0,
-				},
-			})
+		// Create location using geocoded information
+		const location = await prisma.location.create({
+			data: {
+				address: result.addressComponents?.street || street_address,
+				city: result.addressComponents?.city || town,
+				state: result.addressComponents?.state || state,
+				zipcode: result.addressComponents?.zip || '',
+				country: 'USA',
+				livingAreaSquareFeet: Math.round(living_area),
+				latitude: result.coordinates?.y || 0,
+				longitude: result.coordinates?.x || 0,
+			},
+		})
 
-			// Create Case
-			caseRecord = await prisma.case.create({
-				data: {
-					homeOwnerId: homeOwner.id,
-					locationId: location.id,
-				},
-			})
+		// Create Case
+		caseRecord = await prisma.case.create({
+			data: {
+				homeOwnerId: homeOwner.id,
+				locationId: location.id,
+			},
+		})
 
-			// Create Analysis
-			analysis = await prisma.analysis.create({
-				data: {
-					caseId: caseRecord.id,
-					rules_engine_version: '0.0.1',
-				},
-			})
+		// Create Analysis
+		analysis = await prisma.analysis.create({
+			data: {
+				caseId: caseRecord.id,
+				rules_engine_version: '0.0.1',
+			},
+		})
 
-			// Create HeatingInput
-			heatingInput = await prisma.heatingInput.create({
-				data: {
-					analysisId: analysis.id,
-					fuelType: fuel_type,
-					designTemperatureOverride: Boolean(design_temperature_override),
-					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-					thermostatSetPoint: thermostat_set_point,
-					setbackTemperature: setback_temperature || 65,
-					setbackHoursPerDay: setback_hours_per_day || 0,
-					numberOfOccupants: 2, // Default value until we add to form
-					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-					standByLosses: 5, // Default value until we add to form
-					livingArea: living_area,
-				},
-			})
+		// Create HeatingInput
+		heatingInput = await prisma.heatingInput.create({
+			data: {
+				analysisId: analysis.id,
+				fuelType: fuel_type,
+				designTemperatureOverride: Boolean(design_temperature_override),
+				heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+				thermostatSetPoint: thermostat_set_point,
+				setbackTemperature: setback_temperature || 65,
+				setbackHoursPerDay: setback_hours_per_day || 0,
+				numberOfOccupants: 2, // Default value until we add to form
+				estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+				standByLosses: 5, // Default value until we add to form
+				livingArea: living_area,
+			},
+		})
 
-			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+		/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
 
-			/* TODO: store rules-engine output in database too */
-		}
-
+		/* TODO: store rules-engine output in database too */
 	} catch (error) {
 		const errorWithExceptionMessage = error as ErrorWithExceptionMessage
-		if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
+		if (
+			errorWithExceptionMessage &&
+			errorWithExceptionMessage.exceptionMessage
+		) {
 			return { exceptionMessage: errorWithExceptionMessage.exceptionMessage }
 		}
 		throw error
@@ -282,7 +280,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
 	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
-
+	console.log('caseRecordCheck', caseRecord)
 	return {
 		data: str_version,
 		parsedAndValidatedFormSchema,
@@ -293,8 +291,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 		caseInfo: {
 			caseId: caseRecord?.id,
 			analysisId: analysis?.id,
-			heatingInputId: heatingInput?.id
-		}
+			heatingInputId: heatingInput?.id,
+		},
 	}
 	// return redirect(`/single`)
 } //END OF action
@@ -353,22 +351,26 @@ export default function SubmitAnalysis({
 	// const [lastResult, setLastResult] = useState<(typeof actionData & { caseInfo?: CaseInfo }) | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-	const {lazyLoadRulesEngine, recalculateFromBillingRecordsChange} = useRulesEngine()
+	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
+		useRulesEngine()
 
 	React.useEffect(() => {
 		// Set case info if available
 		// Type assertion to handle the extended actionData type
-		const typedActionData = actionData as typeof actionData & { caseInfo?: CaseInfo };
+		const typedActionData = actionData as typeof actionData & {
+			caseInfo?: CaseInfo
+		}
 		if (typedActionData?.caseInfo) {
 			setSavedCase(typedActionData.caseInfo)
 		}
 	}, [actionData])
 
-	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined = actionData
+	const lastResult: (typeof actionData & { caseInfo?: CaseInfo }) | undefined =
+		actionData
 	let showUsageData = lastResult !== undefined
 
 	let parsedLastResult: Map<any, any> | undefined
-
+	console.log('debug', lastResult)
 	if (showUsageData && hasDataProperty(lastResult)) {
 		// Parse the JSON string from lastResult.data
 		// const parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>;
@@ -390,25 +392,25 @@ export default function SubmitAnalysis({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 
 	type MinimalFormData = {
-		fuel_type: 'GAS',
+		fuel_type: 'GAS'
 	}
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-				living_area: 2155,
-				street_address: '15 Dale Ave',
-				town: 'Gloucester',
-				// Only the initial state value in the useState of HomeInformation.tsx matters.
-				state: 'MA',
-				name: 'CIC',
-				// Only the initial fuel_type value in the useState of CurrentHeatingSystem.tsx matters.
-				fuel_type: 'GAS',   
-				heating_system_efficiency: 0.97,
-				thermostat_set_point: 68,
-				setback_temperature: 65,
-				setback_hours_per_day: 8,
-				// design_temperature_override: '',
-			}
+					living_area: 2155,
+					street_address: '15 Dale Ave',
+					town: 'Gloucester',
+					// Only the initial state value in the useState of HomeInformation.tsx matters.
+					state: 'MA',
+					name: 'CIC',
+					// Only the initial fuel_type value in the useState of CurrentHeatingSystem.tsx matters.
+					fuel_type: 'GAS',
+					heating_system_efficiency: 0.97,
+					thermostat_set_point: 68,
+					setback_temperature: 65,
+					setback_hours_per_day: 8,
+					// design_temperature_override: '',
+				}
 			: { fuel_type: 'GAS' }
 
 	const [form, fields] = useForm({
@@ -417,14 +419,14 @@ export default function SubmitAnalysis({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
-		
-		onSubmit(){
+
+		onSubmit() {
 			lazyLoadRulesEngine()
 		},
 
 		defaultValue,
 		shouldValidate: 'onBlur',
-		shouldRevalidate: 'onInput'
+		shouldRevalidate: 'onInput',
 	})
 
 	// @TODO: we might need to guarantee that Data exists before rendering - currently we need to typecast an empty object in order to pass typechecking for <EnergyUsHistory />
@@ -443,10 +445,14 @@ export default function SubmitAnalysis({
 				{/* https://github.com/edmundhung/conform/discussions/547 instructions on how to properly set default values
 			This will make it work when JavaScript is turned off as well 
 			<Input {...getInputProps(props.fields.address, { type: "text" })} /> */}
+				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				{/* if no usage data, show the file upload functionality */}
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
 					<>
@@ -464,10 +470,10 @@ export default function SubmitAnalysis({
 						/>
 						{/* Replace regular HeatLoadAnalysis with our debug wrapper */}
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
@@ -486,7 +492,9 @@ export default function SubmitAnalysis({
 			{/* Show case saved message */}
 			{savedCase && savedCase.caseId && (
 				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
 					<p className="mb-4">Your case data has been saved to the database.</p>
 					<p>
 						<a

@@ -46,7 +46,7 @@ export function AnalysisHeader({
 
 	// Extract the heat_load_output from usageData
 	const summaryOutputs = usageData?.heat_load_output;
-
+	
 	const totalRecords = usageData?.processed_energy_bills?.length || "-"
 
 	// Calculate the number of billing periods included in Heating calculations
