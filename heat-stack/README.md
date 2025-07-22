@@ -98,23 +98,31 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
 
 ### Install Dependencies and Build
 
-1. Install project dependencies:
+1. Change directory to heat-stack
+   ```
+   cd heat-stack
+   ```
+2. Use Node.js version 22:
+   ```bash
+   nvm use 22
+   ```
+3. Install project dependencies:
    ```bash
    npm install
    ```
-2. Build the rules engine into the `public/pyodide-env` folder:
+4. Build the rules engine into the `public/pyodide-env` folder:
    ```bash
    npm run buildpy
    ```
-3. Copy the example environment file into a new `.env` file:
+5. Copy the example environment file into a new `.env` file:
    ```bash
    cp .env.example .env
    ```
-4. Setup the SQLite Database:
+6. Setup the SQLite Database:
    ```bash
    npm run setup
    ```
-5. Start the development server:
+7. Start the development server:
    ```bash
    npm run dev
    ```
