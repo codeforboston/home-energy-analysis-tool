@@ -1,8 +1,7 @@
-import { data, useLoaderData, Link } from 'react-router'
-import { format } from 'date-fns'
+import { data, Link } from 'react-router'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { type Route } from './+types/index.ts'
-import { requireUserId } from '#app/utils/auth.server.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
     await requireUserId(request)
