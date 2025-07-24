@@ -98,12 +98,6 @@ export function StateDropdown(props: StateDropDownProps) {
 						<Input type="hidden" name="state" value={props.value} />
 					</div>
 				</div>
-				<div className="min-h-[32px] px-4 pb-3 pt-1">
-					<ErrorList
-						id={props.fields.state.errorId}
-						errors={props.fields.state.errors}
-					/>
-				</div>
 			</div>
 		</div>
 	)
