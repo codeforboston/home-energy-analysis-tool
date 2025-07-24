@@ -109,6 +109,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
             type="number"
             value={percentageValueDisplayed}
             onChange={handlePercentageChange}
+            aria-invalid={
+              props.fields.heating_system_efficiency.errors?.length
+                ? true
+                : undefined
+            }
+            aria-describedby={props.fields.heating_system_efficiency.errorId}
           />
           {/* Use the actual field from Conform but with our calculated decimal value */}
           <Input
