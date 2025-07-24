@@ -8,7 +8,6 @@ import {
 } from '#/app/components/ui/select.tsx'
 import { ErrorList } from './ErrorList.tsx'
 
-
 const states = [
 	{ value: 'AL', label: 'AL' },
 	{ value: 'AK', label: 'AK' },
@@ -62,15 +61,14 @@ const states = [
 	{ value: 'WY', label: 'WY' },
 ]
 
-type StateDropDownProps = { fields: any,
-	value: string,
-	onChange?: (s: string) => void,	onBlur?: () => void ,
-
+type StateDropDownProps = {
+	fields: any
+	value: string
+	onChange?: (s: string) => void
+	onBlur?: () => void
 }
 
-
 export function StateDropdown(props: StateDropDownProps) {
-
 	return (
 		<div>
 			{/* <Form method="post" action="/current"> */}
@@ -89,7 +87,8 @@ export function StateDropdown(props: StateDropDownProps) {
 									<SelectItem
 										key={usaStateAbbrev.value}
 										value={usaStateAbbrev.value}
-									>{usaStateAbbrev.label}
+									>
+										{usaStateAbbrev.label}
 									</SelectItem>
 								))}
 							</SelectContent>
@@ -98,12 +97,6 @@ export function StateDropdown(props: StateDropDownProps) {
 						{/* This hidden field submits the same value instead. */}
 						<Input type="hidden" name="state" value={props.value} />
 					</div>
-				</div>
-				<div className="min-h-[32px] px-4 pb-3 pt-1">
-					<ErrorList
-						id={props.fields.state.errorId}
-						errors={props.fields.state.errors}
-					/>
 				</div>
 			</div>
 		</div>
