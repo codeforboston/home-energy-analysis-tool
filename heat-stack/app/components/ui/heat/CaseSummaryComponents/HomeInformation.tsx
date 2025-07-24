@@ -211,6 +211,10 @@ export function HomeInformation(props: HomeInformationProps) {
               thousandSeparator={true} // Add this line to include commas
               valueIsNumericString={true} // Add this line to treat the value as a numeric string
               allowNegative={false} // Ensure negative numbers are not allowed
+              aria-invalid={
+                props.fields.living_area.errors?.length ? true : undefined
+              }
+              aria-describedby={props.fields.living_area.errorId}
               decimalScale={0} // Set the decimal scale to 0 to avoid decimal points
               fixedDecimalScale={true} // Ensure the decimal scale is fixed
             />
