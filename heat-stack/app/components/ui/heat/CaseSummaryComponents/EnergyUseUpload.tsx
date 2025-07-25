@@ -20,6 +20,7 @@ export function EnergyUseUpload(
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
 		setBuildAfterSubmit(true);
+
 	}
 
 	const descriptiveClass = 'mt-2 mb-6 text-sm text-slate-500'
