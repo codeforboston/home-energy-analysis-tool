@@ -22,8 +22,3 @@ repos:
         types: [python]
         stages: [pre-push]
         exclude: ^heat-stack/app/pycode/
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0 
-    hooks:
-      - id: prettier
-        files: \.(tsx|css)$
