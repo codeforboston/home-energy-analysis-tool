@@ -1,5 +1,4 @@
 import { Upload } from 'lucide-react'
-import { useEffect, useRef } from 'react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { ErrorList } from './ErrorList';
 
@@ -20,7 +19,6 @@ export function EnergyUseUpload(
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true);
 		setBuildAfterSubmit(true);
-
 	}
 
 	const descriptiveClass = 'mt-2 mb-6 text-sm text-slate-500'
