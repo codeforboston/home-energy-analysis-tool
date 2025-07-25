@@ -322,7 +322,9 @@ export default function SubmitAnalysis({
 }: Route.ComponentProps) {
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+	const [newResult, setNewResult] = useState <Map<any, any> | undefined>()
 	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
 
 	// ✅ Extract structured values from actionData
@@ -335,15 +337,34 @@ export default function SubmitAnalysis({
 		}
 	}, [caseInfo])
 
-	let parsedLastResult: Map<any, any> | undefined
 	const showUsageData = lastResult !== undefined
+	console.log("single.tsx 2", showUsageData, buildAfterSubmit)
 
-	if (showUsageData && hasDataProperty(lastResult)) {
-		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
-		const newUsageData = buildCurrentUsageData(parsedLastResult)
+	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit ) {
+		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+	};
+	if (newResult && buildAfterSubmit) {
+		setBuildAfterSubmit(false)
+		const newUsageData = buildCurrentUsageData(newResult)
+		const v = newUsageData.processed_energy_bills;
+		console.log("single new",
+			v[0]?.inclusion_override,
+			v[1]?.inclusion_override,
+			v[2]?.inclusion_override,
+		)
+		const v2 = usageData?.processed_energy_bills || []
+		console.log("old",
+			v2[0]?.inclusion_override,
+			v[1]?.inclusion_override,
+			v[2]?.inclusion_override,
+		) 
+		console.log("single.tsx setUsageData")
 		if (objectToString(usageData) !== objectToString(newUsageData)) {
+			console.log("new")
+			
 			setUsageData(newUsageData)
 		}
+		console.log("end")
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
@@ -393,10 +414,10 @@ export default function SubmitAnalysis({
 			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
@@ -407,7 +428,7 @@ export default function SubmitAnalysis({
 							usageData={usageData}
 							setUsageData={setUsageData}
 							lastResult={lastResult}
-							parsedLastResult={parsedLastResult}
+							parsedLastResult={newResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 						/>
 
