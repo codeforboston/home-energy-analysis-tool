@@ -97,14 +97,24 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
             processed_energy_bills: newRecords as BillingRecordsSchema,
         });
-        setUsageData( (prevUsageData) => {
+        console.log("debug euhc")
+        if (objectToString(usageData) != objectToString(newUsageData)) {
+            const v = newUsageData.processed_energy_bills;
+            console.log("new",
+                v[0]?.inclusion_override,
+                v[1]?.inclusion_override,
+                v[2]?.inclusion_override,
+            )
+            const v2 = usageData?.processed_energy_bills || []
+            console.log("old",
+                v2[0]?.inclusion_override,
+                v[1]?.inclusion_override,
+                v[2]?.inclusion_override,
+            )            
+            setUsageData(newUsageData)
+        }
+        console.log("done")
 
-            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                return newUsageData
-            }
-            return prevUsageData // sets useData to
-
-        });
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,
