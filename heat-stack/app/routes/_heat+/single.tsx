@@ -322,8 +322,9 @@ export default function SubmitAnalysis({
 }: Route.ComponentProps) {
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
-	const [parseAfterSubmit, setParseAfterSubmit] = useState(false)
+	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+	const [newResult, setNewResult] = useState <Map<any, any> | undefined>()
 	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
 
 	// ✅ Extract structured values from actionData
@@ -336,13 +337,14 @@ export default function SubmitAnalysis({
 		}
 	}, [caseInfo])
 
-	let newResult: Map<any, any> | undefined
 	const showUsageData = lastResult !== undefined
-	console.log("single.tsx 2", showUsageData, parseAfterSubmit)
+	console.log("single.tsx 2", showUsageData, buildAfterSubmit)
 
-	if (showUsageData && hasDataProperty(lastResult) && parseAfterSubmit ) {
-		setParseAfterSubmit(false)
-		newResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
+	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit ) {
+		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+	};
+	if (newResult && buildAfterSubmit) {
+		setBuildAfterSubmit(false)
 		const newUsageData = buildCurrentUsageData(newResult)
 		const v = newUsageData.processed_energy_bills;
 		console.log("single new",
@@ -412,10 +414,10 @@ export default function SubmitAnalysis({
 			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setParseAfterSubmit={setParseAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
