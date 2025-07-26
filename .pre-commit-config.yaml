@@ -22,3 +22,7 @@ repos:
         types: [python]
         stages: [pre-push]
         exclude: ^heat-stack/app/pycode/
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.1.2  # Use the latest version or the specific version you want
+    hooks:
+      - id: biome-check
