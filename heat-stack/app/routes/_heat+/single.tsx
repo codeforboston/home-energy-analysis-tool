@@ -338,7 +338,6 @@ export default function SubmitAnalysis({
 	}, [caseInfo])
 
 	const showUsageData = lastResult !== undefined
-	console.log("single.tsx 2", showUsageData, buildAfterSubmit)
 
 	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit ) {
 		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
@@ -346,25 +345,9 @@ export default function SubmitAnalysis({
 	if (newResult && buildAfterSubmit) {
 		setBuildAfterSubmit(false)
 		const newUsageData = buildCurrentUsageData(newResult)
-		const v = newUsageData.processed_energy_bills;
-		console.log("single new",
-			v[0]?.inclusion_override,
-			v[1]?.inclusion_override,
-			v[2]?.inclusion_override,
-		)
-		const v2 = usageData?.processed_energy_bills || []
-		console.log("old",
-			v2[0]?.inclusion_override,
-			v[1]?.inclusion_override,
-			v[2]?.inclusion_override,
-		) 
-		console.log("single.tsx setUsageData")
 		if (objectToString(usageData) !== objectToString(newUsageData)) {
-			console.log("new")
-			
 			setUsageData(newUsageData)
 		}
-		console.log("end")
 	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
