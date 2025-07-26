@@ -18,7 +18,7 @@
     "dev:no-mocks": "cross-env NODE_ENV=development node ./server/dev-server.js",
     "prisma:studio": "prisma studio",
     "format": "prettier --write .",
-    "lint": "eslint .",
+    "lint": "eslint . --fix",
     "setup": "npm run build && prisma migrate deploy && prisma generate --sql && playwright install",
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",

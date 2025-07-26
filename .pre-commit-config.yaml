@@ -22,3 +22,10 @@ repos:
         types: [python]
         stages: [pre-push]
         exclude: ^heat-stack/app/pycode/
+  - repo: local
+    hooks:
+      - id: eslint
+        name: Run ESLint
+        entry: npx eslint .
+        language: system
+        types: [tsx, css]
