@@ -1,4 +1,3 @@
-import { type z } from 'zod';
 import { useEffect, useRef } from 'react';
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import HelpCircle from './assets/help-circle.svg'
