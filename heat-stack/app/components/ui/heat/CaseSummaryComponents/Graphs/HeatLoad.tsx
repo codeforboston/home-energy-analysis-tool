@@ -28,6 +28,7 @@ import { CustomLegend } from './HeatLoadGraphLegend.tsx'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
 import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 import { HelpButton } from '#app/components/ui/HelpButton.tsx'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
@@ -104,6 +105,7 @@ export function HeatLoad({
 				Heating System Demand
 					<HelpButton keyName="heat_demand_graph.help" />
 			</div>
+
 
 
 			<div className="relative w-full h-[400px]">

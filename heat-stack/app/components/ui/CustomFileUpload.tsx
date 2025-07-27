@@ -28,7 +28,6 @@ export function CustomFileUpload({ name }: { name: string }) {
                     type="button"
                     className="px-2 py-1 border rounded text-sm bg-gray-100 hover:bg-gray-200"
                     onClick={() => fileInputRef.current?.click()}
-                    aria-label="Upload your energy billing company's bill."
                 >
                     Choose File
                 </button>
@@ -37,7 +36,7 @@ export function CustomFileUpload({ name }: { name: string }) {
                 <span className="text-sm">{fileName}</span>
 
                 {/* Help icon immediately after filename */}
-                <HelpButton keyName="download.help" />
+                <HelpButton keyName="download" />
             </div>
 
             <div className="mt-1 text-sm text-gray-600">The file must be a CSV.</div>
