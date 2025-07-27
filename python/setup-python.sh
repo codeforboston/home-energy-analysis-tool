@@ -6,6 +6,9 @@ trap 'echo "An error occurred"; set +x' ERR
 # Install dependencies, including rules-engine in editable mode
 uv add --dev .
 
+# Install development dependencies
+uv pip install ".[dev]"
+
 # Detect the operating system
 OS=$(uname)
 
