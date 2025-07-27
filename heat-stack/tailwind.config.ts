@@ -1,3 +1,4 @@
+import typographyPlugin from '@tailwindcss/typography'
 import { type Config } from 'tailwindcss'
 import animatePlugin from 'tailwindcss-animate'
 import radixPlugin from 'tailwindcss-radix'
@@ -15,7 +16,23 @@ export default {
 				'2xl': '1400px',
 			},
 		},
-		extend: extendedTheme,
+		extend: {
+			...extendedTheme,
+			typography: (theme: (arg0: string) => any) => ({
+				DEFAULT: {
+					css: {
+						a: {
+							color: theme('colors.blue.600'),
+							fontWeight: 'normal', // remove bold
+							textDecoration: 'underline',
+							'&:hover': {
+								color: theme('colors.blue.800'),
+							},
+						},
+					},
+				},
+			}),
+		},
 	},
 	presets: [marketingPreset],
 	plugins: [animatePlugin, radixPlugin],
