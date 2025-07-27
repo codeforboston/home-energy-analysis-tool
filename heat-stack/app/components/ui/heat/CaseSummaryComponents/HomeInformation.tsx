@@ -6,7 +6,6 @@ import { Label } from '#/app/components/ui/label.tsx'
 import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
-import { HelpButton } from '../../HelpButton.tsx'
 
 type HomeInformationProps = { fields: any }
 
@@ -92,14 +91,8 @@ export function HomeInformation(props: HomeInformationProps) {
 			<Label className={subtitleClass} htmlFor="name">
 				Resident/Client Name(s)
 			</Label>
-<<<<<<< HEAD
 
 			<div className={componentMargin}>
-=======
-			{/* <Form method="post" action="/inputs1"> */}
-
-			<div className={`${componentMargin}`}>
->>>>>>> dbb4b80 (Working non-practical example)
 				<div className="mt-4 flex space-x-4">
 					<div>
 						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
