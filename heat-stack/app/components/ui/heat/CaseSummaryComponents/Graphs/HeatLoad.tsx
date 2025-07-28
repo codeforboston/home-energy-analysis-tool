@@ -102,9 +102,7 @@ export function HeatLoad({
 		<div className="min-w-[625px] rounded-lg shadow-lg">
 			<div className="mb-4 mt-4 text-lg font-semibold flex items-center gap-2">
 				Heating System Demand
-				<div className="flex-1 flex justify-end items-center">
 					<HelpButton keyName="heat_demand_graph.help" />
-				</div>
 			</div>
 
 
