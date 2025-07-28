@@ -31,7 +31,7 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
 
                 const lines = raw.split("\n");
 
-                let extractedTitle = "Help";
+                let extractedTitle = "";
                 let markdownStartIndex = -1;
 
                 // Extract title and find "markdown:" line
@@ -58,8 +58,8 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
                 setHtmlContent(html);
             } catch (error) {
                 console.error("Error loading markdown:", error);
-                setTitle("Help");
-                setHtmlContent("<p>Help not available.</p>");
+                setTitle("Error");
+                setHtmlContent(`<p>Help not available (/help/${keyName}.md)</p>`);
             }
         };
 
