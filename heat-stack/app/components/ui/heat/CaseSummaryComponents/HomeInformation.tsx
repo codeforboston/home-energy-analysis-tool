@@ -182,9 +182,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
 				</Label>
-				<span className="ml-[1ch]">
-					<HelpButton keyName="living_area.help" />
-				</span>
+				<HelpButton keyName="living_area.help" className="ml-[1ch]"/>
 				<NumericFormat
 					id="living_area"
 					placeholder="Enter a number 0-10000"

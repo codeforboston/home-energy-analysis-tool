@@ -2,21 +2,30 @@ import { HelpCircle } from "lucide-react"
 import { useState } from "react"
 import { ModalFromMarkDown } from "./ModalFromMarkdown"
 
-type HelpButtonProps = {
-    keyName: string
+type HelpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    keyName: string,
+    className?: string,
+    size: number
 }
 
+export function HelpButton({
+    keyName,
+    className,
+    size=18,
+    ...rest
+}: HelpButtonProps) {
 
-export function HelpButton({ keyName }: HelpButtonProps) {
+
     const [modalOpen, setModalOpen] = useState(false)
 
     return (
         <>
             <button
                 onClick={() => setModalOpen(true)}
-                className="text-sm"
+                className={`text-sm ${className ?? ''}`}
+                {...rest}
             >
-                <HelpCircle size={18} /> {/* 18px icon size */}
+            <HelpCircle size={size} /> {/* 18px icon size */}
         </button>
             <ModalFromMarkDown
                 keyName={keyName}
