@@ -100,7 +100,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
-					<div className="flex items-center gap-2">
 						<Input
 							id="heating_system_efficiency_display"
 							// Don't include a name to prevent it from being submitted
@@ -109,8 +108,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							value={percentageValueDisplayed}
 							onChange={handlePercentageChange}
 						/>
-						<HelpButton keyName="heating_system_efficiency.help" />
-					</div>
 
 					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
