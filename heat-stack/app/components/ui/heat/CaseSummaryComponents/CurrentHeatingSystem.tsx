@@ -109,7 +109,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							value={percentageValueDisplayed}
 							onChange={handlePercentageChange}
 						/>
-						<HelpButton keyName="heating_system_efficiency" />
+						<HelpButton keyName="heating_system_efficiency.help" />
 					</div>
 
 					{/* Use the actual field from Conform but with our calculated decimal value */}
