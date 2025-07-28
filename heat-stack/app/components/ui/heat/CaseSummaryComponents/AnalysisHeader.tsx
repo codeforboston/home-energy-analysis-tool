@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { type UsageDataSchema } from '#/types/types.ts'; 
 import HelpCircle from './assets/help-circle.svg'
+import { HelpButton } from '../../HelpButton';
 
 interface AnalysisHeaderProps {
 	usageData: UsageDataSchema;
@@ -107,7 +108,7 @@ export function AnalysisHeader({
 					Heat Load Analysis
 				</h2>
 				{/* TODO: add help text here */}
-				<img src={HelpCircle} alt='help text'/>
+				<HelpButton keyName='heat_load_analysis.help' />
 			</div>
 			<div className="flex flex-row gap-x-4">
 				<div className="basis-1/3">

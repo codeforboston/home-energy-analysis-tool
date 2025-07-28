@@ -195,7 +195,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						decimalScale={0}
 						fixedDecimalScale={true}
 					/>
-					<HelpButton keyName="living_area" />
+					<HelpButton keyName="living_area.help" />
 				</div>
 
 				<Input
