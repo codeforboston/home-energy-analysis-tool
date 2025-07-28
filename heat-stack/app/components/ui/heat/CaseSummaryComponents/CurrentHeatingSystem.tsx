@@ -100,14 +100,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
-						<Input
-							id="heating_system_efficiency_display"
-							// Don't include a name to prevent it from being submitted
-							placeholder="Enter a percentage (60-100)"
-							type="number"
-							value={percentageValueDisplayed}
-							onChange={handlePercentageChange}
-						/>
+					<Input
+						id="heating_system_efficiency_display"
+						// Don't include a name to prevent it from being submitted
+						placeholder="Enter a percentage (60-100)"
+						type="number"
+						value={percentageValueDisplayed}
+						onChange={handlePercentageChange}
+					/>
 
 					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
