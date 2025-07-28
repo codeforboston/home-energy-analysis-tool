@@ -52,6 +52,11 @@ class WeatherUtil {
 		startDate: string,
 		endDate: string,
 	): Promise<TemperatureInputDataInitial | undefined> {
+		const REACT_GET_WEATHER_FROM_FILE = process.env.REACT_GET_WEATHER_FROM_FILE
+		if (REACT_GET_WEATHER_FROM_FILE === "true") {
+			
+		}
+
 		const params = new URLSearchParams()
 
 		params.append('latitude', `${latitude}`)
