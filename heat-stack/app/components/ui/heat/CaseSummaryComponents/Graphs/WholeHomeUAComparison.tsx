@@ -115,7 +115,7 @@ export function WholeHomeUAComparison({
 			<div className="mb-4 mt-4 text-lg font-semibold flex items-center gap-2">
 				Whole-home Heat Loss Comparison
 				<div className="flex-1 flex justify-end items-center">
-					<HelpButton keyName="heating_demand_graph" />
+					<HelpButton keyName="whole_home_heat_loss_graph.help" />
 				</div>
 			</div>
 
