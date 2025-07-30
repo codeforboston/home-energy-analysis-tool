@@ -42,3 +42,11 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 data = ["*.csv"]
+
+[tool.uv.sources]
+rules-engine = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "rules-engine",
+]
