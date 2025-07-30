@@ -240,6 +240,10 @@ jobs:
           if: steps.db-cache.outputs.cache-hit != 'true'
           run: npx prisma migrate reset --force
 
+        - name: 🏗 Build Rules Engine
+          working-directory:  ${{ env.heat-stack-working-directory }}
+          run: npm run buildpy
+
         - name: 🏗 Build
           working-directory:  ${{ env.heat-stack-working-directory }}
           run: npm run build
