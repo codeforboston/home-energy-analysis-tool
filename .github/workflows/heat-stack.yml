@@ -205,6 +205,8 @@ jobs:
 
         - name: 🏄 Copy test env vars
           run: cp .env.example .env
+          working-directory:  ${{ env.heat-stack-working-directory }}
+
 
         - name: ⎔ Setup node
           uses: actions/setup-node@v4
