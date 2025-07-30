@@ -24,5 +24,14 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	// 	})
 	await expect(page).toHaveURL(`/single`)
 
-	//TODO: toggle table row checkbox, expecting analysis header to adjust.
+	//Toggle table row checkbox, expecting "Analysis Header" text to change.
+	// save the analysis header text before checkbox click
+	const analysisHeader_beforeClick = page.getByTestId("analysis-header").toString()
+	// click the first checkbox and wait
+	await page.locator('[role="checkbox"]').first().click();
+	await page.waitForTimeout(15000) 
+	// save the analysis header text after checkbox click and wait
+	const analysisHeader_afterClick = page.getByTestId("analysis-header").toString()
+	// expect not equal
+	expect(analysisHeader_afterClick).not.toEqual(analysisHeader_beforeClick)
 })
