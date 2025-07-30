@@ -31,7 +31,7 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import {
 	HomeSchema,
 	LocationSchema,
-	CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */
+	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
 	UploadEnergyUseFileSchema,
 } from '../../../types/index.ts'
 import {
@@ -64,9 +64,8 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 	setback_hours_per_day: true,
 })
 
-
-export const Schema = UploadEnergyUseFileSchema.and(HomeFormSchema.and(
-	CurrentHeatingSystemSchema)
+export const Schema = UploadEnergyUseFileSchema.and(
+	HomeFormSchema.and(CurrentHeatingSystemSchema),
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -77,9 +76,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-	caseId?: number;
-	analysisId?: number;
-	heatingInputId?: number;
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -124,7 +123,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -147,7 +146,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
@@ -168,85 +167,82 @@ export async function action({ request, params }: Route.ActionArgs) {
 		let convertedDatesTIWD, state_id, county_id
 		// Define variables at function scope for access in the return statement
 		let caseRecord, analysis, heatingInput
-			const result = await getConvertedDatesTIWD(
-				pyodideResultsFromTextFile,
-				street_address,
-				town,
-				state
-			)
-			convertedDatesTIWD = result.convertedDatesTIWD
-			state_id = result.state_id
-			county_id = result.county_id
+		const result = await getConvertedDatesTIWD(
+			pyodideResultsFromTextFile,
+			street_address,
+			town,
+			state,
+		)
+		convertedDatesTIWD = result.convertedDatesTIWD
+		state_id = result.state_id
+		county_id = result.county_id
 
-			if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-				/* TODO: refactor out into a separate file. 
+		/* TODO: refactor out into a separate file. 
 						for args, use submission.values, result
 				*/
-				// Save to database using Prisma
-				// First create or find HomeOwner
-				const homeOwner = await prisma.homeOwner.create({
-					data: {
-						firstName1: name.split(' ')[0] || 'Unknown',
-						lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-						email1: '', // We'll need to add these to the form
-						firstName2: '',
-						lastName2: '',
-						email2: '',
-					},
-				})
+		// Save to database using Prisma
+		// First create or find HomeOwner
+		const homeOwner = await prisma.homeOwner.create({
+			data: {
+				firstName1: name.split(' ')[0] || 'Unknown',
+				lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+				email1: '', // We'll need to add these to the form
+				firstName2: '',
+				lastName2: '',
+				email2: '',
+			},
+		})
 
-				// Create location using geocoded information
-				const location = await prisma.location.create({
-					data: {
-						address: result.addressComponents?.street || street_address,
-						city: result.addressComponents?.city || town,
-						state: result.addressComponents?.state || state,
-						zipcode: result.addressComponents?.zip || '',
-						country: 'USA',
-						livingAreaSquareFeet: Math.round(living_area),
-						latitude: result.coordinates?.y || 0,
-						longitude: result.coordinates?.x || 0,
-					},
-				})
+		// Create location using geocoded information
+		const location = await prisma.location.create({
+			data: {
+				address: result.addressComponents?.street || street_address,
+				city: result.addressComponents?.city || town,
+				state: result.addressComponents?.state || state,
+				zipcode: result.addressComponents?.zip || '',
+				country: 'USA',
+				livingAreaSquareFeet: Math.round(living_area),
+				latitude: result.coordinates?.y || 0,
+				longitude: result.coordinates?.x || 0,
+			},
+		})
 
-				// Create Case
-				caseRecord = await prisma.case.create({
-					data: {
-						homeOwnerId: homeOwner.id,
-						locationId: location.id,
-					},
-				})
+		// Create Case
+		caseRecord = await prisma.case.create({
+			data: {
+				homeOwnerId: homeOwner.id,
+				locationId: location.id,
+			},
+		})
 
-				// Create Analysis
-				analysis = await prisma.analysis.create({
-					data: {
-						caseId: caseRecord.id,
-						rules_engine_version: '0.0.1',
-					},
-				})
+		// Create Analysis
+		analysis = await prisma.analysis.create({
+			data: {
+				caseId: caseRecord.id,
+				rules_engine_version: '0.0.1',
+			},
+		})
 
-				// Create HeatingInput
-				heatingInput = await prisma.heatingInput.create({
-					data: {
-						analysisId: analysis.id,
-						fuelType: fuel_type,
-						designTemperatureOverride: Boolean(design_temperature_override),
-						heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-						thermostatSetPoint: thermostat_set_point,
-						setbackTemperature: setback_temperature || 65,
-						setbackHoursPerDay: setback_hours_per_day || 0,
-						numberOfOccupants: 2, // Default value until we add to form
-						estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-						standByLosses: 5, // Default value until we add to form
-						livingArea: living_area,
-					},
-				})
+		// Create HeatingInput
+		heatingInput = await prisma.heatingInput.create({
+			data: {
+				analysisId: analysis.id,
+				fuelType: fuel_type,
+				designTemperatureOverride: Boolean(design_temperature_override),
+				heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+				thermostatSetPoint: thermostat_set_point,
+				setbackTemperature: setback_temperature || 65,
+				setbackHoursPerDay: setback_hours_per_day || 0,
+				numberOfOccupants: 2, // Default value until we add to form
+				estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+				standByLosses: 5, // Default value until we add to form
+				livingArea: living_area,
+			},
+		})
 
-				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+		/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
 
-				/* TODO: store rules-engine output in database too */
-			}
-			
+		/* TODO: store rules-engine output in database too */
 
 		// } catch (error) {
 		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
@@ -260,13 +256,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 		 */
 
 		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			uploadedTextFile,
-			state_id,
-			county_id,
-		)
+		const gasBillDataFromTextFilePyProxy: PyProxy =
+			executeGetAnalyticsFromFormJs(
+				parsedAndValidatedFormSchema,
+				convertedDatesTIWD,
+				uploadedTextFile,
+				state_id,
+				county_id,
+			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
 
@@ -285,36 +282,34 @@ export async function action({ request, params }: Route.ActionArgs) {
 			caseInfo: {
 				caseId: caseRecord?.id,
 				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id
-			}
+				heatingInputId: heatingInput?.id,
+			},
 		}
-	} 
-	catch (error: unknown) {
-		console.error("Calculate failed")
+	} catch (error: unknown) {
+		console.error('Calculate failed')
 		if (error instanceof Error) {
 			console.error(error.message)
-			const errorLines = error.message.split("\n").filter(Boolean)
-			const lastLine =  errorLines[errorLines.length-1] || error.message
+			const errorLines = error.message.split('\n').filter(Boolean)
+			const lastLine = errorLines[errorLines.length - 1] || error.message
 			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
 					formErrors: [lastLine],
 				}),
-				{ status: 500 }
-			);
+				{ status: 500 },
+			)
 		} else {
-		return data(
+			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
-				formErrors: ['Unknown Error'],
-			}),
-			{ status: 500 }
-		);
-	}
+					formErrors: ['Unknown Error'],
+				}),
+				{ status: 500 },
+			)
+		}
 	}
 	// return redirect(`/single`)
 } //END OF action
-
 
 export default function SubmitAnalysis({
 	loaderData,
@@ -323,11 +318,13 @@ export default function SubmitAnalysis({
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
+	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
+		useRulesEngine()
 
 	// ✅ Extract structured values from actionData
 	const lastResult = actionData // The actual submission result
-	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
+	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })
+		?.caseInfo
 
 	React.useEffect(() => {
 		if (caseInfo) {
@@ -352,17 +349,17 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-				living_area: 2155,
-				street_address: '15 Dale Ave',
-				town: 'Gloucester',
-				state: 'MA',
-				name: 'CIC',
-				fuel_type: 'GAS',
-				heating_system_efficiency: 0.97,
-				thermostat_set_point: 68,
-				setback_temperature: 65,
-				setback_hours_per_day: 8,
-			}
+					living_area: 2155,
+					street_address: '15 Dale Ave',
+					town: 'Gloucester',
+					state: 'MA',
+					name: 'CIC',
+					fuel_type: 'GAS',
+					heating_system_efficiency: 0.97,
+					thermostat_set_point: 68,
+					setback_temperature: 65,
+					setback_hours_per_day: 8,
+				}
 			: { fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
@@ -379,7 +376,6 @@ export default function SubmitAnalysis({
 		shouldRevalidate: 'onInput',
 	})
 
-
 	return (
 		<>
 			<Form
@@ -391,9 +387,13 @@ export default function SubmitAnalysis({
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
 			>
+				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
@@ -412,10 +412,10 @@ export default function SubmitAnalysis({
 						/>
 
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
@@ -434,7 +434,9 @@ export default function SubmitAnalysis({
 			{/* Show case saved message */}
 			{savedCase && savedCase.caseId && (
 				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
 					<p className="mb-4">Your case data has been saved to the database.</p>
 					<p>
 						<a
@@ -449,4 +451,3 @@ export default function SubmitAnalysis({
 		</>
 	)
 }
-
