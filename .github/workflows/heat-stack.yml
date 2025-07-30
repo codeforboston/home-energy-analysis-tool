@@ -206,7 +206,7 @@ jobs:
         - name: 🏄 Copy test env vars
           working-directory:  ${{ env.heat-stack-working-directory }}
           run: cp .env.example .env
-          
+
         - name: ⎔ Setup node
           uses: actions/setup-node@v4
           with:
@@ -218,6 +218,7 @@ jobs:
             working-directory:  ${{ env.heat-stack-working-directory }}
 
         - name: 📥 Install Playwright Browsers
+          working-directory:  ${{ env.heat-stack-working-directory }}
           run: npm run test:e2e:install
 
         - name: 🛠 Setup Database
