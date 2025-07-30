@@ -1,35 +1,22 @@
-
 #!/bin/bash
-# Call detect_python.sh and capture its echo output
+
+# Trap errors and print a message
 trap 'echo "An error occurred"; set +x' ERR
-set -x
 
-echo $PYTHON_CMD
-if [[ -z "$PYTHON_CMD" ]]; then
-  echo B
-  PYTHON_CMD=$(./get-python-cmd.sh)
-  if [[ -z "$PYTHON_CMD" ]]; then
-    echo "Error: No suitable Python 3 interpreter found."
-    return 1
-  fi
-fi
+# Install dependencies, including rules-engine in editable mode
+uv add --dev .
 
-echo "Using Python command: $PYTHON_CMD"
+# Install development dependencies
+uv pip install ".[dev]"
 
-source check-version.sh || return 1
+# Detect the operating system
+OS=$(uname)
 
-# Your other python commands can use $PYTHON_CMD
-
-$PYTHON_CMD -m venv venv
-
+# Activate the virtual environment
 case "$OSTYPE" in
-  msys*) source venv/Scripts/activate;;
-  *) source venv/bin/activate;;
+  msys*) source .venv/Scripts/activate;;
+  *) source .venv/bin/activate;;
 esac
 
-pip install -e .
-pip install -r requirements-dev.txt
-pip install --upgrade pip
-pre-commit install
-
+# End of script
 set +x
