@@ -10,7 +10,7 @@ pydocstyle:
 lint: black isort pydocstyle
 
 mypy:
-	mypy .
+	mypy . --exclude build
 
 gen_examples:
 	python .\tests\test_rules_engine\generate_example_data.py
