@@ -240,7 +240,7 @@ jobs:
           if: steps.db-cache.outputs.cache-hit != 'true'
           run: npx prisma migrate reset --force
 
-        - name: 🏗 Build Rules Engine
+        - name: 📐 Build Rules Engine
           working-directory:  ${{ env.heat-stack-working-directory }}
           run: npm run buildpy
 
@@ -256,7 +256,6 @@ jobs:
           uses: actions/upload-artifact@v4
           if: always()
           with:
-            working-directory:  ${{ env.heat-stack-working-directory }}
             name: playwright-report
             path: playwright-report/
             retention-days: 30
