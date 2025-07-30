@@ -213,11 +213,14 @@ jobs:
 
         - name: 📥 Download deps
           uses: bahmutov/npm-install@v1
+          with:
+            working-directory:  ${{ env.heat-stack-working-directory }}
 
         - name: 📥 Install Playwright Browsers
           run: npm run test:e2e:install
 
         - name: 🛠 Setup Database
+          working-directory:  ${{ env.heat-stack-working-directory }}
           run: npx prisma migrate deploy && npx prisma generate --sql
 
         - name: 🏦 Cache Database

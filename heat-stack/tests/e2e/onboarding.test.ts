@@ -53,7 +53,7 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	})
 	await createAccountLink.click()
 
-	await expect(page).toHaveURL(`/signup`)
+	await expect(page).toHaveURL(`/signup?redirectTo=%2Fcases`)
 
 	const emailTextbox = page.getByRole('textbox', { name: /email/i })
 	await emailTextbox.click()
