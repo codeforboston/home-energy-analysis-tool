@@ -16,6 +16,7 @@ import { COLOR_BLUE, COLOR_GREY_LIGHT, COLOR_ORANGE } from '../constants'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
 import { SharedCustomTooltip } from './SharedCustomToolTip'
 import { WholeHomeUAComparisonLegend } from './WholeHomeUAComparisonLegend'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 
 type DataPoint = {
 	x: number // X-coordinate, representing living area in square feet.
@@ -111,10 +112,10 @@ export function WholeHomeUAComparison({
 	return (
 		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
-			<span className="mb-4 text-lg font-semibold">
-				Whole-home Heat Loss Comparison{' '}
-				<Icon name="question-mark-circled" size="md" />{' '}
-			</span>
+			<div className="mb-4 mt-4 text-lg font-semibold flex items-center gap-2">
+				Whole-home Heat Loss Comparison
+					<HelpButton keyName="whole_home_heat_loss_graph.help" />
+			</div>
 
 			{/* Responsive container to ensure chart resizes */}
 			<div className="relative w-full h-[400px]">
