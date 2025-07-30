@@ -96,15 +96,10 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
             heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
             balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
             processed_energy_bills: newRecords as BillingRecordsSchema,
-        });
-        setUsageData( (prevUsageData) => {
+        });        if (objectToString(usageData) != objectToString(newUsageData)) {
+            setUsageData(newUsageData)
+        }
 
-            if (objectToString(prevUsageData) != objectToString(newUsageData)) {
-                return newUsageData
-            }
-            return prevUsageData // sets useData to
-
-        });
         const {
             parsedAndValidatedFormSchema,
             convertedDatesTIWD,

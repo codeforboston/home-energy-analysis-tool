@@ -322,7 +322,9 @@ export default function SubmitAnalysis({
 }: Route.ComponentProps) {
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+	const [newResult, setNewResult] = useState <Map<any, any> | undefined>()
 	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
 
 	// ✅ Extract structured values from actionData
@@ -335,12 +337,14 @@ export default function SubmitAnalysis({
 		}
 	}, [caseInfo])
 
-	let parsedLastResult: Map<any, any> | undefined
 	const showUsageData = lastResult !== undefined
 
-	if (showUsageData && hasDataProperty(lastResult)) {
-		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
-		const newUsageData = buildCurrentUsageData(parsedLastResult)
+	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit ) {
+		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+	};
+	if (newResult && buildAfterSubmit) {
+		setBuildAfterSubmit(false)
+		const newUsageData = buildCurrentUsageData(newResult)
 		if (objectToString(usageData) !== objectToString(newUsageData)) {
 			setUsageData(newUsageData)
 		}
@@ -393,10 +397,10 @@ export default function SubmitAnalysis({
 			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
@@ -407,7 +411,7 @@ export default function SubmitAnalysis({
 							usageData={usageData}
 							setUsageData={setUsageData}
 							lastResult={lastResult}
-							parsedLastResult={parsedLastResult}
+							parsedLastResult={newResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 						/>
 
