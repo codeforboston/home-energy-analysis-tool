@@ -225,16 +225,16 @@ test('pyodide solves climate change', async () => {
     )
     from rules_engine import engine
 
-    def execute(summaryInputJs, temperatureInputJs, csvDataJs):
-        summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-        temperatureInputFromJs =temperatureInputJs.as_object_map().values()._mapping
+    def execute(summary_input_js, temperature_input_js, csv_data_js):
+        summary_input_from_js = summary_input_js.as_object_map().values()._mapping
+        temperature_input_from_js =temperature_input_js.as_object_map().values()._mapping
 
-        naturalGasInputRecords = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+        natural_gas_input_records = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
 
-        summaryInput = HeatLoadInput(**summaryInputFromJs)
-        temperatureInput = TemperatureInput(**temperatureInputFromJs)
+        summary_input = HeatLoadInput(**summary_input_from_js)
+        temperature_input = TemperatureInput(**temperature_input_from_js)
 
-        outputs = engine.get_outputs_natural_gas(summaryInput,temperatureInput, naturalGasInputRecords)
+        outputs = engine.get_outputs_natural_gas(summary_input,temperature_input, natural_gas_input_records)
         return outputs.model_dump(mode="json")
     execute
     `)
