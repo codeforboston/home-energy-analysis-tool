@@ -100,7 +100,7 @@ source check.python.sh
     - Follow the steps that appear in the prompt following Homebrew installation
   - `brew install pre-commit`
 5. Install `uv`
-- On MacOS 
+- On MacOS `brew install uv`
 - On Windows, once you have installed HomeBrew and opened a WSL terminal: `brew install uv`
 6. Run `source setup-python.sh`. 
 7. Run `pytest` and see tests run successfully.

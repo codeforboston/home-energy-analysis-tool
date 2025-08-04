@@ -111,6 +111,13 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    npm install
    ```
 4. Build the rules engine into the `public/pyodide-env` folder:
+   - Before you run `buildpy`, you need to install `uv`
+   - On MacOS `brew install uv`
+   - On Windows
+      - Open a WSL terminal
+      - If you lack Homebrew, 
+         - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` 
+      - Follow the steps that appear in the prompt following Homebrew installation
    ```bash
    npm run buildpy
    ```
