@@ -81,12 +81,12 @@ jobs:
         working-directory: ${{ env.rules-engine-working-directory }} 
 
   # Make the wheel
-  build-rules-engine: 
+  build-rules-engine:
     name: Rules Engine - Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11.3"]
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -94,15 +94,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           working-directory: ${{ env.rules-engine-working-directory }}
+      - name: Install uv
+        run: |
+          pip install uv
+        working-directory: ${{ env.rules-engine-working-directory }}
       - name: Build wheel
         run: |
-          make build
-        working-directory: ${{ env.rules-engine-working-directory }} 
-      - name: store wheel as artifact
+          uv build
+        working-directory: ${{ env.rules-engine-working-directory }}
+      - name: Store wheel as artifact
         uses: actions/upload-artifact@v4
-        with: 
+        with:
           name: python-rules-engine-wheel
-          path: ${{ env.rules-engine-working-directory }}/dist/ 
+          path: ${{ env.rules-engine-working-directory }}/dist/
+
   # Heat-Stack Jobs
   lint-js:  
     name: ⬣ Heat-Stack - ESLint
