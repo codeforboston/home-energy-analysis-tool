@@ -197,7 +197,9 @@ jobs:
         run: npm run build:icons
 
       - name: Install uv
-        run: pip install uv  # Ensure pip is available and uv is installed
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
         working-directory: ${{ env.heat-stack-working-directory }}
