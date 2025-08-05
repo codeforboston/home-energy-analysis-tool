@@ -229,7 +229,7 @@ test('pyodide solves climate change', async () => {
         summary_input_from_js = summary_input_js.as_object_map().values()._mapping
         temperature_input_from_js =temperature_input_js.as_object_map().values()._mapping
 
-        natural_gas_input_records = parser.parse_gas_bill(csvDataJs, parser.NaturalGasCompany.NATIONAL_GRID)
+        natural_gas_input_records = parser.parse_gas_bill(csv_data_js, parser.NaturalGasCompany.NATIONAL_GRID)
 
         summary_input = HeatLoadInput(**summary_input_from_js)
         temperature_input = TemperatureInput(**temperature_input_from_js)
