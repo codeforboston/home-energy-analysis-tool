@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11.3"] 
+        python-version: ["3.13"] 
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11.3"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11.3"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -195,6 +195,14 @@ jobs:
       - name: 🖼 Build icons
         working-directory: ${{ env.heat-stack-working-directory }}
         run: npm run build:icons
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          # Optional: specify uv version
+          version: "latest"
+          # Optional: enable caching (default is true)
+          enable-cache: true
 
       - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
         working-directory: ${{ env.heat-stack-working-directory }}
