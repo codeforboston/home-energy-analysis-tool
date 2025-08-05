@@ -1,5 +1,6 @@
 name: "setup-rules-engine"
 description: "Sets up the environment for the rules engine"
+
 inputs:
   python-version:
     description: Python version to use (e.g. "3.10")
@@ -7,6 +8,7 @@ inputs:
   working-directory:
     description: The working directory for the rules engine
     required: true
+
 runs:
   using: "composite"
   steps:
@@ -14,6 +16,13 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
+
+    - name: Install uv
+      shell: bash
+      run: |
+        curl -Ls https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
     - name: Install dependencies
       working-directory: ${{ inputs.working-directory }}
       shell: bash
