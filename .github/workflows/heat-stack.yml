@@ -197,9 +197,12 @@ jobs:
         run: npm run build:icons
 
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: astral-sh/setup-uv@v3
+        with:
+          # Optional: specify uv version
+          version: "latest"
+          # Optional: enable caching (default is true)
+          enable-cache: true
 
       - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
         working-directory: ${{ env.heat-stack-working-directory }}
