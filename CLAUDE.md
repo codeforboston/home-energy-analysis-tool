@@ -72,7 +72,7 @@ make build        # Build the Python package
 - Case analysis flows are under `/heat-stack/app/routes/_heat+`
 
 ### Rules Engine
-- Python-based engine (requires Python 3.11.3+)
+- Python-based engine (requires Python 3.13+)
 - Implements calculations for heat load analysis
 - Uses Pydantic for data validation
 - Core modules: `engine.py`, `parser.py`, `pydantic_models.py`, `helpers.py`
@@ -92,6 +92,6 @@ make build        # Build the Python package
 
 ## Development Notes
 - **Node Version**: The project requires Node.js version 22
-- **Python Version**: The rules engine requires Python 3.11.3+
+- **Python Version**: The rules engine requires Python 3.13+
 - **Weather Data**: Uses external weather APIs for temperature data
 - **Database**: Uses SQLite with Prisma for persistence
