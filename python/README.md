@@ -91,7 +91,7 @@ source check.python.sh
 1. Clone or fork the git repository, if not already done.
 2. Open terminal.
 3. Navigate to python by typing `cd python`.
-4. Install pre-commit 
+4. Install `pre-commit` 
 - On MacOS: `brew install pre-commit` 
 - On Windows:
   - Open a WSL terminal
@@ -99,13 +99,10 @@ source check.python.sh
     - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` 
     - Follow the steps that appear in the prompt following Homebrew installation
   - `brew install pre-commit`
-5. Run `source setup-python.sh`. 
-6. If you get a message that python version is wrong, modify .bashrc in your home directory (`/Users/<username>`) to add these lines:
-```
-alias python3 <path to python 3.12 executable, including executable name>
-export PYTHON_CMD=<path to python 3.12 executable, including executable name>
-```
+5. Install `uv`
+- On MacOS `brew install uv`
+- On Windows, once you have installed HomeBrew and opened a WSL terminal: `brew install uv`
+6. Run `source setup-python.sh`. 
 7. Run `pytest` and see tests run successfully.
-8. When you open a new interval run `source venv/bin/activate`.
 
 

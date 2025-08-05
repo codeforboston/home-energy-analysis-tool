@@ -53,7 +53,7 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	})
 	await createAccountLink.click()
 
-	await expect(page).toHaveURL(`/signup`)
+	await expect(page).toHaveURL(`/signup?redirectTo=%2Fcases`)
 
 	const emailTextbox = page.getByRole('textbox', { name: /email/i })
 	await emailTextbox.click()
@@ -330,7 +330,7 @@ test('login as existing user', async ({ page, insertNewUser }) => {
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
-	await expect(page).toHaveURL(`/`)
+	await expect(page).toHaveURL(`/cases`)
 
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
@@ -384,7 +384,7 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.getByLabel(/^password$/i).fill(newPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	await expect(page).toHaveURL(`/`)
+	await expect(page).toHaveURL(`/cases`)
 
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
