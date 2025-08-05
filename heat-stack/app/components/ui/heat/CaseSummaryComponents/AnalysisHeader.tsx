@@ -48,25 +48,35 @@ export function AnalysisHeader({
 	const summaryOutputs = usageData?.heat_load_output;
 
 	const totalRecords = usageData?.processed_energy_bills?.length || "-"
+	// Each record has three options for Analysis Types:
+	// Heating calculations (1)
+	// Non-heating calculations (-1)
+    // Not allowed in any calculations (0)
 
-	// Calculate the number of billing periods included in Heating calculations
+	// Get only the billing periods allowed in Heating calculations (Enum 1)
 	const heatingAnalysisTypeRecords = usageData?.processed_energy_bills?.filter(
 		(billingRecord) => billingRecord.analysis_type === 1,
 		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
+		// Answer: No, that line would include billing periods from Heating calculations and from Non-heating calculation
+		// Followup: Should extract this logic to the rules-engine and pass along as new variables?
 	);
 
+	// Now we have all billing periods that are allowed in Heating calculations,
+	// Determine which are included by default and not overridden by the user
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
 		billingRecord.default_inclusion === true &&
 		billingRecord.inclusion_override === false,
 	).length;
 
+	// Determine which are not included by default but have been overridden by the user
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
 		billingRecord.default_inclusion === false &&
 		billingRecord.inclusion_override === true,
 	).length;
 
+	// Total of all billing periods that are allowed and included in Heating calculations
 	const numRecordsForHeatingCalculations =
 		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
 
@@ -110,7 +120,7 @@ export function AnalysisHeader({
 				{/* TODO: add help text here */}
 				<img src={HelpCircle} alt='help text'/>
 			</div>
-			<div className="flex flex-row gap-x-4">
+			<div data-pw='analysis-header' className="flex flex-row gap-x-4">
 				<div className="basis-1/3">
 					<div className="item-title-small text-xl text-slate-700 font-normal">
 						Average Indoor Temperature <br />
