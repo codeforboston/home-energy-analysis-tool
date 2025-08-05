@@ -254,6 +254,12 @@ jobs:
           if: steps.db-cache.outputs.cache-hit != 'true'
           run: npx prisma migrate reset --force
 
+        - name: Install uv
+          uses: astral-sh/setup-uv@v6
+          with:
+            version: "latest"
+            enable-cache: true
+            
         - name: 📐 Build Rules Engine
           working-directory:  ${{ env.heat-stack-working-directory }}
           run: npm run buildpy
