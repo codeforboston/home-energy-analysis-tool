@@ -197,7 +197,7 @@ jobs:
         run: npm run build:icons
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v6
         with:
           # Optional: specify uv version
           version: "latest"
