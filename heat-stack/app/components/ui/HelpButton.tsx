@@ -5,7 +5,7 @@ import { ModalFromMarkDown } from "./ModalFromMarkdown"
 type HelpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     keyName: string,
     className?: string,
-    size: number
+    size?: number
 }
 
 export function HelpButton({
