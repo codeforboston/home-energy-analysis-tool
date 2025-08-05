@@ -2,18 +2,11 @@ import { HelpCircle } from "lucide-react"
 import { useState } from "react"
 import { ModalFromMarkDown } from "./ModalFromMarkdown"
 
-type HelpButtonProps = {
-    keyName: string
+type HelpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    keyName: string,
+    className?: string,
+    size?: number
 }
-
-
-export function HelpButton({
-    keyName,
-    className,
-    size=18,
-    ...rest
-}: HelpButtonProps) {
-
 
 export function HelpButton({
     keyName,
