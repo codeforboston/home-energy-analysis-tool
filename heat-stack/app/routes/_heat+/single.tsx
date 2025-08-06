@@ -168,85 +168,85 @@ export async function action({ request, params }: Route.ActionArgs) {
 		let convertedDatesTIWD, state_id, county_id
 		// Define variables at function scope for access in the return statement
 		let caseRecord, analysis, heatingInput
-			const result = await getConvertedDatesTIWD(
-				pyodideResultsFromTextFile,
-				street_address,
-				town,
-				state
-			)
-			convertedDatesTIWD = result.convertedDatesTIWD
-			state_id = result.state_id
-			county_id = result.county_id
+		const result = await getConvertedDatesTIWD(
+			pyodideResultsFromTextFile,
+			street_address,
+			town,
+			state
+		)
+		convertedDatesTIWD = result.convertedDatesTIWD
+		state_id = result.state_id
+		county_id = result.county_id
 
-			if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-				/* TODO: refactor out into a separate file. 
-						for args, use submission.values, result
-				*/
-				// Save to database using Prisma
-				// First create or find HomeOwner
-				const homeOwner = await prisma.homeOwner.create({
-					data: {
-						firstName1: name.split(' ')[0] || 'Unknown',
-						lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-						email1: '', // We'll need to add these to the form
-						firstName2: '',
-						lastName2: '',
-						email2: '',
-					},
-				})
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+			/* TODO: refactor out into a separate file. 
+					for args, use submission.values, result
+			*/
+			// Save to database using Prisma
+			// First create or find HomeOwner
+			const homeOwner = await prisma.homeOwner.create({
+				data: {
+					firstName1: name.split(' ')[0] || 'Unknown',
+					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
+					email1: '', // We'll need to add these to the form
+					firstName2: '',
+					lastName2: '',
+					email2: '',
+				},
+			})
 
-				// Create location using geocoded information
-				const location = await prisma.location.create({
-					data: {
-						address: result.addressComponents?.street || street_address,
-						city: result.addressComponents?.city || town,
-						state: result.addressComponents?.state || state,
-						zipcode: result.addressComponents?.zip || '',
-						country: 'USA',
-						livingAreaSquareFeet: Math.round(living_area),
-						latitude: result.coordinates?.y || 0,
-						longitude: result.coordinates?.x || 0,
-					},
-				})
+			// Create location using geocoded information
+			const location = await prisma.location.create({
+				data: {
+					address: result.addressComponents?.street || street_address,
+					city: result.addressComponents?.city || town,
+					state: result.addressComponents?.state || state,
+					zipcode: result.addressComponents?.zip || '',
+					country: 'USA',
+					livingAreaSquareFeet: Math.round(living_area),
+					latitude: result.coordinates?.y || 0,
+					longitude: result.coordinates?.x || 0,
+				},
+			})
 
-				// Create Case
-				caseRecord = await prisma.case.create({
-					data: {
-						homeOwnerId: homeOwner.id,
-						locationId: location.id,
-					},
-				})
+			// Create Case
+			caseRecord = await prisma.case.create({
+				data: {
+					homeOwnerId: homeOwner.id,
+					locationId: location.id,
+				},
+			})
 
-				// Create Analysis
-				analysis = await prisma.analysis.create({
-					data: {
-						caseId: caseRecord.id,
-						rules_engine_version: '0.0.1',
-					},
-				})
+			// Create Analysis
+			analysis = await prisma.analysis.create({
+				data: {
+					caseId: caseRecord.id,
+					rules_engine_version: '0.0.1',
+				},
+			})
 
-				// Create HeatingInput
-				heatingInput = await prisma.heatingInput.create({
-					data: {
-						analysisId: analysis.id,
-						fuelType: fuel_type,
-						designTemperatureOverride: Boolean(design_temperature_override),
-						heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-						thermostatSetPoint: thermostat_set_point,
-						setbackTemperature: setback_temperature || 65,
-						setbackHoursPerDay: setback_hours_per_day || 0,
-						numberOfOccupants: 2, // Default value until we add to form
-						estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-						standByLosses: 5, // Default value until we add to form
-						livingArea: living_area,
-					},
-				})
+			// Create HeatingInput
+			heatingInput = await prisma.heatingInput.create({
+				data: {
+					analysisId: analysis.id,
+					fuelType: fuel_type,
+					designTemperatureOverride: Boolean(design_temperature_override),
+					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
+					thermostatSetPoint: thermostat_set_point,
+					setbackTemperature: setback_temperature || 65,
+					setbackHoursPerDay: setback_hours_per_day || 0,
+					numberOfOccupants: 2, // Default value until we add to form
+					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+					standByLosses: 5, // Default value until we add to form
+					livingArea: living_area,
+				},
+			})
 
-				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
 
-				/* TODO: store rules-engine output in database too */
-			}
-			
+			/* TODO: store rules-engine output in database too */
+		}
+
 
 		// } catch (error) {
 		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
@@ -288,13 +288,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 				heatingInputId: heatingInput?.id
 			}
 		}
-	} 
+	}
 	catch (error: unknown) {
 		console.error("Calculate failed")
 		if (error instanceof Error) {
 			console.error(error.message)
 			const errorLines = error.message.split("\n").filter(Boolean)
-			const lastLine =  errorLines[errorLines.length-1] || error.message
+			const lastLine = errorLines[errorLines.length - 1] || error.message
 			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
@@ -303,14 +303,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 				{ status: 500 }
 			);
 		} else {
-		return data(
+			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
-				formErrors: ['Unknown Error'],
-			}),
-			{ status: 500 }
-		);
-	}
+					formErrors: ['Unknown Error'],
+				}),
+				{ status: 500 }
+			);
+		}
 	}
 	// return redirect(`/single`)
 } //END OF action
@@ -322,7 +322,9 @@ export default function SubmitAnalysis({
 }: Route.ComponentProps) {
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+	const [newResult, setNewResult] = useState<Map<any, any> | undefined>()
 	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
 
 	// ✅ Extract structured values from actionData
@@ -335,12 +337,29 @@ export default function SubmitAnalysis({
 		}
 	}, [caseInfo])
 
-	let parsedLastResult: Map<any, any> | undefined
 	const showUsageData = lastResult !== undefined
 
-	if (showUsageData && hasDataProperty(lastResult)) {
-		parsedLastResult = JSON.parse(lastResult.data, reviver) as Map<any, any>
-		const newUsageData = buildCurrentUsageData(parsedLastResult)
+	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit) {
+		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
+	};
+	if (newResult && buildAfterSubmit) {
+		setBuildAfterSubmit(false)
+		const newUsageData = buildCurrentUsageData(newResult)
+		// const v = newUsageData.processed_energy_bills;
+		// console.log("single new",
+		// 	v[0]?.inclusion_override,
+		// 	v[1]?.inclusion_override,
+		// 	v[2]?.inclusion_override,
+		// )
+		// const v2 = usageData?.processed_energy_bills || []
+		// console.log("old",
+		// 	v2[0]?.inclusion_override,
+		// 	v[1]?.inclusion_override,
+		// 	v[2]?.inclusion_override,
+		// )
+		// console.log("single.tsx setUsageData")
+		// if (objectToString(usageData) !== objectToString(newUsageData)) {
+		// 	console.log("new")
 		if (objectToString(usageData) !== objectToString(newUsageData)) {
 			setUsageData(newUsageData)
 		}
@@ -393,10 +412,10 @@ export default function SubmitAnalysis({
 			>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
@@ -407,7 +426,7 @@ export default function SubmitAnalysis({
 							usageData={usageData}
 							setUsageData={setUsageData}
 							lastResult={lastResult}
-							parsedLastResult={parsedLastResult}
+							parsedLastResult={newResult}
 							recalculateFn={recalculateFromBillingRecordsChange}
 						/>
 
