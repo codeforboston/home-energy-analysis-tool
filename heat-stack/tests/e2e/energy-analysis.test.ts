@@ -13,9 +13,6 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 
 	// click the "demo data" link
 	await page.getByText('Get Started (with Demo Data)').click()
-	// Waits for the URL, continues as soon as the URL appears
-	// and times out if 15 seconds have passed without the URL appearing
-	await page.waitForURL('/single', { timeout: 15_000 });
 
 	await page
 		.getByLabel("Upload your energy billing company's bill.")
@@ -23,6 +20,10 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 		.setInputFiles('tests/fixtures/csv/green_button_gas_bill_quateman_for_test.csv')
 
 	await page.locator('button[name="intent"][value="upload"]').click()
+
+	// Waits for the URL, continues as soon as the URL appears
+	// and times out if 15 seconds have passed without the URL appearing
+	await page.waitForURL('/single', { timeout: 15_000 });
 	// await page.screenshot({ 
 	// 	path: 'full-page.png',
 	// 	fullPage: true 
