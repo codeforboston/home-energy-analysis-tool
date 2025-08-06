@@ -11,8 +11,9 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 import { type SummaryOutputSchema } from '../../../../../../types/types.ts'
-import { Icon } from '../../../icon.tsx'
+import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 import {
 	COLOR_GREY_LIGHT,
 	COLOR_ORANGE,
@@ -26,9 +27,6 @@ import {
 } from '../utility/heat-load-calculations.ts'
 import { CustomLegend } from './HeatLoadGraphLegend.tsx'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
-import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
