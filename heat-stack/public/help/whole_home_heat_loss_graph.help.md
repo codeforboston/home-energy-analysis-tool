@@ -1,0 +1,3 @@
+title: Whole-home heat loss comparison
+
+markdown: This graph compares the heat-loss rate of this home with other homes that have been analyzed with the same method. The heat-loss rate is independent of the thermostat settings and balance point. This comparison provides an indication of a home’s weatherization quality. A home that is above the trendline has a higher heat-loss rate than typical homes of the same size, which may indicate poor weatherization. A home that is below the trendline has a lower heat-loss rate than typical homes of the same size, which may indicate better weatherization.

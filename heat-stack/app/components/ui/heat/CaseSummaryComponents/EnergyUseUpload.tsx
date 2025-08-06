@@ -1,5 +1,6 @@
 import { Upload } from 'lucide-react'
 import { Button } from '#/app/components/ui/button.tsx'
+import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { ErrorList } from './ErrorList';
 
 interface EnergyUseUploadProps {
@@ -21,7 +22,6 @@ export function EnergyUseUpload(
 		setBuildAfterSubmit(true);
 	}
 
-	const descriptiveClass = 'mt-2 mb-6 text-sm text-slate-500'
 
 	return (
 		<fieldset>
@@ -31,17 +31,9 @@ export function EnergyUseUpload(
 				errors={fields.energy_use_upload.errors}
 			/>
 
-			<div className="flex flex-col items-start mb-4">
-				<input
-					id="energy_use_upload"
-					aria-label="Upload your energy billing company's bill."
-					accept=".xml,.csv,application/xml,text/xml,text/csv,application/csv,application/x-csv,text/comma-separated-values,text/x-comma-separated-values"
-					name={fields.energy_use_upload.name}
-					type="file"
-					className="h-7"
-				/>
-				<div className={`${descriptiveClass}`}>The file must be a CSV.</div>
-			</div>
+			<CustomFileUpload
+				name={fields.energy_use_upload.name}
+			/>
 
 			<div>
 				{/* Button type submit is processed by action in single.tsx */}
