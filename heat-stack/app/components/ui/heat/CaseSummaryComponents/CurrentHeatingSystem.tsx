@@ -1,4 +1,4 @@
-ximport { getInputProps } from '@conform-to/react'
+import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Input } from '#/app/components/ui/input.tsx'
