@@ -410,6 +410,7 @@ export default function SubmitAnalysis({
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
 			>
+				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
