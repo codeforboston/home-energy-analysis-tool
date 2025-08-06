@@ -38,3 +38,6 @@ heat-tmp
 
 # react router v7 generated types
 .react-router
+
+/heat-stack/tests/fixtures/openimg/
+/heat-stack/tests/fixtures/uploaded/
