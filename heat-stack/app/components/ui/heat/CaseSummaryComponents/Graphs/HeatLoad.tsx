@@ -11,8 +11,9 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 import { type SummaryOutputSchema } from '../../../../../../types/types.ts'
-import { Icon } from '../../../icon.tsx'
+import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 import {
 	COLOR_GREY_LIGHT,
 	COLOR_ORANGE,
@@ -26,7 +27,6 @@ import {
 } from '../utility/heat-load-calculations.ts'
 import { CustomLegend } from './HeatLoadGraphLegend.tsx'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
-import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3; // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000; // Rounding unit for minY and maxY
@@ -99,10 +99,12 @@ export function HeatLoad({
 
 	return (
 		<div className="min-w-[625px] rounded-lg shadow-lg">
-			<div className="mb-4 mt-4 text-lg font-semibold">
+			<div className="mb-4 mt-4 text-lg font-semibold flex items-center gap-2">
 				Heating System Demand
-				<Icon name="question-mark-circled" className="ps-1" size="md" />
+					<HelpButton keyName="heat_demand_graph.help" />
 			</div>
+
+
 
 			<div className="relative w-full h-[400px]">
 			<ResponsiveContainer width="100%" height={400}>

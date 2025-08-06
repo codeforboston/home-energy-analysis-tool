@@ -11,6 +11,7 @@ import {
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
 import { ErrorList } from './ErrorList.tsx'
+import { HelpButton } from '../../HelpButton.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 
@@ -95,6 +96,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			>
 				Heating System Efficiency %
 			</Label>
+			<HelpButton keyName="heating_system_efficiency.help" className="ml-[1ch]" />
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
@@ -106,6 +108,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						value={percentageValueDisplayed}
 						onChange={handlePercentageChange}
 					/>
+
 					{/* Use the actual field from Conform but with our calculated decimal value */}
 					<Input
 						type="hidden"
