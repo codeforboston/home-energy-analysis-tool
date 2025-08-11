@@ -86,22 +86,24 @@ export const useRulesEngine = () => {
 
 		setUsageData((prevUsageData) => {
 			let v = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine prev",
+			console.log(
+				'rules engine prev',
 				v[0]?.inclusion_override,
 				v[1]?.inclusion_override,
 				v[2]?.inclusion_override,
 			)
 			const v2 = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine 2",
+			console.log(
+				'rules engine 2',
 				v2[0]?.inclusion_override,
 				v[1]?.inclusion_override,
 				v[2]?.inclusion_override,
 			)
 			if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-				console.log("new")
+				console.log('new')
 				return newUsageData
 			}
-			console.log("prev")
+			console.log('prev')
 			return prevUsageData
 		})
 	}

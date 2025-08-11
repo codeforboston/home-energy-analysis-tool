@@ -7,7 +7,7 @@ import { Form, data } from 'react-router'
 import { type z } from 'zod'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { replacer, reviver } from '#app/utils/data-parser.ts'
+import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
@@ -15,12 +15,8 @@ import {
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
-import {
-	buildCurrentUsageData,
-	objectToString,
-	hasDataProperty,
-	hasParsedAndValidatedFormSchemaProperty,
-} from '#app/utils/index.ts'
+import useUsageData from '#app/utils/hooks/use-usage-data.ts'
+import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
@@ -31,13 +27,10 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import {
 	HomeSchema,
 	LocationSchema,
-	CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */
+	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
 	UploadEnergyUseFileSchema,
 } from '../../../types/index.ts'
-import {
-	type UsageDataSchema,
-	type NaturalGasUsageDataSchema,
-} from '../../../types/types.ts'
+import { type NaturalGasUsageDataSchema } from '../../../types/types.ts'
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
@@ -45,6 +38,7 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
+import { EnergyUsageSubmitActionData } from '#types/single-form.ts'
 
 /** TODO: Use url param "dev" to set defaults */
 
@@ -64,9 +58,8 @@ const CurrentHeatingSystemSchema = HomeSchema.pick({
 	setback_hours_per_day: true,
 })
 
-
-export const Schema = UploadEnergyUseFileSchema.and(HomeFormSchema.and(
-	CurrentHeatingSystemSchema)
+export const Schema = UploadEnergyUseFileSchema.and(
+	HomeFormSchema.and(CurrentHeatingSystemSchema),
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -77,9 +70,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-	caseId?: number;
-	analysisId?: number;
-	heatingInputId?: number;
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -124,7 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -147,7 +140,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
@@ -172,13 +165,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 			pyodideResultsFromTextFile,
 			street_address,
 			town,
-			state
+			state,
 		)
 		convertedDatesTIWD = result.convertedDatesTIWD
 		state_id = result.state_id
 		county_id = result.county_id
 
-		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === 'true') {
 			/* TODO: refactor out into a separate file. 
 					for args, use submission.values, result
 			*/
@@ -247,7 +240,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 			/* TODO: store rules-engine output in database too */
 		}
 
-
 		// } catch (error) {
 		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
 		// 	if (errorWithExceptionMessage && errorWithExceptionMessage.exceptionMessage) {
@@ -260,13 +252,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 		 */
 
 		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			uploadedTextFile,
-			state_id,
-			county_id,
-		)
+		const gasBillDataFromTextFilePyProxy: PyProxy =
+			executeGetAnalyticsFromFormJs(
+				parsedAndValidatedFormSchema,
+				convertedDatesTIWD,
+				uploadedTextFile,
+				state_id,
+				county_id,
+			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
 
@@ -285,51 +278,54 @@ export async function action({ request, params }: Route.ActionArgs) {
 			caseInfo: {
 				caseId: caseRecord?.id,
 				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id
-			}
+				heatingInputId: heatingInput?.id,
+			},
 		}
-	}
-	catch (error: unknown) {
-		console.error("Calculate failed")
+	} catch (error: unknown) {
+		console.error('Calculate failed')
 		if (error instanceof Error) {
 			console.error(error.message)
-			const errorLines = error.message.split("\n").filter(Boolean)
+			const errorLines = error.message.split('\n').filter(Boolean)
 			const lastLine = errorLines[errorLines.length - 1] || error.message
 			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
 					formErrors: [lastLine],
 				}),
-				{ status: 500 }
-			);
+				{ status: 500 },
+			)
 		} else {
 			return data(
 				// see comment for first submission.reply for additional options
 				submission.reply({
 					formErrors: ['Unknown Error'],
 				}),
-				{ status: 500 }
-			);
+				{ status: 500 },
+			)
 		}
 	}
 	// return redirect(`/single`)
 } //END OF action
 
-
 export default function SubmitAnalysis({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
-	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-	const [newResult, setNewResult] = useState<Map<any, any> | undefined>()
-	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
+
+	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
+		useRulesEngine()
+	const { usageData, toggleBillingPeriod } = useUsageData(
+		actionData as EnergyUsageSubmitActionData,
+		recalculateFromBillingRecordsChange,
+	)
+
+	console.log('render>', { actionData, usageData })
 
 	// ✅ Extract structured values from actionData
-	const lastResult = actionData // The actual submission result
-	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
+	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })
+		?.caseInfo
 
 	React.useEffect(() => {
 		if (caseInfo) {
@@ -337,33 +333,7 @@ export default function SubmitAnalysis({
 		}
 	}, [caseInfo])
 
-	const showUsageData = lastResult !== undefined
-
-	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit) {
-		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
-	};
-	if (newResult && buildAfterSubmit) {
-		setBuildAfterSubmit(false)
-		const newUsageData = buildCurrentUsageData(newResult)
-		// const v = newUsageData.processed_energy_bills;
-		// console.log("single new",
-		// 	v[0]?.inclusion_override,
-		// 	v[1]?.inclusion_override,
-		// 	v[2]?.inclusion_override,
-		// )
-		// const v2 = usageData?.processed_energy_bills || []
-		// console.log("old",
-		// 	v2[0]?.inclusion_override,
-		// 	v[1]?.inclusion_override,
-		// 	v[2]?.inclusion_override,
-		// )
-		// console.log("single.tsx setUsageData")
-		// if (objectToString(usageData) !== objectToString(newUsageData)) {
-		// 	console.log("new")
-		if (objectToString(usageData) !== objectToString(newUsageData)) {
-			setUsageData(newUsageData)
-		}
-	}
+	const showUsageData = actionData !== undefined
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
@@ -371,17 +341,17 @@ export default function SubmitAnalysis({
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-				living_area: 2155,
-				street_address: '15 Dale Ave',
-				town: 'Gloucester',
-				state: 'MA',
-				name: 'CIC',
-				fuel_type: 'GAS',
-				heating_system_efficiency: 0.97,
-				thermostat_set_point: 68,
-				setback_temperature: 65,
-				setback_hours_per_day: 8,
-			}
+					living_area: 2155,
+					street_address: '15 Dale Ave',
+					town: 'Gloucester',
+					state: 'MA',
+					name: 'CIC',
+					fuel_type: 'GAS',
+					heating_system_efficiency: 0.97,
+					thermostat_set_point: 68,
+					setback_temperature: 65,
+					setback_hours_per_day: 8,
+				}
 			: { fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
@@ -398,7 +368,6 @@ export default function SubmitAnalysis({
 		shouldRevalidate: 'onInput',
 	})
 
-
 	return (
 		<>
 			<Form
@@ -413,10 +382,13 @@ export default function SubmitAnalysis({
 				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
@@ -425,20 +397,20 @@ export default function SubmitAnalysis({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							setUsageData={setUsageData}
-							lastResult={lastResult}
-							parsedLastResult={newResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
+							lastActionData={actionData}
+							onClick={(index) => {
+								toggleBillingPeriod(index)
+							}}
 						/>
 
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						hasParsedAndValidatedFormSchemaProperty(actionData) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
-								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
+								livingArea={actionData.parsedAndValidatedFormSchema.living_area}
 							/>
 						) : (
 							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
@@ -454,7 +426,9 @@ export default function SubmitAnalysis({
 			{/* Show case saved message */}
 			{savedCase && savedCase.caseId && (
 				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
 					<p className="mb-4">Your case data has been saved to the database.</p>
 					<p>
 						<a
@@ -469,4 +443,3 @@ export default function SubmitAnalysis({
 		</>
 	)
 }
-

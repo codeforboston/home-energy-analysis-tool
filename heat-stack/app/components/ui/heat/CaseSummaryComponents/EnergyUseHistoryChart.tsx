@@ -56,85 +56,20 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // ]
 
 interface EnergyUseHistoryChartProps {
-	lastResult: any
-	parsedLastResult: Map<any, any> | undefined
+	lastActionData: any
 	usageData: UsageDataSchema
-	setUsageData: React.Dispatch<
-		React.SetStateAction<UsageDataSchema | undefined>
-	>
-	recalculateFn: RecalculateFunction
-}
-
-function objectToString(obj: any): any {
-	// !!!! typeof obj has rules for zodObjects
-	// typeof obj returns the type of the value of that zod object (boolean, object, etc)
-	// JSON.stringify of a Zod object is the value of that Zod object, except for null / undefined
-	if (!obj) {
-		return 'none'
-	} else if (typeof obj !== 'object') {
-		return JSON.stringify(obj)
-	} else if (Array.isArray(obj)) {
-		return `[${obj
-			.map((value) => {
-				return objectToString(value)
-			})
-			.join(', ')}]`
-	}
-
-	const retval = `{ ${Object.entries(obj)
-		.map(([key, value]) => `"${key}": ${objectToString(value)}`)
-		.join(', ')} }`
-	return retval as any
+	onClick: (index: number) => void
 }
 
 export function EnergyUseHistoryChart({
-	lastResult,
-	parsedLastResult,
-	setUsageData,
+	lastActionData: lastActionData,
 	usageData,
-	recalculateFn,
+	onClick,
 }: EnergyUseHistoryChartProps) {
-	const handleOverrideCheckboxChange = (index: number) => {
-		const newRecords = structuredClone(usageData.processed_energy_bills)
-		const period = newRecords[index]
-
-		if (period) {
-			const currentOverride = period.inclusion_override
-			// Toggle 'inclusion_override'
-			period.inclusion_override = !currentOverride
-
-			newRecords[index] = { ...period }
-		}
-		const newUsageData = {
-			heat_load_output: Object.fromEntries(
-				parsedLastResult?.get('heat_load_output'),
-			) as SummaryOutputSchema,
-			balance_point_graph: Object.fromEntries(
-				parsedLastResult?.get('balance_point_graph'),
-			) as BalancePointGraphSchema,
-			processed_energy_bills: newRecords as BillingRecordsSchema,
-		}
-		if (objectToString(usageData) != objectToString(newUsageData)) {
-			setUsageData(newUsageData)
-		}
-
-		const {
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			state_id,
-			county_id,
-		} = { ...lastResult }
-
-		recalculateFn(
-			parsedLastResult,
-			newRecords,
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			state_id,
-			county_id,
-			setUsageData,
-		)
-	}
+	console.log('Energy: reneder>', {
+		lastActionData,
+		usageData,
+	})
 
 	return (
 		<Table
@@ -224,7 +159,7 @@ export function EnergyUseHistoryChart({
 								<Checkbox
 									checked={period.inclusion_override}
 									disabled={overrideCheckboxDisabled}
-									onClick={() => handleOverrideCheckboxChange(index)}
+									onClick={() => onClick(index)}
 								/>
 							</TableCell>
 						</TableRow>

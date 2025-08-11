@@ -31,16 +31,16 @@ export function objectToString(obj: any): any {
 
 /**
  * replace original Rules Engine's billing records with new UI's billingRecords
- * @param parsedLastResult
+ * @param usageDataAsMap
  * @param processedEnergyBills
  */
 export const buildCurrentMapOfUsageData = (
-	parsedLastResult: Map<any, any>,
+	usageDataAsMap: Map<any, any>,
 	processedEnergyBills: BillingRecordsSchema,
 ) => {
 	// make a copy of parsedLastResult
 	const copyOfParsedLastResult: Map<any, any> | undefined =
-		structuredClone(parsedLastResult)
+		structuredClone(usageDataAsMap)
 
 	const billMap: Array<Map<string, any>> = processedEnergyBills.map((bill) => {
 		return new Map(Object.entries(bill))
@@ -55,20 +55,20 @@ export const buildCurrentMapOfUsageData = (
 
 /**
  * Builds the current usage data based on the parsed last result.
- * @param parsedLastResult - The parsed last result.
+ * @param usageDataAsMap - The parsed last result.
  * @returns The current usage data.
  */
 export const buildCurrentUsageData = (
-	parsedLastResult: Map<any, any>,
+	usageDataAsMap: Map<any, any>,
 ): UsageDataSchema => {
 	const newUsageData = {
 		heat_load_output: Object.fromEntries(
-			parsedLastResult?.get('heat_load_output'),
+			usageDataAsMap?.get('heat_load_output'),
 		) as SummaryOutputSchema,
 		balance_point_graph: Object.fromEntries(
-			parsedLastResult?.get('balance_point_graph'),
+			usageDataAsMap?.get('balance_point_graph'),
 		) as BalancePointGraphSchema,
-		processed_energy_bills: parsedLastResult
+		processed_energy_bills: usageDataAsMap
 			?.get('processed_energy_bills')
 			.map((map: any) => Object.fromEntries(map)) as BillingRecordsSchema,
 	} as UsageDataSchema
