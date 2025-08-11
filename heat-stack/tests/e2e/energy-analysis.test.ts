@@ -1,57 +1,107 @@
 import { type Page as PlaywrightPage } from 'playwright'
-import { expect, test } from '#tests/playwright-utils.ts'
+import { expect, test as base } from '#tests/playwright-utils.ts'
 
 const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 	return await page.getByTestId('analysis-header').textContent()
 }
 
+/** TODO
+ * 1. Create fixture to upload csv
+ * 2. Replace test content with fixture
+ * 3. Put describe block
+ * 4. Create test for reupload
+ * 5. Undo changes from PR
+ * 6. Implement my solution
+ * 7. Check impact of my solution
+ * 8. Check if additional checks are required
+ * 9. Extra: Create submissionTableData hook
+ */
+
+type TestFixtures = {
+	uploadEnergyBill: (filename?: string) => Promise<void>
+}
+
+const test = base.extend<TestFixtures>({
+	uploadEnergyBill: async ({ page }, use) => {
+		const uploadFile = async (
+			filepath: string = 'tests/fixtures/csv/green_button_gas_bill_quateman_for_test.csv',
+		) => {
+			await page.getByTestId('upload-billing').nth(0).setInputFiles(filepath)
+
+			await page.locator('button[name="intent"][value="upload"]').click()
+
+			// Waits for the URL, continues as soon as the URL appears
+			// and times out if 15 seconds have passed without the URL appearing
+			await page.waitForURL('/single', { timeout: 15_000 })
+		}
+
+		await use(uploadFile)
+	},
+})
+
 test.setTimeout(120000)
-test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
-	page,
-}) => {
-	// Visit the root
-	await page.goto('/')
+test.describe('Logged out user interacting with demo form and energy bill uploads', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.goto('/')
+		await page.getByText('Get Started (with Demo Data)').click()
+	})
 
-	// click the "demo data" link
-	await page.getByText('Get Started (with Demo Data)').click()
+	test('Uploads a CSV and sees table render and analysis header', async ({
+		page,
+		uploadEnergyBill,
+	}) => {
+		await uploadEnergyBill()
 
-	await page
-		.getByTestId('upload-billing')
-		.nth(0)
-		.setInputFiles(
-			'tests/fixtures/csv/green_button_gas_bill_quateman_for_test.csv',
-		)
+		// TODO Update analysisHeader assertion to validate values instead of existence
 
-	await page.locator('button[name="intent"][value="upload"]').click()
+		// test analysis header exists
+		const headerContent = await getAnalysisHeaderTextContent(page)
+		console.log(` !!!!!!! ${headerContent} !!!!!!! `)
+		expect(headerContent).not.toBe('')
 
-	// Waits for the URL, continues as soon as the URL appears
-	// and times out if 15 seconds have passed without the URL appearing
-	await page.waitForURL('/single', { timeout: 15_000 })
-	// await page.screenshot({
-	// 	path: 'full-page.png',
-	// 	fullPage: true
-	// 	})
+		// test table exists
+		const table = page.getByTestId('EnergyUseHistoryChart')
+		const numOfRows = await table.locator('tr').count()
+		expect(numOfRows).toBe(26)
+	})
 
-	//Toggle table row checkbox, expecting "Analysis Header" text to change.
-	// save the analysis header text before checkbox click
-	const tableHeaderContentBeforeClick = await getAnalysisHeaderTextContent(page)
+	test('Toggle table row checkbox, expecting "Analysis Header" text to change', async ({
+		page,
+		uploadEnergyBill,
+	}) => {
+		await uploadEnergyBill()
 
-	// click the first checkbox and wait
-	const checkbox = page.locator('[role="checkbox"]').first()
+		const checkbox = page.locator('[role="checkbox"]').first()
 
-	// Assert the un-checked state
-	await expect(checkbox).not.toBeChecked()
+		// Save the analysis header text before checkbox click
+		const defaultHeaderText = await getAnalysisHeaderTextContent(page)
 
-	// Click the checkbox
-	await checkbox.click()
+		// Validate checkbox "on" works
+		await expect(checkbox).not.toBeChecked()
+		await checkbox.click()
+		await expect(checkbox).toBeChecked()
 
-	// Assert the checked state
-	await expect(checkbox).toBeChecked()
-	// save the analysis header text after checkbox click and wait
-	const tableHeaderContentAfterClick = await getAnalysisHeaderTextContent(page)
+		// Get analysis header text after checkbox toggled
+		const headerTextAfterCheckboxOn = await getAnalysisHeaderTextContent(page)
+		expect(headerTextAfterCheckboxOn).not.toEqual(defaultHeaderText)
 
-	// expect not equal
-	expect(tableHeaderContentAfterClick).not.toEqual(
-		tableHeaderContentBeforeClick,
-	)
+		// Validate checkbox "off" works
+		await checkbox.click()
+		await expect(checkbox).not.toBeChecked()
+
+		// Validate turning checkbox "off" brings back the original header text
+		const headerTextAfterCheckboxOff = await getAnalysisHeaderTextContent(page)
+		expect(headerTextAfterCheckboxOff).toEqual(defaultHeaderText)
+	})
+
+	test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
+		await uploadEnergyBill()
+
+		const headerForOriginalCsvUpload = await getAnalysisHeaderTextContent(page)
+
+		await uploadEnergyBill('tests/fixtures/csv/natural-gas-eversource.csv')
+
+		const headerForSecondCsvUpload = await getAnalysisHeaderTextContent(page)
+		expect(headerForSecondCsvUpload).not.toEqual(headerForOriginalCsvUpload)
+	})
 })
