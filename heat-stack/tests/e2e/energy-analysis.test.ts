@@ -5,18 +5,6 @@ const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 	return await page.getByTestId('analysis-header').textContent()
 }
 
-/** TODO
- * 1. Create fixture to upload csv
- * 2. Replace test content with fixture
- * 3. Put describe block
- * 4. Create test for reupload
- * 5. Undo changes from PR
- * 6. Implement my solution
- * 7. Check impact of my solution
- * 8. Check if additional checks are required
- * 9. Extra: Create submissionTableData hook
- */
-
 type TestFixtures = {
 	uploadEnergyBill: (filename?: string) => Promise<void>
 }
@@ -56,7 +44,6 @@ test.describe('Logged out user interacting with demo form and energy bill upload
 
 		// test analysis header exists
 		const headerContent = await getAnalysisHeaderTextContent(page)
-		console.log(` !!!!!!! ${headerContent} !!!!!!! `)
 		expect(headerContent).not.toBe('')
 
 		// test table exists
@@ -100,8 +87,29 @@ test.describe('Logged out user interacting with demo form and energy bill upload
 		const headerForOriginalCsvUpload = await getAnalysisHeaderTextContent(page)
 
 		await uploadEnergyBill('tests/fixtures/csv/natural-gas-eversource.csv')
+		// This is a hack to check if table has updated.
+		// First submit, uploadEnergyBill() will wait for url to change from /single?dev=true to /single
+		// but in a scenario where we are uploading multiple times, the url will be /single
+		// the poll checks that the table row count has updated to reflect the new csv data
+		const table = page.getByTestId('EnergyUseHistoryChart')
+
+		await expect
+			.poll(
+				async () => {
+					return await table.locator('tr').count()
+				},
+				{
+					message: 'Waiting for table to have 37 rows',
+				},
+			)
+			.toBe(37)
+		// await page.screenshot({
+		// 	fullPage: true,
+		// 	path: 'multi-submit-test.png',
+		// })
 
 		const headerForSecondCsvUpload = await getAnalysisHeaderTextContent(page)
+		console.log('headerForSecondCsvUpload>', { headerForSecondCsvUpload })
 		expect(headerForSecondCsvUpload).not.toEqual(headerForOriginalCsvUpload)
 	})
 })
