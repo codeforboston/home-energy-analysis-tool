@@ -62,6 +62,8 @@ export const Schema = UploadEnergyUseFileSchema.and(
 	HomeFormSchema.and(CurrentHeatingSystemSchema),
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
+type SchemaZodFromFormType = z.infer<typeof Schema>
+
 export async function loader({ request }: Route.LoaderArgs) {
 	let url = new URL(request.url)
 	let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
@@ -126,7 +128,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
-	type SchemaZodFromFormType = z.infer<typeof Schema>
 
 	const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
@@ -338,21 +339,24 @@ export default function SubmitAnalysis({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
+	const parsedAndValidatedFormSchemaValue = (actionData as typeof actionData & { parsedAndValidatedFormSchema?: SchemaZodFromFormType })
+	?.parsedAndValidatedFormSchema
+
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
-			? {
-					living_area: 2155,
-					street_address: '15 Dale Ave',
-					town: 'Gloucester',
-					state: 'MA',
-					name: 'CIC',
-					fuel_type: 'GAS',
-					heating_system_efficiency: 0.97,
-					thermostat_set_point: 68,
-					setback_temperature: 65,
-					setback_hours_per_day: 8,
-				}
-			: { fuel_type: 'GAS' }
+		? {
+			living_area: 2155,
+			street_address: '15 Dale Ave',
+			town: 'Gloucester',
+			state: 'MA',
+			name: 'CIC',
+			fuel_type: 'GAS',
+			heating_system_efficiency: 0.97,
+			thermostat_set_point: 68,
+			setback_temperature: 65,
+			setback_hours_per_day: 8,
+		}
+		: { ...parsedAndValidatedFormSchemaValue, fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
 	const [form, fields] = useForm({
