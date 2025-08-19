@@ -1,10 +1,4 @@
-import {
-	type UsageDataSchema,
-	type BillingRecordsSchema,
-	type BalancePointGraphSchema,
-	type SummaryOutputSchema,
-} from '#/types/types.ts'
-import { type RecalculateFunction } from '#app/utils/hooks/use-rules-engine.ts'
+import { type UsageDataSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
 	Table,
@@ -56,21 +50,14 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // ]
 
 interface EnergyUseHistoryChartProps {
-	lastActionData: any
 	usageData: UsageDataSchema
 	onClick: (index: number) => void
 }
 
 export function EnergyUseHistoryChart({
-	lastActionData: lastActionData,
 	usageData,
 	onClick,
 }: EnergyUseHistoryChartProps) {
-	console.log('Energy: reneder>', {
-		lastActionData,
-		usageData,
-	})
-
 	return (
 		<Table
 			id="EnergyUseHistoryChart"

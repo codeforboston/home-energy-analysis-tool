@@ -15,7 +15,6 @@ import {
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
-import useUsageData from '#app/utils/hooks/use-usage-data.ts'
 import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {
 	executeGetAnalyticsFromFormJs,
@@ -25,11 +24,11 @@ import {
 // Ours
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import {
-	HomeSchema,
-	LocationSchema,
-	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
-	UploadEnergyUseFileSchema,
-} from '../../../types/index.ts'
+	CurrentHeatingSystemSchema,
+	HomeFormSchema,
+	type EnergyUsageSubmitActionData,
+} from '#types/single-form.ts'
+import { UploadEnergyUseFileSchema } from '../../../types/index.ts'
 import { type NaturalGasUsageDataSchema } from '../../../types/types.ts'
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
@@ -38,25 +37,11 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-import { EnergyUsageSubmitActionData } from '#types/single-form.ts'
 
 /** TODO: Use url param "dev" to set defaults */
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
-
-const HomeFormSchema = HomeSchema.pick({ living_area: true })
-	.and(LocationSchema.pick({ street_address: true, town: true, state: true }))
-	.and(CaseSchema.pick({ name: true }))
-
-const CurrentHeatingSystemSchema = HomeSchema.pick({
-	fuel_type: true,
-	heating_system_efficiency: true,
-	design_temperature_override: true,
-	thermostat_set_point: true,
-	setback_temperature: true,
-	setback_hours_per_day: true,
-})
 
 export const Schema = UploadEnergyUseFileSchema.and(
 	HomeFormSchema.and(CurrentHeatingSystemSchema),
@@ -127,7 +112,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
-
 
 	const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
@@ -315,14 +299,12 @@ export default function SubmitAnalysis({
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
 
-	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
-		useRulesEngine()
-	const { usageData, toggleBillingPeriod } = useUsageData(
-		actionData as EnergyUsageSubmitActionData,
+	const {
+		lazyLoadRulesEngine,
 		recalculateFromBillingRecordsChange,
-	)
-
-	console.log('render>', { actionData, usageData })
+		usageData,
+		toggleBillingPeriod,
+	} = useRulesEngine(actionData as EnergyUsageSubmitActionData)
 
 	// ✅ Extract structured values from actionData
 	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })
@@ -339,24 +321,27 @@ export default function SubmitAnalysis({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const parsedAndValidatedFormSchemaValue = (actionData as typeof actionData & { parsedAndValidatedFormSchema?: SchemaZodFromFormType })
-	?.parsedAndValidatedFormSchema
+	const parsedAndValidatedFormSchemaValue = (
+		actionData as typeof actionData & {
+			parsedAndValidatedFormSchema?: SchemaZodFromFormType
+		}
+	)?.parsedAndValidatedFormSchema
 
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
-		? {
-			living_area: 2155,
-			street_address: '15 Dale Ave',
-			town: 'Gloucester',
-			state: 'MA',
-			name: 'CIC',
-			fuel_type: 'GAS',
-			heating_system_efficiency: 0.97,
-			thermostat_set_point: 68,
-			setback_temperature: 65,
-			setback_hours_per_day: 8,
-		}
-		: { ...parsedAndValidatedFormSchemaValue, fuel_type: 'GAS' }
+			? {
+					living_area: 2155,
+					street_address: '15 Dale Ave',
+					town: 'Gloucester',
+					state: 'MA',
+					name: 'CIC',
+					fuel_type: 'GAS',
+					heating_system_efficiency: 0.97,
+					thermostat_set_point: 68,
+					setback_temperature: 65,
+					setback_hours_per_day: 8,
+				}
+			: { ...parsedAndValidatedFormSchemaValue, fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
 	const [form, fields] = useForm({
@@ -401,7 +386,6 @@ export default function SubmitAnalysis({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							lastActionData={actionData}
 							onClick={(index) => {
 								toggleBillingPeriod(index)
 							}}

@@ -109,7 +109,6 @@ test.describe('Logged out user interacting with demo form and energy bill upload
 		// })
 
 		const headerForSecondCsvUpload = await getAnalysisHeaderTextContent(page)
-		console.log('headerForSecondCsvUpload>', { headerForSecondCsvUpload })
 		expect(headerForSecondCsvUpload).not.toEqual(headerForOriginalCsvUpload)
 	})
 })

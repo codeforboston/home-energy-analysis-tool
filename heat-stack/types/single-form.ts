@@ -1,21 +1,21 @@
 import { type z } from 'zod'
 import { type TemperatureInputDataConverted } from '#app/utils/WeatherUtil.ts'
+import { type UsageDataSchema } from './types'
 import {
 	HomeSchema,
 	LocationSchema,
 	CaseSchema /* validateNaturalGasUsageData, HeatLoadAnalysisZod */,
 	UploadEnergyUseFileSchema,
 } from '.'
-import { UsageDataSchema } from './types'
 
 /** Modeled off the conform example at
  *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
 
-const HomeFormSchema = HomeSchema.pick({ living_area: true })
+export const HomeFormSchema = HomeSchema.pick({ living_area: true })
 	.and(LocationSchema.pick({ street_address: true, town: true, state: true }))
 	.and(CaseSchema.pick({ name: true }))
 
-const CurrentHeatingSystemSchema = HomeSchema.pick({
+export const CurrentHeatingSystemSchema = HomeSchema.pick({
 	fuel_type: true,
 	heating_system_efficiency: true,
 	design_temperature_override: true,
