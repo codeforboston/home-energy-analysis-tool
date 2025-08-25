@@ -120,7 +120,7 @@ export default function Connections({ loaderData }: Route.ComponentProps) {
 				<div className="flex flex-col gap-2">
 					<p>Here are your current connections:</p>
 					<ul className="flex flex-col gap-4">
-						{loaderData.connections.map((c) => (
+						{loaderData.connections.map((c: any) => (
 							<li key={c.id}>
 								<Connection
 									connection={c}
