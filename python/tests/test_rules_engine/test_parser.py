@@ -1,5 +1,5 @@
-import pathlib
 from datetime import datetime
+from pathlib import Path
 
 import chardet
 import pytest
@@ -7,9 +7,9 @@ import pytest
 from rules_engine import parser
 from rules_engine.pydantic_models import NaturalGasBillingRecordInput
 
-ROOT_DIR = pathlib.Path(__file__).parent / "cases" / "examples"
+ROOT_DIR = Path(__file__).parent / "cases" / "examples"
 _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES = (
-    pathlib.Path(__file__).parent / "alternate_natural_gas_bills"
+    Path(__file__).parent / "alternate_natural_gas_bills"
 )
 
 
@@ -35,6 +35,11 @@ class _GasBillPaths:
         / "national-grid-with-yyyy-m-d-format"
         / "national-grid.csv"
     )
+    NATIONAL_GRID_WITH_ALTERNATE_HEADERS = (
+        _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
+        / "national-grid-alternate-format"
+        / "ngma_natural_gas_billing_billing_data_Service 1_1_2022-08-02_to_2025-08-01.csv"
+    )
     EVERSOURCE_WITH_ALTERNATE_FORMAT = (
         _ROOT_DIR_ALTERNATE_NATURAL_GAS_BILL_FILES
         / "eversource-with-alternate-format"
@@ -42,7 +47,7 @@ class _GasBillPaths:
     )
 
 
-def _read_gas_bill(path: str) -> str:
+def _read_gas_bill(path: Path) -> str:
     """
     Read a test natural gas bill from a test CSV
 
@@ -59,7 +64,7 @@ def _read_gas_bill(path: str) -> str:
         encoding = result["encoding"]
 
     with open(path, encoding=encoding) as f:
-        return f.read()
+        return f.read().lower()
 
 
 def _validate_eversource_latest(result):
@@ -172,6 +177,30 @@ def test_parse_gas_bill_with_yyyy_m_d():
     """
     parser.parse_gas_bill(
         _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_YYYY_M_D_FORMAT)
+    )
+
+
+def test_parse_gas_bill_with_national_grid_with_alternate_headers():
+    """
+    Tests parsing a natural gas bill from a National Grid with
+    alternate column headers.
+
+
+    Name,CK
+    Address,"2 MARGIN ST, SALEM MA 01970"
+    Account Number,1111222233
+    Service,Service 1
+
+    TYPE,START DATE,END DATE,USAGE (therms),COST,NOTES
+    Natural gas billing,2022-08-02,2022-08-31,6.00,$20.14
+    Natural gas billing,2022-09-01,2022-09-30,7.00,$24.07
+    Natural gas billing,2022-10-01,2022-10-31,16.00,$42.20
+    Natural gas billing,2022-11-01,2022-12-02,40.00,$104.73
+
+    Note the extra blank line at the top.
+    """
+    parser.parse_gas_bill(
+        _read_gas_bill(_GasBillPaths.NATIONAL_GRID_WITH_ALTERNATE_HEADERS)
     )
 
 
