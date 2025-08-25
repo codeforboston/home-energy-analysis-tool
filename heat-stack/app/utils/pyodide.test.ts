@@ -288,7 +288,7 @@ test('pyodide solves climate change', async () => {
 	// console.log(Object.getOwnPropertyNames(result.toJs()));
 
 	// Disable this assertion until we implement this as a schema test instead of a fixture test
-	expect(true)
+	expect(true).toBe(true);
 	//expect(JSON.stringify(result.toJs(), replacer)).toBe(expectedRecordsToGoInTheTable)
 }, 20000)
 

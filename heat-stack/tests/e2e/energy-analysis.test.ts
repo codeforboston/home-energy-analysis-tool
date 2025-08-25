@@ -34,7 +34,7 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	const tableHeaderContentBeforeClick = await getAnalysisHeaderTextContent(page);
 		
 	// click the first checkbox and wait
-	const checkbox = page.locator('[role="checkbox"]').first();
+	const checkbox = page.getByRole("checkbox").first();
 
 	// Assert the un-checked state
 	await expect(checkbox).not.toBeChecked();
