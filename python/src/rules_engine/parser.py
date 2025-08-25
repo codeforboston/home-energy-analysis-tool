@@ -297,7 +297,7 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
             period_end_date=period_end_date,
-            usage_therms=parsed_row.usage,
+            usage_therms=float(parsed_row.usage),
             inclusion_override=None,
         )
         records.append(record)
