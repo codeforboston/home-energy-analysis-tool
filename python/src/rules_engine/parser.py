@@ -142,7 +142,10 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
 
 
 def are_column_names_in_string(
-    data: str, read_date_names, number_of_days_names, usage_names
+    data: str,
+    read_date_names: list[str],
+    number_of_days_names: list[str],
+    usage_names: list[str],
 ) -> bool:
     """Return whether every column name is in the data"""
     matches = {"read date": False, "number of days": False, "usage": False}
