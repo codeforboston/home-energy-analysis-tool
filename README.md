@@ -10,7 +10,7 @@
 
 This team will work with the other teams to match the interface and necessary research together. Original figma is available here (https://www.figma.com/design/qaxsZ6TW7gjQdUGjuPypZ5/heat-tool-design---new-one-?node-id=2080-12489&p=f)
 
-### JavaScript
+### JavaScript ?
 
 This team will plan and build the user interface. React and Remix in [Epic Stack](https://github.com/epicweb-dev/epic-stack). Uses Pyodide to run python code on frontend.
 It will also get information from the weather station API that the rules engine can use for its calculations. In the future, it may work on permissions and persistence of household data[README.md](/heat-stack/public/pyodide-env/README.md).
