@@ -15,7 +15,7 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	await page.getByText('Get Started (with Demo Data)').click()
 
 	await page
-		.getByLabel("Upload your energy billing company's bill.")
+		.getByTestId('upload-billing')
 		.nth(0)
 		.setInputFiles('tests/fixtures/csv/green_button_gas_bill_quateman_for_test.csv')
 
