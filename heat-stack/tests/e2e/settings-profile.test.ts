@@ -14,6 +14,7 @@ test('Users can update their basic info', async ({ page, login }) => {
 	const newUserData = createUser()
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(newUserData.name)
+
 	await page
 		.getByRole('textbox', { name: /^username/i })
 		.fill(newUserData.username)
@@ -65,7 +66,7 @@ test('Users can update their profile photo', async ({ page, login }) => {
 	await expect(page).toHaveURL(`/settings/profile/photo`)
 
 	await page
-		.getByRole('textbox', { name: /change/i })
+		.getByRole('button', { name: /change/i })
 		.setInputFiles('./tests/fixtures/images/user/kody.png')
 
 	await page.getByRole('button', { name: /save/i }).click()
