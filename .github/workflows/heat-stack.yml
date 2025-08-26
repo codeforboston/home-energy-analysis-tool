@@ -122,7 +122,7 @@ jobs:
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.16.0
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
