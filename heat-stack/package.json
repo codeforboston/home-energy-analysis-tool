@@ -132,7 +132,7 @@
   "devDependencies": {
     "@epic-web/config": "^1.17.0",
     "@faker-js/faker": "^9.5.0",
-    "@playwright/test": "^1.50.1",
+    "@playwright/test": "^1.55.0",
     "@react-router/dev": "^7.6.0",
     "@sentry/vite-plugin": "^3.2.1",
     "@sly-cli/sly": "^1.14.0",
