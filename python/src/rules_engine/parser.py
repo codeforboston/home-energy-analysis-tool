@@ -142,7 +142,10 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
 
 
 def are_column_names_in_string(
-    data: str, read_date_names, number_of_days_names, usage_names
+    data: str,
+    read_date_names: list[str],
+    number_of_days_names: list[str],
+    usage_names: list[str],
 ) -> bool:
     """Return whether every column name is in the data"""
     matches = {"read date": False, "number of days": False, "usage": False}
@@ -297,7 +300,7 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
             period_end_date=period_end_date,
-            usage_therms=parsed_row.usage,
+            usage_therms=float(parsed_row.usage),
             inclusion_override=None,
         )
         records.append(record)

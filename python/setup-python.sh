@@ -3,12 +3,6 @@
 # Trap errors and print a message
 trap 'echo "An error occurred"; set +x' ERR
 
-# Check for Python
-if ! command -v python &> /dev/null; then
-    echo "Python is not installed or not in PATH"
-    exit 1
-fi
-
 # Create a virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
     python3 -m venv .venv || { echo "Failed to create virtual environment"; exit 1; }
