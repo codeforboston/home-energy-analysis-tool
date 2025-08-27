@@ -18,27 +18,21 @@ _ASCII_CHARACTERS_PLUS_NEWLINE = set(
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 )
 
+_NATIONAL_GRID_COLUMN_NAME_ROW_REGEX = re.compile(
+    r"^.*(start date).+(end date).+(usage).*$"
+)
+
 
 class NaturalGasCompany(StrEnum):
     EVERSOURCE = "eversource"
     NATIONAL_GRID = "national_grid"
 
 
-class _NaturalGasCompanyBillRegex:
-    """
-    The regex for which to search a natural gas bill to determine its company.
-    """
-
-    EVERSOURCE = re.compile(
-        r"Read Date,Usage,Number of Days,Usage per day,Charge,Average Temperature"
-    )
-
-    NATIONAL_GRID = re.compile(
-        r"Name,.*\n"  # Match "Name," followed by any characters and a newline
-        r"Address,.*\n"  # Match "Address," followed by any characters and a newline
-        r"Account Number,.*\n"  # Match "Account Number," followed by any characters and a newline
-        r"Service,.*\n"  # Match "Service," followed by any characters and a newline
-    )
+def find_column(column_names: list[str], header: str) -> str:
+    for column_name in column_names:
+        if column_name in header:
+            return column_name
+    raise ValueError("Column not found in header.  Column names tried:", column_names)
 
 
 class _ColumnNamesEversource:
@@ -51,25 +45,19 @@ class _ColumnNamesEversource:
     one headed by "Usage," causing an error.
     """
 
-    @staticmethod
-    def find_column(column_names, header):
-        for column_name in column_names:
-            if column_name in header:
-                return column_name
-        raise ValueError(
-            "Column not found in header.  Column names tried:", column_names
-        )
-
     def __init__(self, header: str):
-        self.read_date = _ColumnNamesEversource.find_column(
-            constants.READ_DATE_NAMES_EVERSOURCE, header
-        )
-        self.number_of_days = _ColumnNamesEversource.find_column(
+        self.read_date = find_column(constants.READ_DATE_NAMES_EVERSOURCE, header)
+        self.number_of_days = find_column(
             constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE, header
         )
-        self.usage = _ColumnNamesEversource.find_column(
-            constants.USAGE_NAMES_EVERSOURCE, header
-        )
+        self.usage = find_column(constants.USAGE_NAMES_EVERSOURCE, header)
+
+
+class _ColumnNamesNationalGrid:
+    def __init__(self, header: str):
+        self.start_date = find_column(["start date"], header)
+        self.end_date = find_column(["end date"], header)
+        self.usage = find_column(constants.USAGE_NAMES_NATIONAL_GRID, header)
 
 
 class _GasBillRowEversource:
@@ -113,10 +101,10 @@ class _GasBillRowNationalGrid:
         ...
     """
 
-    def __init__(self, row):
-        self.start_date = row["START DATE"]
-        self.end_date = row["END DATE"]
-        self.usage = float(row["USAGE"])
+    def __init__(self, row: Dict[str, str], column_names: _ColumnNamesNationalGrid):
+        self.start_date = row[column_names.start_date]
+        self.end_date = row[column_names.end_date]
+        self.usage = row[column_names.usage]
 
 
 def _newline_line_ending(data: str) -> str:
@@ -153,57 +141,46 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
-def _column_name_in_header(column_names: list[str], header: str) -> bool:
-    for name in column_names:
-        if name in header:
-            return True
-    return False
+def are_column_names_in_string(
+    data: str,
+    read_date_names: list[str],
+    number_of_days_names: list[str],
+    usage_names: list[str],
+) -> bool:
+    """Return whether every column name is in the data"""
+    matches = {"read date": False, "number of days": False, "usage": False}
+    for read_date_name in read_date_names:
+        if read_date_name in data:
+            matches["read date"] = True
+            break
+    for number_of_days_name in number_of_days_names:
+        if number_of_days_name in data:
+            matches["number of days"] = True
+            break
+    for usage_name in usage_names:
+        if usage_name in data:
+            matches["usage"] = True
+            break
+    return matches["read date"] and matches["number of days"] and matches["usage"]
 
 
 def _detect_gas_company(data: str) -> NaturalGasCompany:
-    """
-    Return which natural gas company issued this bill.
-    """
-    header = data.split("\n")[0]
-    date_exists = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
-    days_exist = _column_name_in_header(constants.READ_DATE_NAMES_EVERSOURCE, header)
-    therms_exist = _column_name_in_header(constants.USAGE_NAMES_EVERSOURCE, header)
-    is_eversource = date_exists and days_exist and therms_exist
-
-    if _NaturalGasCompanyBillRegex.NATIONAL_GRID.search(data):
-        return NaturalGasCompany.NATIONAL_GRID
-    elif is_eversource:
+    """Return which natural gas company issued this bill."""
+    if are_column_names_in_string(
+        data,
+        constants.READ_DATE_NAMES_EVERSOURCE,
+        constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE,
+        constants.USAGE_NAMES_EVERSOURCE,
+    ):
         return NaturalGasCompany.EVERSOURCE
-    else:
-        print("bad header")
-        print(header)
-        raise ValueError("""Could not detect which company this bill was from""")
-
-
-def parse_gas_bill(
-    data: str, company: NaturalGasCompany | None = None
-) -> NaturalGasBillingInput:
-    """
-    Parse a natural gas bill from a given natural gas company.
-
-    Tries to automatically detect the company that sent the bill.
-    Otherwise, requires the company be passed as an argument.
-    """
-    data = _newline_line_ending(data)
-    data = _remove_double_quotes(data)
-    data = _replace_tabs_with_commas(data)
-    data = _remove_non_ascii_or_newline_characters(data)
-
-    if company == None:
-        company = _detect_gas_company(data)
-
-    match company:
-        case NaturalGasCompany.EVERSOURCE:
-            return _parse_gas_bill_eversource(data)
-        case NaturalGasCompany.NATIONAL_GRID:
-            return _parse_gas_bill_national_grid(data)
-        case _:
-            raise ValueError("Wrong CSV format selected: select another format.")
+    elif are_column_names_in_string(
+        data,
+        [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[0]],
+        [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[1]],
+        [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[2]],
+    ):
+        return NaturalGasCompany.NATIONAL_GRID
+    raise ValueError("Could not determine natural gas company.")
 
 
 def _get_date_from_string(date_string):
@@ -244,13 +221,14 @@ def _parse_gas_bill_eversource(data: str) -> NaturalGasBillingInput:
     """
     f = io.StringIO(data)
     reader = csv.DictReader(f)
-    # Read the header from the first row
-    header = f.readline()
+    # Read the column names from the first row
+    column_names_row = f.readline()
     # Pass the header to ColumnNamesEversource
-    column_names = _ColumnNamesEversource(header)
+    column_names = _ColumnNamesEversource(column_names_row)
     # Reset the file pointer to the beginning
     f.seek(0)
     records = []
+
     for row in reader:
         parsed_row = _GasBillRowEversource(row, column_names)
         period_end_date = _get_date_from_string(parsed_row.read_date)
@@ -287,41 +265,71 @@ def _parse_gas_bill_national_grid(data: str) -> NaturalGasBillingInput:
         ...
     """
     f = io.StringIO(data)
-    header_row = "TYPE,START DATE,END DATE,USAGE,UNITS,COST,NOTES"
+
     header_found = False
+    column_names = None  # Initialize column_names to None
 
     # Read lines until the header row is found
     header_row_index = 0
     for line in f:
-        if line.strip() != header_row:
-            header_row_index += 1
-        else:
+        if _NATIONAL_GRID_COLUMN_NAME_ROW_REGEX.search(line.strip()):
             header_found = True
+            column_names = _ColumnNamesNationalGrid(line)
             break
+        header_row_index += 1
+
+    if not header_found:
+        raise ValueError("Header row not found in the CSV data")
+
+    if column_names is None:
+        raise ValueError("Column names could not be determined")
 
     f.seek(0)
     for _ in range(header_row_index):
         next(f)
-
-    if not header_found:
-        raise ValueError("Header row not found in the CSV data")
 
     # Create a DictReader using the header row
     reader = csv.DictReader(f)
 
     records = []
     for row in reader:
-        parsed_row = _GasBillRowNationalGrid(row)
-
+        parsed_row = _GasBillRowNationalGrid(row, column_names)
         period_start_date = _get_date_from_string(parsed_row.start_date)
         period_end_date = _get_date_from_string(parsed_row.end_date)
 
         record = NaturalGasBillingRecordInput(
             period_start_date=period_start_date,
             period_end_date=period_end_date,
-            usage_therms=parsed_row.usage,
+            usage_therms=float(parsed_row.usage),
             inclusion_override=None,
         )
         records.append(record)
 
     return NaturalGasBillingInput(records=records)
+
+
+def parse_gas_bill(
+    data: str, company: NaturalGasCompany | None = None
+) -> NaturalGasBillingInput:
+    """
+    Parse a natural gas bill from a given natural gas company.
+
+    Tries to automatically detect the company that sent the bill.
+    Otherwise, requires the company be passed as an argument.
+    """
+    data = _newline_line_ending(data)
+    data = _remove_double_quotes(data)
+    data = _replace_tabs_with_commas(data)
+    data = _remove_non_ascii_or_newline_characters(data)
+    data = data.lower()
+
+    if company == None:
+        company = _detect_gas_company(data)
+
+    match company:
+        case NaturalGasCompany.EVERSOURCE:
+            return _parse_gas_bill_eversource(data)
+        case NaturalGasCompany.NATIONAL_GRID:
+            return _parse_gas_bill_national_grid(data)
+        case _:
+            raise ValueError("Wrong CSV format selected: select another format.")

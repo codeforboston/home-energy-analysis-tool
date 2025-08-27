@@ -15,7 +15,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "annotated-types==0.7.0",
     "black==23.3.0",
     "build==1.2.2.post1",
     "chardet==5.2.0",
@@ -30,14 +29,11 @@ dev = [
     "pip-tools==7.4.1",
     "platformdirs==3.7.0",
     "pluggy==1.0.0",
-    "pydantic==2.10.6",
-    "pydantic-core==2.27.2",
     "pydocstyle==6.3.0",
     "pyproject-hooks==1.2.0",
     "pytest==7.3.2",
     "snowballstemmer==2.2.0",
     "types-openpyxl==3.1.4.20240626",
-    "typing-extensions==4.14.0",
     "wheel==0.45.1",
 ]
 
@@ -63,9 +59,7 @@ data = ["*.csv"]
 [tool.uv.sources]
 rules-engine = { workspace = true }
 
-[tool.poetry.dependencies]
-
-[dependency-groups]
-dev = [
-    "rules-engine",
+[tool.uv.workspace]
+members = [
+    ".",
 ]

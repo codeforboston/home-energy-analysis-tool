@@ -1,0 +1,39 @@
+﻿
+Name,BOB SMITH
+Address,"2 MARGIN ST, SALEM MA 01970"
+Account Number,1111222233
+Service,Service 1
+
+TYPE,START DATE,END DATE,USAGE (therms),COST,NOTES
+Natural gas billing,2022-08-02,2022-08-31,6.00,$20.14
+Natural gas billing,2022-09-01,2022-09-30,7.00,$24.07
+Natural gas billing,2022-10-01,2022-10-31,16.00,$42.20
+Natural gas billing,2022-11-01,2022-12-02,40.00,$104.73
+Natural gas billing,2022-12-03,2022-12-30,66.00,$159.31
+Natural gas billing,2022-12-31,2023-01-31,74.00,$178.90
+Natural gas billing,2023-02-01,2023-03-01,77.00,$176.40
+Natural gas billing,2023-03-02,2023-03-31,63.00,$134.63
+Natural gas billing,2023-04-01,2023-05-02,36.00,$81.60
+Natural gas billing,2023-05-03,2023-06-01,14.00,$30.85
+Natural gas billing,2023-06-02,2023-07-01,7.00,$20.31
+Natural gas billing,2023-07-02,2023-08-01,6.00,$19.13
+Natural gas billing,2023-08-02,2023-08-31,5.00,$17.55
+Natural gas billing,2023-09-01,2023-09-30,7.00,$19.55
+Natural gas billing,2023-10-01,2023-10-31,12.00,$25.98
+Natural gas billing,2023-11-01,2023-12-02,48.00,$119.97
+Natural gas billing,2023-12-03,2024-01-03,65.00,$158.05
+Natural gas billing,2024-01-04,2024-02-01,77.00,$184.11
+Natural gas billing,2024-02-02,2024-03-01,72.00,$172.54
+Natural gas billing,2024-03-02,2024-04-02,59.00,$144.52
+Natural gas billing,2024-04-03,2024-05-02,34.00,$41.87
+Natural gas billing,2024-05-03,2024-05-31,13.00,$17.78,* This data was estimated
+Natural gas billing,2024-06-01,2024-07-01,8.00,$10.91
+Natural gas billing,2024-07-02,2024-08-01,7.00,$9.56
+Natural gas billing,2024-08-02,2024-08-30,5.00,$6.70,* This data was estimated
+Natural gas billing,2024-08-31,2024-09-30,11.00,$14.76
+Natural gas billing,2024-10-01,2024-10-30,11.00,$14.97
+Natural gas billing,2024-10-31,2025-04-01,336.00,$808.58,* This data was estimated
+Natural gas billing,2025-04-02,2025-05-01,31.00,$66.56
+Natural gas billing,2025-05-02,2025-06-02,15.00,$31.04,* This data was estimated
+Natural gas billing,2025-06-03,2025-07-01,8.00,$16.52,* This data was estimated
+Natural gas billing,2025-07-02,2025-08-01,8.00,$15.70,* This data was estimated
