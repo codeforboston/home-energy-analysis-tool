@@ -4,7 +4,7 @@
 trap 'echo "An error occurred"; set +x' ERR
 
 # Check for Python
-if ! command -v python3 &> /dev/null; then
+if ! command -v python &> /dev/null; then
     echo "Python is not installed or not in PATH"
     exit 1
 fi
