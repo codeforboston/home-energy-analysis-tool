@@ -21,7 +21,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 
 // Ours
-import { PyProxy } from '#public/pyodide-env/ffi.js'
+import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import {
 	type NaturalGasUsageDataSchema,
@@ -36,7 +36,6 @@ import { type Route } from './+types/single.ts'
 import { createCase } from '#app/utils/db/case.server.ts'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-
 
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -286,7 +285,7 @@ export default function SubmitAnalysis({
 
 	// ✅ Extract structured values from actionData
 	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
-
+	
 	React.useEffect(() => {
 		if (caseInfo) {
 			setSavedCase(caseInfo)
@@ -360,10 +359,10 @@ export default function SubmitAnalysis({
 						/>
 
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						hasParsedAndValidatedFormSchemaProperty(actionData) ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							hasParsedAndValidatedFormSchemaProperty(actionData) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={actionData.parsedAndValidatedFormSchema.living_area}
