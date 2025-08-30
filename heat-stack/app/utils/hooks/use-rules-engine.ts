@@ -131,9 +131,9 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 			throw new Error('actionData was not found')
 		}
 
-		if (!isInitialized) {
-			// if this function was called and pyodide was not initialized, something went wrong
-			throw new Error('rulesEngine was not found')
+		if (!recalculateFromBillingRecordsChange) {
+			// if this function was called and there is no recalculateFromBillingRecordsChange then pyodide was not initialized and something went wrong
+			throw new Error('Recalculate function was not found')
 		}
 
 		const newRecords = structuredClone(usageData.processed_energy_bills)
