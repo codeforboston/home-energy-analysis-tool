@@ -2,6 +2,32 @@ import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts
 import { prisma } from '#app/utils/db.server.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
 
+export const getCasesByUserId = async (userId: string) => {
+	return await prisma.case.findMany({
+		where: {
+			users:{
+				some:{
+					id: userId
+				}
+			}
+		},
+		include: {
+			homeOwner: true,
+			location: true,
+			analysis: {
+				include: {
+					heatingInput: {
+						take: 1,
+					},
+				},
+			},
+		},
+		orderBy: {
+			id: 'desc',
+		},
+	})
+}
+
 export const createCase = async (
 	formInputs: SchemaZodFromFormType,
 	result: GetConvertedDatesTIWDResponse,
@@ -85,5 +111,5 @@ export const createCase = async (
 		}
 	})
 
-    return records
+	return records
 }
