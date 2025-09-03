@@ -1,5 +1,5 @@
 //heat-stack/app/routes/_heat+/single.tsx
-import { type SubmissionResult, useForm } from '@conform-to/react'
+import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import React, { useState } from 'react'
@@ -98,7 +98,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			// this can have personal identifying information, so only active in development.
 			console.error('submission failed', submission)
 		}
-		return submission.reply()
+		return {submitResult: submission.reply()}
 		// submission.reply({
 		// 	// You can also pass additional error to the `reply` method
 		// 	formErrors: ['Submission failed'],
@@ -276,6 +276,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
 
 		return {
+			submitResult:submission.reply(),
 			data: str_version,
 			parsedAndValidatedFormSchema,
 			convertedDatesTIWD,
@@ -297,17 +298,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const lastLine = errorLines[errorLines.length - 1] || error.message
 			return data(
 				// see comment for first submission.reply for additional options
-				submission.reply({
+				{submitResult:submission.reply({
 					formErrors: [lastLine],
-				}),
+				})},
 				{ status: 500 }
 			);
 		} else {
 			return data(
 				// see comment for first submission.reply for additional options
-				submission.reply({
+				{submitResult:submission.reply({
 					formErrors: ['Unknown Error'],
-				}),
+				})},
 				{ status: 500 }
 			);
 		}
@@ -386,7 +387,7 @@ export default function SubmitAnalysis({
 
 	// ✅ Pass `result` as `lastResult`
 	const [form, fields] = useForm({
-		lastResult: actionData as SubmissionResult<string[]>,
+		lastResult: actionData?.submitResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: Schema })
 		},
