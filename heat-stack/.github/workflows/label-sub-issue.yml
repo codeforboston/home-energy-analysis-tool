@@ -2,7 +2,7 @@ name: Auto-label Sub-issues (Test)
 
 on:
   issues:
-    types: [opened,edited]
+    types: [opened, edited]
 
 jobs:
   label-subissue:
@@ -13,16 +13,28 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issue = context.payload.issue;
+            const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
-            if (issue.parent) {
+            // Get timeline events for the issue
+            const { data: events } = await github.rest.issues.listEventsForTimeline({
+              owner,
+              repo,
+              issue_number: issueNumber,
+            });
+
+            // Check if any event connects this issue to a parent
+            const parentEvent = events.find(e => e.event === "connected_to_parent");
+
+            if (parentEvent) {
               await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
+                owner,
+                repo,
+                issue_number: issueNumber,
                 labels: ["sub-issue"],
               });
-              core.info(`Labeled #${issue.number} as subissue`);
+              core.info(`Labeled #${issueNumber} as sub-issue`);
             } else {
-              core.info(`#${issue.number} is not a sub-issue`);
+              core.info(`#${issueNumber} is not a sub-issue`);
             }
