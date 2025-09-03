@@ -9,7 +9,6 @@ import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryCompon
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -22,7 +21,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 
 // Ours
-import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { PyProxy } from '#public/pyodide-env/ffi.js'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import {
 	type NaturalGasUsageDataSchema,
@@ -34,6 +33,8 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
+import { createCase } from '#app/utils/db/cases.server.ts'
+import { getUserId } from '#app/utils/auth.server.ts'
 
 
 
@@ -51,7 +52,8 @@ export interface CaseInfo {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
+	const userId = await getUserId(request)
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
@@ -132,7 +134,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		 * and geolocation information
 		 */
 
-		let convertedDatesTIWD, state_id, county_id
+		
 		// Define variables at function scope for access in the return statement
 		let caseRecord, analysis, heatingInput
 		const result = await getConvertedDatesTIWD(
@@ -141,77 +143,24 @@ export async function action({ request, params }: Route.ActionArgs) {
 			town,
 			state
 		)
-		convertedDatesTIWD = result.convertedDatesTIWD
-		state_id = result.state_id
-		county_id = result.county_id
+		
+		const convertedDatesTIWD = result.convertedDatesTIWD
+		const state_id = result.state_id
+		const county_id = result.county_id
 
 		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-			/* TODO: refactor out into a separate file. 
-					for args, use submission.values, result
-			*/
-			// Save to database using Prisma
-			// First create or find HomeOwner
-			const homeOwner = await prisma.homeOwner.create({
-				data: {
-					firstName1: name.split(' ')[0] || 'Unknown',
-					lastName1: name.split(' ').slice(1).join(' ') || 'Owner',
-					email1: '', // We'll need to add these to the form
-					firstName2: '',
-					lastName2: '',
-					email2: '',
-				},
-			})
+			if(userId){
+				const records = await createCase(submission.value, result, userId)
+				caseRecord = records.caseRecord
+				analysis = records.analysis
+				heatingInput = records.heatingInput
+				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
+	
+				/* TODO: store rules-engine output in database too */
 
-			// Create location using geocoded information
-			const location = await prisma.location.create({
-				data: {
-					address: result.addressComponents?.street || street_address,
-					city: result.addressComponents?.city || town,
-					state: result.addressComponents?.state || state,
-					zipcode: result.addressComponents?.zip || '',
-					country: 'USA',
-					livingAreaSquareFeet: Math.round(living_area),
-					latitude: result.coordinates?.y || 0,
-					longitude: result.coordinates?.x || 0,
-				},
-			})
-
-			// Create Case
-			caseRecord = await prisma.case.create({
-				data: {
-					homeOwnerId: homeOwner.id,
-					locationId: location.id,
-				},
-			})
-
-			// Create Analysis
-			analysis = await prisma.analysis.create({
-				data: {
-					caseId: caseRecord.id,
-					rules_engine_version: '0.0.1',
-				},
-			})
-
-			// Create HeatingInput
-			heatingInput = await prisma.heatingInput.create({
-				data: {
-					analysisId: analysis.id,
-					fuelType: fuel_type,
-					designTemperatureOverride: Boolean(design_temperature_override),
-					heatingSystemEfficiency: Math.round(heating_system_efficiency * 100),
-					thermostatSetPoint: thermostat_set_point,
-					setbackTemperature: setback_temperature || 65,
-					setbackHoursPerDay: setback_hours_per_day || 0,
-					numberOfOccupants: 2, // Default value until we add to form
-					estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
-					standByLosses: 5, // Default value until we add to form
-					livingArea: living_area,
-				},
-			})
-
-			/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
-
-			/* TODO: store rules-engine output in database too */
+			} else {
+				// user is not logged in
+			}
 		}
 
 
