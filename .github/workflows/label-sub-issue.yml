@@ -34,7 +34,7 @@ jobs:
             } while (fetched.data.length === 100);
             core.info(`Timeline events for #${issueNumber}: ${events.map(e => e.event).join(", ")}`);
 
-            const parentEvent = events.find(e => e.event === "connected_to_parent");
+            const parentEvent = events.find(e => e.event === "parent_issue_added");
 
             if (parentEvent) {
               await github.rest.issues.addLabels({
