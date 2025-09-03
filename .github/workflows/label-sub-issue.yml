@@ -13,19 +13,25 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await new Promise(resolve => setTimeout(resolve, 10000));
             const issueNumber = context.payload.issue.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            // Get timeline events for the issue
-            const { data: events } = await github.rest.issues.listEventsForTimeline({
-              owner,
-              repo,
-              issue_number: issueNumber,
-            });
-
-            // Check if any event connects this issue to a parent
+            // Wait 10 seconds for GitHub to populate parent link
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            let events = [];
+            let page = 1;
+            let fetched;
+            do {
+              fetched = await github.rest.issues.listEventsForTimeline({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                per_page: 100,
+                page,
+              });
+              events = events.concat(fetched.data);
+              page++;
+            } while (fetched.data.length === 100);
             const parentEvent = events.find(e => e.event === "connected_to_parent");
 
             if (parentEvent) {
