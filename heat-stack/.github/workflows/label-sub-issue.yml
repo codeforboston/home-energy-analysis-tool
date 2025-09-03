@@ -1,0 +1,28 @@
+name: Auto-label Sub-issues (Test)
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label-subissue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label if sub-issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+
+            if (issue.parent) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ["sub-issue"],
+              });
+              core.info(`Labeled #${issue.number} as subissue`);
+            } else {
+              core.info(`#${issue.number} is not a sub-issue`);
+            }
