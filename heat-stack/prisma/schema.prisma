@@ -15,6 +15,7 @@ model User {
   id       String  @id @default(cuid())
     // caseUser added when CaseUser model added for HEAT schema
   caseUser CaseUser[]
+  cases    Case[]
   email    String  @unique
   username String  @unique
   name     String?
@@ -268,6 +269,7 @@ model Case {
   location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   locationId  Int
   analysis    Analysis[]
+  users       User[]
 }
 
 model HomeOwner {
