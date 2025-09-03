@@ -21,7 +21,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 
 // Ours
-import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { PyProxy } from '#public/pyodide-env/ffi.js'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import {
 	type NaturalGasUsageDataSchema,

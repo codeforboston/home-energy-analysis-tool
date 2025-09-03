@@ -270,7 +270,6 @@ model Case {
   locationId  Int
   analysis    Analysis[]
   users       User[]
-  // TODO: WI: OK
   @@unique([homeOwnerId, locationId])
 }
 
