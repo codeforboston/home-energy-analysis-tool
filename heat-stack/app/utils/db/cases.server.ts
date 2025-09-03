@@ -2,14 +2,29 @@ import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts
 import { prisma } from '#app/utils/db.server.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
 
+export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
+	const caseRecord = await prisma.case.findUnique({
+		where: {
+			id: caseId,
+			users: {
+				some: {
+					id: userId,
+				},
+			},
+		},
+	})
+
+	return caseRecord
+}
+
 export const getCasesByUserId = async (userId: string) => {
 	return await prisma.case.findMany({
 		where: {
-			users:{
-				some:{
-					id: userId
-				}
-			}
+			users: {
+				some: {
+					id: userId,
+				},
+			},
 		},
 		include: {
 			homeOwner: true,
