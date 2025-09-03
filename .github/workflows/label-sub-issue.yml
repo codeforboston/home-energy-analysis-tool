@@ -32,6 +32,8 @@ jobs:
               events = events.concat(fetched.data);
               page++;
             } while (fetched.data.length === 100);
+            core.info(`Timeline events for #${issueNumber}: ${events.map(e => e.event).join(", ")}`);
+
             const parentEvent = events.find(e => e.event === "connected_to_parent");
 
             if (parentEvent) {
