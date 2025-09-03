@@ -35,6 +35,7 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 import { type Route } from './+types/single.ts'
 import { createCase } from '#app/utils/db/cases.server.ts'
 import { getUserId } from '#app/utils/auth.server.ts'
+import { prisma } from '#app/utils/db.server.ts'
 
 
 
@@ -103,7 +104,7 @@ export async function action({ request }: Route.ActionArgs) {
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
-
+	// TODO: WI: Is this doing the same thing as parseWithZod?
 	const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
 		street_address,
@@ -155,7 +156,33 @@ export async function action({ request }: Route.ActionArgs) {
 				analysis = records.analysis
 				heatingInput = records.heatingInput
 				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
-	
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// ! IMPORTANT READ THE BELOW COMMENT
+				//! TODO: Is this safe to save to DB? Aren't there accout numbers or PII in uploaded text files?
+				// ! IMPORTANT READ THE ABOVE COMMENT
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				const energyUsageFileRecord = await prisma.energyUsageFile.create({
+					data: {
+						fuelType: parsedAndValidatedFormSchema.fuel_type,
+						content: uploadedTextFile,
+						// TODO: WI: What are description, precedingDeliveryDate, and provider values supposed to be?
+						description: "",
+						precedingDeliveryDate: new Date(),
+						provider: ""
+
+					}
+				})
+				
+				await prisma.analysisDataFile.create({
+					data: {
+						analysisId: analysis.id,
+						energyUsageFileId: energyUsageFileRecord.id
+					}
+				})
 				/* TODO: store rules-engine output in database too */
 
 			} else {
