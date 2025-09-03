@@ -2,7 +2,7 @@ name: Auto-label Sub-issues (Test)
 
 on:
   issues:
-    types: [opened]
+    types: [opened,edited]
 
 jobs:
   label-subissue:
