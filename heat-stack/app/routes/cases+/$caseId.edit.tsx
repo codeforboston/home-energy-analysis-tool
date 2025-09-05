@@ -4,49 +4,21 @@ import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/Single
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { prisma } from '#app/utils/db.server.ts'
+import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import {
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
 } from '#app/utils/rules-engine.ts'
-import { invariantResponse, invariant } from '#node_modules/@epic-web/invariant/dist'
+import {
+	invariantResponse,
+	invariant,
+} from '#node_modules/@epic-web/invariant/dist'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type Route } from './+types/$caseId.edit'
-
-const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				take: 1, // TODO: WI: Test that latest / correct analysis is returned
-				include: {
-					heatingInput: {
-						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-					},
-					analysisDataFile: {
-						take: 1,
-						include: {
-							EnergyUsageFile: true,
-						},
-					},
-				},
-			},
-		},
-	})
-}
 
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
@@ -75,17 +47,19 @@ const generateRulesEngineData = async (
 			formInputs.state,
 		)
 
-		console.log('getConvertedDatesTIWD outputs>',{
-		state_id, county_id, convertedDatesTIWD
+	console.log('getConvertedDatesTIWD outputs>', {
+		state_id,
+		county_id,
+		convertedDatesTIWD,
 	})
 
-	invariant(state_id, "StateID not found")
-	invariant(county_id, "county_id not found")
-	invariant(convertedDatesTIWD.dates.length, "Missing dates")
-	invariant(convertedDatesTIWD.temperatures.length, "Missing temperatures")
-	
+	invariant(state_id, 'StateID not found')
+	invariant(county_id, 'county_id not found')
+	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
+	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
+
 	// Call to the rules-engine with raw text file
-	console.log('executeGetAnalyticsFromFormJs inputs>',{
+	console.log('executeGetAnalyticsFromFormJs inputs>', {
 		formInputs,
 		convertedDatesTIWD,
 		uploadedTextFile,
@@ -176,7 +150,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	})
 
 	return {
-		rulesEngineData: await generateRulesEngineData(parsedAndValidatedFormData, uploadedTextFile),
+		rulesEngineData: await generateRulesEngineData(
+			parsedAndValidatedFormData,
+			uploadedTextFile,
+		),
 
 		// Return case information for linking to case details
 		caseInfo: {
@@ -188,42 +165,42 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 // TODO: Implement updating a case
-// export async function action({ request, params }: Route.ActionArgs) {
-// 	// TODO: Keep making this call, is there a better way to authenticate routes?
-// 	const userId = await requireUserId(request)
-// 	// Checks if url has a homeId parameter, throws 400 if not there
-// 	// invariantResponse(params.homeId, 'homeId param is required')
-// 	const formData = await parseMultipartFormData(request, uploadHandler)
-// 	const submission = parseWithZod(formData, {
-// 		schema: Schema,
-// 	})
+export async function action({ request, params }: Route.ActionArgs) {
+	// TODO: Keep making this call, is there a better way to authenticate routes?
+	const userId = await requireUserId(request)
+	// Checks if url has a homeId parameter, throws 400 if not there
+	// invariantResponse(params.homeId, 'homeId param is required')
+	const formData = await parseMultipartFormData(request, uploadHandler)
+	const submission = parseWithZod(formData, {
+		schema: Schema,
+	})
 
-// 	if (submission.status !== 'success') {
-// 		if (process.env.NODE_ENV === 'development') {
-// 			// this can have personal identifying information, so only active in development.
-// 			console.error('submission failed', submission)
-// 		}
-// 		return { submitResult: submission.reply() }
-// 	}
+	if (submission.status !== 'success') {
+		if (process.env.NODE_ENV === 'development') {
+			// this can have personal identifying information, so only active in development.
+			console.error('submission failed', submission)
+		}
+		return { submitResult: submission.reply() }
+	}
 
-// 	const parsedAndValidatedFormSchema = Schema.parse({
-// 		name: `${name}'s home`,
-// 		living_area: submission.value.living_area,
-// 		street_address: submission.value.street_address,
-// 		town: submission.value.town,
-// 		state: submission.value.state,
-// 		fuel_type: submission.value.fuel_type,
-// 		heating_system_efficiency: submission.value.heating_system_efficiency,
-// 		thermostat_set_point: submission.value.thermostat_set_point,
-// 		setback_temperature: submission.value.setback_temperature,
-// 		setback_hours_per_day: submission.value.setback_hours_per_day,
-// 		design_temperature_override: submission.value.design_temperature_override,
-// 		energy_use_upload: submission.value.energy_use_upload,
-// 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-// 	})
+	const parsedAndValidatedFormSchema = Schema.parse({
+		name: `${name}'s home`,
+		living_area: submission.value.living_area,
+		street_address: submission.value.street_address,
+		town: submission.value.town,
+		state: submission.value.state,
+		fuel_type: submission.value.fuel_type,
+		heating_system_efficiency: submission.value.heating_system_efficiency,
+		thermostat_set_point: submission.value.thermostat_set_point,
+		setback_temperature: submission.value.setback_temperature,
+		setback_hours_per_day: submission.value.setback_hours_per_day,
+		design_temperature_override: submission.value.design_temperature_override,
+		energy_use_upload: submission.value.energy_use_upload,
+		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
+	})
 
-// 	return { submitResult: submission.reply(), parsedAndValidatedFormSchema }
-// }
+	return { submitResult: submission.reply(), parsedAndValidatedFormSchema }
+}
 
 export default function EditCase({
 	loaderData,
@@ -231,19 +208,23 @@ export default function EditCase({
 }: Route.ComponentProps) {
 	const rulesEngineData = loaderData.rulesEngineData || actionData
 	// TODO: WI: Remove all references to @ts-ignore and fix the ts errors that come up
-	
+
 	const { usageData, lazyLoadRulesEngine, toggleBillingPeriod } =
 		useRulesEngine(rulesEngineData)
 
-	console.log('usageData>',usageData)
+	console.log('usageData>', usageData)
 
-	const parsedAndValidatedFormSchema = /*actionData?.parsedAndValidatedFormSchema ?? */loaderData.rulesEngineData.parsedAndValidatedFormSchema
+	const parsedAndValidatedFormSchema =
+		actionData?.parsedAndValidatedFormSchema ??
+		loaderData.rulesEngineData.parsedAndValidatedFormSchema
 
 	return (
 		<SingleCaseForm
 			beforeSubmit={() => lazyLoadRulesEngine()}
-			lastResult={undefined/*actionData?.submitResult*/}
-			defaultFormValues={loaderData.rulesEngineData.parsedAndValidatedFormSchema}
+			lastResult={actionData?.submitResult}
+			defaultFormValues={
+				loaderData.rulesEngineData.parsedAndValidatedFormSchema
+			}
 			// TODO: WI: Test unhappy paths and see how the UI reacts
 			//           I am pretty sure that the case saved box will appear
 			showSavedCaseIdMsg={!!actionData}
