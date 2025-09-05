@@ -17,6 +17,43 @@ import { type SchemaZodFromFormType } from '#types/single-form.ts'
 // 	return caseRecord
 // }
 
+/**
+ * Return a case assigned to user and all related data necessary for editing a case.
+ * @param caseId id of the case
+ * @param userId id of the user
+ * @returns case and necessary related data required for editing a case.
+ */
+export const getCaseForEditing = async (caseId: number, userId: string) => {
+	return await prisma.case.findUnique({
+		where: {
+			id: caseId,
+			users: {
+				some: {
+					id: userId,
+				},
+			},
+		},
+		include: {
+			homeOwner: true,
+			location: true,
+			analysis: {
+				take: 1, // TODO: WI: Test that latest / correct analysis is returned
+				include: {
+					heatingInput: {
+						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
+					},
+					analysisDataFile: {
+						take: 1,
+						include: {
+							EnergyUsageFile: true,
+						},
+					},
+				},
+			},
+		},
+	})
+}
+
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	// WIll need to delete:
 	// 1. analysis
@@ -25,11 +62,11 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	return await prisma.case.delete({
 		where: {
 			id: caseId,
-			users:{
-				some:{
-					id: userId
-				}
-			}
+			users: {
+				some: {
+					id: userId,
+				},
+			},
 		},
 	})
 }
@@ -103,7 +140,7 @@ export const createCase = async (
 			data: {
 				// address: result.addressComponents?.street || formInputs.street_address,
 				// TODO: Not using result.addressComponents?.street b/c street number is missing and is necessary for calculations. See issue #586.
-				address: formInputs.street_address, 
+				address: formInputs.street_address,
 				city: result.addressComponents?.city || formInputs.town,
 				state: result.addressComponents?.state || formInputs.state,
 				zipcode: result.addressComponents?.zip || '',
