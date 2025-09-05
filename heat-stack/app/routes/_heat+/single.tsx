@@ -7,20 +7,15 @@ import { Form, data } from 'react-router'
 import { type z } from 'zod'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { replacer, reviver } from '#app/utils/data-parser.ts'
+import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
-import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
-import {
-	buildCurrentUsageData,
-	objectToString,
-	hasDataProperty,
-	hasParsedAndValidatedFormSchemaProperty,
-} from '#app/utils/index.ts'
+import { type RulesEngineActionData, useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
+import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
@@ -28,14 +23,8 @@ import {
 
 // Ours
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import {
-	HomeSchema,
-	LocationSchema,
-	CaseSchema, /* validateNaturalGasUsageData, HeatLoadAnalysisZod */
-	UploadEnergyUseFileSchema,
-} from '../../../types/index.ts'
-import {
-	type UsageDataSchema,
 	type NaturalGasUsageDataSchema,
 } from '../../../types/types.ts'
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
@@ -46,28 +35,7 @@ import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/
 
 import { type Route } from './+types/single.ts'
 
-/** TODO: Use url param "dev" to set defaults */
 
-/** Modeled off the conform example at
- *     https://github.com/epicweb-dev/web-forms/blob/b69e441f5577b91e7df116eba415d4714daacb9d/exercises/03.schema-validation/03.solution.conform-form/app/routes/users%2B/%24username_%2B/notes.%24noteId_.edit.tsx#L48 */
-
-const HomeFormSchema = HomeSchema.pick({ living_area: true })
-	.and(LocationSchema.pick({ street_address: true, town: true, state: true }))
-	.and(CaseSchema.pick({ name: true }))
-
-const CurrentHeatingSystemSchema = HomeSchema.pick({
-	fuel_type: true,
-	heating_system_efficiency: true,
-	design_temperature_override: true,
-	thermostat_set_point: true,
-	setback_temperature: true,
-	setback_hours_per_day: true,
-})
-
-
-export const Schema = UploadEnergyUseFileSchema.and(HomeFormSchema.and(
-	CurrentHeatingSystemSchema)
-) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
 export async function loader({ request }: Route.LoaderArgs) {
 	let url = new URL(request.url)
@@ -133,7 +101,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// CSV entrypoint parse_gas_bill(data: str, company: NaturalGasCompany)
 	// Main form entrypoint
 
-	type SchemaZodFromFormType = z.infer<typeof Schema>
 
 	const parsedAndValidatedFormSchema: SchemaZodFromFormType = Schema.parse({
 		living_area: living_area,
@@ -321,50 +288,26 @@ export default function SubmitAnalysis({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
-	const [buildAfterSubmit, setBuildAfterSubmit] = useState(false)
 	const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-	const [newResult, setNewResult] = useState<Map<any, any> | undefined>()
-	const { lazyLoadRulesEngine, recalculateFromBillingRecordsChange } = useRulesEngine()
+	const {
+		lazyLoadRulesEngine,
+		recalculateFromBillingRecordsChange,
+		usageData,
+		toggleBillingPeriod,
+	} = useRulesEngine(actionData as RulesEngineActionData)
 
 	// ✅ Extract structured values from actionData
-	const lastResult = actionData // The actual submission result
 	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
-
+	
 	React.useEffect(() => {
 		if (caseInfo) {
 			setSavedCase(caseInfo)
 		}
 	}, [caseInfo])
 
-	const showUsageData = lastResult !== undefined
+	const showUsageData = actionData !== undefined
 
-	if (showUsageData && hasDataProperty(lastResult) && buildAfterSubmit) {
-		setNewResult(JSON.parse(lastResult.data, reviver) as Map<any, any>)
-	};
-	if (newResult && buildAfterSubmit) {
-		setBuildAfterSubmit(false)
-		const newUsageData = buildCurrentUsageData(newResult)
-		// const v = newUsageData.processed_energy_bills;
-		// console.log("single new",
-		// 	v[0]?.inclusion_override,
-		// 	v[1]?.inclusion_override,
-		// 	v[2]?.inclusion_override,
-		// )
-		// const v2 = usageData?.processed_energy_bills || []
-		// console.log("old",
-		// 	v2[0]?.inclusion_override,
-		// 	v[1]?.inclusion_override,
-		// 	v[2]?.inclusion_override,
-		// )
-		// console.log("single.tsx setUsageData")
-		// if (objectToString(usageData) !== objectToString(newUsageData)) {
-		// 	console.log("new")
-		if (objectToString(usageData) !== objectToString(newUsageData)) {
-			setUsageData(newUsageData)
-		}
-	}
 
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
@@ -414,10 +357,10 @@ export default function SubmitAnalysis({
 				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setBuildAfterSubmit={setBuildAfterSubmit} setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
-				{showUsageData && usageData && recalculateFromBillingRecordsChange && newResult && (
+				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
@@ -426,20 +369,19 @@ export default function SubmitAnalysis({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							setUsageData={setUsageData}
-							lastResult={lastResult}
-							parsedLastResult={newResult}
-							recalculateFn={recalculateFromBillingRecordsChange}
+							onClick={(index) => {
+								toggleBillingPeriod(index)
+							}}
 						/>
 
 						{usageData &&
 							usageData.heat_load_output &&
 							usageData.heat_load_output.design_temperature &&
 							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(lastResult) ? (
+							hasParsedAndValidatedFormSchemaProperty(actionData) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
-								livingArea={lastResult.parsedAndValidatedFormSchema.living_area}
+								livingArea={actionData.parsedAndValidatedFormSchema.living_area}
 							/>
 						) : (
 							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
