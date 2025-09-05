@@ -95,37 +95,6 @@ const generateRulesEngineData = async (
 	}
 }
 
-const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				take: 1, // TODO: WI: Test that latest / correct analysis is returned
-				include: {
-					heatingInput: {
-						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-					},
-					analysisDataFile: {
-						take: 1,
-						include: {
-							EnergyUsageFile: true,
-						},
-					},
-				},
-			},
-		},
-	})
-}
-
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
 	console.log('decimal ', { value, decimal })
@@ -153,17 +122,19 @@ const generateRulesEngineData = async (
 			formInputs.state,
 		)
 
-		console.log('getConvertedDatesTIWD outputs>',{
-		state_id, county_id, convertedDatesTIWD
+	console.log('getConvertedDatesTIWD outputs>', {
+		state_id,
+		county_id,
+		convertedDatesTIWD,
 	})
 
-	invariant(state_id, "StateID not found")
-	invariant(county_id, "county_id not found")
-	invariant(convertedDatesTIWD.dates.length, "Missing dates")
-	invariant(convertedDatesTIWD.temperatures.length, "Missing temperatures")
-	
+	invariant(state_id, 'StateID not found')
+	invariant(county_id, 'county_id not found')
+	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
+	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
+
 	// Call to the rules-engine with raw text file
-	console.log('executeGetAnalyticsFromFormJs inputs>',{
+	console.log('executeGetAnalyticsFromFormJs inputs>', {
 		formInputs,
 		convertedDatesTIWD,
 		uploadedTextFile,
