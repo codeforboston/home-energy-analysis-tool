@@ -270,6 +270,8 @@ model Case {
   locationId  Int
   analysis    Analysis[]
   users       User[]
+  // TODO: WI: OK
+  @@unique([homeOwnerId, locationId])
 }
 
 model HomeOwner {
@@ -296,6 +298,7 @@ model Location {
   longitude            Float
 }
 
+// TODO: WI: For V2
 model CaseUser {
   case            HeatingInput @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user            User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)

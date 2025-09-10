@@ -33,7 +33,7 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-import { createCase } from '#app/utils/db/cases.server.ts'
+import { createCase } from '#app/utils/db/case.server.ts'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 
@@ -124,10 +124,15 @@ export async function action({ request }: Route.ActionArgs) {
 	try {
 		// This assignment of the same name is a special thing. We don't remember the name right now.
 		// It's not necessary, but it is possible.
+		// TODO: WI: Create issue to investigate why we duplicate pyodide calls. Bad merge or duplicate of calls down below (see call to executeGetAnalyticsFromFormJs)
+		// 			 Intention might have been 
+		// 			 const pyodideResultsFromTextFilePyProxy: PyProxy =
+		// 			 	executeParseGasBillPy(uploadedTextFile)
+		// 			 const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = pyodideResultsFromTextFilePyProxy.toJs()
+		// 			 pyodideResultsFromTextFilePyProxy.destroy()
 		const pyodideResultsFromTextFilePyProxy: PyProxy =
 			executeParseGasBillPy(uploadedTextFile)
-		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-			executeParseGasBillPy(uploadedTextFile).toJs()
+		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = pyodideResultsFromTextFilePyProxy.toJs()
 		pyodideResultsFromTextFilePyProxy.destroy()
 
 		/** This function takes a CSV string and an address
@@ -135,7 +140,7 @@ export async function action({ request }: Route.ActionArgs) {
 		 * and geolocation information
 		 */
 
-		
+
 		// Define variables at function scope for access in the return statement
 		let caseRecord, analysis, heatingInput
 		const result = await getConvertedDatesTIWD(
@@ -144,7 +149,7 @@ export async function action({ request }: Route.ActionArgs) {
 			town,
 			state
 		)
-		
+
 		const convertedDatesTIWD = result.convertedDatesTIWD
 		const state_id = result.state_id
 		const county_id = result.county_id
@@ -155,6 +160,11 @@ export async function action({ request }: Route.ActionArgs) {
 				caseRecord = records.caseRecord
 				analysis = records.analysis
 				heatingInput = records.heatingInput
+				// TODO: WI: Make an issue to save csv but sanitize content (e.g. no usernames, address, account numbers) OR save the parsed csv
+				// 			 PROBLEM: The rules engine needs the raw csv data (starting from the headers section and down) so we cant save the parsed data map from above
+				// 		     IDEA: Save the output from rules engine to DB to avoid having to make any logic to sanitize csv or refactor python code to do similar work,
+				// 				   In theory, saving output to db should just result in a json.parse.
+				// 				   Do we ever need to save csv for a feature not currently or some other reason
 				/* TODO: store uploadedTextFile CSV/XML raw into AnalysisDataFile table */
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -165,6 +175,9 @@ export async function action({ request }: Route.ActionArgs) {
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
+				// TODO: WI: Replace saving the csv in the database (future feature) and instead 
+				// 			 save the output from the rules engine to run calculations in the edit page
+				// 			 WRITE AN ISSUE TO DISCUSS WHAT TO DO ABOUT SAVING CSVs IN V2 - TAG ETHAN
 				const energyUsageFileRecord = await prisma.energyUsageFile.create({
 					data: {
 						fuelType: parsedAndValidatedFormSchema.fuel_type,
@@ -173,10 +186,9 @@ export async function action({ request }: Route.ActionArgs) {
 						description: "",
 						precedingDeliveryDate: new Date(),
 						provider: ""
-
 					}
 				})
-				
+
 				await prisma.analysisDataFile.create({
 					data: {
 						analysisId: analysis.id,
@@ -204,15 +216,15 @@ export async function action({ request }: Route.ActionArgs) {
 
 		// Call to the rules-engine with raw text file
 		const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			uploadedTextFile,
-			state_id,
-			county_id,
-		)
+				parsedAndValidatedFormSchema,
+				convertedDatesTIWD,
+				uploadedTextFile,
+				state_id,
+				county_id,
+			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
-
+		
 		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
@@ -232,7 +244,7 @@ export async function action({ request }: Route.ActionArgs) {
 				heatingInputId: heatingInput?.id
 			}
 		}
-	}
+	} 
 	catch (error: unknown) {
 		console.error("Calculate failed")
 		if (error instanceof Error) {
@@ -259,7 +271,6 @@ export async function action({ request }: Route.ActionArgs) {
 	// return redirect(`/single`)
 } //END OF action
 
-
 export default function SubmitAnalysis({
 	loaderData,
 	actionData,
@@ -275,7 +286,7 @@ export default function SubmitAnalysis({
 
 	// ✅ Extract structured values from actionData
 	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
-	
+
 	React.useEffect(() => {
 		if (caseInfo) {
 			setSavedCase(caseInfo)
@@ -284,24 +295,23 @@ export default function SubmitAnalysis({
 
 	const showUsageData = actionData !== undefined
 
-
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
 	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
 		loaderData.isDevMode
 			? {
-				living_area: 2155,
-				street_address: '15 Dale Ave',
-				town: 'Gloucester',
-				state: 'MA',
-				name: 'CIC',
-				fuel_type: 'GAS',
-				heating_system_efficiency: 0.97,
-				thermostat_set_point: 68,
-				setback_temperature: 65,
-				setback_hours_per_day: 8,
-			}
+					living_area: 2155,
+					street_address: '15 Dale Ave',
+					town: 'Gloucester',
+					state: 'MA',
+					name: 'CIC',
+					fuel_type: 'GAS',
+					heating_system_efficiency: 0.97,
+					thermostat_set_point: 68,
+					setback_temperature: 65,
+					setback_hours_per_day: 8,
+				}
 			: { fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
@@ -317,7 +327,6 @@ export default function SubmitAnalysis({
 		shouldValidate: 'onBlur',
 		shouldRevalidate: 'onInput',
 	})
-
 
 	return (
 		<>
@@ -351,10 +360,10 @@ export default function SubmitAnalysis({
 						/>
 
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(actionData) ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						hasParsedAndValidatedFormSchemaProperty(actionData) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={actionData.parsedAndValidatedFormSchema.living_area}
@@ -388,4 +397,3 @@ export default function SubmitAnalysis({
 		</>
 	)
 }
-

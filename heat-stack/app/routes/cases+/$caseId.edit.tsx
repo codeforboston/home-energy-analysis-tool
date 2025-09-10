@@ -5,7 +5,10 @@ import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
-import { uploadHandler } from '#app/utils/file-upload-handler.ts'
+import {
+	fileUploadHandler,
+	uploadHandler,
+} from '#app/utils/file-upload-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import {
 	executeGetAnalyticsFromFormJs,
@@ -19,6 +22,8 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type Route } from './+types/$caseId.edit'
+import { prisma } from '#app/utils/db.server.ts'
+import { data } from 'react-router'
 
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
@@ -127,12 +132,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		living_area: caseRecord.location.livingAreaSquareFeet,
 		// TODO: WI: There is a bug where street number is not getting saved
 		street_address: caseRecord.location.address,
-		// TODO: WI: Find out where mismatch between city and town is coming from
+		// TODO: WI: Find out why name mismatch exists, e.g.  app code use city but schema uses town
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
 		// TODO: WI: when we save heatingInput we are rounding and converting the efficiency value from decimal to percent
 		//           therefore we need to do the opposite conversion. See if we should be saving the raw value and format in the UI instead.
+		
 		heating_system_efficiency: percentToDecimal(
 			heatingInput.heatingSystemEfficiency,
 			'Invalid heating system efficiency value detected',
@@ -168,6 +174,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
 	// TODO: Keep making this call, is there a better way to authenticate routes?
 	const userId = await requireUserId(request)
+
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
@@ -199,7 +206,130 @@ export async function action({ request, params }: Route.ActionArgs) {
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
-	return { submitResult: submission.reply(), parsedAndValidatedFormSchema }
+	try {
+		const uploadedTextFile: string = await fileUploadHandler(formData)
+		// This assignment of the same name is a special thing. We don't remember the name right now.
+		// It's not necessary, but it is possible.
+		// TODO: WI: Why do we call executeParseGasBillPy twice? Firs ttime creates a proxy, second time we actually call the func.
+		const pyodideResultsFromTextFilePyProxy: PyProxy =
+			executeParseGasBillPy(uploadedTextFile)
+		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
+			executeParseGasBillPy(uploadedTextFile).toJs()
+		pyodideResultsFromTextFilePyProxy.destroy()
+
+		/**
+		 * This function takes a CSV string and an address
+		 * and returns date and weather data,
+		 * and geolocation information
+		 */
+		// Define variables at function scope for access in the return statement
+		let caseRecord, analysis, heatingInput
+		const result = await getConvertedDatesTIWD(
+			pyodideResultsFromTextFile,
+			submission.value.street_address,
+			submission.value.town,
+			submission.value.state,
+		)
+
+		const convertedDatesTIWD = result.convertedDatesTIWD
+		const state_id = result.state_id
+		const county_id = result.county_id
+
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === 'true') {
+			if (userId) {
+				/**
+				 * TODO: WI:
+				 * 0. Find location 
+				 * 0.1. Find homeowner
+				 * 0.2. Test what happens if you change location or homeowner so fields are no longer unique
+				 * 1. Update case info data
+				 * 2. Create new EnergyUsageFileRecord
+				 * 3. Create new AnalysisDataFile
+				 * 4. Create new analysis input
+				 * 5. Create new analysis output
+				 */
+				// const records = await createCase(submission.value, result, userId)
+				// caseRecord = records.caseRecord
+				// analysis = records.analysis
+				// heatingInput = records.heatingInput
+				
+				// const energyUsageFileRecord = await prisma.energyUsageFile.create({
+				// 	data: {
+				// 		fuelType: parsedAndValidatedFormSchema.fuel_type,
+				// 		content: uploadedTextFile,
+				// 		// TODO: WI: What are description, precedingDeliveryDate, and provider values supposed to be?
+				// 		description: '',
+				// 		precedingDeliveryDate: new Date(),
+				// 		provider: '',
+				// 	},
+				// })
+
+				// await prisma.analysisDataFile.create({
+				// 	data: {
+				// 		analysisId: analysis.id,
+				// 		energyUsageFileId: energyUsageFileRecord.id,
+				// 	},
+				// })
+				/* TODO: store rules-engine output in database too */
+			}
+		}
+
+		// Call to the rules-engine with raw text file
+		const gasBillDataFromTextFilePyProxy: PyProxy =
+			executeGetAnalyticsFromFormJs(
+				parsedAndValidatedFormSchema,
+				convertedDatesTIWD,
+				uploadedTextFile,
+				state_id,
+				county_id,
+			)
+		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
+		gasBillDataFromTextFilePyProxy.destroy()
+
+		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
+		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
+
+		return {
+			submitResult: submission.reply(),
+			data: JSON.stringify(gasBillDataFromTextFile, replacer),
+			parsedAndValidatedFormSchema,
+			convertedDatesTIWD,
+			state_id,
+			county_id,
+			// Return case information for linking to case details
+			caseInfo: {
+				caseId: caseRecord?.id,
+				analysisId: analysis?.id,
+				heatingInputId: heatingInput?.id,
+			},
+		}
+	} catch (error: unknown) {
+		console.error('Calculate failed')
+		if (error instanceof Error) {
+			console.error(error.message)
+			const errorLines = error.message.split('\n').filter(Boolean)
+			const lastLine = errorLines[errorLines.length - 1] || error.message
+			return data(
+				// see comment for first submission.reply for additional options
+				{
+					submitResult: submission.reply({
+						formErrors: [lastLine],
+					}),
+				},
+				{ status: 500 },
+			)
+		} else {
+			return data(
+				// see comment for first submission.reply for additional options
+				{
+					submitResult: submission.reply({
+						formErrors: ['Unknown Error'],
+					}),
+				},
+				{ status: 500 },
+			)
+		}
+	}
 }
 
 export default function EditCase({
@@ -217,6 +347,13 @@ export default function EditCase({
 	const parsedAndValidatedFormSchema =
 		actionData?.parsedAndValidatedFormSchema ??
 		loaderData.rulesEngineData.parsedAndValidatedFormSchema
+	console.log('loaderData>', loaderData)
+	// TODO: Move form up here. This means we will have to duplicate some hooks
+	// 			But problem because it is part of a sibling with another element
+	
+	// TODO: WI: Do we want a separate save button on edit page? Disable inputs? What do?
+	// 			 Add question about adding hidden fields to 'single.tsx' to handle updates after creating a case
+
 
 	return (
 		<SingleCaseForm
