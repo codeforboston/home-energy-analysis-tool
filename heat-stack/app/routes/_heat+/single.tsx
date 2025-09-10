@@ -285,7 +285,7 @@ export default function SubmitAnalysis({
 
 	// ✅ Extract structured values from actionData
 	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
-	
+
 	React.useEffect(() => {
 		if (caseInfo) {
 			setSavedCase(caseInfo)
@@ -359,10 +359,10 @@ export default function SubmitAnalysis({
 						/>
 
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							hasParsedAndValidatedFormSchemaProperty(actionData) ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						hasParsedAndValidatedFormSchemaProperty(actionData) ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={actionData.parsedAndValidatedFormSchema.living_area}
