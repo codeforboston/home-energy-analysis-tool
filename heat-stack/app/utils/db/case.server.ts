@@ -1,6 +1,10 @@
+import { invariant } from '@epic-web/invariant'
+import { type HeatingInput } from '@prisma/client'
 import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
+import z from 'zod'
 
 // export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
 // 	const caseRecord = await prisma.case.findUnique({
@@ -97,6 +101,88 @@ export const getCasesByUser = async (userId: string) => {
 	})
 }
 
+const HeatingInputSchema = HomeSchema.pick({
+	fuel_type: true,
+	design_temperature_override: true,
+	heating_system_efficiency: true,
+	thermostat_set_point: true,
+	setback_temperature: true,
+	setback_hours_per_day: true,
+	living_area: true,
+})
+
+export const updateCase = async (
+	caseId: number,
+	userId: string,
+	changes: {
+		heatingInput: z.infer<typeof HeatingInputSchema>
+	},
+) => {
+	/**
+	 * X - 0. Find location
+	 * X - 0.1. Find homeowner
+	 * X - 0.2. Test what happens if you change location or homeowner so fields are no longer unique
+	 * 1. Update case info data
+	 * 2. Create new EnergyUsageFileRecord
+	 * 3. Create new AnalysisDataFile
+	 * 4. Create new analysis input
+	 * 5. Create new analysis output
+	 */
+
+	const caseRecord = await prisma.case.findUnique({
+		where: {
+			id: caseId,
+			users: {
+				some: {
+					id: userId,
+				},
+			},
+		},
+	})
+
+	// TODO: WI: Test this path
+	invariant(caseRecord, 'Case not found')
+
+	// Create Analysis
+	const analysis = await prisma.analysis.create({
+		data: {
+			caseId: caseRecord.id,
+			// TODO: WI: Create constant for rules engine version
+			rules_engine_version: '0.0.1',
+		},
+	})
+	// Create HeatingInput
+	const validHI = HeatingInputSchema.parse(changes.heatingInput)
+	const heatingInput = await prisma.heatingInput.create({
+		data: {
+			analysisId: analysis.id,
+			fuelType: changes.heatingInput.fuel_type,
+			designTemperatureOverride: Boolean(
+				validHI.design_temperature_override,
+			),
+			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
+			heatingSystemEfficiency: Math.round(
+				validHI.heating_system_efficiency * 100,
+			),
+			thermostatSetPoint: validHI.thermostat_set_point,
+			setbackTemperature: validHI.setback_temperature || 65,
+			setbackHoursPerDay: validHI.setback_hours_per_day || 0,
+			numberOfOccupants: 2, // Default value until we add to form
+			estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
+			standByLosses: 5, // Default value until we add to form
+			livingArea: validHI.living_area,
+		},
+	})
+	// Create HeatingOutput
+
+	// Create EnergyDataFile
+
+	// Create AnalysisDataFile
+}
+
+// TODO: WI: Check if we have any prisma tests
+// 			 If not, create tests to make sure that the proper
+// 			 records are created and that the relationships expected exist as they should
 export const createCase = async (
 	formInputs: SchemaZodFromFormType,
 	result: GetConvertedDatesTIWDResponse,
@@ -139,7 +225,7 @@ export const createCase = async (
 		const location = await tx.location.create({
 			data: {
 				// address: result.addressComponents?.street || formInputs.street_address,
-				// TODO: Not using result.addressComponents?.street b/c street number is missing and is necessary for calculations. See issue #586.
+				// TODO: WI: Answer is to user the user submitted data if the data is provided
 				address: formInputs.street_address,
 				city: result.addressComponents?.city || formInputs.town,
 				state: result.addressComponents?.state || formInputs.state,
