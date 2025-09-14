@@ -1,5 +1,6 @@
-import { type CaseInfo, Schema } from '#app/routes/_heat+/single.tsx'
+import { type CaseInfo } from '#app/routes/_heat+/single.tsx'
 import { type SubmissionResult } from '#node_modules/@conform-to/react'
+import { Schema } from '#types/single-form.ts'
 import {
 	type BalancePointGraphSchema,
 	type BillingRecordsSchema,

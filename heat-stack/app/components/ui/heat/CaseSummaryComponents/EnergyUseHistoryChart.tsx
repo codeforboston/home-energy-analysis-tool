@@ -1,5 +1,4 @@
-import { type UsageDataSchema, type BillingRecordsSchema, type BalancePointGraphSchema, type SummaryOutputSchema } from '#/types/types.ts'
-import { type RecalculateFunction } from '#app/utils/hooks/use-rules-engine.ts'
+import { type UsageDataSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
     Table,
@@ -51,72 +50,13 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // ]
 
 interface EnergyUseHistoryChartProps {
-    lastResult: any;
-    parsedLastResult: Map<any, any> | undefined;
     usageData: UsageDataSchema
-    setUsageData: React.Dispatch<React.SetStateAction<UsageDataSchema | undefined>>;
-    recalculateFn: RecalculateFunction
+    onClick: (index: number) => void
 }
 
-function objectToString(obj: any): any {
-    // !!!! typeof obj has rules for zodObjects
-    // typeof obj returns the type of the value of that zod object (boolean, object, etc)
-    // JSON.stringify of a Zod object is the value of that Zod object, except for null / undefined
-    if (!obj) {
-        return "none";
-    } else if (typeof obj !== "object") {
-        return JSON.stringify(obj);
-    } else if (Array.isArray(obj)) {
-
-        return `[${obj.map(value => { return objectToString(value) }).join(", ")}]`;
-    }
-
-    const retval = `{ ${Object.entries(obj).map(([key, value]) =>
-        `"${key}": ${objectToString(value)}`).join(", ")} }`;
-    return retval as any;
-}
-
-export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageData, usageData, recalculateFn }: EnergyUseHistoryChartProps) {
-
-
-    const handleOverrideCheckboxChange = (index: number) => {
-        const newRecords = structuredClone(usageData.processed_energy_bills)
-        const period = newRecords[index]
-        
-        if (period) {
-            const currentOverride = period.inclusion_override
-            // Toggle 'inclusion_override'
-            period.inclusion_override = !currentOverride
-            
-            newRecords[index] = { ...period } 
-        }
-        const newUsageData = ({
-            heat_load_output: Object.fromEntries(parsedLastResult?.get('heat_load_output')) as SummaryOutputSchema,
-            balance_point_graph: Object.fromEntries(parsedLastResult?.get('balance_point_graph')) as BalancePointGraphSchema,
-            processed_energy_bills: newRecords as BillingRecordsSchema,
-        });        if (objectToString(usageData) != objectToString(newUsageData)) {
-            setUsageData(newUsageData)
-        }
-
-        const {
-            parsedAndValidatedFormSchema,
-            convertedDatesTIWD,
-            state_id,
-            county_id } = { ...lastResult }
-
-        recalculateFn(
-            parsedLastResult,
-            newRecords,
-            parsedAndValidatedFormSchema,
-            convertedDatesTIWD,
-            state_id,
-            county_id,
-            setUsageData
-        )
-    }
-
+export function EnergyUseHistoryChart({  usageData, onClick }: EnergyUseHistoryChartProps) {
     return (
-        <Table id="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
+        <Table id="EnergyUseHistoryChart" data-testid="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
             <TableHeader>
                 <TableRow className='text-xs text-muted-foreground bg-neutral-50'>
                     <TableHead className="text-center">#</TableHead>
@@ -198,7 +138,7 @@ export function EnergyUseHistoryChart({ lastResult, parsedLastResult, setUsageDa
                                 <Checkbox
                                     checked={period.inclusion_override}
                                     disabled={overrideCheckboxDisabled}
-                                    onClick={() => handleOverrideCheckboxChange(index)}
+                                    onClick={() => onClick(index)}
                                 />
                             </TableCell>
                         </TableRow>
