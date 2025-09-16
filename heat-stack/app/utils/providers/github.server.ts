@@ -57,6 +57,7 @@ export class GitHubProvider implements AuthProvider {
 				clientId: process.env.GITHUB_CLIENT_ID,
 				clientSecret: process.env.GITHUB_CLIENT_SECRET,
 				redirectURI: process.env.GITHUB_REDIRECT_URI,
+				scopes: ["read:user", "user:email",] // 👈 ensure emails are returned
 			},
 			async ({ tokens }) => {
 				// we need to fetch the user and the emails separately, this is a change in remix-auth-github
@@ -71,6 +72,7 @@ export class GitHubProvider implements AuthProvider {
 				const rawUser = await userResponse.json()
 				const user = GitHubUserResponseSchema.parse(rawUser)
 
+				// fetch emails
 				const emailsResponse = await fetch(
 					'https://api.github.com/user/emails',
 					{
