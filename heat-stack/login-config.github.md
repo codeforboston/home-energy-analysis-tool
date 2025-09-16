@@ -18,10 +18,12 @@
    - **Authorization callback URL**: `http://localhost:3000/auth/github/callback` (or your production callback URL)
 4. Copy the **Client ID** and **Client Secret** for the next step.
 
-### b. Add to `.env`
+### b. Modify `.env`
 `
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+Comment out GITHUB_TOKEN
 `
 
 ---
