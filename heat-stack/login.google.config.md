@@ -7,43 +7,28 @@ This guide explains how to replace the mock login with **real login functionalit
 ## 1. Create Google OAuth credentials
 
 1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials).
-2. Click **Create Credentials → OAuth client ID**.
-3. Select **Web Application**.
-4. Add your URIs:
+2. Click ***Create Project**
+3. Click **Create Credentials → OAuth client ID**:
+  - **Configure Consent Screen (fill out forms and hit next)**
+  - **Then create OAuth Client**
+4. Select **Web Application**.
+5. Add your URIs:
    - **Authorized JavaScript origins**:  
      `http://localhost:3000` (for dev)  
      `https://yourdomain.com` (for prod)
    - **Authorized redirect URIs**:  
      `http://localhost:3000/auth/google/callback` (for dev)  
      `https://yourdomain.com/auth/google/callback` (for prod)
-5. Copy the **Client ID** and **Client Secret**.
+6. Copy the **Client ID** and **Client Secret**.
 
 ---
 
 ## 2. Add environment variables
 
-Update your `.env`:
+Update GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET in your `.env`:
 
-```
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-BASE_URL=http://localhost:3000
-SESSION_SECRET=elephant   # or a long random string
-DATABASE_URL="file:./data.db"
-RESEND_API_KEY=your-resend-api-key
-```
 
----
-
-## 3. Install dependencies
-
-```
-npm install remix-auth remix-auth-google remix-auth-form bcryptjs
-```
-
----
-
-## 4. Configure authentication
+## 3. Configure authentication
 
 Create or edit `app/utils/auth.server.ts`:
 
@@ -98,7 +83,7 @@ authenticator.use(formStrategy, "form");
 
 ---
 
-## 5. Add routes
+## 4. Add routes
 
 ### Google OAuth
 
@@ -208,7 +193,7 @@ export default function RegisterPage() {
 
 ---
 
-## 6. Protecting routes
+## 5. Protecting routes
 
 Example: `app/routes/cases+/index.tsx`
 
