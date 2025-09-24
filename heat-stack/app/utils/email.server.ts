@@ -1,4 +1,3 @@
-import ResetPasswordPage from '#app/routes/_auth+/reset-password.tsx'
 import { render } from '@react-email/components'
 import { type ReactElement } from 'react'
 import { z } from 'zod'
@@ -42,7 +41,6 @@ export async function sendEmail({
 	}
 
 	// feel free to remove this condition once you've set up resend
-	console.log('API Key:', Boolean(process.env.RESEND_API_KEY), process.env.RESEND_API_KEY)
 	if (!process.env.RESEND_API_KEY && !process.env.MOCKS) {
 		console.error(`RESEND_API_KEY not set and we're not in mocks mode.`)
 		console.error(
@@ -65,7 +63,6 @@ export async function sendEmail({
 	})
 	const data = await response.json()
 	const parsedData = resendSuccessSchema.safeParse(data)
-	console.log('Email response:', { response, data, parsedData })
 
 	if (response.ok && parsedData.success) {
 		return {
