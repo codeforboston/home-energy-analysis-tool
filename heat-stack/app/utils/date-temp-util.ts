@@ -103,3 +103,5 @@ export default async function getConvertedDatesTIWD(
 		addressComponents,
 	}
 }
+
+export type GetConvertedDatesTIWDResponse = Awaited<ReturnType<typeof getConvertedDatesTIWD>>

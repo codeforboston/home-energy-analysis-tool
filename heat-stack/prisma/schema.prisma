@@ -13,8 +13,7 @@ datasource db {
 
 model User {
   id       String  @id @default(cuid())
-    // caseUser added when CaseUser model added for HEAT schema
-  caseUser CaseUser[]
+  cases    Case[]
   email    String  @unique
   username String  @unique
   name     String?
@@ -201,7 +200,6 @@ model HeatingInput {
   id                              Int @id @default(autoincrement())
   analysis                        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   analysisId                      Int
-  caseUser                        CaseUser[]
   fuelType                        String
   designTemperatureOverride       Boolean
   heatingSystemEfficiency         Int
@@ -268,6 +266,8 @@ model Case {
   location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   locationId  Int
   analysis    Analysis[]
+  users       User[]
+  @@unique([homeOwnerId, locationId])
 }
 
 model HomeOwner {
@@ -292,12 +292,4 @@ model Location {
   livingAreaSquareFeet Int
   latitude             Float
   longitude            Float
-}
-
-model CaseUser {
-  case            HeatingInput @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user            User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  analysisId      Int @id @default(autoincrement())
-  userId          String
-  @@unique([analysisId, userId])
 }
