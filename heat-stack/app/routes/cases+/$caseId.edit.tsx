@@ -187,7 +187,15 @@ export async function action({ request, params }: Route.ActionArgs) {
 			// this can have personal identifying information, so only active in development.
 			console.error('submission failed', submission)
 		}
-		return { submitResult: submission.reply() }
+		return { 
+			submitResult: submission.reply(),
+			parsedAndValidatedFormSchema: undefined,
+			data: undefined,
+			convertedDatesTIWD: undefined,
+			state_id: undefined,
+			county_id: undefined,
+			caseInfo: undefined,
+		}
 	}
 
 	const parsedAndValidatedFormSchema = Schema.parse({
@@ -318,6 +326,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 					submitResult: submission.reply({
 						formErrors: [lastLine],
 					}),
+					parsedAndValidatedFormSchema: undefined,
+					data: undefined,
+					convertedDatesTIWD: undefined,
+					state_id: undefined,
+					county_id: undefined,
+					caseInfo: undefined,
 				},
 				{ status: 500 },
 			)
@@ -328,6 +342,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 					submitResult: submission.reply({
 						formErrors: ['Unknown Error'],
 					}),
+					parsedAndValidatedFormSchema: undefined,
+					data: undefined,
+					convertedDatesTIWD: undefined,
+					state_id: undefined,
+					county_id: undefined,
+					caseInfo: undefined,
 				},
 				{ status: 500 },
 			)
