@@ -1,27 +1,12 @@
 import { data, Link } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { prisma } from '#app/utils/db.server.ts'
+import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-    await requireUserId(request)
+    const userId = await requireUserId(request)
     // Fetch all cases with their related data
-    const cases = await prisma.case.findMany({
-        include: {
-            homeOwner: true,
-            location: true,
-            analysis: {
-                include: {
-                    heatingInput: {
-                        take: 1
-                    }
-                }
-            }
-        },
-        orderBy: {
-            id: 'desc'
-        }
-    })
+    const cases = await getCasesByUser(userId)
 
     return data({ cases })
 }
