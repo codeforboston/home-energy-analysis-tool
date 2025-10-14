@@ -191,7 +191,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	const parsedAndValidatedFormSchema = Schema.parse({
-		name: `${name}'s home`,
+		name: `${submission.value.name}'s home`,
 		living_area: submission.value.living_area,
 		street_address: submission.value.street_address,
 		town: submission.value.town,
@@ -223,7 +223,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 		 * and geolocation information
 		 */
 		// Define variables at function scope for access in the return statement
-		let caseRecord, analysis, heatingInput
+		let caseRecord: { id: number } | undefined
+		let analysis: { id: number } | undefined
+		let heatingInput: { id: number } | undefined
+		
 		const result = await getConvertedDatesTIWD(
 			pyodideResultsFromTextFile,
 			submission.value.street_address,
