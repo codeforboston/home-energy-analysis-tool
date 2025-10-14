@@ -34,12 +34,6 @@ export type RulesEngineActionData  = {
 	convertedDatesTIWD: TemperatureInputDataConverted
 	state_id: string | undefined
 	county_id: string | number | undefined
-	// Return case information for linking to case details
-	caseInfo: {
-		caseId: number | undefined
-		analysisId: number | undefined
-		heatingInputId: number | undefined
-	}
 } | undefined
 
 export const useRulesEngine = (actionData: RulesEngineActionData | undefined) => {

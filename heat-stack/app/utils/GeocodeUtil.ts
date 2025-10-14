@@ -97,7 +97,8 @@ class GeocodeUtil {
 		let rezzy = await fetch(url)
 		let jrez = (await rezzy.json()) as CensusGeocoderResponse
 		// TODO: Return all addresses and let the user choose the right one
-
+		// const fs = await import('node:fs')
+		// fs.writeFileSync('geocoder.json', JSON.stringify(jrez, null, 2), {encoding: "utf-8"})
 		const addressMatch = jrez?.result?.addressMatches?.[0]
 		let coordz = addressMatch?.coordinates
 		const addressComponents = addressMatch?.addressComponents
