@@ -104,4 +104,6 @@ export default async function getConvertedDatesTIWD(
 	}
 }
 
-export type GetConvertedDatesTIWDResponse = Awaited<ReturnType<typeof getConvertedDatesTIWD>>
+export type GetConvertedDatesTIWDResponse = Awaited<
+	ReturnType<typeof getConvertedDatesTIWD>
+>
