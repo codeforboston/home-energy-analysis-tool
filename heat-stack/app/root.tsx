@@ -210,7 +210,7 @@ function App() {
 						</section>
 					</Link> : null}
 
-					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+					<nav className="flex flex-wrap items-center justify-end gap-4 sm:flex-nowrap md:gap-8">
 						<div className="ml-auto hidden max-w-sm flex-1">
 							{searchBar}
 						</div>
