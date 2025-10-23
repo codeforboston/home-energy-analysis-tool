@@ -214,7 +214,7 @@ export const meta: Route.MetaFunction = ({ data, params, matches }) => {
 			? data?.note.content.slice(0, 97) + '...'
 			: 'No content'
 	return [
-		{ title: `${noteTitle} | ${displayName}'s Notes | Epic Notes` },
+		{ title: `${noteTitle} | ${displayName}'s Notes | HEAT` },
 		{
 			name: 'description',
 			content: noteContentsSummary,
