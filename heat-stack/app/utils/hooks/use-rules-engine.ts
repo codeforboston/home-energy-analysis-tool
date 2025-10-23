@@ -28,15 +28,19 @@ export type RecalculateFunction = NonNullable<
  * Usage pattern:
  * - Call lazyLoadRulesEngine() and wait for `recalculateFromBillingRecordsChange` to transition from null to a function.
  */
-export type RulesEngineActionData  = {
-	data: string
-	parsedAndValidatedFormSchema: SchemaZodFromFormType
-	convertedDatesTIWD: TemperatureInputDataConverted
-	state_id: string | undefined
-	county_id: string | number | undefined
-} | undefined
+export type RulesEngineActionData =
+	| {
+			data: string
+			parsedAndValidatedFormSchema: SchemaZodFromFormType
+			convertedDatesTIWD: TemperatureInputDataConverted
+			state_id: string | undefined
+			county_id: string | number | undefined
+	  }
+	| undefined
 
-export const useRulesEngine = (actionData: RulesEngineActionData | undefined) => {
+export const useRulesEngine = (
+	actionData: RulesEngineActionData | undefined,
+) => {
 	const [isInitialized, setIsInitialized] = useState(false)
 	const rulesEngineRef = useRef<RulesEngineType | null>(null)
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
@@ -54,7 +58,7 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 				throw new Error('Failed to load rules engine.')
 			})
 	}
-	
+
 	/** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
 	const recalculateFromBillingRecordsChange = (
 		parsedLastResult: Map<any, any> | undefined,
@@ -88,22 +92,24 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 
 		setUsageData((prevUsageData) => {
 			let v = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine prev",
+			console.log(
+				'rules engine prev',
 				v[0]?.inclusion_override,
 				v[1]?.inclusion_override,
 				v[2]?.inclusion_override,
 			)
 			const v2 = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine 2",
+			console.log(
+				'rules engine 2',
 				v2[0]?.inclusion_override,
 				v[1]?.inclusion_override,
 				v[2]?.inclusion_override,
 			)
 			if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-				console.log("new")
+				console.log('new')
 				return newUsageData
 			}
-			console.log("prev")
+			console.log('prev')
 			return prevUsageData
 		})
 	}
@@ -164,7 +170,6 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 			}
 		}
 	}, [])
-
 
 	// reset usage data as a result of user submitting a new bill
 	useEffect(() => {
