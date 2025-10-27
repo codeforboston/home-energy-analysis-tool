@@ -10,7 +10,7 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { getUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { createCase } from '#app/utils/db/case.obsolete.server.ts'
+import { createCaseData } from '#app/utils/db/case.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
@@ -155,7 +155,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
 			if(userId){
-				const records = await createCase(submission.value, result, userId)
+				const records = await createCaseData(submission.value, result, userId)
 				caseRecord = records.caseRecord
 				analysis = records.analysis
 				heatingInput = records.heatingInput
@@ -177,23 +177,7 @@ export async function action({ request }: Route.ActionArgs) {
 				// TODO: WI: Replace saving the csv in the database (future feature) and instead 
 				// 			 save the output from the rules engine to run calculations in the edit page
 				// 			 WRITE AN ISSUE TO DISCUSS WHAT TO DO ABOUT SAVING CSVs IN V2 - TAG ETHAN
-				const energyUsageFileRecord = await prisma.energyUsageFile.create({
-					data: {
-						fuelType: parsedAndValidatedFormSchema.fuel_type,
-						content: uploadedTextFile,
-						// TODO: WI: What are description, precedingDeliveryDate, and provider values supposed to be?
-						description: "",
-						precedingDeliveryDate: new Date(),
-						provider: ""
-					}
-				})
 
-				await prisma.analysisDataFile.create({
-					data: {
-						analysisId: analysis.id,
-						energyUsageFileId: energyUsageFileRecord.id
-					}
-				})
 				/* TODO: store rules-engine output in database too */
 
 			} else {

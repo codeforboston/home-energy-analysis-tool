@@ -18,6 +18,7 @@ export interface AddressComponents {
 	formattedAddress: string
 }
 
+
 export default async function getConvertedDatesTIWD(
 	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
 	street_address: string,
@@ -29,7 +30,8 @@ export default async function getConvertedDatesTIWD(
 	county_id: string | number | undefined
 	coordinates: { x: number; y: number } | null | undefined
 	addressComponents: AddressComponents | null
-}> {
+}> 
+ {
 	console.log('loading geocodeUtil/weatherUtil')
 
 	const geocodeUtil = new GeocodeUtil()
