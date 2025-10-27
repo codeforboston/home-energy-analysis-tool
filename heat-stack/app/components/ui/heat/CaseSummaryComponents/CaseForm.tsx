@@ -1,11 +1,12 @@
-import { useForm, type SubmissionResult  } from '@conform-to/react'
+import { useForm /*, type SubmissionResult  */ } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import React, { useState, useEffect } from 'react'
 import { Form } from 'react-router'
 import { type z } from 'zod'
 
-import { useRulesEngine, type RulesEngineActionData } from '#app/utils/hooks/use-rules-engine.ts'
+import { useRulesEngine /*, type RulesEngineActionData */} from '#app/utils/hooks/use-rules-engine.ts'
 import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
+import { type LoaderData, type ActionData } from '#types/case-form.ts'
 import { Schema } from '#types/single-form.ts'
 
 import { AnalysisHeader } from './AnalysisHeader.tsx'
@@ -22,24 +23,36 @@ export interface CaseInfo {
     heatingInputId?: number
 }
 
+
+
 interface CaseFormProps {
-    loaderData: { isDevMode: boolean }
-    actionData: RulesEngineActionData & {
-        caseInfo?: CaseInfo
-        submitResult?: SubmissionResult<string[]> | null
-    }
+    loaderData: LoaderData
+    actionData?: ActionData
 }
 
 
 export function CaseForm({ loaderData, actionData }: CaseFormProps) {
     const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
     const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
+
+
+    // const rulesEngineData: RulesEngineActionData = {
+    //     data: actionData?.data ?? '',
+    //     parsedAndValidatedFormSchema: actionData?.parsedAndValidatedFormSchema,
+    //     convertedDatesTIWD: actionData?.convertedDatesTIWD as any,
+    //     state_id: actionData?.state_id,
+    //     county_id: actionData?.county_id,
+    // }
     const {
         lazyLoadRulesEngine,
         recalculateFromBillingRecordsChange,
         usageData,
         toggleBillingPeriod,
-    } = useRulesEngine(actionData)
+    } = useRulesEngine(
+        actionData
+            ? { ...actionData, data: actionData.data ?? '' } // ensure data is string
+            : { data: '' } as any // default empty object
+    )
 
     useEffect(() => {
         if (actionData?.caseInfo) setSavedCase(actionData.caseInfo)
@@ -79,6 +92,12 @@ export function CaseForm({ loaderData, actionData }: CaseFormProps) {
         shouldRevalidate: 'onInput',
     })
 
+    if (!actionData?.parsedAndValidatedFormSchema) {
+        return null // TODO: return error
+    }
+    if (!actionData?.convertedDatesTIWD) {
+        return null // TODO: return error
+    }
     return (
         <>
             <Form
@@ -113,7 +132,7 @@ export function CaseForm({ loaderData, actionData }: CaseFormProps) {
                             hasParsedAndValidatedFormSchemaProperty(actionData) ? (
                             <HeatLoadAnalysis
                                 heatLoadSummaryOutput={usageData.heat_load_output}
-                                livingArea={actionData.parsedAndValidatedFormSchema.living_area}
+                                livingArea={actionData?.parsedAndValidatedFormSchema?.living_area}
                             />
                         ) : (
                             <div className="my-4 rounded-lg border-2 border-red-400 p-4">
