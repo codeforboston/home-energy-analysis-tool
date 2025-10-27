@@ -7,8 +7,11 @@ import { Form, data } from 'react-router'
 import { type z } from 'zod'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { getUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { createCase } from '#app/utils/db/case.obsolete.server.ts'
+import { prisma } from '#app/utils/db.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -21,7 +24,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 
 // Ours
-import { PyProxy } from '#public/pyodide-env/ffi.js'
+import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import {
 	type NaturalGasUsageDataSchema,
@@ -33,9 +36,6 @@ import { HeatLoadAnalysis } from '../../components/ui/heat/CaseSummaryComponents
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 
 import { type Route } from './+types/single.ts'
-import { createCase } from '#app/utils/db/case.obsolete.server.ts'
-import { getUserId } from '#app/utils/auth.server.ts'
-import { prisma } from '#app/utils/db.server.ts'
 
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -51,7 +51,7 @@ export interface CaseInfo {
 	heatingInputId?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export async function action({ request }: Route.ActionArgs) {
 	const userId = await getUserId(request)
 	// Checks if url has a homeId parameter, throws 400 if not there

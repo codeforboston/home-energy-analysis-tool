@@ -1,20 +1,20 @@
+import { useForm, type SubmissionResult  } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
 import React, { useState, useEffect } from 'react'
 import { Form } from 'react-router'
-import { useForm } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
-import { z } from 'zod'
+import { type z } from 'zod'
 
-import { Schema } from '#types/single-form.ts'
 import { useRulesEngine, type RulesEngineActionData } from '#app/utils/hooks/use-rules-engine.ts'
 import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
+import { Schema } from '#types/single-form.ts'
 
-import { HomeInformation } from './CaseSummaryComponents/HomeInformation.tsx'
-import { CurrentHeatingSystem } from './CaseSummaryComponents/CurrentHeatingSystem.tsx'
-import { EnergyUseUpload } from './CaseSummaryComponents/EnergyUseUpload.tsx'
-import { ErrorList } from './CaseSummaryComponents/ErrorList.tsx'
-import { AnalysisHeader } from './CaseSummaryComponents/AnalysisHeader.tsx'
-import { EnergyUseHistoryChart } from './CaseSummaryComponents/EnergyUseHistoryChart.tsx'
-import { HeatLoadAnalysis } from './CaseSummaryComponents/HeatLoadAnalysis.tsx'
+import { AnalysisHeader } from './AnalysisHeader.tsx'
+import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
+import { EnergyUseHistoryChart } from './EnergyUseHistoryChart.tsx'
+import { EnergyUseUpload } from './EnergyUseUpload.tsx'
+import { ErrorList } from './ErrorList.tsx'
+import { HeatLoadAnalysis } from './HeatLoadAnalysis.tsx'
+import { HomeInformation } from './HomeInformation.tsx'
 
 export interface CaseInfo {
     caseId?: number
@@ -24,8 +24,12 @@ export interface CaseInfo {
 
 interface CaseFormProps {
     loaderData: { isDevMode: boolean }
-    actionData: RulesEngineActionData & { caseInfo?: CaseInfo }
+    actionData: RulesEngineActionData & {
+        caseInfo?: CaseInfo
+        submitResult?: SubmissionResult<string[]> | null
+    }
 }
+
 
 export function CaseForm({ loaderData, actionData }: CaseFormProps) {
     const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
@@ -81,7 +85,7 @@ export function CaseForm({ loaderData, actionData }: CaseFormProps) {
                 id={form.id}
                 method="post"
                 onSubmit={form.onSubmit}
-                action="/single"
+                // action="/new"
                 encType="multipart/form-data"
                 aria-invalid={form.errors ? true : undefined}
                 aria-describedby={form.errors ? form.errorId : undefined}
@@ -101,7 +105,7 @@ export function CaseForm({ loaderData, actionData }: CaseFormProps) {
                         />
                         <EnergyUseHistoryChart
                             usageData={usageData}
-                            onClick={(index) => toggleBillingPeriod(index)}
+                            onClick={(index: any) => toggleBillingPeriod(index)}
                         />
 
                         {usageData?.heat_load_output?.design_temperature &&

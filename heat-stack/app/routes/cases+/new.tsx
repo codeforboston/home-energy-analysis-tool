@@ -317,7 +317,6 @@ export default function SubmitAnalysis({
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
-				action="/single"
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
