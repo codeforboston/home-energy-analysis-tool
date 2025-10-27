@@ -1,10 +1,10 @@
 Refactor:
 - case.server.ts: rename case.server.ts to case.obsolete.server.ts
 - case.obsolete.server.ts: copy to case.server.ts
-- single.tsx: extract code for creating a new case and parsing file to case.server.ts:createCase
-- single.tsx: extract JSX code to CaseForm.tsx
-- case.server.ts: extract code from createCase for processing file to parseBillingData
 - single.tsx: copy to routes/cases+/new.tsx
+- new.tsx: extract code for creating a new case and parsing file to case.server.ts:createCase
+- new.tsx: extract JSX code to CaseForm.tsx
+- case.server.ts: extract code from createCase for processing file to parseBillingData
 - dates_temp.tsx: rename to temperature_utils.tsx
 - case.server.ts and new.tsx: remove call to parseBillingData from createCase and move to new.tsx
 
