@@ -1,0 +1,20 @@
+Refactor:
+- case.server.ts: rename case.server.ts to case.obsolete.server.ts
+- case.obsolete.server.ts: copy to case.server.ts
+- single.tsx: extract code for creating a new case and parsing file to case.server.ts:createCase
+- single.tsx: extract JSX code to CaseForm.tsx
+- case.server.ts: extract code from createCase for processing file to parseBillingData
+- single.tsx: copy to routes/cases+/new.tsx
+- dates_temp.tsx: rename to temperature_utils.tsx
+- case.server.ts and new.tsx: remove call to parseBillingData from createCase and move to new.tsx
+
+Update:
+- case.server.ts: delete updateCase
+- case.server.ts: copy createCase to updateCase and modify to update case, delete then call parseBillingData
+- $caseId.tsx: call updateCase from case.server.ts
+
+Save button when updating:
+- seperate button to recalculate with new data and just save the data without parsing file
+
+
+
