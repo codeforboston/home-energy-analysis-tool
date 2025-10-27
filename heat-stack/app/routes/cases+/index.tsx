@@ -1,6 +1,6 @@
 import { data, Link } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { getCasesByUser } from '#app/utils/db/case.server.ts'
+import { getCasesByUser } from '#app/utils/db/case.obsolete.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {

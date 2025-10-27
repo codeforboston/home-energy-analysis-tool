@@ -4,7 +4,7 @@ import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/Single
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { getCaseForEditing } from '#app/utils/db/case.server.ts'
+import { getCaseForEditing } from '#app/utils/db/case.obsolete.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
