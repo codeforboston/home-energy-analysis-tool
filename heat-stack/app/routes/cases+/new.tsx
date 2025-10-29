@@ -1,6 +1,8 @@
+// heat-stack/app/routes/cases+/new.tsx
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { data } from 'react-router'
+import { type z } from 'zod'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
@@ -21,8 +23,9 @@ import {
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { Schema, /* type SchemaZodFromFormType */ } from '#types/single-form.ts'
-import { type Route } from './+types/$caseId.edit'
+import { type Route } from './+types/new'
 
+// TODO: WI: figure out if this is needed - probably
 // const percentToDecimal = (value: number, errorMessage: string) => {
 // 	const decimal = parseFloat((value / 100).toFixed(2))
 // 	console.log('decimal ', { value, decimal })
@@ -93,11 +96,11 @@ import { type Route } from './+types/$caseId.edit'
 // 	}
 // }
 
-// export async function loader({ request }: Route.LoaderArgs) {
-//     let url = new URL(request.url)
-//     let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
-//     return { isDevMode }
-// }
+export async function loader({ request }: Route.LoaderArgs) {
+    let url = new URL(request.url)
+    let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
+    return { isDevMode }
+}
 
 // TODO: Implement updating a case
 export async function action({ request, params: _params }: Route.ActionArgs) {
@@ -253,6 +256,9 @@ export default function CreateCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
+		type SchemaZodFromFormType = z.infer<typeof Schema>
+		type MinimalFormData = { fuel_type: 'GAS' }
+	
 		const {
 			lazyLoadRulesEngine,
 			usageData,
@@ -280,6 +286,21 @@ export default function CreateCase({
 		// 				setback_hours_per_day: 8,
 		// 			}
 		// 		: { fuel_type: 'GAS' }
+	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
+		loaderData?.isDevMode
+			? {
+				living_area: 2155,
+				street_address: '15 Dale Ave',
+				town: 'Gloucester',
+				state: 'MA',
+				name: 'CIC',
+				fuel_type: 'GAS',
+				heating_system_efficiency: 0.97,
+				thermostat_set_point: 68,
+				setback_temperature: 65,
+				setback_hours_per_day: 8,
+			}
+			: { fuel_type: 'GAS' }
 
 	
 		// ✅ Pass `result` as `lastResult`
@@ -287,9 +308,7 @@ export default function CreateCase({
 			<SingleCaseForm
 				beforeSubmit={() => lazyLoadRulesEngine()}
 				lastResult={actionData?.submitResult}
-				defaultFormValues={
-					loaderData.rulesEngineData.parsedAndValidatedFormSchema
-				}
+				defaultFormValues={ defaultValue }
 				showSavedCaseIdMsg={!!actionData}
 				caseInfo={actionData?.caseInfo}
 				usageData={usageData}
