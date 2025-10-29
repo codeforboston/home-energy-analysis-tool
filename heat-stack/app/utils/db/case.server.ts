@@ -203,25 +203,6 @@ export const createCase = async (
 		})
 
 		// Create location using geocoded information
-		console.log('Location saved is ', {
-			addressComponents: result.addressComponents,
-			formInputComponents: {
-				street_address: formInputs.street_address,
-				town: formInputs.town,
-				state: formInputs.state,
-				living_area: formInputs.living_area,
-			},
-			data: {
-				address: result.addressComponents?.street || formInputs.street_address,
-				city: result.addressComponents?.city || formInputs.town,
-				state: result.addressComponents?.state || formInputs.state,
-				zipcode: result.addressComponents?.zip || '',
-				country: 'USA',
-				livingAreaSquareFeet: Math.round(formInputs.living_area),
-				latitude: result.coordinates?.y || 0,
-				longitude: result.coordinates?.x || 0,
-			},
-		})
 		const location = await tx.location.create({
 			data: {
 				// address: result.addressComponents?.street || formInputs.street_address,
