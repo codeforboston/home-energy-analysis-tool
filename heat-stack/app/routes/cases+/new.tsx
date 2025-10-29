@@ -1,109 +1,106 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { data } from 'react-router'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { getCaseForEditing } from '#app/utils/db/case.server.ts'
+import { createCase } from '#app/utils/db/case.server.ts'
 import {
 	fileUploadHandler,
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
-import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
+import { type RulesEngineActionData, useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import {
 	executeGetAnalyticsFromFormJs,
 	executeParseGasBillPy,
 } from '#app/utils/rules-engine.ts'
 import {
-	invariantResponse,
 	invariant,
 } from '#node_modules/@epic-web/invariant/dist'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
-import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
+import { Schema, /* type SchemaZodFromFormType */ } from '#types/single-form.ts'
 import { type Route } from './+types/$caseId.edit'
-import { prisma } from '#app/utils/db.server.ts'
-import { data } from 'react-router'
-import { use } from '#node_modules/@types/react'
 
-const percentToDecimal = (value: number, errorMessage: string) => {
-	const decimal = parseFloat((value / 100).toFixed(2))
-	console.log('decimal ', { value, decimal })
-	if (isNaN(decimal) || decimal > 1) {
-		throw new Error(errorMessage)
-	}
+// const percentToDecimal = (value: number, errorMessage: string) => {
+// 	const decimal = parseFloat((value / 100).toFixed(2))
+// 	console.log('decimal ', { value, decimal })
+// 	if (isNaN(decimal) || decimal > 1) {
+// 		throw new Error(errorMessage)
+// 	}
 
-	return decimal
-}
+// 	return decimal
+// }
 
-const generateRulesEngineData = async (
-	formInputs: SchemaZodFromFormType,
-	uploadedTextFile: string,
-) => {
-	// TODO: WI: in single.tsx a call to a PyProxy is made that duplicates this logic and calls proxy.destroy.
-	// 			 Check if I need to do the same thing
-	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-		executeParseGasBillPy(uploadedTextFile).toJs()
+// const generateRulesEngineData = async (
+// 	formInputs: SchemaZodFromFormType,
+// 	uploadedTextFile: string,
+// ) => {
+// 	// TODO: WI: in single.tsx a call to a PyProxy is made that duplicates this logic and calls proxy.destroy.
+// 	// 			 Check if I need to do the same thing
+// 	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
+// 		executeParseGasBillPy(uploadedTextFile).toJs()
 
-	const { state_id, county_id, convertedDatesTIWD } =
-		await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			formInputs.street_address,
-			formInputs.town,
-			formInputs.state,
-		)
+// 	const { state_id, county_id, convertedDatesTIWD } =
+// 		await getConvertedDatesTIWD(
+// 			pyodideResultsFromTextFile,
+// 			formInputs.street_address,
+// 			formInputs.town,
+// 			formInputs.state,
+// 		)
 
-	console.log('getConvertedDatesTIWD outputs>', {
-		state_id,
-		county_id,
-		convertedDatesTIWD,
-	})
+// 	console.log('getConvertedDatesTIWD outputs>', {
+// 		state_id,
+// 		county_id,
+// 		convertedDatesTIWD,
+// 	})
 
-	invariant(state_id, 'StateID not found')
-	invariant(county_id, 'county_id not found')
-	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
-	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
+// 	invariant(state_id, 'StateID not found')
+// 	invariant(county_id, 'county_id not found')
+// 	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
+// 	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
 
-	// Call to the rules-engine with raw text file
-	console.log('executeGetAnalyticsFromFormJs inputs>', {
-		formInputs,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	})
-	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		formInputs,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-	gasBillDataFromTextFilePyProxy.destroy()
+// 	// Call to the rules-engine with raw text file
+// 	console.log('executeGetAnalyticsFromFormJs inputs>', {
+// 		formInputs,
+// 		convertedDatesTIWD,
+// 		uploadedTextFile,
+// 		state_id,
+// 		county_id,
+// 	})
+// 	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
+// 		formInputs,
+// 		convertedDatesTIWD,
+// 		uploadedTextFile,
+// 		state_id,
+// 		county_id,
+// 	)
+// 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
+// 	gasBillDataFromTextFilePyProxy.destroy()
 
-	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
+// 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
+// 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
-	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
+// 	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
 
-	return {
-		data: str_version,
-		parsedAndValidatedFormSchema: formInputs,
-		convertedDatesTIWD,
-		state_id,
-		county_id,
-	}
-}
+// 	return {
+// 		data: str_version,
+// 		parsedAndValidatedFormSchema: formInputs,
+// 		convertedDatesTIWD,
+// 		state_id,
+// 		county_id,
+// 	}
+// }
 
-export async function loader({ request }: Route.LoaderArgs) {
-    let url = new URL(request.url)
-    let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
-    return { isDevMode }
-}
+// export async function loader({ request }: Route.LoaderArgs) {
+//     let url = new URL(request.url)
+//     let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
+//     return { isDevMode }
+// }
 
 // TODO: Implement updating a case
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request, params: _params }: Route.ActionArgs) {
 	// TODO: Keep making this call, is there a better way to authenticate routes?
 	const userId = await requireUserId(request)
 
@@ -191,6 +188,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
+		await createCase(submission.value, result, userId)
+		
 
 		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
@@ -250,44 +249,54 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 }
 
-export default function EditCase({
+export default function CreateCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	const rulesEngineData = loaderData.rulesEngineData || actionData
-	// TODO: WI: Remove all references to @ts-ignore and fix the ts errors that come up
-
-	const { usageData, lazyLoadRulesEngine, toggleBillingPeriod } =
-		useRulesEngine(rulesEngineData)
-
-	console.log('usageData>', usageData)
-
-	const parsedAndValidatedFormSchema =
-		actionData?.parsedAndValidatedFormSchema ??
-		loaderData.rulesEngineData.parsedAndValidatedFormSchema
-	console.log('loaderData>', loaderData)
-	// TODO: Move form up here. This means we will have to duplicate some hooks
-	// 			But problem because it is part of a sibling with another element
+		const {
+			lazyLoadRulesEngine,
+			usageData,
+			toggleBillingPeriod,
+		} = useRulesEngine(actionData as RulesEngineActionData)
 	
-	// TODO: WI: Do we want a separate save button on edit page? Disable inputs? What do?
-	// 			 Add question about adding hidden fields to 'single.tsx' to handle updates after creating a case
+		// ✅ Extract structured values from actionData
+	
+		
+		// type SchemaZodFromFormType = z.infer<typeof Schema>
+		// type MinimalFormData = { fuel_type: 'GAS' }
+	
+		// const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
+		// 	loaderData.isDevMode
+		// 		? {
+		// 				living_area: 2155,
+		// 				street_address: '15 Dale Ave',
+		// 				town: 'Gloucester',
+		// 				state: 'MA',
+		// 				name: 'CIC',
+		// 				fuel_type: 'GAS',
+		// 				heating_system_efficiency: 0.97,
+		// 				thermostat_set_point: 68,
+		// 				setback_temperature: 65,
+		// 				setback_hours_per_day: 8,
+		// 			}
+		// 		: { fuel_type: 'GAS' }
 
-
-	return (
-		<SingleCaseForm
-			beforeSubmit={() => lazyLoadRulesEngine()}
-			lastResult={actionData?.submitResult}
-			defaultFormValues={
-				loaderData.rulesEngineData.parsedAndValidatedFormSchema
-			}
-			// TODO: WI: Test unhappy paths and see how the UI reacts
-			//           I am pretty sure that the case saved box will appear
-			showSavedCaseIdMsg={!!actionData}
-			caseInfo={loaderData.caseInfo}
-			usageData={usageData}
-			showUsageData={!!usageData}
-			onClickBillingRow={toggleBillingPeriod}
-			parsedAndValidatedFormSchema={parsedAndValidatedFormSchema}
-		/>
-	)
+	
+		// ✅ Pass `result` as `lastResult`
+		return (
+			<SingleCaseForm
+				beforeSubmit={() => lazyLoadRulesEngine()}
+				lastResult={actionData?.submitResult}
+				defaultFormValues={
+					loaderData.rulesEngineData.parsedAndValidatedFormSchema
+				}
+				showSavedCaseIdMsg={!!actionData}
+				caseInfo={loaderData.caseInfo}
+				usageData={usageData}
+				showUsageData={!!usageData}
+				onClickBillingRow={toggleBillingPeriod}
+				parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
+			/>
+		)
+	
 }
