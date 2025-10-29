@@ -291,7 +291,7 @@ export default function CreateCase({
 					loaderData.rulesEngineData.parsedAndValidatedFormSchema
 				}
 				showSavedCaseIdMsg={!!actionData}
-				caseInfo={loaderData.caseInfo}
+				caseInfo={actionData?.caseInfo}
 				usageData={usageData}
 				showUsageData={!!usageData}
 				onClickBillingRow={toggleBillingPeriod}
