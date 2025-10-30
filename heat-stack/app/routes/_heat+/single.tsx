@@ -51,7 +51,6 @@ export interface CaseInfo {
 	heatingInputId?: number
 }
 
- 
 export async function action({ request }: Route.ActionArgs) {
 	const userId = await getUserId(request)
 	// Checks if url has a homeId parameter, throws 400 if not there

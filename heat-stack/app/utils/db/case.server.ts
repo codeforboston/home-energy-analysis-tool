@@ -152,7 +152,7 @@ export const updateCase = async (
 	})
 	// Create HeatingInput
 	const validHI = HeatingInputSchema.parse(changes.heatingInput)
-	
+
 	await prisma.heatingInput.create({
 		data: {
 			analysisId: analysis.id,
