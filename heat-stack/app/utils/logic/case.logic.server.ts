@@ -36,7 +36,7 @@ export async function processCaseSubmission(submission: any, userId: string, for
 	const gasBillData = gasBillDataProxy.toJs()
 	gasBillDataProxy.destroy()
 
-	const newCase = await createCaseRecord(parsedForm, result, userId)
+	const newCase = await createCaseRecord(parsedForm, result, userId, gasBillData)
 	
 	// Get the HeatingInput ID from the created analysis
 	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id

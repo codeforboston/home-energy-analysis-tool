@@ -1,6 +1,6 @@
 import { prisma } from '#app/utils/db.server.ts'
 
-export async function createCaseRecord(formValues: any, _locationData: any, userId: string) {
+export async function createCaseRecord(formValues: any, _locationData: any, userId: string, rulesEngineOutput?: Map<string, any>) {
 	
 	// Create HomeOwner first
 	const homeOwner = await prisma.homeOwner.create({
@@ -44,7 +44,21 @@ export async function createCaseRecord(formValues: any, _locationData: any, user
 		},
 	})
 
-	// Create Analysis with HeatingInput
+	// Extract heat load output from rules engine results if available
+	const heatLoadOutput = rulesEngineOutput?.get('heat_load_output')
+	const heatingOutputData = heatLoadOutput ? {
+		estimatedBalancePoint: heatLoadOutput.get('estimated_balance_point') || 0,
+		otherFuelUsage: heatLoadOutput.get('other_fuel_usage') || 0,
+		averageIndoorTemperature: heatLoadOutput.get('average_indoor_temperature') || 0,
+		differenceBetweenTiAndTbp: heatLoadOutput.get('difference_between_ti_and_tbp') || 0,
+		designTemperature: heatLoadOutput.get('design_temperature') || 0,
+		wholeHomeHeatLossRate: heatLoadOutput.get('whole_home_heat_loss_rate') || 0,
+		standardDeviationOfHeatLossRate: heatLoadOutput.get('standard_deviation_of_heat_loss_rate') || 0,
+		averageHeatLoad: heatLoadOutput.get('average_heat_load') || 0,
+		maximumHeatLoad: heatLoadOutput.get('maximum_heat_load') || 0,
+	} : undefined
+
+	// Create Analysis with HeatingInput and HeatingOutput
 	const analysis = await prisma.analysis.create({
 		data: {
 			caseId: newCase.id,
@@ -63,9 +77,16 @@ export async function createCaseRecord(formValues: any, _locationData: any, user
 					livingArea: formValues.living_area,
 				},
 			},
+			// Create HeatingOutput if we have rules engine results
+			...(heatingOutputData && {
+				heatingOutput: {
+					create: heatingOutputData,
+				},
+			}),
 		},
 		include: {
 			heatingInput: true,
+			heatingOutput: true,
 		},
 	})
 

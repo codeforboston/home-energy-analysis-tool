@@ -49,6 +49,7 @@ export const getCaseForEditing = async (caseId: number, userId: string) => {
 							processedEnergyBill: true,
 						},
 					},
+					heatingOutput: true, // Include the calculated results for display
 				},
 			},
 		},

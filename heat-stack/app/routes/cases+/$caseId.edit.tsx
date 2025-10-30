@@ -43,6 +43,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		status: 500,
 	})
 
+	const heatingOutput = analysis.heatingOutput?.[0]
+
 	// Transform billing records from database format to BillingRecordsSchema format
 	const billingRecords: BillingRecordsSchema = (heatingInput.processedEnergyBill || []).map(bill => ({
 		period_start_date: bill.periodStartDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
@@ -93,6 +95,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
+	// Convert heating output from database format to UI format if available
+	const heatLoadOutput = heatingOutput ? {
+		estimated_balance_point: heatingOutput.estimatedBalancePoint,
+		other_fuel_usage: heatingOutput.otherFuelUsage,
+		average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+		difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+		design_temperature: heatingOutput.designTemperature,
+		whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+		standard_deviation_of_heat_loss_rate: heatingOutput.standardDeviationOfHeatLossRate,
+		average_heat_load: heatingOutput.averageHeatLoad,
+		maximum_heat_load: heatingOutput.maximumHeatLoad,
+	} : undefined
+
 	return {
 		defaultFormValues: parsedAndValidatedFormData,
 		caseInfo: {
@@ -101,6 +116,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			heatingInputId: heatingInput.id,
 		},
 		billingRecords,
+		heatLoadOutput,
 	}
 }
 
@@ -266,9 +282,9 @@ export default function EditCase({
 		}
 	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchema, lazyLoadRulesEngine])
 
-	// Use rules engine data when available (after initialization), fallback to local billing records
+	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
 	const usageData = rulesEngineUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
-		heat_load_output: {
+		heat_load_output: loaderData.heatLoadOutput || {
 			estimated_balance_point: 1,
 			other_fuel_usage: 1,
 			average_indoor_temperature: 70,
