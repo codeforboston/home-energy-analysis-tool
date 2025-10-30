@@ -46,12 +46,6 @@ export const getCaseForEditing = async (caseId: number, userId: string) => {
 					heatingInput: {
 						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
 					},
-					analysisDataFile: {
-						take: 1,
-						include: {
-							EnergyUsageFile: true,
-						},
-					},
 				},
 			},
 		},
@@ -118,16 +112,7 @@ export const updateCase = async (
 		heatingInput: z.infer<typeof HeatingInputSchema>
 	},
 ) => {
-	/**
-	 * X - 0. Find location
-	 * X - 0.1. Find homeowner
-	 * X - 0.2. Test what happens if you change location or homeowner so fields are no longer unique
-	 * 1. Update case info data
-	 * 2. Create new EnergyUsageFileRecord
-	 * 3. Create new AnalysisDataFile
-	 * 4. Create new analysis input
-	 * 5. Create new analysis output
-	 */
+
 
 	const caseRecord = await prisma.case.findUnique({
 		where: {

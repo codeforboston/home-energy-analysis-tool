@@ -160,7 +160,7 @@ export default {
 				'app/WeatherExample.d.ts',
 				'app/components/ui/CustomFileUpload.tsx',
 				'app/components/ui/HelpButton.tsx',
-				'app/components/ui/ModalFromMarkdown.tsx',
+				'app/components/ui/ModaomMarkdown.tsx',
 				// Heat analysis components not unit tested
 				'app/components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx',
 				'app/components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx',
