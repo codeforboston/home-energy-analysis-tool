@@ -2,6 +2,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 import { data } from 'react-router'
+import { z } from 'zod'
 
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -11,6 +12,7 @@ import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
+import { HomeSchema, LocationSchema, CaseSchema } from '#types/index.ts'
 import { Schema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
@@ -23,6 +25,21 @@ const percentToDecimal = (value: number, errorMessage: string) => {
 
 	return decimal
 }
+
+// Schema for save operations that doesn't require file upload
+const SaveOnlySchema = z.object({
+	name: z.string(),
+	living_area: z.number().min(500).max(10000),
+	street_address: z.string(),
+	town: z.string(),
+	state: z.string(),
+	fuel_type: z.enum(['GAS', 'OIL', 'PROPANE']),
+	heating_system_efficiency: z.number().min(0.5).max(1),
+	design_temperature_override: z.number().optional(),
+	thermostat_set_point: z.number(),
+	setback_temperature: z.number(),
+	setback_hours_per_day: z.number(),
+})
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	// TODO: Add logic to redirect if feature flag is not turned on
@@ -127,7 +144,19 @@ export async function action({ request, params }: Route.ActionArgs) {
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 	
 	const formData = await parseMultipartFormData(request, uploadHandler)
-	const submission = parseWithZod(formData, { schema: Schema })
+	
+	// Check the intent to determine validation approach
+	const intent = formData.get('intent') as string
+	
+	let submission;
+	
+	if (intent === 'save') {
+		// For save intent, use schema without file validation
+		submission = parseWithZod(formData, { schema: SaveOnlySchema })
+	} else {
+		// Use full validation for process-file intent
+		submission = parseWithZod(formData, { schema: Schema })
+	}
 
 	if (submission.status !== 'success') {
 		return {
@@ -142,8 +171,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	try {
-		// Check the intent to determine which action to take
-		const intent = formData.get('intent') as string
 
 		if (intent === 'process-file') {
 			// Full update with new energy file - use the original processCaseUpdate
@@ -163,13 +190,25 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 		} else {
 			// Simple form update (intent === 'save' or fallback) - just update the database fields
+			console.log('🔄 Processing save operation for case:', caseId)
 			const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
 			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId)
+			console.log('✅ Case updated successfully:', { caseId: updatedCase?.id, analysisId: updatedCase?.analysis?.[0]?.id })
 
-			return {
+			// For save operations, add a dummy energy_use_upload to match expected type
+			const formDataWithFile = {
+				...submission.value,
+				energy_use_upload: {
+					name: 'existing-data.csv',
+					size: 0,
+					type: 'text/csv'
+				}
+			}
+
+			const result = {
 				submitResult: submission.reply(),
 				data: undefined, // No new calculation data
-				parsedAndValidatedFormSchema: submission.value,
+				parsedAndValidatedFormSchema: formDataWithFile,
 				convertedDatesTIWD: undefined,
 				state_id: undefined,
 				county_id: undefined,
@@ -178,6 +217,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 					analysisId: updatedCase?.analysis?.[0]?.id,
 				},
 			}
+			console.log('📤 Returning save result:', result)
+			return result
 		}
 	} catch (error: any) {
 		console.error('❌ Case update failed', error)
@@ -206,10 +247,10 @@ export default function EditCase({
 	const rulesEngineActionData = actionData && actionData.data && typeof actionData.data === 'string' ? actionData : undefined
 	
 	const { usageData: rulesEngineUsageData, lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
-		useRulesEngine(rulesEngineActionData)
+		useRulesEngine(rulesEngineActionData as any)
 
-	const parsedAndValidatedFormSchema =
-		actionData?.parsedAndValidatedFormSchema ?? loaderData.defaultFormValues
+	// Get parsedAndValidatedFormSchema early for use in effects
+	const parsedAndValidatedFormSchemaForEffects = actionData?.parsedAndValidatedFormSchema || loaderData.defaultFormValues
 
 	// Local state for billing records to handle checkbox toggling
 	const [localBillingRecords, setLocalBillingRecords] = useState(loaderData.billingRecords)
@@ -269,7 +310,7 @@ export default function EditCase({
 						recalculateFromBillingRecordsChange(
 							parsedLastResult,
 							loaderData.billingRecords,
-							parsedAndValidatedFormSchema,
+							parsedAndValidatedFormSchemaForEffects,
 							{}, // convertedDatesTIWD - empty for now
 							undefined, // state_id
 							undefined, // county_id
@@ -280,7 +321,7 @@ export default function EditCase({
 				}
 			}, 100)
 		}
-	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchema, lazyLoadRulesEngine])
+	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
 
 	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
 	const usageData = rulesEngineUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
@@ -319,11 +360,11 @@ export default function EditCase({
 			lastResult={actionData?.submitResult}
 			defaultFormValues={loaderData.defaultFormValues}
 			showSavedCaseIdMsg={!!actionData}
-			caseInfo={loaderData.caseInfo}
+			caseInfo={actionData?.caseInfo || loaderData.caseInfo}
 			usageData={usageData}
 			showUsageData={!!usageData}
 			onClickBillingRow={editModeToggleBillingPeriod}
-			parsedAndValidatedFormSchema={parsedAndValidatedFormSchema}
+			parsedAndValidatedFormSchema={parsedAndValidatedFormSchemaForEffects as any}
 			isEditMode={true}
 		/>
 	)

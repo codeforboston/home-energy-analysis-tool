@@ -25,10 +25,13 @@ export function EnergyUseUpload(
 	return (
 		<fieldset>
 			<legend className={`${titleClass} pb-6`}>Energy Use History</legend>
-			<ErrorList
-				id={fields.energy_use_upload.errorId}
-				errors={fields.energy_use_upload.errors}
-			/>
+			{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
+			{!isEditMode && (
+				<ErrorList
+					id={fields.energy_use_upload.errorId}
+					errors={fields.energy_use_upload.errors}
+				/>
+			)}
 
 			<CustomFileUpload
 				name={fields.energy_use_upload.name}
@@ -38,7 +41,13 @@ export function EnergyUseUpload(
 				{isEditMode ? (
 					// Two buttons for edit mode
 					<div className="flex gap-3 items-center" style={{ marginBottom: '20px' }}>
-						<Button type="submit" name="intent" value="save" variant="default">
+						<Button 
+							type="submit" 
+							name="intent" 
+							value="save" 
+							variant="default"
+							onClick={() => console.log('💾 Save Changes button clicked')}
+						>
 							Save Changes
 						</Button>
 						<Button type="submit" name="intent" value="process-file" onClick={handleSubmit}>

@@ -113,9 +113,46 @@ export default function SingleCaseForm({
 	const [form, fields] = useForm({
 		lastResult: lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: Schema })
+			console.log('🔍 Form validation triggered', { 
+				isEditMode, 
+				intent: formData.get('intent'),
+				hasFile: !!formData.get('energy_use_upload'),
+				fileValue: formData.get('energy_use_upload')
+			})
+			// In edit mode with save intent, add dummy file to satisfy client-side validation
+			if (isEditMode) {
+				const intent = formData.get('intent') as string
+				const fileValue = formData.get('energy_use_upload')
+				const isEmpty = !fileValue || (fileValue instanceof File && fileValue.size === 0)
+				console.log('🎯 Edit mode check:', { 
+					intent, 
+					fileValue: fileValue instanceof File ? { name: fileValue.name, size: fileValue.size, type: fileValue.type } : fileValue, 
+					isEmpty, 
+					condition: intent === 'save' && isEmpty 
+				})
+				if (intent === 'save') {
+					console.log('📝 Adding dummy file for save validation')
+					// Create a new FormData with all existing data plus a dummy file
+					const newFormData = new FormData()
+					for (const [key, value] of formData.entries()) {
+						newFormData.append(key, value)
+					}
+					// Add dummy file to satisfy Schema requirements
+					const dummyFile = new File([''], 'dummy.csv', { type: 'text/csv' })
+					newFormData.set('energy_use_upload', dummyFile)
+					const result = parseWithZod(newFormData, { schema: Schema })
+					console.log('✅ Dummy validation result:', result.status)
+					return result
+				}
+			}
+			
+			// Use normal validation for all other cases
+			const result = parseWithZod(formData, { schema: Schema })
+			console.log('✅ Normal validation result:', result.status)
+			return result
 		},
-		onSubmit() {
+		onSubmit(event, { formData }) {
+			console.log('🚀 Form submitting with intent:', formData.get('intent'))
 			beforeSubmit()
 		},
 		defaultValue: defaultFormValues,
