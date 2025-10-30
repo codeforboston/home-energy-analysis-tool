@@ -8,6 +8,8 @@ import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { createCase } from '#app/utils/db/case.server.ts'
+import { prisma } from '#app/utils/db.server.ts'
+
 import {
 	fileUploadHandler,
 	uploadHandler,
@@ -28,7 +30,6 @@ import { type Route } from './+types/new'
 // TODO: WI: figure out if this is needed - probably
 // const percentToDecimal = (value: number, errorMessage: string) => {
 // 	const decimal = parseFloat((value / 100).toFixed(2))
-// 	console.log('decimal ', { value, decimal })
 // 	if (isNaN(decimal) || decimal > 1) {
 // 		throw new Error(errorMessage)
 // 	}
@@ -53,25 +54,13 @@ import { type Route } from './+types/new'
 // 			formInputs.state,
 // 		)
 
-// 	console.log('getConvertedDatesTIWD outputs>', {
-// 		state_id,
-// 		county_id,
-// 		convertedDatesTIWD,
-// 	})
 
 // 	invariant(state_id, 'StateID not found')
 // 	invariant(county_id, 'county_id not found')
 // 	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
 // 	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
 
-// 	// Call to the rules-engine with raw text file
-// 	console.log('executeGetAnalyticsFromFormJs inputs>', {
-// 		formInputs,
-// 		convertedDatesTIWD,
-// 		uploadedTextFile,
-// 		state_id,
-// 		county_id,
-// 	})
+
 // 	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
 // 		formInputs,
 // 		convertedDatesTIWD,
@@ -191,8 +180,33 @@ export async function action({ request, params: _params }: Route.ActionArgs) {
 			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
-		await createCase(submission.value, result, userId)
-		
+		const newCase = await createCase(submission.value, result, userId)
+		console.log('Debug Processed energy bills', gasBillDataFromTextFile?.processed_energy_bills[0])
+		const date = new Date(gasBillDataFromTextFile?.processed_energy_bills[0].period_start_date)
+		console.log('Debug Date', date.toISOString())
+
+		// ... inside try block after createCase()
+
+		if (gasBillDataFromTextFile?.processed_energy_bills?.length) {
+			const bills = gasBillDataFromTextFile.processed_energy_bills.map((bill: any) => ({
+				analysisInputId: newCase.analysis.id, // adjust depending on your returned structure
+				periodStartDate: new Date(bill.period_start_date),
+				periodEndDate: new Date(bill.period_end_date),
+				usageQuantity: bill.usage,
+				wholeHomeHeatLossRate: bill.whole_home_heat_loss_rate,
+				analysisType: bill.analysis_type,
+				defaultInclusion: bill.default_inclusion,
+				invertDefaultInclusion: bill.inclusion_override,
+			}))
+			console.log('Bill 0:', bills[0], bills[0].usage_quantity)
+
+			await prisma.processedEnergyBill.create({
+				data: bills[0],
+			})
+
+			console.log(`✅ Inserted ${bills.length} ProcessedEnergyBill records`)
+		}
+
 
 		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
@@ -286,7 +300,7 @@ export default function CreateCase({
 		// 				setback_hours_per_day: 8,
 		// 			}
 		// 		: { fuel_type: 'GAS' }
-	const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
+	const defaultValue: SchemaZodFromFormType | MinimalFormData =
 		loaderData?.isDevMode
 			? {
 				living_area: 2155,

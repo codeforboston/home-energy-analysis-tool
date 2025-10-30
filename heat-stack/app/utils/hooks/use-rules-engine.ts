@@ -87,23 +87,11 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 		const newUsageData = calcResult && buildCurrentUsageData(calcResult)
 
 		setUsageData((prevUsageData) => {
-			let v = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine prev",
-				v[0]?.inclusion_override,
-				v[1]?.inclusion_override,
-				v[2]?.inclusion_override,
-			)
-			const v2 = prevUsageData?.processed_energy_bills || []
-			console.log("rules engine 2",
-				v2[0]?.inclusion_override,
-				v[1]?.inclusion_override,
-				v[2]?.inclusion_override,
-			)
+
+
 			if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-				console.log("new")
 				return newUsageData
 			}
-			console.log("prev")
 			return prevUsageData
 		})
 	}
