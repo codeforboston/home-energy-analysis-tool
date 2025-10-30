@@ -11,6 +11,7 @@ import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema } from '#types/single-form.ts'
+import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
 const percentToDecimal = (value: number, errorMessage: string) => {
@@ -41,16 +42,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		status: 500,
 	})
 
-	const uploadedTextFile = analysis.analysisDataFile[0]?.EnergyUsageFile.content
-	invariantResponse(uploadedTextFile, 'Invalid energy usage data detected', {
-		status: 500,
-	})
+	// Transform billing records from database format to BillingRecordsSchema format
+	const billingRecords: BillingRecordsSchema = (heatingInput.processedEnergyBill || []).map(bill => ({
+		period_start_date: bill.periodStartDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+		period_end_date: bill.periodEndDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+		usage: bill.usageQuantity,
+		inclusion_override: bill.invertDefaultInclusion,
+		analysis_type: bill.analysisType,
+		default_inclusion: bill.defaultInclusion,
+		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
+		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
+	}))
 
-	const TODO_TEMP_ENERGY_USE_UPLOAD = {
-		name: 'foo.csv',
-		type: 'csv',
-		size: 1,
-	}
 	// TODO: WI: Geocoder API is not returning the street number and therefore the rulesEngine calculation is failing
 	//			 Not sure how to intrepret the data returned
 	const parsedAndValidatedFormData = Schema.parse({
@@ -74,7 +77,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		setback_temperature: heatingInput.setbackTemperature,
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,
 		// TODO: I am not sure if energy_use_upload is getting saved anywhere. Revisit
-		energy_use_upload: TODO_TEMP_ENERGY_USE_UPLOAD,
 		// TODO: WI: when we save designTemperatureOverride we are converting from number to boolean
 		//           See if we should be using boolean on UI side.
 		//           Assuming that if true designTemperatureOverride should be 1 else 0
@@ -89,6 +91,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			analysisId: analysis.id,
 			heatingInputId: heatingInput.id,
 		},
+		billingRecords,
 	}
 }
 

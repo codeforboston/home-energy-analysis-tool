@@ -45,6 +45,9 @@ export const getCaseForEditing = async (caseId: number, userId: string) => {
 				include: {
 					heatingInput: {
 						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
+						include: {
+							processedEnergyBill: true,
+						},
 					},
 				},
 			},
