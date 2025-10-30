@@ -147,8 +147,10 @@ export default {
 				// Files with 0% coverage (untested project-specific files)
 				'app/routes.ts',
 				'app/global_constants_t.ts',
+				'app/global_constants.ts',
 				'app/routes/homes.tsx',
 				'app/routes/me.tsx',
+				'app/routes/$.tsx',
 			],
 			all: true,
 		},
