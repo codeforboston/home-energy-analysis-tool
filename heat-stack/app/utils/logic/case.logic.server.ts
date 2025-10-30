@@ -40,9 +40,7 @@ export async function processCaseSubmission(submission: any, userId: string, for
 	
 	// Get the HeatingInput ID from the created analysis
 	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
-	if (!heatingInputId) {
-		throw new Error('Failed to create HeatingInput record')
-	}
+	invariant(heatingInputId, 'Failed to create HeatingInput record')
 	
 	const insertedCount = await insertProcessedBills(heatingInputId, gasBillData)
 
