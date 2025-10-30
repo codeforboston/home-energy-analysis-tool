@@ -1,30 +1,15 @@
-// heat-stack/app/routes/cases+/new.tsx
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { data } from 'react-router'
 import { type z } from 'zod'
+
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
-import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import { createCase } from '#app/utils/db/case.server.ts'
-import { prisma } from '#app/utils/db.server.ts'
-
-import {
-	fileUploadHandler,
-	uploadHandler,
-} from '#app/utils/file-upload-handler.ts'
+import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { type RulesEngineActionData, useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
-import {
-	executeGetAnalyticsFromFormJs,
-	executeParseGasBillPy,
-} from '#app/utils/rules-engine.ts'
-import {
-	invariant,
-} from '#node_modules/@epic-web/invariant/dist'
-import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type NaturalGasUsageDataSchema } from '#types/index.ts'
-import { Schema, /* type SchemaZodFromFormType */ } from '#types/single-form.ts'
+import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
+import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
 
 // TODO: WI: figure out if this is needed - probably
@@ -91,24 +76,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { isDevMode }
 }
 
-// TODO: Implement updating a case
-export async function action({ request, params: _params }: Route.ActionArgs) {
-	// TODO: Keep making this call, is there a better way to authenticate routes?
+export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
-
-	// Checks if url has a homeId parameter, throws 400 if not there
-	// invariantResponse(params.homeId, 'homeId param is required')
 	const formData = await parseMultipartFormData(request, uploadHandler)
-	const submission = parseWithZod(formData, {
-		schema: Schema,
-	})
+	const submission = parseWithZod(formData, { schema: Schema })
 
 	if (submission.status !== 'success') {
-		if (process.env.NODE_ENV === 'development') {
-			// this can have personal identifying information, so only active in development.
-			console.error('submission failed', submission)
-		}
-		return { 
+		return {
 			submitResult: submission.reply(),
 			parsedAndValidatedFormSchema: undefined,
 			data: undefined,
@@ -119,150 +93,37 @@ export async function action({ request, params: _params }: Route.ActionArgs) {
 		}
 	}
 
-	const parsedAndValidatedFormSchema = Schema.parse({
-		name: `${submission.value.name}'s home`,
-		living_area: submission.value.living_area,
-		street_address: submission.value.street_address,
-		town: submission.value.town,
-		state: submission.value.state,
-		fuel_type: submission.value.fuel_type,
-		heating_system_efficiency: submission.value.heating_system_efficiency,
-		thermostat_set_point: submission.value.thermostat_set_point,
-		setback_temperature: submission.value.setback_temperature,
-		setback_hours_per_day: submission.value.setback_hours_per_day,
-		design_temperature_override: submission.value.design_temperature_override,
-		energy_use_upload: submission.value.energy_use_upload,
-		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	})
-
 	try {
-		const uploadedTextFile: string = await fileUploadHandler(formData)
-		// This assignment of the same name is a special thing. We don't remember the name right now.
-		// It's not necessary, but it is possible.
-		// TODO: WI: Why do we call executeParseGasBillPy twice? Firs ttime creates a proxy, second time we actually call the func.
-		const pyodideResultsFromTextFilePyProxy: PyProxy =
-			executeParseGasBillPy(uploadedTextFile)
-		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-			executeParseGasBillPy(uploadedTextFile).toJs()
-		pyodideResultsFromTextFilePyProxy.destroy()
-
-		/**
-		 * This function takes a CSV string and an address
-		 * and returns date and weather data,
-		 * and geolocation information
-		 */
-		// Define variables at function scope for access in the return statement
-		let caseRecord: { id: number } | undefined
-		let analysis: { id: number } | undefined
-		let heatingInput: { id: number } | undefined
-		
-		const result = await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			submission.value.street_address,
-			submission.value.town,
-			submission.value.state,
-		)
-
-		const convertedDatesTIWD = result.convertedDatesTIWD
-		const state_id = result.state_id
-		const county_id = result.county_id
-
-        invariant(userId, 'userId not found in request')
-
-		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy =
-			executeGetAnalyticsFromFormJs(
-				parsedAndValidatedFormSchema,
-				convertedDatesTIWD,
-				uploadedTextFile,
-				state_id,
-				county_id,
-			)
-		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-		gasBillDataFromTextFilePyProxy.destroy()
-		const newCase = await createCase(submission.value, result, userId)
-		console.log('Debug Processed energy bills', gasBillDataFromTextFile?.processed_energy_bills[0])
-		const date = new Date(gasBillDataFromTextFile?.processed_energy_bills[0].period_start_date)
-		console.log('Debug Date', date.toISOString())
-
-		// ... inside try block after createCase()
-
-		if (gasBillDataFromTextFile?.processed_energy_bills?.length) {
-			const bills = gasBillDataFromTextFile.processed_energy_bills.map((bill: any) => ({
-				analysisInputId: newCase.analysis.id, // adjust depending on your returned structure
-				periodStartDate: new Date(bill.period_start_date),
-				periodEndDate: new Date(bill.period_end_date),
-				usageQuantity: bill.usage,
-				wholeHomeHeatLossRate: bill.whole_home_heat_loss_rate,
-				analysisType: bill.analysis_type,
-				defaultInclusion: bill.default_inclusion,
-				invertDefaultInclusion: bill.inclusion_override,
-			}))
-			console.log('Bill 0:', bills[0], bills[0].usage_quantity)
-
-			await prisma.processedEnergyBill.createMany({
-				data: bills,
-			})
-
-			console.log(`✅ Inserted ${bills.length} ProcessedEnergyBill records`)
-		}
-
-
-		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
+		const result = await processCaseSubmission(submission, userId, formData)
 
 		return {
 			submitResult: submission.reply(),
-			data: JSON.stringify(gasBillDataFromTextFile, replacer),
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			state_id,
-			county_id,
-			// Return case information for linking to case details
+			data: JSON.stringify(result.gasBillData, replacer),
+			parsedAndValidatedFormSchema: submission.value,
+			convertedDatesTIWD: result.convertedDatesTIWD,
+			state_id: result.state_id,
+			county_id: result.county_id,
 			caseInfo: {
-				caseId: caseRecord?.id,
-				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id,
+				caseId: result.newCase.id,
+				analysisId: result.newCase.analysis.id,
 			},
 		}
-	} catch (error: unknown) {
-		console.error('Calculate failed')
-		if (error instanceof Error) {
-			console.error(error.message)
-			const errorLines = error.message.split('\n').filter(Boolean)
-			const lastLine = errorLines[errorLines.length - 1] || error.message
-			return data(
-				// see comment for first submission.reply for additional options
-				{
-					submitResult: submission.reply({
-						formErrors: [lastLine],
-					}),
-					parsedAndValidatedFormSchema: undefined,
-					data: undefined,
-					convertedDatesTIWD: undefined,
-					state_id: undefined,
-					county_id: undefined,
-					caseInfo: undefined,
-				},
-				{ status: 500 },
-			)
-		} else {
-			return data(
-				// see comment for first submission.reply for additional options
-				{
-					submitResult: submission.reply({
-						formErrors: ['Unknown Error'],
-					}),
-					parsedAndValidatedFormSchema: undefined,
-					data: undefined,
-					convertedDatesTIWD: undefined,
-					state_id: undefined,
-					county_id: undefined,
-					caseInfo: undefined,
-				},
-				{ status: 500 },
-			)
-		}
+	} catch (error: any) {
+		console.error('❌ Case creation failed', error)
+		const message =
+			error instanceof Error ? error.message : 'Unknown error during case creation'
+		return data(
+			{
+				submitResult: submission.reply({ formErrors: [message] }),
+				parsedAndValidatedFormSchema: undefined,
+				data: undefined,
+				convertedDatesTIWD: undefined,
+				state_id: undefined,
+				county_id: undefined,
+				caseInfo: undefined,
+			},
+			{ status: 500 },
+		)
 	}
 }
 
