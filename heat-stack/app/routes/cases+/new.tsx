@@ -200,8 +200,8 @@ export async function action({ request, params: _params }: Route.ActionArgs) {
 			}))
 			console.log('Bill 0:', bills[0], bills[0].usage_quantity)
 
-			await prisma.processedEnergyBill.create({
-				data: bills[0],
+			await prisma.processedEnergyBill.createMany({
+				data: bills,
 			})
 
 			console.log(`✅ Inserted ${bills.length} ProcessedEnergyBill records`)
