@@ -1,10 +1,9 @@
 import { invariant } from '@epic-web/invariant'
-import { type HeatingInput } from '@prisma/client'
+import type z from 'zod'
 import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
-import z from 'zod'
 
 // export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
 // 	const caseRecord = await prisma.case.findUnique({
@@ -153,7 +152,8 @@ export const updateCase = async (
 	})
 	// Create HeatingInput
 	const validHI = HeatingInputSchema.parse(changes.heatingInput)
-	const heatingInput = await prisma.heatingInput.create({
+	
+	await prisma.heatingInput.create({
 		data: {
 			analysisId: analysis.id,
 			fuelType: changes.heatingInput.fuel_type,

@@ -1,8 +1,7 @@
-import { data, Outlet, useLoaderData } from 'react-router'
-import { Fragment } from 'react'
-import { type Route } from './+types/$analysisid.ts'
-import { prisma } from '#app/utils/db.server.ts'
 import { invariantResponse } from '@epic-web/invariant'
+import { data } from 'react-router'
+import { prisma } from '#app/utils/db.server.ts'
+import { type Route } from './+types/$analysisid.ts'
 
 export async function loader({ params }: Route.LoaderArgs) {
 	const analysisId = Number(params.analysisid)

@@ -11,12 +11,11 @@ import {
 	Label,
 } from 'recharts'
 import { type SummaryOutputSchema } from '#/types/types'
-import { Icon } from '../../../icon'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 import { COLOR_BLUE, COLOR_GREY_LIGHT, COLOR_ORANGE } from '../constants'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
 import { SharedCustomTooltip } from './SharedCustomToolTip'
 import { WholeHomeUAComparisonLegend } from './WholeHomeUAComparisonLegend'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 
 type DataPoint = {
 	x: number // X-coordinate, representing living area in square feet.

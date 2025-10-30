@@ -2,13 +2,14 @@ import * as pyodideModule from 'pyodide'
 import { type PyodideInterface } from 'pyodide'
 import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type TemperatureInputDataConverted } from './WeatherUtil'
 
 // Import Python code as raw string assets
-import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
+import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
+import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
-import { Schema } from '#types/single-form.ts'
+
+import { type TemperatureInputDataConverted } from './WeatherUtil'
 
 const isServer = typeof window === 'undefined'
 const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/'

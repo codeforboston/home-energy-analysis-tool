@@ -10,8 +10,8 @@ import {
 	SelectContent,
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
-import { ErrorList } from './ErrorList.tsx'
 import { HelpButton } from '../../HelpButton.tsx'
+import { ErrorList } from './ErrorList.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 

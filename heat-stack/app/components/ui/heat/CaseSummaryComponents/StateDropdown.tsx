@@ -6,7 +6,6 @@ import {
 	SelectContent,
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
-import { ErrorList } from './ErrorList.tsx'
 
 const states = [
 	{ value: 'AL', label: 'AL' },

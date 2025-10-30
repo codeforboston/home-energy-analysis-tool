@@ -1,5 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { data } from 'react-router'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
@@ -22,8 +23,6 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type Route } from './+types/$caseId.edit'
-import { prisma } from '#app/utils/db.server.ts'
-import { data } from 'react-router'
 
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
@@ -171,7 +170,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 // TODO: Implement updating a case
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	// TODO: Keep making this call, is there a better way to authenticate routes?
 	const userId = await requireUserId(request)
 

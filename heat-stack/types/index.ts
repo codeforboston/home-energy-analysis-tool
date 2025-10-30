@@ -1,4 +1,4 @@
-import { number, z } from 'zod'
+import { z } from 'zod'
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
 
 // JS team wants to discuss this name

@@ -26,7 +26,7 @@ const HomeInformationSchema = z.object({
 	living_area: z.number().min(1),
 })
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 
@@ -56,7 +56,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// - [ ] Build form #2 and #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
-	const { name, address, living_area } = submission.value
+	// const { name, address, living_area } = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
 

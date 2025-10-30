@@ -64,7 +64,7 @@ export function HeatLoad({
 			DESIGN_SET_POINT,
 			maxTemperature,
 		)
-	}, [heatLoadSummaryOutput])
+	}, [heatLoadSummaryOutput, minTemperature, maxTemperature])
 
 	/**
 	 * useMemo to iterate through the data and calculate the min and max values for the Y axis.
