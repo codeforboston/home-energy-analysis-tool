@@ -35,11 +35,24 @@ export function EnergyUseUpload(
 			/>
 
 			<div>
-				{/* Button type submit is processed by action in single.tsx */}
-				<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
-					<Upload className="mr-2 h-4 w-4" />
-					{isEditMode ? 'Save Changes' : 'Calculate'}
-				</Button>
+				{isEditMode ? (
+					// Two buttons for edit mode
+					<div className="flex gap-3 items-center" style={{ marginBottom: '20px' }}>
+						<Button type="submit" name="intent" value="save" variant="default">
+							Save Changes
+						</Button>
+						<Button type="submit" name="intent" value="process-file" onClick={handleSubmit}>
+							<Upload className="mr-2 h-4 w-4" />
+							Process New File
+						</Button>
+					</div>
+				) : (
+					// Single button for new cases
+					<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
+						<Upload className="mr-2 h-4 w-4" />
+						Calculate
+					</Button>
+				)}
 
 				<a
 					className="ml-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
