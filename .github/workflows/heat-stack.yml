@@ -114,7 +114,7 @@ jobs:
           path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
 
   # Heat-Stack Jobs
-  lint-js:  
+  lint-and-format-js:  
     name: ⬣ Heat-Stack - ESLint
     runs-on: ubuntu-22.04
     steps:
@@ -142,6 +142,10 @@ jobs:
   
       - name: 🔬 Lint
         run: npm run lint
+        working-directory:  ${{ env.heat-stack-working-directory }}
+      
+      - name: 🔬 Format
+        run: npm run format:check
         working-directory:  ${{ env.heat-stack-working-directory }}
 
   typecheck-js:
@@ -280,7 +284,7 @@ jobs:
   deploy-to-servers:
     name: 🚀 Heat-Stack - Deploy
     runs-on: ubuntu-22.04
-    needs: [lint-js, typecheck-js, vitest-pyodide-js , playwright]
+    needs: [lint-and-format-js, typecheck-js, vitest-pyodide-js , playwright]
     # only build/deploy main branch on pushes
     if:
       ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
