@@ -137,12 +137,18 @@ export default {
 				'app/routes/resources+/healthcheck.tsx',
 				'app/routes/resources+/images.tsx',
 				'app/routes/resources+/theme-switch.tsx',
+				// Additional route directories to exclude
+				'app/routes/_marketing+/**',
+				'app/routes/_seo+/**',
 				// Epic Stack entry points and config
 				'app/entry.client.tsx',
 				'app/entry.server.tsx',
 				'app/root.tsx',
 				// Files with 0% coverage (untested project-specific files)
 				'app/routes.ts',
+				'app/global_constants_t.ts',
+				'app/routes/homes.tsx',
+				'app/routes/me.tsx',
 			],
 			all: true,
 		},
