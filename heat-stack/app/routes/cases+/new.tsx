@@ -1,11 +1,10 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import { data } from 'react-router'
+import { data, redirect } from 'react-router'
 import { type z } from 'zod'
 
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { replacer } from '#app/utils/data-parser.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import { type RulesEngineActionData, useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
@@ -96,18 +95,8 @@ export async function action({ request }: Route.ActionArgs) {
 	try {
 		const result = await processCaseSubmission(submission, userId, formData)
 
-		return {
-			submitResult: submission.reply(),
-			data: JSON.stringify(result.gasBillData, replacer),
-			parsedAndValidatedFormSchema: submission.value,
-			convertedDatesTIWD: result.convertedDatesTIWD,
-			state_id: result.state_id,
-			county_id: result.county_id,
-			caseInfo: {
-				caseId: result.newCase.id,
-				analysisId: result.newCase.analysis.id,
-			},
-		}
+		// Redirect to the edit page for the newly created case
+		return redirect(`/cases/${result.newCase.id}/edit`)
 	} catch (error: any) {
 		console.error('❌ Case creation failed', error)
 		const message =

@@ -36,9 +36,9 @@ export type SubmitAnalysisProps = {
 	onClickBillingRow: (index: number)=>void
 	/**
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
-	 * TODO: I don't think this field should exist but since we have /single?dev=true that we want to redirect to /single, this seemed nececssary for now
+	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
 	 */
-	action?: "/single" | undefined
+	action?: "/cases/new" | undefined
 	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
 	/**
 	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
