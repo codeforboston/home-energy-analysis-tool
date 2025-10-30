@@ -190,6 +190,7 @@ export default function CreateCase({
 				showUsageData={!!usageData}
 				onClickBillingRow={toggleBillingPeriod}
 				parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
+				isEditMode={false}
 			/>
 		)
 	

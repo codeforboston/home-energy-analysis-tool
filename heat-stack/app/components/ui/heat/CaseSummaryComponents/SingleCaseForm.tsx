@@ -40,6 +40,10 @@ export type SubmitAnalysisProps = {
 	 */
 	action?: "/single" | undefined
 	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
+	/**
+	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
+	 */
+	isEditMode?: boolean
 	// actionData: (RulesEngineActionData & {
 	// 	/**
 	// 	 * Results returned from `parseWithZod` in the action function
@@ -61,7 +65,8 @@ export default function SingleCaseForm({
 	showUsageData,
 	action,
 	onClickBillingRow,
-	parsedAndValidatedFormSchema
+	parsedAndValidatedFormSchema,
+	isEditMode = false
 }: SubmitAnalysisProps) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	// const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
@@ -133,7 +138,7 @@ export default function SingleCaseForm({
 				<div>Case {caseInfo?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} isEditMode={isEditMode} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && (

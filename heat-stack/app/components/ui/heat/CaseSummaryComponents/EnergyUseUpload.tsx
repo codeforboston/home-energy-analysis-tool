@@ -6,10 +6,11 @@ import { ErrorList } from './ErrorList';
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 	fields: any;
+	isEditMode?: boolean;
 }
 
 export function EnergyUseUpload(
-	{ setScrollAfterSubmit, fields }: EnergyUseUploadProps
+	{ setScrollAfterSubmit, fields, isEditMode = false }: EnergyUseUploadProps
 ) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
@@ -36,7 +37,8 @@ export function EnergyUseUpload(
 			<div>
 				{/* Button type submit is processed by action in single.tsx */}
 				<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
-					<Upload className="mr-2 h-4 w-4" />Calculate
+					<Upload className="mr-2 h-4 w-4" />
+					{isEditMode ? 'Save Changes' : 'Calculate'}
 				</Button>
 
 				<a
