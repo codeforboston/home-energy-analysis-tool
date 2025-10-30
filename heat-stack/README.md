@@ -185,8 +185,8 @@ If using GitHub Codespaces, follow these steps:
 ---
 
 ### Committing your changes
-Before committing your changes, go to the `heat-stack` directory and run `source prepare.sh` from the terminal to format
-your code via `Prettier`.
+Before committing your changes, make sure to lint `npm run lint` and format `npm run format`
+ 
 ---
 
 ### Handling Special Cases
