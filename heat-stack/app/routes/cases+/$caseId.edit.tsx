@@ -4,15 +4,16 @@ import { useEffect, useState } from 'react'
 import { data } from 'react-router'
 import { z } from 'zod'
 
+import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
+import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
-import { HomeSchema, LocationSchema, CaseSchema } from '#types/index.ts'
 import { Schema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
@@ -74,6 +75,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
 	}))
 
+	// Calculate geographic data for rules engine recalculation
+	const geocodeUtil = new GeocodeUtil()
+	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
+	const { state_id, county_id } = await geocodeUtil.getLL(combined_address)
 
 	// TODO: WI: Geocoder API is not returning the street number and therefore the rulesEngine calculation is failing
 	//			 Not sure how to intrepret the data returned
@@ -134,6 +139,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		},
 		billingRecords,
 		heatLoadOutput,
+		state_id,
+		county_id,
 	}
 }
 
@@ -254,21 +261,44 @@ export default function EditCase({
 
 	// Local state for billing records to handle checkbox toggling
 	const [localBillingRecords, setLocalBillingRecords] = useState(loaderData.billingRecords)
+	
+	// Error modal state
+	const [errorModal, setErrorModal] = useState<{
+		isOpen: boolean
+		title: string
+		message: string
+	}>({
+		isOpen: false,
+		title: '',
+		message: ''
+	})
 
 	// Update local state when loader data changes
 	useEffect(() => {
 		setLocalBillingRecords(loaderData.billingRecords)
 	}, [loaderData.billingRecords])
 
+	// Initialize rules engine immediately for edit mode
+	useEffect(() => {
+		console.log('🔧 Rules engine initialization effect triggered')
+		console.log('📊 Loading rules engine for edit mode...')
+		lazyLoadRulesEngine()
+	}, [lazyLoadRulesEngine])
+
 	// Initialize rules engine with proper calculation context for edit mode
 	useEffect(() => {
+		console.log('🔧 Rules engine calculation setup effect triggered', {
+			hasBillingRecords: !!(loaderData.billingRecords && loaderData.billingRecords.length > 0),
+			hasRecalculateFunction: !!recalculateFromBillingRecordsChange,
+			billingRecordsCount: loaderData.billingRecords?.length || 0
+		})
+		
 		if (loaderData.billingRecords && loaderData.billingRecords.length > 0 && recalculateFromBillingRecordsChange) {
-			
-			// Ensure rules engine is loaded first
-			lazyLoadRulesEngine()
+			console.log('✅ Conditions met, setting up initial calculation...')
 			
 			// Small delay to ensure rules engine is initialized
 			setTimeout(() => {
+				console.log('⏰ Timeout triggered, checking recalculate function:', !!recalculateFromBillingRecordsChange)
 				if (recalculateFromBillingRecordsChange) {
 					// Create proper parsedLastResult Map structure that the rules engine expects
 					const parsedLastResult = new Map<string, any>()
@@ -324,6 +354,12 @@ export default function EditCase({
 	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
 
 	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
+	console.log('📊 Usage data selection:', { 
+		hasRulesEngineData: !!rulesEngineUsageData,
+		rulesEngineKeys: rulesEngineUsageData ? Object.keys(rulesEngineUsageData) : null,
+		hasLocalBillingRecords: !!(localBillingRecords && localBillingRecords.length > 0)
+	})
+	
 	const usageData = rulesEngineUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
 		heat_load_output: loaderData.heatLoadOutput || {
 			estimated_balance_point: 1,
@@ -344,28 +380,94 @@ export default function EditCase({
 
 	// Custom toggle function for edit mode that doesn't require full rules engine initialization
 	const editModeToggleBillingPeriod = (index: number) => {
+		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
 			if (i === index) {
-				return { ...record, inclusion_override: !record.inclusion_override }
+				const newRecord = { ...record, inclusion_override: !record.inclusion_override }
+				console.log('📝 Updated record:', { index: i, old: record.inclusion_override, new: newRecord.inclusion_override })
+				return newRecord
 			}
 			return record
 		})
 		
+		console.log('📊 Setting updated records:', updatedRecords.map(r => r.inclusion_override))
 		setLocalBillingRecords(updatedRecords)
+		
+		// Trigger recalculation with updated billing records
+		if (recalculateFromBillingRecordsChange && parsedAndValidatedFormSchemaForEffects) {
+			console.log('🧮 Triggering recalculation...')
+			// Small delay to ensure state is updated
+			setTimeout(() => {
+				// Create parsedLastResult Map structure that the rules engine expects
+				const parsedLastResult = new Map<string, any>()
+				// Add the form data and location data that the rules engine needs
+				Object.entries(parsedAndValidatedFormSchemaForEffects).forEach(([key, value]) => {
+					parsedLastResult.set(key, value)
+				})
+
+				console.log('🚀 Calling recalculateFromBillingRecordsChange')
+				try {
+					recalculateFromBillingRecordsChange(
+						parsedLastResult,
+						updatedRecords,
+						parsedAndValidatedFormSchemaForEffects,
+						{}, // convertedDatesTIWD - empty for now  
+						loaderData.state_id,
+						loaderData.county_id,
+					)
+					console.log('✅ Recalculation completed successfully')
+					// Check if rulesEngineUsageData gets updated after recalculation
+					setTimeout(() => {
+						console.log('🔍 Post-recalculation data check:', { 
+							hasRulesEngineData: !!rulesEngineUsageData,
+							rulesEngineDataKeys: rulesEngineUsageData ? Object.keys(rulesEngineUsageData) : null
+						})
+					}, 100)
+				} catch (error) {
+					console.error('💥 Recalculation failed:', error)
+					const errorMessage = error instanceof Error ? error.message : String(error)
+					setErrorModal({
+						isOpen: true,
+						title: 'Calculation Failed',
+						message: `The output numbers could not be updated due to an error:\n\n${errorMessage}\n\nThis may be due to missing geographic data (state/county). The checkbox changes are saved but calculations require the original file processing data.`
+					})
+				}
+			}, 10)
+		} else {
+			console.error('❌ Cannot recalculate:', { 
+				hasFunction: !!recalculateFromBillingRecordsChange, 
+				hasSchema: !!parsedAndValidatedFormSchemaForEffects 
+			})
+			// Show user-friendly error message
+			setErrorModal({
+				isOpen: true,
+				title: 'Recalculation Failed',
+				message: `Unable to recalculate results because the rules engine is not initialized.\n\nDebug info:\n- Rules engine function available: ${!!recalculateFromBillingRecordsChange}\n- Form schema available: ${!!parsedAndValidatedFormSchemaForEffects}\n\nPlease refresh the page and try again.`
+			})
+		}
 	}
 
 	return (
-		<SingleCaseForm
-			beforeSubmit={() => lazyLoadRulesEngine()}
-			lastResult={actionData?.submitResult}
-			defaultFormValues={loaderData.defaultFormValues}
-			showSavedCaseIdMsg={!!actionData}
-			caseInfo={actionData?.caseInfo || loaderData.caseInfo}
-			usageData={usageData}
-			showUsageData={!!usageData}
-			onClickBillingRow={editModeToggleBillingPeriod}
-			parsedAndValidatedFormSchema={parsedAndValidatedFormSchemaForEffects as any}
-			isEditMode={true}
-		/>
+		<>
+			<SingleCaseForm
+				beforeSubmit={() => lazyLoadRulesEngine()}
+				lastResult={actionData?.submitResult}
+				defaultFormValues={loaderData.defaultFormValues}
+				showSavedCaseIdMsg={!!actionData}
+				caseInfo={actionData?.caseInfo || loaderData.caseInfo}
+				usageData={usageData}
+				showUsageData={!!usageData}
+				onClickBillingRow={editModeToggleBillingPeriod}
+				parsedAndValidatedFormSchema={parsedAndValidatedFormSchemaForEffects as any}
+				isEditMode={true}
+			/>
+			
+			<ErrorModal
+				isOpen={errorModal.isOpen}
+				onClose={() => setErrorModal(prev => ({ ...prev, isOpen: false }))}
+				title={errorModal.title}
+				message={errorModal.message}
+			/>
+		</>
 	)
 }
