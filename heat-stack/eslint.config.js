@@ -3,7 +3,7 @@ import { default as defaultConfig } from '@epic-web/config/eslint'
 /** @type {import("eslint").Linter.Config} */
 export default [
 	{
-		ignores: ['public/pyodide-env/**', 'public/build/**', 'build/index.js']
+		ignores: ['public/**', 'build/index.js']
 	  },
 	...defaultConfig,
 	// add custom config objects here:
