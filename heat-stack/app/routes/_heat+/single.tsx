@@ -13,7 +13,10 @@ import {
 	fileUploadHandler,
 	uploadHandler,
 } from '#app/utils/file-upload-handler.ts'
-import { type RulesEngineActionData, useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
+import {
+	type RulesEngineActionData,
+	useRulesEngine,
+} from '#app/utils/hooks/use-rules-engine.ts'
 import { hasParsedAndValidatedFormSchemaProperty } from '#app/utils/index.ts'
 import {
 	executeGetAnalyticsFromFormJs,
@@ -23,9 +26,7 @@ import {
 // Ours
 import { PyProxy } from '#public/pyodide-env/ffi.js'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
-import {
-	type NaturalGasUsageDataSchema,
-} from '../../../types/types.ts'
+import { type NaturalGasUsageDataSchema } from '../../../types/types.ts'
 import { AnalysisHeader } from '../../components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from '../../components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from '../../components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx'
@@ -37,7 +38,6 @@ import { createCase } from '#app/utils/db/case.server.ts'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 
-
 export async function loader({ request }: Route.LoaderArgs) {
 	let url = new URL(request.url)
 	let isDevMode: boolean = url.searchParams.get('dev')?.toLowerCase() === 'true'
@@ -46,9 +46,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-	caseId?: number;
-	analysisId?: number;
-	heatingInputId?: number;
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -68,7 +68,7 @@ export async function action({ request }: Route.ActionArgs) {
 			// this can have personal identifying information, so only active in development.
 			console.error('submission failed', submission)
 		}
-		return {submitResult: submission.reply()}
+		return { submitResult: submission.reply() }
 		// submission.reply({
 		// 	// You can also pass additional error to the `reply` method
 		// 	formErrors: ['Submission failed'],
@@ -94,7 +94,7 @@ export async function action({ request }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 	} = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
@@ -116,7 +116,7 @@ export async function action({ request }: Route.ActionArgs) {
 		setback_temperature,
 		setback_hours_per_day,
 		design_temperature_override,
-		energy_use_upload
+		energy_use_upload,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
@@ -124,14 +124,15 @@ export async function action({ request }: Route.ActionArgs) {
 		// This assignment of the same name is a special thing. We don't remember the name right now.
 		// It's not necessary, but it is possible.
 		// TODO: WI: Create issue to investigate why we duplicate pyodide calls. Bad merge or duplicate of calls down below (see call to executeGetAnalyticsFromFormJs)
-		// 			 Intention might have been 
+		// 			 Intention might have been
 		// 			 const pyodideResultsFromTextFilePyProxy: PyProxy =
 		// 			 	executeParseGasBillPy(uploadedTextFile)
 		// 			 const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = pyodideResultsFromTextFilePyProxy.toJs()
 		// 			 pyodideResultsFromTextFilePyProxy.destroy()
 		const pyodideResultsFromTextFilePyProxy: PyProxy =
 			executeParseGasBillPy(uploadedTextFile)
-		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema = pyodideResultsFromTextFilePyProxy.toJs()
+		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
+			pyodideResultsFromTextFilePyProxy.toJs()
 		pyodideResultsFromTextFilePyProxy.destroy()
 
 		/** This function takes a CSV string and an address
@@ -139,22 +140,21 @@ export async function action({ request }: Route.ActionArgs) {
 		 * and geolocation information
 		 */
 
-
 		// Define variables at function scope for access in the return statement
 		let caseRecord, analysis, heatingInput
 		const result = await getConvertedDatesTIWD(
 			pyodideResultsFromTextFile,
 			street_address,
 			town,
-			state
+			state,
 		)
 
 		const convertedDatesTIWD = result.convertedDatesTIWD
 		const state_id = result.state_id
 		const county_id = result.county_id
 
-		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true") {
-			if(userId){
+		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === 'true') {
+			if (userId) {
 				const records = await createCase(submission.value, result, userId)
 				caseRecord = records.caseRecord
 				analysis = records.analysis
@@ -174,7 +174,7 @@ export async function action({ request }: Route.ActionArgs) {
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
 				// !!!!!!!!!!!!!!!!!!!!!!!!!
-				// TODO: WI: Replace saving the csv in the database (future feature) and instead 
+				// TODO: WI: Replace saving the csv in the database (future feature) and instead
 				// 			 save the output from the rules engine to run calculations in the edit page
 				// 			 WRITE AN ISSUE TO DISCUSS WHAT TO DO ABOUT SAVING CSVs IN V2 - TAG ETHAN
 				const energyUsageFileRecord = await prisma.energyUsageFile.create({
@@ -182,25 +182,23 @@ export async function action({ request }: Route.ActionArgs) {
 						fuelType: parsedAndValidatedFormSchema.fuel_type,
 						content: uploadedTextFile,
 						// TODO: WI: What are description, precedingDeliveryDate, and provider values supposed to be?
-						description: "",
+						description: '',
 						precedingDeliveryDate: new Date(),
-						provider: ""
-					}
+						provider: '',
+					},
 				})
 
 				await prisma.analysisDataFile.create({
 					data: {
 						analysisId: analysis.id,
-						energyUsageFileId: energyUsageFileRecord.id
-					}
+						energyUsageFileId: energyUsageFileRecord.id,
+					},
 				})
 				/* TODO: store rules-engine output in database too */
-
 			} else {
 				// user is not logged in
 			}
 		}
-
 
 		// } catch (error) {
 		// 	const errorWithExceptionMessage = error as ErrorWithExceptionMessage
@@ -214,7 +212,8 @@ export async function action({ request }: Route.ActionArgs) {
 		 */
 
 		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
+		const gasBillDataFromTextFilePyProxy: PyProxy =
+			executeGetAnalyticsFromFormJs(
 				parsedAndValidatedFormSchema,
 				convertedDatesTIWD,
 				uploadedTextFile,
@@ -223,14 +222,14 @@ export async function action({ request }: Route.ActionArgs) {
 			)
 		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
 		gasBillDataFromTextFilePyProxy.destroy()
-		
+
 		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
 		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
 
 		const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
 
 		return {
-			submitResult:submission.reply(),
+			submitResult: submission.reply(),
 			data: str_version,
 			parsedAndValidatedFormSchema,
 			convertedDatesTIWD,
@@ -240,31 +239,34 @@ export async function action({ request }: Route.ActionArgs) {
 			caseInfo: {
 				caseId: caseRecord?.id,
 				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id
-			}
+				heatingInputId: heatingInput?.id,
+			},
 		}
-	} 
-	catch (error: unknown) {
-		console.error("Calculate failed")
+	} catch (error: unknown) {
+		console.error('Calculate failed')
 		if (error instanceof Error) {
 			console.error(error.message)
-			const errorLines = error.message.split("\n").filter(Boolean)
+			const errorLines = error.message.split('\n').filter(Boolean)
 			const lastLine = errorLines[errorLines.length - 1] || error.message
 			return data(
 				// see comment for first submission.reply for additional options
-				{submitResult:submission.reply({
-					formErrors: [lastLine],
-				})},
-				{ status: 500 }
-			);
+				{
+					submitResult: submission.reply({
+						formErrors: [lastLine],
+					}),
+				},
+				{ status: 500 },
+			)
 		} else {
 			return data(
 				// see comment for first submission.reply for additional options
-				{submitResult:submission.reply({
-					formErrors: ['Unknown Error'],
-				})},
-				{ status: 500 }
-			);
+				{
+					submitResult: submission.reply({
+						formErrors: ['Unknown Error'],
+					}),
+				},
+				{ status: 500 },
+			)
 		}
 	}
 	// return redirect(`/single`)
@@ -284,7 +286,8 @@ export default function SubmitAnalysis({
 	} = useRulesEngine(actionData as RulesEngineActionData)
 
 	// ✅ Extract structured values from actionData
-	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })?.caseInfo
+	const caseInfo = (actionData as typeof actionData & { caseInfo?: CaseInfo })
+		?.caseInfo
 
 	React.useEffect(() => {
 		if (caseInfo) {
@@ -341,7 +344,10 @@ export default function SubmitAnalysis({
 				<div>Case {savedCase?.caseId}</div>
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} />
+				<EnergyUseUpload
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+				/>
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && recalculateFromBillingRecordsChange && (
@@ -381,7 +387,9 @@ export default function SubmitAnalysis({
 			{/* Show case saved message */}
 			{savedCase && savedCase.caseId && (
 				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
 					<p className="mb-4">Your case data has been saved to the database.</p>
 					<p>
 						<a

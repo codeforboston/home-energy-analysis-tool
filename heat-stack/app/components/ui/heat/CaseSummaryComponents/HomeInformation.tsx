@@ -15,26 +15,29 @@ export function HomeInformation(props: HomeInformationProps) {
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 
-	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(() => {
-		const string =
-			props.fields.living_area.value || props.fields.living_area.defaultValue
-		return string ? string.replace(/,/g, '') : ''
-	})
+	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
+		() => {
+			const string =
+				props.fields.living_area.value || props.fields.living_area.defaultValue
+			return string ? string.replace(/,/g, '') : ''
+		},
+	)
 
 	const livingAreaNumberHidden = useMemo(() => {
-		const commaFreeString = livingAreaStringDisplayed.replace(/,/g, '');
-		const convertedNumber = Number(commaFreeString);
+		const commaFreeString = livingAreaStringDisplayed.replace(/,/g, '')
+		const convertedNumber = Number(commaFreeString)
 		return !isNaN(convertedNumber) ? convertedNumber.toString() : ''
 	}, [livingAreaStringDisplayed])
 
 	const [streetAddress, setStreetAddress] = useState(
-		props.fields.street_address.value || props.fields.street_address.defaultValue
+		props.fields.street_address.value ||
+			props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
-		props.fields.town.value || props.fields.town.defaultValue?.town
+		props.fields.town.value || props.fields.town.defaultValue?.town,
 	)
 	const [usaStateAbbrev, setUsaStateAbbrev] = useState(
-		props.fields.state.value || props.fields.state.defaultValue?.state
+		props.fields.state.value || props.fields.state.defaultValue?.state,
 	)
 	const [geoError, setGeoError] = useState<string | null>(null)
 
@@ -79,7 +82,7 @@ export function HomeInformation(props: HomeInformationProps) {
 	}, [props.fields.living_area.value, props.fields.living_area.defaultValue])
 
 	const handleLivingAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setLivingAreaStringDisplayed(e.target.value);
+		setLivingAreaStringDisplayed(e.target.value)
 	}
 
 	return (
@@ -110,7 +113,9 @@ export function HomeInformation(props: HomeInformationProps) {
 				<legend className={subtitleClass}>Address Information</legend>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor={props.fields.street_address.id}>Street Address</Label>
+						<Label htmlFor={props.fields.street_address.id}>
+							Street Address
+						</Label>
 						<div className="mt-4">
 							<Input
 								id={props.fields.street_address.id}
@@ -124,9 +129,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								}
 								aria-describedby={props.fields.street_address.errorId}
 							/>
-							{geoError && (
-								<div className="text-red-600 mt-2">{geoError}</div>
-							)}
+							{geoError && <div className="mt-2 text-red-600">{geoError}</div>}
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
 									id={props.fields.street_address.errorId}
@@ -146,7 +149,9 @@ export function HomeInformation(props: HomeInformationProps) {
 								value={town}
 								onChange={(e) => setTown(e.target.value)}
 								onBlur={handleTownBlur}
-								aria-invalid={props.fields.town.errors?.length ? true : undefined}
+								aria-invalid={
+									props.fields.town.errors?.length ? true : undefined
+								}
 								aria-describedby={props.fields.town.errorId}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
@@ -182,7 +187,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
 				</Label>
-				<HelpButton keyName="living_area.help" className="ml-[1ch]"/>
+				<HelpButton keyName="living_area.help" className="ml-[1ch]" />
 				<NumericFormat
 					id="living_area"
 					placeholder="Enter a number 0-10000"

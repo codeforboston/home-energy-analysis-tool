@@ -1,19 +1,19 @@
-import { useEffect, useRef } from 'react';
-import { type UsageDataSchema } from '#/types/types.ts'; 
+import { useEffect, useRef } from 'react'
+import { type UsageDataSchema } from '#/types/types.ts'
 import HelpCircle from './assets/help-circle.svg'
-import { HelpButton } from '../../HelpButton';
+import { HelpButton } from '../../HelpButton'
 
 interface AnalysisHeaderProps {
-	usageData: UsageDataSchema;
-	scrollAfterSubmit: boolean;
-	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+	usageData: UsageDataSchema
+	scrollAfterSubmit: boolean
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export function AnalysisHeader({
-	usageData, 
+	usageData,
 	scrollAfterSubmit,
 	setScrollAfterSubmit,
-} : AnalysisHeaderProps) {
+}: AnalysisHeaderProps) {
 	// Example usageData
 	// new Map([[
 	// 		"estimated_balance_point",
@@ -45,13 +45,13 @@ export function AnalysisHeader({
 	// 	]])
 
 	// Extract the heat_load_output from usageData
-	const summaryOutputs = usageData?.heat_load_output;
+	const summaryOutputs = usageData?.heat_load_output
 
-	const totalRecords = usageData?.processed_energy_bills?.length || "-"
+	const totalRecords = usageData?.processed_energy_bills?.length || '-'
 	// Each record has three options for Analysis Types:
 	// Heating calculations (1)
 	// Non-heating calculations (-1)
-    // Not allowed in any calculations (0)
+	// Not allowed in any calculations (0)
 
 	// Get only the billing periods allowed in Heating calculations (Enum 1)
 	const heatingAnalysisTypeRecords = usageData?.processed_energy_bills?.filter(
@@ -59,28 +59,28 @@ export function AnalysisHeader({
 		// Do wee need this code instead? (billingRecord) => billingRecord.analysis_type !== "NOT_ALLOWED_IN_CALCULATIONS",
 		// Answer: No, that line would include billing periods from Heating calculations and from Non-heating calculation
 		// Followup: Should extract this logic to the rules-engine and pass along as new variables?
-	);
+	)
 
 	// Now we have all billing periods that are allowed in Heating calculations,
 	// Determine which are included by default and not overridden by the user
 	const recordsIncludedByDefault = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion === true &&
-		billingRecord.inclusion_override === false,
-	).length;
+			billingRecord.default_inclusion === true &&
+			billingRecord.inclusion_override === false,
+	).length
 
 	// Determine which are not included by default but have been overridden by the user
 	const recordsIncludedByOverride = heatingAnalysisTypeRecords?.filter(
 		(billingRecord) =>
-		billingRecord.default_inclusion === false &&
-		billingRecord.inclusion_override === true,
-	).length;
+			billingRecord.default_inclusion === false &&
+			billingRecord.inclusion_override === true,
+	).length
 
 	// Total of all billing periods that are allowed and included in Heating calculations
 	const numRecordsForHeatingCalculations =
-		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0);
+		(recordsIncludedByDefault || 0) + (recordsIncludedByOverride || 0)
 
-	const targetRef = useRef<HTMLDivElement>(null);
+	const targetRef = useRef<HTMLDivElement>(null)
 	/*
 	Scrolls down until the top of the Analysis Header is at the top of 
 	the browser
@@ -96,33 +96,37 @@ export function AnalysisHeader({
 	useEffect(() => {
 		if (scrollAfterSubmit) {
 			if (targetRef.current) {
-				targetRef.current.scrollIntoView({ behavior: 'smooth' });
-				setScrollAfterSubmit(false);
+				targetRef.current.scrollIntoView({ behavior: 'smooth' })
+				setScrollAfterSubmit(false)
 			}
 		}
 	}, [scrollAfterSubmit, setScrollAfterSubmit])
-	
+
 	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
 	const componentMargin = 'mt-10'
 
 	// Calculate the value
-	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100;
+	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
 
 	// Determine the text color based on the value
-	const textColor = value <= 10 ? 'text-green-400' : 'text-red-500';
+	const textColor = value <= 10 ? 'text-green-400' : 'text-red-500'
 
 	return (
 		<div className="section-title mt-12" ref={targetRef}>
-			<div className="flex flex-row gap-0.5 mb-4">
+			<div className="mb-4 flex flex-row gap-0.5">
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
 				</h2>
 				{/* TODO: add help text here */}
-				<HelpButton keyName='heat_load_analysis.help' />
+				<HelpButton keyName="heat_load_analysis.help" />
 			</div>
-			<div data-pw="analysis-header" data-testid="analysis-header" className="flex flex-row gap-x-4">
+			<div
+				data-pw="analysis-header"
+				data-testid="analysis-header"
+				className="flex flex-row gap-x-4"
+			>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl text-slate-700 font-normal">
+					<div className="item-title-small text-xl font-normal text-slate-700">
 						Average Indoor Temperature <br />
 						<div className="item font-bold">
 							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
@@ -137,9 +141,11 @@ export function AnalysisHeader({
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl text-slate-700 font-normal">
+					<div className="item-title-small text-xl font-normal text-slate-700">
 						Number of Periods Included <br />
-						<div className="item font-bold">{numRecordsForHeatingCalculations} / {totalRecords}</div>
+						<div className="item font-bold">
+							{numRecordsForHeatingCalculations} / {totalRecords}
+						</div>
 						<br />
 						Daily Non-heating Usage <br />
 						<div className="item font-bold">
@@ -149,12 +155,11 @@ export function AnalysisHeader({
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl text-slate-700 font-normal">
+					<div className="item-title-small text-xl font-normal text-slate-700">
 						Standard Deviation of UA <br />
 						<div className={`item font-bold ${textColor}`}>
 							{/* Rounding to two decimal places */}
-							{(value)?.toFixed(2)}{' '}
-							%
+							{value?.toFixed(2)} %
 						</div>
 						<br />
 						Whole-home UA

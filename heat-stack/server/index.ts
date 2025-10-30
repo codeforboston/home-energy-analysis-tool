@@ -70,7 +70,13 @@ app.disable('x-powered-by')
 
 app.use((_, res, next) => {
 	// The referrerPolicy breaks our redirectTo logic
-	helmet(res, { general: { referrerPolicy: false }, content: { contentSecurityPolicy: { reportOnly: true, directives: { /* fetch: {
+	helmet(res, {
+		general: { referrerPolicy: false },
+		content: {
+			contentSecurityPolicy: {
+				reportOnly: true,
+				directives: {
+					/* fetch: {
 		'connect-src': [
 			MODE === 'development' ? 'ws:' : null,
 			process.env.SENTRY_DSN ? '*.sentry.io' : null,
@@ -91,7 +97,11 @@ app.use((_, res, next) => {
 			(_, res) => `'nonce-${res.locals.cspNonce}'`,
 		],
 		'upgrade-insecure-requests': null,
-	}*/ }  }  } } )
+	}*/
+				},
+			},
+		},
+	})
 	next()
 })
 

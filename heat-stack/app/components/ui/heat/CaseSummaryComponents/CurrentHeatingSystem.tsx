@@ -22,13 +22,15 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	// Create a state to track the percentage value
-	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(() => {
-		// Initialize from the field's default value or initial value
-		const value =
-			props.fields.heating_system_efficiency.value ||
-			props.fields.heating_system_efficiency.defaultValue
-		return value ? Math.round(parseFloat(value) * 100).toString() : ''
-	})
+	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
+		() => {
+			// Initialize from the field's default value or initial value
+			const value =
+				props.fields.heating_system_efficiency.value ||
+				props.fields.heating_system_efficiency.defaultValue
+			return value ? Math.round(parseFloat(value) * 100).toString() : ''
+		},
+	)
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
@@ -42,7 +44,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			props.fields.heating_system_efficiency.value ||
 			props.fields.heating_system_efficiency.defaultValue
 		if (value) {
-			setPercentageValueDisplayed(Math.round(parseFloat(value) * 100).toString())
+			setPercentageValueDisplayed(
+				Math.round(parseFloat(value) * 100).toString(),
+			)
 		}
 	}, [
 		props.fields.heating_system_efficiency.value,
@@ -96,7 +100,10 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			>
 				Heating System Efficiency %
 			</Label>
-			<HelpButton keyName="heating_system_efficiency.help" className="ml-[1ch]" />
+			<HelpButton
+				keyName="heating_system_efficiency.help"
+				className="ml-[1ch]"
+			/>
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
