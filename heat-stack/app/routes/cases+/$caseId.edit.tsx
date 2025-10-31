@@ -127,6 +127,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		heatLoadOutput,
 		state_id,
 		county_id,
+		// We need temperature data for recalculation - for now, we'll generate dummy data
+		// In the future, this should be stored in the database
+		convertedDatesTIWD: {
+			dates: [], // Empty for now - will be populated when needed
+			temperatures: [], // Empty for now - will be populated when needed
+		}
 	}
 }
 
@@ -140,6 +146,84 @@ export async function action({ request, params }: Route.ActionArgs) {
 	
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
+	
+	// Handle recalculate intent for checkbox toggling
+	if (intent === 'recalculate') {
+		console.log('🔄 Server-side recalculation triggered for case:', caseId)
+		
+		try {
+			// Get billing records from form data
+			const billingRecordsJson = formData.get('billingRecords') as string
+			const billingRecords = JSON.parse(billingRecordsJson) as BillingRecordsSchema
+			
+			// Get form schema data
+			const formSchemaJson = formData.get('formSchema') as string
+			const formSchema = JSON.parse(formSchemaJson) as any
+			
+			// Get temperature data
+			const convertedDatesTIWDJson = formData.get('convertedDatesTIWD') as string
+			const convertedDatesTIWD = JSON.parse(convertedDatesTIWDJson) as any
+			
+			// Get geo data
+			const state_id = formData.get('state_id') as string
+			const county_id = formData.get('county_id') as string
+			
+			console.log('📊 Recalculation input:', { 
+				billingRecordsCount: billingRecords.length, 
+				state_id, 
+				county_id 
+			})
+			
+			// Import and call the Python rules engine
+			const { executeRoundtripAnalyticsFromFormJs } = await import('#app/utils/rules-engine.ts')
+			
+			// Create the userAdjustedData structure that the Python function expects
+			const userAdjustedData = {
+				processed_energy_bills: billingRecords
+			}
+			
+			console.log('🧮 Calling executeRoundtripAnalyticsFromForm from server')
+			const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
+				formSchema as any,
+				convertedDatesTIWD as any,
+				userAdjustedData as any,
+				state_id,
+				county_id,
+			)
+			const calcResult = calcResultPyProxy.toJs()
+			calcResultPyProxy.destroy()
+			console.log('✅ Server-side recalculation completed')
+			
+			return {
+				submitResult: undefined,
+				data: JSON.stringify(calcResult, replacer),
+				parsedAndValidatedFormSchema: formSchema as any,
+				convertedDatesTIWD: convertedDatesTIWD,
+				state_id: state_id,
+				county_id: county_id,
+				caseInfo: {
+					caseId: caseId,
+					analysisId: undefined, // We don't need to update this for recalculation
+				},
+			}
+		} catch (error: any) {
+			console.error('❌ Server-side recalculation failed', error)
+			const message = error instanceof Error ? error.message : 'Unknown error during recalculation'
+			return data(
+				{
+					submitResult: undefined,
+					parsedAndValidatedFormSchema: undefined,
+					data: undefined,
+					convertedDatesTIWD: undefined,
+					state_id: undefined,
+					county_id: undefined,
+					caseInfo: undefined,
+					error: message,
+				},
+				{ status: 500 },
+			)
+		}
+	}
 	
 	let submission;
 	
@@ -364,8 +448,8 @@ export default function EditCase({
 		processed_energy_bills: localBillingRecords,
 	} : undefined)
 
-	// Custom toggle function for edit mode that doesn't require full rules engine initialization
-	const editModeToggleBillingPeriod = (index: number) => {
+	// Custom toggle function for edit mode that calls server for recalculation
+	const editModeToggleBillingPeriod = async (index: number) => {
 		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
 			if (i === index) {
@@ -379,56 +463,55 @@ export default function EditCase({
 		console.log('📊 Setting updated records:', updatedRecords.map(r => r.inclusion_override))
 		setLocalBillingRecords(updatedRecords)
 		
-		// Trigger recalculation with updated billing records
-		if (recalculateFromBillingRecordsChange && parsedAndValidatedFormSchemaForEffects) {
-			console.log('🧮 Triggering recalculation...')
-			// Small delay to ensure state is updated
-			setTimeout(() => {
-				// Create parsedLastResult Map structure that the rules engine expects
-				const parsedLastResult = new Map<string, any>()
-				// Add the form data and location data that the rules engine needs
-				Object.entries(parsedAndValidatedFormSchemaForEffects).forEach(([key, value]) => {
-					parsedLastResult.set(key, value)
+		// Trigger server-side recalculation with updated billing records
+		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id) {
+			console.log('🚀 Submitting recalculation request to server...')
+			
+			try {
+				// Create form data for server submission
+				const formData = new FormData()
+				formData.append('intent', 'recalculate')
+				formData.append('billingRecords', JSON.stringify(updatedRecords))
+				formData.append('formSchema', JSON.stringify(parsedAndValidatedFormSchemaForEffects))
+				formData.append('convertedDatesTIWD', JSON.stringify(loaderData.convertedDatesTIWD || {}))
+				formData.append('state_id', loaderData.state_id.toString())
+				formData.append('county_id', loaderData.county_id.toString())
+				
+				// Submit to server
+				const response = await fetch(window.location.pathname, {
+					method: 'POST',
+					body: formData,
 				})
-
-				console.log('🚀 Calling recalculateFromBillingRecordsChange')
-				try {
-					recalculateFromBillingRecordsChange(
-						parsedLastResult,
-						updatedRecords,
-						parsedAndValidatedFormSchemaForEffects,
-						{}, // convertedDatesTIWD - empty for now  
-						loaderData.state_id,
-						loaderData.county_id,
-					)
-					console.log('✅ Recalculation completed successfully')
-					// Check if rulesEngineUsageData gets updated after recalculation
-					setTimeout(() => {
-						console.log('🔍 Post-recalculation data check:', { 
-							hasRulesEngineData: !!rulesEngineUsageData,
-							rulesEngineDataKeys: rulesEngineUsageData ? Object.keys(rulesEngineUsageData) : null
-						})
-					}, 100)
-				} catch (error) {
-					console.error('💥 Recalculation failed:', error)
-					const errorMessage = error instanceof Error ? error.message : String(error)
-					setErrorModal({
-						isOpen: true,
-						title: 'Calculation Failed',
-						message: `The output numbers could not be updated due to an error:\n\n${errorMessage}\n\nThis may be due to missing geographic data (state/county). The checkbox changes are saved but calculations require the original file processing data.`
-					})
+				
+				if (!response.ok) {
+					throw new Error('Server recalculation failed')
 				}
-			}, 10)
+				
+				const result = await response.json()
+				console.log('✅ Server recalculation completed:', result)
+				
+				// The page will automatically refresh with new data
+				window.location.reload()
+				
+			} catch (error) {
+				console.error('💥 Server recalculation failed:', error)
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				setErrorModal({
+					isOpen: true,
+					title: 'Calculation Failed',
+					message: `The output numbers could not be updated due to an error:\n\n${errorMessage}\n\nPlease try again.`
+				})
+			}
 		} else {
-			console.error('❌ Cannot recalculate:', { 
-				hasFunction: !!recalculateFromBillingRecordsChange, 
-				hasSchema: !!parsedAndValidatedFormSchemaForEffects 
+			console.error('❌ Cannot recalculate - missing required data:', { 
+				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 
+				hasStateId: !!loaderData.state_id,
+				hasCountyId: !!loaderData.county_id
 			})
-			// Show user-friendly error message
 			setErrorModal({
 				isOpen: true,
 				title: 'Recalculation Failed',
-				message: `Unable to recalculate results because the rules engine is not initialized.\n\nDebug info:\n- Rules engine function available: ${!!recalculateFromBillingRecordsChange}\n- Form schema available: ${!!parsedAndValidatedFormSchemaForEffects}\n\nPlease refresh the page and try again.`
+				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`
 			})
 		}
 	}
