@@ -43,8 +43,6 @@ const SaveOnlySchema = z.object({
 })
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-	// TODO: Add logic to redirect if feature flag is not turned on
-	// process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true"
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -80,9 +78,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
 	const { state_id, county_id } = await geocodeUtil.getLL(combined_address)
 
-	// TODO: WI: Geocoder API is not returning the street number and therefore the rulesEngine calculation is failing
-	//			 Not sure how to intrepret the data returned
-	// TODO: WI: why do we need a place holder for energy_use_upload since it's required by schema but not needed for edit
 	const parsedAndValidatedFormData = Schema.parse({
 		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
 		energy_use_upload: {
@@ -90,17 +85,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			size: 0,
 			type: 'text/csv'
 		},
-		// TODO: WI: Should we just have separate fields for first and last name? Do we care if a person has a middle name?
 		name: `${caseRecord.homeOwner.firstName1} ${caseRecord.homeOwner.lastName1}`,
 		living_area: caseRecord.location.livingAreaSquareFeet,
-		// TODO: WI: There is a bug where street number is not getting saved
 		street_address: caseRecord.location.address,
-		// TODO: WI: Find out why name mismatch exists, e.g.  app code use city but schema uses town
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-		// TODO: WI: when we save heatingInput we are rounding and converting the efficiency value from decimal to percent
-		//           therefore we need to do the opposite conversion. See if we should be saving the raw value and format in the UI instead.
 		
 		heating_system_efficiency: percentToDecimal(
 			heatingInput.heatingSystemEfficiency,
@@ -109,10 +99,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		thermostat_set_point: heatingInput.thermostatSetPoint,
 		setback_temperature: heatingInput.setbackTemperature,
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,
-		// TODO: I am not sure if energy_use_upload is getting saved anywhere. Revisit
-		// TODO: WI: when we save designTemperatureOverride we are converting from number to boolean
-		//           See if we should be using boolean on UI side.
-		//           Assuming that if true designTemperatureOverride should be 1 else 0
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
