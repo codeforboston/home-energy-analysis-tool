@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import { useEffect, useState } from 'react'
-import { data } from 'react-router'
+import { useCallback, useEffect, useState } from 'react'
+import { data, useFetcher } from 'react-router'
 import { z } from 'zod'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
@@ -11,6 +11,7 @@ import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import { useFetcherErrorHandler } from '#app/utils/hooks/use-fetcher-error-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
@@ -142,7 +143,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 	
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 	
-	const formData = await parseMultipartFormData(request, uploadHandler)
+	// Parse form data based on content type
+	// useFetcher sends regular form data, file uploads send multipart
+	const contentType = request.headers.get('content-type') || ''
+	const formData = contentType.includes('multipart/form-data')
+		? await parseMultipartFormData(request, uploadHandler)
+		: await request.formData()
 	
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
@@ -320,6 +326,9 @@ export default function EditCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
+	// Use React Router's fetcher for proper form submission
+	const fetcher = useFetcher()
+	
 	// Cast actionData to match the expected type for useRulesEngine
 	const rulesEngineActionData = actionData && actionData.data && typeof actionData.data === 'string' ? actionData : undefined
 	
@@ -423,6 +432,19 @@ export default function EditCase({
 		}
 	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
 
+	// Handle fetcher errors (global pattern for all forms)
+	const handleFetcherError = useCallback((errorMessage: string) => {
+		setErrorModal({
+			isOpen: true,
+			title: 'Server Error',
+			message: errorMessage
+		})
+		// Revert optimistic update on error
+		setLocalBillingRecords(loaderData.billingRecords)
+	}, [loaderData.billingRecords])
+	
+	useFetcherErrorHandler(fetcher, handleFetcherError)
+
 	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
 	console.log('📊 Usage data selection:', { 
 		hasRulesEngineData: !!rulesEngineUsageData,
@@ -449,7 +471,7 @@ export default function EditCase({
 	} : undefined)
 
 	// Custom toggle function for edit mode that calls server for recalculation
-	const editModeToggleBillingPeriod = async (index: number) => {
+	const editModeToggleBillingPeriod = (index: number) => {
 		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
 			if (i === index) {
@@ -467,41 +489,17 @@ export default function EditCase({
 		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id) {
 			console.log('🚀 Submitting recalculation request to server...')
 			
-			try {
-				// Create form data for server submission
-				const formData = new FormData()
-				formData.append('intent', 'recalculate')
-				formData.append('billingRecords', JSON.stringify(updatedRecords))
-				formData.append('formSchema', JSON.stringify(parsedAndValidatedFormSchemaForEffects))
-				formData.append('convertedDatesTIWD', JSON.stringify(loaderData.convertedDatesTIWD || {}))
-				formData.append('state_id', loaderData.state_id.toString())
-				formData.append('county_id', loaderData.county_id.toString())
-				
-				// Submit to server
-				const response = await fetch(window.location.pathname, {
-					method: 'POST',
-					body: formData,
-				})
-				
-				if (!response.ok) {
-					throw new Error('Server recalculation failed')
-				}
-				
-				const result = await response.json()
-				console.log('✅ Server recalculation completed:', result)
-				
-				// The page will automatically refresh with new data
-				window.location.reload()
-				
-			} catch (error) {
-				console.error('💥 Server recalculation failed:', error)
-				const errorMessage = error instanceof Error ? error.message : String(error)
-				setErrorModal({
-					isOpen: true,
-					title: 'Calculation Failed',
-					message: `The output numbers could not be updated due to an error:\n\n${errorMessage}\n\nPlease try again.`
-				})
-			}
+			// Create form data for server submission
+			const formData = new FormData()
+			formData.append('intent', 'recalculate')
+			formData.append('billingRecords', JSON.stringify(updatedRecords))
+			formData.append('formSchema', JSON.stringify(parsedAndValidatedFormSchemaForEffects))
+			formData.append('convertedDatesTIWD', JSON.stringify(loaderData.convertedDatesTIWD || {}))
+			formData.append('state_id', loaderData.state_id.toString())
+			formData.append('county_id', loaderData.county_id.toString())
+			
+			// Use fetcher to submit (avoids HTML response issue)
+			void fetcher.submit(formData, { method: 'POST' })
 		} else {
 			console.error('❌ Cannot recalculate - missing required data:', { 
 				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 

@@ -23,6 +23,10 @@ def executeRoundtripAnalyticsFromForm(
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
     # third step, re-run of the table data
+    # Convert JsProxy to Python dict if needed
+    if hasattr(userAdjustedData, "to_py"):
+        userAdjustedData = userAdjustedData.to_py()
+
     userAdjustedDataFromJsToPython = [
         ProcessedEnergyBillInput(**record)
         for record in userAdjustedData["processed_energy_bills"]
