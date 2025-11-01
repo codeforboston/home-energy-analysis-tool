@@ -316,6 +316,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				state_id: undefined,
 				county_id: undefined,
 				caseInfo: undefined,
+				error: message, // Add error field for consistent error handling
 			},
 			{ status: 500 },
 		)
@@ -326,10 +327,12 @@ export default function EditCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	// Use React Router's fetcher for proper form submission
-	const fetcher = useFetcher()
+	// Use separate fetcher specifically for recalculation (not form submission)
+	const recalculateFetcher = useFetcher()
 	
 	// Cast actionData to match the expected type for useRulesEngine
+	// Only pass actionData if it has calculation data (from recalculate or process-file intents)
+	// Don't pass it for save operations which have data: undefined
 	const rulesEngineActionData = actionData && actionData.data && typeof actionData.data === 'string' ? actionData : undefined
 	
 	const { usageData: rulesEngineUsageData, lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
@@ -432,7 +435,7 @@ export default function EditCase({
 		}
 	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
 
-	// Handle fetcher errors (global pattern for all forms)
+	// Handle fetcher errors for recalculation only (not form saves)
 	const handleFetcherError = useCallback((errorMessage: string) => {
 		setErrorModal({
 			isOpen: true,
@@ -443,7 +446,19 @@ export default function EditCase({
 		setLocalBillingRecords(loaderData.billingRecords)
 	}, [loaderData.billingRecords])
 	
-	useFetcherErrorHandler(fetcher, handleFetcherError)
+	useFetcherErrorHandler(recalculateFetcher, handleFetcherError)
+
+	// Handle errors from regular form submissions (save, process-file)
+	useEffect(() => {
+		if (actionData && (actionData as any).error) {
+			const errorMessage = (actionData as any).error
+			setErrorModal({
+				isOpen: true,
+				title: 'Error',
+				message: typeof errorMessage === 'string' ? errorMessage : 'An error occurred'
+			})
+		}
+	}, [actionData])
 
 	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
 	console.log('📊 Usage data selection:', { 
@@ -498,8 +513,8 @@ export default function EditCase({
 			formData.append('state_id', loaderData.state_id.toString())
 			formData.append('county_id', loaderData.county_id.toString())
 			
-			// Use fetcher to submit (avoids HTML response issue)
-			void fetcher.submit(formData, { method: 'POST' })
+			// Use separate fetcher for recalculation (doesn't interfere with form saves)
+			void recalculateFetcher.submit(formData, { method: 'POST' })
 		} else {
 			console.error('❌ Cannot recalculate - missing required data:', { 
 				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 
