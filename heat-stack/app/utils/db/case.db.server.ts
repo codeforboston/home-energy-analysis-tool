@@ -96,7 +96,7 @@ export async function createCaseRecord(formValues: any, _locationData: any, user
 	}
 }
 
-export async function updateCaseRecord(caseId: number, formValues: any, _locationData: any, _userId: string) {
+export async function updateCaseRecord(caseId: number, formValues: any, _locationData: any, _userId: string, billingRecords?: any[]) {
 	// Get the existing case with its relations
 	const existingCase = await prisma.case.findUnique({
 		where: { id: caseId },
@@ -105,7 +105,11 @@ export async function updateCaseRecord(caseId: number, formValues: any, _locatio
 			location: true,
 			analysis: {
 				include: {
-					heatingInput: true,
+					heatingInput: {
+						include: {
+							processedEnergyBill: true,
+						},
+					},
 				},
 			},
 		},
@@ -150,6 +154,26 @@ export async function updateCaseRecord(caseId: number, formValues: any, _locatio
 					livingArea: formValues.living_area,
 				},
 			})
+			
+			// Update billing records if provided
+			if (billingRecords && billingRecords.length > 0) {
+				const existingBillingRecords = firstHeatingInput.processedEnergyBill || []
+				
+				// Update each billing record's inclusion_override field
+				for (let i = 0; i < Math.min(billingRecords.length, existingBillingRecords.length); i++) {
+					const updatedRecord = billingRecords[i]
+					const existingRecord = existingBillingRecords[i]
+					
+					if (existingRecord && updatedRecord) {
+						await prisma.processedEnergyBill.update({
+							where: { id: existingRecord.id },
+							data: {
+								invertDefaultInclusion: updatedRecord.inclusion_override || false,
+							},
+						})
+					}
+				}
+			}
 		}
 	}
 

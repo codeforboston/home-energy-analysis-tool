@@ -11,8 +11,9 @@ import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
-import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
+import { buildCurrentUsageData } from '#app/utils/index.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
+import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
@@ -238,8 +239,22 @@ export async function action({ request, params }: Route.ActionArgs) {
 		} else {
 			// Simple form update (intent === 'save' or fallback) - just update the database fields
 			console.log('🔄 Processing save operation for case:', caseId)
+			
+			// Parse billing records from form data if present
+			const billingRecordsJson = formData.get('billing_records') as string | null
+			let billingRecords: any[] | undefined
+			if (billingRecordsJson) {
+				try {
+					const parsed = JSON.parse(billingRecordsJson)
+					billingRecords = Array.isArray(parsed) ? parsed : undefined
+					console.log('📊 Parsed billing records:', billingRecords)
+				} catch (error) {
+					console.error('❌ Failed to parse billing records:', error)
+				}
+			}
+			
 			const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
-			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId)
+			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId, billingRecords)
 			console.log('✅ Case updated successfully:', { caseId: updatedCase?.id, analysisId: updatedCase?.analysis?.[0]?.id })
 
 			// For save operations, add a dummy energy_use_upload to match expected type
@@ -291,19 +306,14 @@ export default function EditCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	// Cast actionData to match the expected type for useRulesEngine
-	// Only pass actionData if it has calculation data (from process-file intent)
-	// Don't pass it for save operations which have data: undefined
-	const rulesEngineActionData = actionData && actionData.data && typeof actionData.data === 'string' ? actionData : undefined
-	
-	const { usageData: rulesEngineUsageData, lazyLoadRulesEngine, recalculateFromBillingRecordsChange } =
-		useRulesEngine(rulesEngineActionData as any)
-
 	// Get parsedAndValidatedFormSchema early for use in effects
 	const parsedAndValidatedFormSchemaForEffects = actionData?.parsedAndValidatedFormSchema || loaderData.defaultFormValues
 
 	// Local state for billing records to handle checkbox toggling
 	const [localBillingRecords, setLocalBillingRecords] = useState(loaderData.billingRecords)
+	
+	// Local state for calculated usage data
+	const [calculatedUsageData, setCalculatedUsageData] = useState<any>(undefined)
 	
 	// Error modal state
 	const [errorModal, setErrorModal] = useState<{
@@ -321,80 +331,64 @@ export default function EditCase({
 		setLocalBillingRecords(loaderData.billingRecords)
 	}, [loaderData.billingRecords])
 
-	// Initialize rules engine immediately for edit mode
+	// Perform initial calculation on mount
 	useEffect(() => {
-		console.log('🔧 Rules engine initialization effect triggered')
-		console.log('📊 Loading rules engine for edit mode...')
-		lazyLoadRulesEngine()
-	}, [lazyLoadRulesEngine])
-
-	// Initialize rules engine with proper calculation context for edit mode
-	useEffect(() => {
-		console.log('🔧 Rules engine calculation setup effect triggered', {
-			hasBillingRecords: !!(loaderData.billingRecords && loaderData.billingRecords.length > 0),
-			hasRecalculateFunction: !!recalculateFromBillingRecordsChange,
-			billingRecordsCount: loaderData.billingRecords?.length || 0
-		})
+		console.log('🔧 Initial calculation effect triggered')
 		
-		if (loaderData.billingRecords && loaderData.billingRecords.length > 0 && recalculateFromBillingRecordsChange) {
-			console.log('✅ Conditions met, setting up initial calculation...')
-			
-			// Small delay to ensure rules engine is initialized
-			setTimeout(() => {
-				console.log('⏰ Timeout triggered, checking recalculate function:', !!recalculateFromBillingRecordsChange)
-				if (recalculateFromBillingRecordsChange) {
-					// Create proper parsedLastResult Map structure that the rules engine expects
-					const parsedLastResult = new Map<string, any>()
-					
-					// Add heat_load_output as Map
-					const heatLoadOutput = new Map<string, any>()
-					heatLoadOutput.set('estimated_balance_point', 1)
-					heatLoadOutput.set('other_fuel_usage', 1)
-					heatLoadOutput.set('average_indoor_temperature', 70)
-					heatLoadOutput.set('difference_between_ti_and_tbp', 1)
-					heatLoadOutput.set('design_temperature', 10)
-					heatLoadOutput.set('whole_home_heat_loss_rate', 1)
-					heatLoadOutput.set('standard_deviation_of_heat_loss_rate', 1)
-					heatLoadOutput.set('average_heat_load', 1)
-					heatLoadOutput.set('maximum_heat_load', 1)
-					parsedLastResult.set('heat_load_output', heatLoadOutput)
-					
-					// Add balance_point_graph as Map
-					const balancePointGraph = new Map<string, any>()
-					balancePointGraph.set('records', [])
-					parsedLastResult.set('balance_point_graph', balancePointGraph)
-					
-					// Add processed_energy_bills as array of Maps
-					const billingMaps = loaderData.billingRecords.map(bill => {
-						const billMap = new Map<string, any>()
-						billMap.set('period_start_date', bill.period_start_date)
-						billMap.set('period_end_date', bill.period_end_date)
-						billMap.set('usage', bill.usage)
-						billMap.set('inclusion_override', bill.inclusion_override)
-						billMap.set('analysis_type', bill.analysis_type)
-						billMap.set('default_inclusion', bill.default_inclusion)
-						billMap.set('eliminated_as_outlier', bill.eliminated_as_outlier)
-						billMap.set('whole_home_heat_loss_rate', bill.whole_home_heat_loss_rate)
-						return billMap
-					})
-					parsedLastResult.set('processed_energy_bills', billingMaps)
-					
-					try {
-						recalculateFromBillingRecordsChange(
-							parsedLastResult,
-							loaderData.billingRecords,
-							parsedAndValidatedFormSchemaForEffects,
-							{}, // convertedDatesTIWD - empty for now
-							undefined, // state_id
-							undefined, // county_id
-						)
-					} catch {
-						// Handle any errors during calculation
-					}
-				}
-			}, 100)
+		// Skip if we already have calculated data (prevents flash on save)
+		if (calculatedUsageData) {
+			console.log('⏭️  Skipping initial calculation - already have calculated data')
+			return
 		}
-	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
+		
+		if (loaderData.billingRecords && loaderData.billingRecords.length > 0) {
+			console.log('✅ Performing initial calculation...')
+			
+			// Wrap in async to handle any promise issues
+			const performCalculation = async () => {
+				try {
+					// Create userAdjustedData structure
+					const userAdjustedData = {
+						processed_energy_bills: loaderData.billingRecords
+					}
+					
+					console.log('🧮 Calling executeRoundtripAnalyticsFromFormJs')
+					
+					// Call the function and immediately handle the result
+					let calcResult: any
+					try {
+						const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
+							parsedAndValidatedFormSchemaForEffects as any,
+							loaderData.convertedDatesTIWD as any,
+							userAdjustedData as any,
+							loaderData.state_id,
+							loaderData.county_id,
+						)
+						
+						// toJs() converts Python objects to JS - dicts become Maps by default
+						calcResult = calcResultPyProxy.toJs()
+						
+						// Destroy immediately after conversion
+						calcResultPyProxy.destroy()
+					} catch (pyError) {
+						console.error('❌ PyProxy error:', pyError)
+						throw pyError
+					}
+					
+					console.log('📊 Calculation result type:', calcResult instanceof Map, calcResult)
+					
+					const newUsageData = buildCurrentUsageData(calcResult)
+					setCalculatedUsageData(newUsageData)
+					console.log('✅ Initial calculation completed successfully', newUsageData)
+				} catch (error) {
+					console.error('❌ Initial calculation failed:', error)
+					// Don't show error modal on initial load, just log it
+				}
+			}
+			
+			void performCalculation()
+		}
+	}, [loaderData.billingRecords, loaderData.convertedDatesTIWD, loaderData.state_id, loaderData.county_id, parsedAndValidatedFormSchemaForEffects, calculatedUsageData])
 
 	// Handle errors from regular form submissions (save, process-file)
 	useEffect(() => {
@@ -408,14 +402,13 @@ export default function EditCase({
 		}
 	}, [actionData])
 
-	// Use rules engine data when available (after initialization), fallback to local billing records with database heat load output
+	// Use calculated data when available, fallback to local billing records with database heat load output
 	console.log('📊 Usage data selection:', { 
-		hasRulesEngineData: !!rulesEngineUsageData,
-		rulesEngineKeys: rulesEngineUsageData ? Object.keys(rulesEngineUsageData) : null,
+		hasCalculatedData: !!calculatedUsageData,
 		hasLocalBillingRecords: !!(localBillingRecords && localBillingRecords.length > 0)
 	})
 	
-	const usageData = rulesEngineUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
+	const usageData = calculatedUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
 		heat_load_output: loaderData.heatLoadOutput || {
 			estimated_balance_point: 1,
 			other_fuel_usage: 1,
@@ -449,36 +442,73 @@ export default function EditCase({
 		setLocalBillingRecords(updatedRecords)
 		
 		// Trigger client-side recalculation with updated billing records
-		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id && recalculateFromBillingRecordsChange) {
+		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id) {
 			console.log('🚀 Triggering client-side recalculation...')
+			console.log('📋 Current usageData:', usageData)
+			console.log('🔍 Function check:', typeof executeRoundtripAnalyticsFromFormJs, executeRoundtripAnalyticsFromFormJs)
 			
-			// Create parsedLastResult structure from current usage data
-			const parsedLastResult = usageData ? new Map<string, any>([
-				['heat_load_output', new Map(Object.entries(usageData.heat_load_output || {}))],
-				['balance_point_graph', new Map(Object.entries(usageData.balance_point_graph || {}))],
-				['processed_energy_bills', updatedRecords.map(bill => new Map(Object.entries(bill)))],
-			]) : undefined
-			
-			// Call the client-side recalculation function
-			recalculateFromBillingRecordsChange(
-				parsedLastResult,
-				updatedRecords,
-				parsedAndValidatedFormSchemaForEffects,
-				loaderData.convertedDatesTIWD,
-				loaderData.state_id,
-				loaderData.county_id,
-			)
+			try {
+				// Check if the function is still valid (not destroyed)
+				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
+					throw new Error('executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded')
+				}
+				
+				// Create userAdjustedData structure with updated records
+				const userAdjustedData = {
+					processed_energy_bills: updatedRecords
+				}
+				
+				console.log('🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records')
+				console.log('🔍 Arg 1 (form):', typeof parsedAndValidatedFormSchemaForEffects, parsedAndValidatedFormSchemaForEffects)
+				console.log('🔍 Arg 2 (temp):', typeof loaderData.convertedDatesTIWD, loaderData.convertedDatesTIWD)
+				console.log('🔍 Arg 3 (adjusted):', typeof userAdjustedData, userAdjustedData)
+				console.log('🔍 Arg 4 (state):', typeof loaderData.state_id, loaderData.state_id)
+				console.log('🔍 Arg 5 (county):', typeof loaderData.county_id, loaderData.county_id)
+				
+				// Call the function and immediately handle the result
+				let calcResult: any
+				try {
+					const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
+						parsedAndValidatedFormSchemaForEffects as any,
+						loaderData.convertedDatesTIWD as any,
+						userAdjustedData as any,
+						loaderData.state_id,
+						loaderData.county_id,
+					)
+					
+					// toJs() converts Python objects to JS - dicts become Maps by default
+					calcResult = calcResultPyProxy.toJs()
+					
+					// Destroy immediately after conversion
+					calcResultPyProxy.destroy()
+				} catch (pyError) {
+					console.error('❌ PyProxy error:', pyError)
+					throw pyError
+				}
+				
+				console.log('📊 Recalculation result type:', calcResult instanceof Map, calcResult)
+				
+				const newUsageData = buildCurrentUsageData(calcResult)
+				setCalculatedUsageData(newUsageData)
+				console.log('✅ Recalculation completed successfully', newUsageData)
+			} catch (error) {
+				console.error('❌ Recalculation failed:', error)
+				setErrorModal({
+					isOpen: true,
+					title: 'Recalculation Failed',
+					message: `An error occurred during recalculation: ${error instanceof Error ? error.message : 'Unknown error'}`
+				})
+			}
 		} else {
 			console.error('❌ Cannot recalculate - missing required data:', { 
 				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 
 				hasStateId: !!loaderData.state_id,
 				hasCountyId: !!loaderData.county_id,
-				hasRecalculateFunction: !!recalculateFromBillingRecordsChange,
 			})
 			setErrorModal({
 				isOpen: true,
 				title: 'Recalculation Failed',
-				message: `Unable to recalculate results because the rules engine is not ready.\n\nPlease wait a moment and try again.`
+				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`
 			})
 		}
 	}
@@ -486,7 +516,7 @@ export default function EditCase({
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => lazyLoadRulesEngine()}
+				beforeSubmit={() => {}}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}
@@ -496,6 +526,7 @@ export default function EditCase({
 				onClickBillingRow={editModeToggleBillingPeriod}
 				parsedAndValidatedFormSchema={parsedAndValidatedFormSchemaForEffects as any}
 				isEditMode={true}
+				billingRecords={localBillingRecords}
 			/>
 			
 			<ErrorModal
