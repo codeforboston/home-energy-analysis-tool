@@ -77,7 +77,55 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
 	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
-	const { state_id, county_id } = await geocodeUtil.getLL(combined_address)
+	const { state_id, county_id, coordinates } = await geocodeUtil.getLL(combined_address)
+
+	// Get temperature data for the billing period date range
+	// We need this for recalculation when checkboxes are toggled
+	let convertedDatesTIWD = {
+		dates: [] as string[],
+		temperatures: [] as number[],
+	}
+
+	if (heatingInput.processedEnergyBill && heatingInput.processedEnergyBill.length > 0) {
+		// Find the earliest and latest dates from billing records
+		const dates = heatingInput.processedEnergyBill
+			.map(bill => [bill.periodStartDate, bill.periodEndDate])
+			.flat()
+			.filter((date): date is Date => date !== null && date !== undefined)
+		
+		if (dates.length > 0) {
+			const startDate = new Date(Math.min(...dates.map(d => d.getTime())))
+			const endDate = new Date(Math.max(...dates.map(d => d.getTime())))
+			
+			// Fetch weather data for the billing period
+			const { x, y } = coordinates ?? { x: 0, y: 0 }
+			if (x !== 0 && y !== 0) {
+				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
+				const weatherUtil = new WeatherUtil()
+				
+				const formatDateString = (date: Date): string => {
+					return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10)
+				}
+				
+				const weatherData = await weatherUtil.getThatWeathaData(
+					x,
+					y,
+					formatDateString(startDate),
+					formatDateString(endDate),
+				)
+				
+				if (weatherData) {
+					const datesFromTIWD = weatherData.dates
+						.map((datestring) => new Date(datestring).toISOString().split('T')[0])
+						.filter((date): date is string => date !== undefined)
+					convertedDatesTIWD = {
+						dates: datesFromTIWD,
+						temperatures: weatherData.temperatures.filter((temp): temp is number => temp !== null),
+					}
+				}
+			}
+		}
+	}
 
 	const parsedAndValidatedFormData = Schema.parse({
 		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
@@ -128,12 +176,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		heatLoadOutput,
 		state_id,
 		county_id,
-		// We need temperature data for recalculation - for now, we'll generate dummy data
-		// In the future, this should be stored in the database
-		convertedDatesTIWD: {
-			dates: [], // Empty for now - will be populated when needed
-			temperatures: [], // Empty for now - will be populated when needed
-		}
+		convertedDatesTIWD,
 	}
 }
 
