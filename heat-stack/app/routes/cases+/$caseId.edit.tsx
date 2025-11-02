@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
-import { useCallback, useEffect, useState } from 'react'
-import { data, useFetcher } from 'react-router'
+import { useEffect, useState } from 'react'
+import { data } from 'react-router'
 import { z } from 'zod'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
@@ -11,7 +11,6 @@ import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
-import { useFetcherErrorHandler } from '#app/utils/hooks/use-fetcher-error-handler.ts'
 import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
@@ -196,84 +195,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
 	
-	// Handle recalculate intent for checkbox toggling
-	if (intent === 'recalculate') {
-		console.log('🔄 Server-side recalculation triggered for case:', caseId)
-		
-		try {
-			// Get billing records from form data
-			const billingRecordsJson = formData.get('billingRecords') as string
-			const billingRecords = JSON.parse(billingRecordsJson) as BillingRecordsSchema
-			
-			// Get form schema data
-			const formSchemaJson = formData.get('formSchema') as string
-			const formSchema = JSON.parse(formSchemaJson) as any
-			
-			// Get temperature data
-			const convertedDatesTIWDJson = formData.get('convertedDatesTIWD') as string
-			const convertedDatesTIWD = JSON.parse(convertedDatesTIWDJson) as any
-			
-			// Get geo data
-			const state_id = formData.get('state_id') as string
-			const county_id = formData.get('county_id') as string
-			
-			console.log('📊 Recalculation input:', { 
-				billingRecordsCount: billingRecords.length, 
-				state_id, 
-				county_id 
-			})
-			
-			// Import and call the Python rules engine
-			const { executeRoundtripAnalyticsFromFormJs } = await import('#app/utils/rules-engine.ts')
-			
-			// Create the userAdjustedData structure that the Python function expects
-			const userAdjustedData = {
-				processed_energy_bills: billingRecords
-			}
-			
-			console.log('🧮 Calling executeRoundtripAnalyticsFromForm from server')
-			const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
-				formSchema as any,
-				convertedDatesTIWD as any,
-				userAdjustedData as any,
-				state_id,
-				county_id,
-			)
-			const calcResult = calcResultPyProxy.toJs()
-			calcResultPyProxy.destroy()
-			console.log('✅ Server-side recalculation completed')
-			
-			return {
-				submitResult: undefined,
-				data: JSON.stringify(calcResult, replacer),
-				parsedAndValidatedFormSchema: formSchema as any,
-				convertedDatesTIWD: convertedDatesTIWD,
-				state_id: state_id,
-				county_id: county_id,
-				caseInfo: {
-					caseId: caseId,
-					analysisId: undefined, // We don't need to update this for recalculation
-				},
-			}
-		} catch (error: any) {
-			console.error('❌ Server-side recalculation failed', error)
-			const message = error instanceof Error ? error.message : 'Unknown error during recalculation'
-			return data(
-				{
-					submitResult: undefined,
-					parsedAndValidatedFormSchema: undefined,
-					data: undefined,
-					convertedDatesTIWD: undefined,
-					state_id: undefined,
-					county_id: undefined,
-					caseInfo: undefined,
-					error: message,
-				},
-				{ status: 500 },
-			)
-		}
-	}
-	
 	let submission;
 	
 	if (intent === 'save') {
@@ -370,11 +291,8 @@ export default function EditCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	// Use separate fetcher specifically for recalculation (not form submission)
-	const recalculateFetcher = useFetcher()
-	
 	// Cast actionData to match the expected type for useRulesEngine
-	// Only pass actionData if it has calculation data (from recalculate or process-file intents)
+	// Only pass actionData if it has calculation data (from process-file intent)
 	// Don't pass it for save operations which have data: undefined
 	const rulesEngineActionData = actionData && actionData.data && typeof actionData.data === 'string' ? actionData : undefined
 	
@@ -478,19 +396,6 @@ export default function EditCase({
 		}
 	}, [loaderData.billingRecords, recalculateFromBillingRecordsChange, parsedAndValidatedFormSchemaForEffects, lazyLoadRulesEngine])
 
-	// Handle fetcher errors for recalculation only (not form saves)
-	const handleFetcherError = useCallback((errorMessage: string) => {
-		setErrorModal({
-			isOpen: true,
-			title: 'Server Error',
-			message: errorMessage
-		})
-		// Revert optimistic update on error
-		setLocalBillingRecords(loaderData.billingRecords)
-	}, [loaderData.billingRecords])
-	
-	useFetcherErrorHandler(recalculateFetcher, handleFetcherError)
-
 	// Handle errors from regular form submissions (save, process-file)
 	useEffect(() => {
 		if (actionData && (actionData as any).error) {
@@ -528,7 +433,7 @@ export default function EditCase({
 		processed_energy_bills: localBillingRecords,
 	} : undefined)
 
-	// Custom toggle function for edit mode that calls server for recalculation
+	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
 	const editModeToggleBillingPeriod = (index: number) => {
 		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
@@ -543,31 +448,37 @@ export default function EditCase({
 		console.log('📊 Setting updated records:', updatedRecords.map(r => r.inclusion_override))
 		setLocalBillingRecords(updatedRecords)
 		
-		// Trigger server-side recalculation with updated billing records
-		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id) {
-			console.log('🚀 Submitting recalculation request to server...')
+		// Trigger client-side recalculation with updated billing records
+		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id && recalculateFromBillingRecordsChange) {
+			console.log('🚀 Triggering client-side recalculation...')
 			
-			// Create form data for server submission
-			const formData = new FormData()
-			formData.append('intent', 'recalculate')
-			formData.append('billingRecords', JSON.stringify(updatedRecords))
-			formData.append('formSchema', JSON.stringify(parsedAndValidatedFormSchemaForEffects))
-			formData.append('convertedDatesTIWD', JSON.stringify(loaderData.convertedDatesTIWD || {}))
-			formData.append('state_id', loaderData.state_id.toString())
-			formData.append('county_id', loaderData.county_id.toString())
+			// Create parsedLastResult structure from current usage data
+			const parsedLastResult = usageData ? new Map<string, any>([
+				['heat_load_output', new Map(Object.entries(usageData.heat_load_output || {}))],
+				['balance_point_graph', new Map(Object.entries(usageData.balance_point_graph || {}))],
+				['processed_energy_bills', updatedRecords.map(bill => new Map(Object.entries(bill)))],
+			]) : undefined
 			
-			// Use separate fetcher for recalculation (doesn't interfere with form saves)
-			void recalculateFetcher.submit(formData, { method: 'POST' })
+			// Call the client-side recalculation function
+			recalculateFromBillingRecordsChange(
+				parsedLastResult,
+				updatedRecords,
+				parsedAndValidatedFormSchemaForEffects,
+				loaderData.convertedDatesTIWD,
+				loaderData.state_id,
+				loaderData.county_id,
+			)
 		} else {
 			console.error('❌ Cannot recalculate - missing required data:', { 
 				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 
 				hasStateId: !!loaderData.state_id,
-				hasCountyId: !!loaderData.county_id
+				hasCountyId: !!loaderData.county_id,
+				hasRecalculateFunction: !!recalculateFromBillingRecordsChange,
 			})
 			setErrorModal({
 				isOpen: true,
 				title: 'Recalculation Failed',
-				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`
+				message: `Unable to recalculate results because the rules engine is not ready.\n\nPlease wait a moment and try again.`
 			})
 		}
 	}
