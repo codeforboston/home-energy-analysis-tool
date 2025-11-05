@@ -104,17 +104,4 @@ const getEngine = async (pyodide) => {
 	return await pyodide.pyimport('rules_engine.engine')
 }
 
-const testPythonScript = async () => {
-	const pyodide = await loadPyodideModule()
-
-	let pm = await pyodide.pyimport('rules_engine.engine')
-	let r = pm.hdd(57, 60)
-	console.log(pm.toString())
-	console.log(r)
-	// window.pydd = pyodide; //no eye deer what this does. hopefully its not needed after moving.
-
-	return pyodide
-}
-
-const getPydanticModel = () => {}
 export default PyodideUtil

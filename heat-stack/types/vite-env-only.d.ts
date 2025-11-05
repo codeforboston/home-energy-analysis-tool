@@ -1,1 +1,1 @@
-declare module 'vite-env-only';
+declare module 'vite-env-only'

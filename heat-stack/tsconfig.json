@@ -32,11 +32,13 @@
 		// TODO: Probably should move this into epic-web/config
 		"types": ["@react-router/node", "vite/client"],
 		"rootDirs": [".", "./.react-router/types"],
-		"paths": { // Maps paths to different directories or files.
+		"paths": {
+			// Maps paths to different directories or files.
 			"#*": ["./*"], // Maps all paths starting with # to the root directory.
 			"#app/*": ["./app/*"], // Maps all paths starting with #app to the app directory.
 			"#tests/*": ["./tests/*"], // Maps all paths starting with #tests to the tests directory.
-			"@/icon-name": [ // Maps the @/icon-name path to the icon-name.d.ts file.
+			"@/icon-name": [
+				// Maps the @/icon-name path to the icon-name.d.ts file.
 				"./app/components/ui/icons/name.d.ts", // Maps the @/icon-name path to the
 				"./types/icon-name.d.ts" //	icon-name.d.ts file in the types directory.
 			]

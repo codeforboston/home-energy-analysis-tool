@@ -1,6 +1,6 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import  { useState } from 'react'
+import { useState } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -14,26 +14,25 @@ import { HomeInformation } from './HomeInformation.tsx'
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-	caseId?: number;
-	analysisId?: number;
-	heatingInputId?: number;
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 type MinimalFormData = { fuel_type: 'GAS' }
-type DefaultFormValues =  SchemaZodFromFormType | MinimalFormData
-
+type DefaultFormValues = SchemaZodFromFormType | MinimalFormData
 
 export type SubmitAnalysisProps = {
 	/**
 	 * Callback to fire before submit is executed
 	 */
-	beforeSubmit: ()=>void
+	beforeSubmit: () => void
 	lastResult: SubmissionResult<string[]> | null | undefined
 	defaultFormValues: DefaultFormValues
 	showSavedCaseIdMsg: boolean
 	caseInfo: CaseInfo | undefined
 	usageData: UsageDataSchema | undefined
-	showUsageData: boolean,
-	onClickBillingRow: (index: number)=>void
+	showUsageData: boolean
+	onClickBillingRow: (index: number) => void
 	/**
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
 	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
@@ -56,8 +55,6 @@ export type SubmitAnalysisProps = {
 	// 	caseInfo?: CaseInfo,
 	// } )| undefined
 }
-
-
 
 export default function SingleCaseForm({
 	beforeSubmit,
@@ -84,7 +81,7 @@ export default function SingleCaseForm({
 
 	// // ✅ Extract structured values from actionData
 	// const caseInfo = actionData?.caseInfo
-	
+
 	// React.useEffect(() => {
 	// 	if (caseInfo) {
 	// 		setSavedCase(caseInfo)
@@ -92,7 +89,6 @@ export default function SingleCaseForm({
 	// }, [caseInfo])
 
 	// const showUsageData = actionData !== undefined
-
 
 	// type SchemaZodFromFormType = z.infer<typeof Schema>
 	// type MinimalFormData = { fuel_type: 'GAS' }
@@ -165,7 +161,6 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
-
 	return (
 		<>
 			<Form
@@ -212,10 +207,10 @@ export default function SingleCaseForm({
 						/>
 
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							!!parsedAndValidatedFormSchema ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						!!parsedAndValidatedFormSchema ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={parsedAndValidatedFormSchema.living_area}
@@ -232,21 +227,26 @@ export default function SingleCaseForm({
 				)}
 			</Form>
 			{/* Show case saved message */}
-			{showSavedCaseIdMsg && caseInfo && typeof caseInfo.caseId === "number" && (
-				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-					<h2 className="mb-2 text-xl font-bold text-green-700">Case Saved Successfully!</h2>
-					<p className="mb-4">Your case data has been saved to the database.</p>
-					<p>
-						<a
-							href={`/cases/${caseInfo.caseId}`}
-							className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-						>
-							View Case Details
-						</a>
-					</p>
-				</div>
-			)}
+			{showSavedCaseIdMsg &&
+				caseInfo &&
+				typeof caseInfo.caseId === 'number' && (
+					<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+						<h2 className="mb-2 text-xl font-bold text-green-700">
+							Case Saved Successfully!
+						</h2>
+						<p className="mb-4">
+							Your case data has been saved to the database.
+						</p>
+						<p>
+							<a
+								href={`/cases/${caseInfo.caseId}`}
+								className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+							>
+								View Case Details
+							</a>
+						</p>
+					</div>
+				)}
 		</>
 	)
 }
-

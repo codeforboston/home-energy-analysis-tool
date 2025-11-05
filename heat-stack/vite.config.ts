@@ -18,7 +18,7 @@ export default {
 		assetsInlineLimit: (source: string) => {
 			if (
 				source.endsWith('sprite.svg') ||
-				source.endsWith('favicon.svg') ||
+				source.endsWith('favicon.png') ||
 				source.endsWith('apple-touch-icon.png')
 			) {
 				return false

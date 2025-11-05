@@ -1,7 +1,7 @@
 import { Upload } from 'lucide-react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
-import { ErrorList } from './ErrorList';
+import { ErrorList } from './ErrorList'
 
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,9 +18,8 @@ export function EnergyUseUpload(
 	true because we want the page to scroll then.
 	*/
 	const handleSubmit = () => {
-		setScrollAfterSubmit(true);
+		setScrollAfterSubmit(true)
 	}
-
 
 	return (
 		<fieldset>
@@ -33,9 +32,7 @@ export function EnergyUseUpload(
 				/>
 			)}
 
-			<CustomFileUpload
-				name={fields.energy_use_upload.name}
-			/>
+			<CustomFileUpload name={fields.energy_use_upload.name} />
 
 			<div>
 				{isEditMode ? (

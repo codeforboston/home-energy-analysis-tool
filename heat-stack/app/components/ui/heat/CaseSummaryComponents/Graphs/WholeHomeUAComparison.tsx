@@ -10,13 +10,12 @@ import {
 	ResponsiveContainer,
 	Label,
 } from 'recharts'
-import  { type SummaryOutputSchema } from '#/types/types'
-import { Icon } from '../../../icon'
+import { type SummaryOutputSchema } from '#/types/types'
+import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 import { COLOR_BLUE, COLOR_GREY_LIGHT, COLOR_ORANGE } from '../constants'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
 import { SharedCustomTooltip } from './SharedCustomToolTip'
 import { WholeHomeUAComparisonLegend } from './WholeHomeUAComparisonLegend'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
 
 type DataPoint = {
 	x: number // X-coordinate, representing living area in square feet.
@@ -59,7 +58,7 @@ type WholeHomeUAComparisonProps = {
 const getScatterShape = (props: unknown): React.ReactElement => {
 	const scatterProps = props as ScatterShapeProps
 	const isThisHome = scatterProps.payload.color === COLOR_ORANGE
-	
+
 	// Make "This Home" point larger and add stroke for better visibility
 	return (
 		<circle
@@ -67,7 +66,7 @@ const getScatterShape = (props: unknown): React.ReactElement => {
 			cy={scatterProps.cy}
 			r={isThisHome ? 8 : 6}
 			fill={scatterProps.payload.color}
-			stroke={isThisHome ? "#000" : "none"}
+			stroke={isThisHome ? '#000' : 'none'}
 			strokeWidth={isThisHome ? 1 : 0}
 		/>
 	)
@@ -100,7 +99,7 @@ export function WholeHomeUAComparison({
 			x: livingArea,
 			y: Math.round(whole_home_heat_loss_rate),
 			color: COLOR_ORANGE,
-			label: 'This Home'
+			label: 'This Home',
 		}
 
 		return {
@@ -112,13 +111,13 @@ export function WholeHomeUAComparison({
 	return (
 		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
-			<div className="mb-4 mt-4 text-lg font-semibold flex items-center gap-2">
+			<div className="mb-4 mt-4 flex items-center gap-2 text-lg font-semibold">
 				Whole-home Heat Loss Comparison
-					<HelpButton keyName="whole_home_heat_loss_graph.help" />
+				<HelpButton keyName="whole_home_heat_loss_graph.help" />
 			</div>
 
 			{/* Responsive container to ensure chart resizes */}
-			<div className="relative w-full h-[400px]">
+			<div className="relative h-[400px] w-full">
 				<ResponsiveContainer width="100%" height={400}>
 					{/* Main composed chart component */}
 					<ComposedChart
@@ -134,13 +133,21 @@ export function WholeHomeUAComparison({
 					>
 						{/* Grid lines for the chart */}
 						{/* <CartesianGrid stroke="#f5f5f5" /> */}
-						<CartesianGrid stroke={COLOR_GREY_LIGHT} strokeDasharray="3 3"/>
+						<CartesianGrid stroke={COLOR_GREY_LIGHT} strokeDasharray="3 3" />
 
 						{/* Tooltip with custom content for heat loss information */}
-						<Tooltip content={<SharedCustomTooltip />} wrapperStyle={{ zIndex: 20 }} />
+						<Tooltip
+							content={<SharedCustomTooltip />}
+							wrapperStyle={{ zIndex: 20 }}
+						/>
 
 						{/* X-axis for the chart with Living Area label */}
-						<XAxis type="number" dataKey="x" name="Living Area" domain={[0, 6000]} tickCount={13 } // Ensure whole number ticks
+						<XAxis
+							type="number"
+							dataKey="x"
+							name="Living Area"
+							domain={[0, 6000]}
+							tickCount={13} // Ensure whole number ticks
 						>
 							<Label
 								value="Living Area (sf)"

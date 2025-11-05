@@ -81,17 +81,17 @@ export const buildCurrentUsageData = (
 
 export type ActionResult =
 	| (SubmissionResult<string[]> & { caseInfo?: CaseInfo })
-	| ({ data: string } & { caseInfo?: CaseInfo } & { formResult?: SubmissionResult<string[]>  })
+	| ({ data: string } & { caseInfo?: CaseInfo } & {
+			formResult?: SubmissionResult<string[]>
+	  })
 	| undefined
 
 /** typeguard for useAction between string[] and {data: string} */
-export function hasDataProperty(
-	result: unknown,
-): result is { data: string } {
+export function hasDataProperty(result: unknown): result is { data: string } {
 	return (
 		result !== undefined &&
 		result !== null &&
-		typeof result === "object" && 
+		typeof result === 'object' &&
 		'data' in result &&
 		typeof (result as any).data === 'string'
 	)

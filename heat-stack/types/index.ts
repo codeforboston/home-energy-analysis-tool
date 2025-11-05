@@ -1,4 +1,4 @@
-import { number, z } from 'zod'
+import { z } from 'zod'
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
 
 // JS team wants to discuss this name
@@ -66,7 +66,7 @@ export const LocationSchema = z.object({
 	street_address: z.string(),
 	town: z.string(),
 	state: z.string(),
-});
+})
 
 // Not used
 // export const NaturalGasBill = z.object({

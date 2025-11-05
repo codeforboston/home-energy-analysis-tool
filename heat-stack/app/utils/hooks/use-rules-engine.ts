@@ -28,15 +28,19 @@ export type RecalculateFunction = NonNullable<
  * Usage pattern:
  * - Call lazyLoadRulesEngine() and wait for `recalculateFromBillingRecordsChange` to transition from null to a function.
  */
-export type RulesEngineActionData  = {
-	data: string
-	parsedAndValidatedFormSchema: SchemaZodFromFormType
-	convertedDatesTIWD: TemperatureInputDataConverted
-	state_id: string | undefined
-	county_id: string | number | undefined
-} | undefined
+export type RulesEngineActionData =
+	| {
+			data: string
+			parsedAndValidatedFormSchema: SchemaZodFromFormType
+			convertedDatesTIWD: TemperatureInputDataConverted
+			state_id: string | undefined
+			county_id: string | number | undefined
+	  }
+	| undefined
 
-export const useRulesEngine = (actionData: RulesEngineActionData | undefined) => {
+export const useRulesEngine = (
+	actionData: RulesEngineActionData | undefined,
+) => {
 	const [isInitialized, setIsInitialized] = useState(false)
 	const rulesEngineRef = useRef<RulesEngineType | null>(null)
 	const [usageData, setUsageData] = useState<UsageDataSchema | undefined>()
@@ -58,7 +62,7 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 				throw new Error('Failed to load rules engine.')
 			})
 	}
-	
+
 	/** RECALCULATE WHEN BILLING RECORDS UPDATE -- maybe this can be more generic in the future */
 	const recalculateFromBillingRecordsChange = (
 		parsedLastResult: Map<any, any> | undefined,
@@ -180,7 +184,6 @@ export const useRulesEngine = (actionData: RulesEngineActionData | undefined) =>
 			}
 		}
 	}, [])
-
 
 	// reset usage data as a result of user submitting a new bill
 	useEffect(() => {
