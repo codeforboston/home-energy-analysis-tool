@@ -1,5 +1,5 @@
 import * as pyodideModule from 'pyodide'
-import { expect, test, beforeEach } from 'vitest'
+import { expect, test } from 'vitest'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import WeatherUtil from '#app/utils/WeatherUtil.ts'
 // import PyodideUtil  from "#app/utils/pyodide.util.js";
@@ -160,7 +160,7 @@ test('pyodide solves climate change', async () => {
 	// This other API may be needed to get the lookup column composite key values for merged_structure_temps.csv for the design temp.
 	// https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20Broadway%2C%20Cambridge%2C%20MA%2002139&benchmark=4&vintage=4
 	const address = '1 Broadway, Cambridge, MA 02142'
-	let { coordinates, state_id, county_id } = await GU.getLL(address)
+	let { coordinates } = await GU.getLL(address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 	console.log('address', address, x, y)
 	const TIWD = await WU.getThatWeathaData(x, y, '2024-03-20', '2024-04-20')
@@ -200,7 +200,7 @@ test('pyodide solves climate change', async () => {
     Natural gas billing,10/4/2022,11/3/2022,19,therms,$48.92 ,`
 
 	// NaturalGasCompany = National Grid is 2 for now
-	const exampleNationalGridNaturalGasCompany = '2'
+	//const exampleNationalGridNaturalGasCompany = '2'
 
 	// csv is 1st arg. 2nd arg should have a selection of whether Eversource (1) or National Grid (2).
 	// rules engine-returned objects can be modified and passed back to rules engine
@@ -255,35 +255,13 @@ test('pyodide solves climate change', async () => {
 		exampleNationalGridCSV,
 	)
 
-	// https://stackoverflow.com/a/56150320
-	function replacer(key: any, value: any) {
-		if (value instanceof Map) {
-			return {
-				dataType: 'Map',
-				value: Array.from(value.entries()), // or with spread: value: [...value]
-			}
-		} else {
-			return value
-		}
-	}
-
-	// function reviver(key: any, value: any) {
-	// if(typeof value === 'object' && value !== null) {
-	//     if (value.dataType === 'Map') {
-	//     return new Map(value.value);
-	//     }
-	// }
-	// return value;
-	// }
-
 	console.log(result.toJs())
 
 	console.log(result.toJs().get('balance_point_graph'))
 
-	/* prettify-ignore */
-	const expectedRecordsToGoInTheTable =
+	/*const expectedRecordsToGoInTheTable =
 		'{"dataType":"Map","value":[["heat_load_output",{"dataType":"Map","value":[["estimated_balance_point",59.5],["other_fuel_usage",8.666666666666666],["average_indoor_temperature",68],["difference_between_ti_and_tbp",8.5],["design_temperature",9.5],["whole_home_heat_loss_rate",47972.03453453454],["standard_deviation_of_heat_loss_rate",0.07742772585617895],["average_heat_load",2494545.795795796],["maximum_heat_load",2902308.0893393396]]}],["balance_point_graph",{"dataType":"Map","value":[["records",[{"dataType":"Map","value":[["balance_point",60],["heat_loss_rate",41034.85407876231],["change_in_heat_loss_rate",0],["percent_change_in_heat_loss_rate",0],["standard_deviation",0.3967358807600794]]},{"dataType":"Map","value":[["balance_point",60.5],["heat_loss_rate",38592.303240740745],["change_in_heat_loss_rate",-2442.550838021569],["percent_change_in_heat_loss_rate",-6.32911392405064],["standard_deviation",0.39673588076007943]]},{"dataType":"Map","value":[["balance_point",59.5],["heat_loss_rate",43807.47935435436],["change_in_heat_loss_rate",2772.625275592043],["percent_change_in_heat_loss_rate",6.329113924050622],["standard_deviation",0.3967358807600795]]},{"dataType":"Map","value":[["balance_point",60.5],["heat_loss_rate",42226.71012849585],["change_in_heat_loss_rate",-2672.576590411132],["percent_change_in_heat_loss_rate",-6.329113924050639],["standard_deviation",0.30164495413734566]]},{"dataType":"Map","value":[["balance_point",59.5],["heat_loss_rate",47933.022308022315],["change_in_heat_loss_rate",3033.7355891153347],["percent_change_in_heat_loss_rate",6.3291139240506284],["standard_deviation",0.3016449541373457]]},{"dataType":"Map","value":[["balance_point",60.5],["heat_loss_rate",46671.62698412699],["change_in_heat_loss_rate",-2953.9004420333513],["percent_change_in_heat_loss_rate",-6.329113924050628],["standard_deviation",0.15298851745396608]]},{"dataType":"Map","value":[["balance_point",59.5],["heat_loss_rate",52978.60360360361],["change_in_heat_loss_rate",3353.0761774432685],["percent_change_in_heat_loss_rate",6.329113924050636],["standard_deviation",0.1529885174539661]]},{"dataType":"Map","value":[["balance_point",60.5],["heat_loss_rate",44137.56613756614],["change_in_heat_loss_rate",-2793.516844149759],["percent_change_in_heat_loss_rate",-6.329113924050642],["standard_deviation",0.10782787516463575]]},{"dataType":"Map","value":[["balance_point",59.5],["heat_loss_rate",50102.10210210211],["change_in_heat_loss_rate",3171.0191203862123],["percent_change_in_heat_loss_rate",6.329113924050639],["standard_deviation",0.10782787516463574]]},{"dataType":"Map","value":[["balance_point",59.5],["heat_loss_rate",50102.10210210211],["change_in_heat_loss_rate",3171.0191203862123],["percent_change_in_heat_loss_rate",6.329113924050639],["standard_deviation",0.10782787516463574]]},{"dataType":"Map","value":[["balance_point",59],["heat_loss_rate",53732.689210950084],["change_in_heat_loss_rate",3630.587108847976],["percent_change_in_heat_loss_rate",6.756756756756753],["standard_deviation",0.10782787516463577]]},{"dataType":"Map","value":[["balance_point",60],["heat_loss_rate",44935.829817158934],["change_in_heat_loss_rate",-3036.2047173756073],["percent_change_in_heat_loss_rate",-6.756756756756764],["standard_deviation",0.07742772585617896]]},{"dataType":"Map","value":[["balance_point",59],["heat_loss_rate",51448.26892109501],["change_in_heat_loss_rate",3476.2343865604707],["percent_change_in_heat_loss_rate",6.756756756756752],["standard_deviation",0.07742772585617896]]}]]]}],["processed_energy_bills",[{"dataType":"Map","value":[["period_start_date","2020-10-02"],["period_end_date","2020-11-04"],["usage",29],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2020-11-05"],["period_end_date","2020-12-03"],["usage",36],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",true]]},{"dataType":"Map","value":[["period_start_date","2020-12-04"],["period_end_date","2021-01-07"],["usage",97],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-01-08"],["period_end_date","2021-02-05"],["usage",105],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-02-06"],["period_end_date","2021-03-05"],["usage",98],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-03-06"],["period_end_date","2021-04-06"],["usage",66],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-04-07"],["period_end_date","2021-05-05"],["usage",22],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-05-06"],["period_end_date","2021-06-07"],["usage",19],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-06-08"],["period_end_date","2021-07-06"],["usage",7],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-07-07"],["period_end_date","2021-08-04"],["usage",10],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-08-05"],["period_end_date","2021-09-08"],["usage",11],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-09-09"],["period_end_date","2021-10-05"],["usage",8],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-10-06"],["period_end_date","2021-11-03"],["usage",13],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2021-11-04"],["period_end_date","2021-12-06"],["usage",41],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",true]]},{"dataType":"Map","value":[["period_start_date","2021-12-07"],["period_end_date","2022-01-05"],["usage",86],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-01-06"],["period_end_date","2022-02-03"],["usage",132],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",true]]},{"dataType":"Map","value":[["period_start_date","2022-02-04"],["period_end_date","2022-03-07"],["usage",116],["analysis_type_override",null],["inclusion_override",false],["analysis_type",1],["default_inclusion",true],["eliminated_as_outlier",true]]},{"dataType":"Map","value":[["period_start_date","2022-03-08"],["period_end_date","2022-04-04"],["usage",49],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-04-05"],["period_end_date","2022-05-05"],["usage",39],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-05-06"],["period_end_date","2022-06-06"],["usage",20],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-06-07"],["period_end_date","2022-07-05"],["usage",9],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-07-06"],["period_end_date","2022-08-03"],["usage",7],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-08-04"],["period_end_date","2022-09-03"],["usage",8],["analysis_type_override",null],["inclusion_override",false],["analysis_type",-1],["default_inclusion",true],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-09-04"],["period_end_date","2022-10-03"],["usage",8],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]},{"dataType":"Map","value":[["period_start_date","2022-10-04"],["period_end_date","2022-11-03"],["usage",19],["analysis_type_override",null],["inclusion_override",false],["analysis_type",0],["default_inclusion",false],["eliminated_as_outlier",false]]}]]]}'
-
+	*/
 	// how you do "dir()"" in python
 	// console.log(Object.getOwnPropertyNames(result.toJs()));
 

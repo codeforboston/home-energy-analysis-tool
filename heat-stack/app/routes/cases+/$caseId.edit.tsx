@@ -1,5 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { data } from 'react-router'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
@@ -22,8 +23,6 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type Route } from './+types/$caseId.edit'
-import { prisma } from '#app/utils/db.server.ts'
-import { data } from 'react-router'
 
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
@@ -138,7 +137,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		fuel_type: heatingInput.fuelType,
 		// TODO: WI: when we save heatingInput we are rounding and converting the efficiency value from decimal to percent
 		//           therefore we need to do the opposite conversion. See if we should be saving the raw value and format in the UI instead.
-		
+
 		heating_system_efficiency: percentToDecimal(
 			heatingInput.heatingSystemEfficiency,
 			'Invalid heating system efficiency value detected',
@@ -171,7 +170,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 // TODO: Implement updating a case
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	// TODO: Keep making this call, is there a better way to authenticate routes?
 	const userId = await requireUserId(request)
 
@@ -187,7 +186,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			// this can have personal identifying information, so only active in development.
 			console.error('submission failed', submission)
 		}
-		return { 
+		return {
 			submitResult: submission.reply(),
 			parsedAndValidatedFormSchema: undefined,
 			data: undefined,
@@ -234,7 +233,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		let caseRecord: { id: number } | undefined
 		let analysis: { id: number } | undefined
 		let heatingInput: { id: number } | undefined
-		
+
 		const result = await getConvertedDatesTIWD(
 			pyodideResultsFromTextFile,
 			submission.value.street_address,
@@ -250,7 +249,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			if (userId) {
 				/**
 				 * TODO: WI:
-				 * 0. Find location 
+				 * 0. Find location
 				 * 0.1. Find homeowner
 				 * 0.2. Test what happens if you change location or homeowner so fields are no longer unique
 				 * 1. Update case info data
@@ -263,7 +262,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 				// caseRecord = records.caseRecord
 				// analysis = records.analysis
 				// heatingInput = records.heatingInput
-				
 				// const energyUsageFileRecord = await prisma.energyUsageFile.create({
 				// 	data: {
 				// 		fuelType: parsedAndValidatedFormSchema.fuel_type,
@@ -274,7 +272,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 				// 		provider: '',
 				// 	},
 				// })
-
 				// await prisma.analysisDataFile.create({
 				// 	data: {
 				// 		analysisId: analysis.id,
@@ -373,10 +370,9 @@ export default function EditCase({
 	console.log('loaderData>', loaderData)
 	// TODO: Move form up here. This means we will have to duplicate some hooks
 	// 			But problem because it is part of a sibling with another element
-	
+
 	// TODO: WI: Do we want a separate save button on edit page? Disable inputs? What do?
 	// 			 Add question about adding hidden fields to 'single.tsx' to handle updates after creating a case
-
 
 	return (
 		<SingleCaseForm

@@ -75,11 +75,14 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
 #### Install NVM (Official Method)
 
 1. Download and install NVM:
+
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
    ```
-   If curl does not work, please download node.js manually: https://nodejs.org/en/download/current
-   If using mac, install with `brew install nvm`.
+
+   If curl does not work, please download node.js manually:
+   https://nodejs.org/en/download/current If using mac, install with
+   `brew install nvm`.
 
 2. Restart your terminal. Ensure NVM is installed by running:
    ```bash
@@ -114,10 +117,12 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    - Before you run `buildpy`, you need to install `uv`
    - On MacOS `brew install uv`
    - On Windows
-      - Open a WSL terminal
-      - If you lack Homebrew, 
-         - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` 
-      - Follow the steps that appear in the prompt following Homebrew installation
+     - Open a WSL terminal
+     - If you lack Homebrew,
+       - Install Homebrew with
+         `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+     - Follow the steps that appear in the prompt following Homebrew
+       installation
    ```bash
    npm run buildpy
    ```
@@ -185,8 +190,10 @@ If using GitHub Codespaces, follow these steps:
 ---
 
 ### Committing your changes
-Before committing your changes, go to the `heat-stack` directory and run `source prepare.sh` from the terminal to format
-your code via `Prettier`.
+
+Before committing your changes, make sure to lint `npm run lint` and format
+`npm run format`
+
 ---
 
 ### Handling Special Cases

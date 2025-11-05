@@ -1,7 +1,4 @@
-
-
 // Archived 03/19/2024
-
 
 import { useForm } from '@conform-to/react'
 
@@ -14,7 +11,6 @@ import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorLi
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import { type Route } from './+types/Inputs1.ts'
 
-
 const nameMaxLength = 50
 const addressMaxLength = 100
 const cityMaxLength = 100
@@ -26,11 +22,11 @@ const HomeInformationSchema = z.object({
 	name: z.string().min(1).max(nameMaxLength),
 	address: z.string().min(1).max(addressMaxLength),
 	city: z.string().max(cityMaxLength),
-  	state: z.string().max(stateMaxLength),
+	state: z.string().max(stateMaxLength),
 	living_area: z.number().min(1),
 })
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
 	// Checks if url has a homeId parameter, throws 400 if not there
 	// invariantResponse(params.homeId, 'homeId param is required')
 
@@ -39,19 +35,19 @@ export async function action({ request, params }: Route.ActionArgs) {
 		schema: HomeInformationSchema,
 	})
 
-	if(submission.status !== "success") {
+	if (submission.status !== 'success') {
 		return submission.reply()
-			// submission.reply({
-			// 	// You can also pass additional error to the `reply` method
-			// 	formErrors: ['Submission failed'],
-			// 	fieldErrors: {
-			// 		address: ['Address is invalid'],
-			// 	},
-	
-			// 	// or avoid sending the the field value back to client by specifying the field names
-			// 	hideFields: ['password'],
-			// }),
-			// {status: submission.status === "error" ? 400 : 200}
+		// submission.reply({
+		// 	// You can also pass additional error to the `reply` method
+		// 	formErrors: ['Submission failed'],
+		// 	fieldErrors: {
+		// 		address: ['Address is invalid'],
+		// 	},
+
+		// 	// or avoid sending the the field value back to client by specifying the field names
+		// 	hideFields: ['password'],
+		// }),
+		// {status: submission.status === "error" ? 400 : 200}
 	}
 
 	// TODO NEXT WEEK
@@ -60,7 +56,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// - [ ] Build form #2 and #3
 	// - [ ] Form errors (if we think of a use case - 2 fields conflicting...)
 
-	const { name, address, living_area } = submission.value
+	// const { name, address, living_area } = submission.value
 
 	// await updateNote({ id: params.noteId, title, content })
 
@@ -74,14 +70,11 @@ export default function Inputs1() {
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: HomeInformationSchema })
 		},
-		defaultValue: {
-			
-		},
+		defaultValue: {},
 		shouldValidate: 'onBlur',
 	})
 
 	return (
-		
 		<Form id={form.id} method="post" onSubmit={form.onSubmit} action="/inputs1">
 			<HomeInformation fields={fields} />
 			<ErrorList id={form.errorId} errors={form.errors} />

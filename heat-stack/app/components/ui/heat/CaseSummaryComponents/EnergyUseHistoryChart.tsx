@@ -1,12 +1,12 @@
 import { type UsageDataSchema } from '#/types/types.ts'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from '../../../../components/ui/table.tsx'
 
 import HeatingUsage from './assets/HeatingUsage.svg'
@@ -50,101 +50,109 @@ import NotAllowedInCalculations from './assets/NotAllowedInCalculations.svg'
 // ]
 
 interface EnergyUseHistoryChartProps {
-    usageData: UsageDataSchema
-    onClick: (index: number) => void
+	usageData: UsageDataSchema
+	onClick: (index: number) => void
 }
 
-export function EnergyUseHistoryChart({  usageData, onClick }: EnergyUseHistoryChartProps) {
-    return (
-        <Table id="EnergyUseHistoryChart" data-testid="EnergyUseHistoryChart" className='text-center border rounded-md border-neutral-300'>
-            <TableHeader>
-                <TableRow className='text-xs text-muted-foreground bg-neutral-50'>
-                    <TableHead className="text-center">#</TableHead>
-                    <TableHead className='text-center'>
-                        <div className="flex flex-row">
-                            <div className='text-right'>Allowed Usage</div>
-                            {/* TODO: add help text */}
-                            {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
-                        </div>
-                    </TableHead>
-                    
-                    <TableHead className='text-center'>Start Date</TableHead>
-                    <TableHead className='text-center'>End Date</TableHead>
-                    <TableHead className='text-center'>Days in Period</TableHead>
-                    <TableHead className='text-center'>Gas Usage (therms)</TableHead>
-                    <TableHead className='text-center'>Whole-home UA (BTU/h-°F)</TableHead>
-                    <TableHead className='text-center'>
-                        <div className="flex flex-row">
-                            <div className='text-right'>Override Default</div>
-                            {/* TODO: add help text */}
-                            {/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
-                        </div>
-                    </TableHead>
-                    
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {usageData.processed_energy_bills.map((period, index) => {
-                    const startDate = new Date(period.period_start_date)
-                    const endDate = new Date(period.period_end_date)
+export function EnergyUseHistoryChart({
+	usageData,
+	onClick,
+}: EnergyUseHistoryChartProps) {
+	return (
+		<Table
+			id="EnergyUseHistoryChart"
+			data-testid="EnergyUseHistoryChart"
+			className="rounded-md border border-neutral-300 text-center"
+		>
+			<TableHeader>
+				<TableRow className="bg-neutral-50 text-xs text-muted-foreground">
+					<TableHead className="text-center">#</TableHead>
+					<TableHead className="text-center">
+						<div className="flex flex-row">
+							<div className="text-right">Allowed Usage</div>
+							{/* TODO: add help text */}
+							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+						</div>
+					</TableHead>
 
-                    // Calculate days in period
-                    const timeInPeriod = endDate.getTime() - startDate.getTime()
-                    const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
+					<TableHead className="text-center">Start Date</TableHead>
+					<TableHead className="text-center">End Date</TableHead>
+					<TableHead className="text-center">Days in Period</TableHead>
+					<TableHead className="text-center">Gas Usage (therms)</TableHead>
+					<TableHead className="text-center">
+						Whole-home UA (BTU/h-°F)
+					</TableHead>
+					<TableHead className="text-center">
+						<div className="flex flex-row">
+							<div className="text-right">Override Default</div>
+							{/* TODO: add help text */}
+							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+						</div>
+					</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{usageData.processed_energy_bills.map((period, index) => {
+					const startDate = new Date(period.period_start_date)
+					const endDate = new Date(period.period_end_date)
 
-                    // Set Analysis Type image and checkbox setting
-                    const analysisType = period.analysis_type
-                    let analysisType_Image = undefined
-                    let overrideCheckboxDisabled = false
+					// Calculate days in period
+					const timeInPeriod = endDate.getTime() - startDate.getTime()
+					const daysInPeriod = Math.round(timeInPeriod / (1000 * 3600 * 24))
 
-                    /* switch case for 1, -1, 0 */
-                    switch (analysisType) {
-                        case 1:
-                            analysisType_Image = HeatingUsage
-                            break
-                        case -1:
-                            analysisType_Image = NonHeatingUsage
-                            break
-                        case 0:
-                            analysisType_Image = NotAllowedInCalculations
-                            overrideCheckboxDisabled = true
-                            break
-                    }
+					// Set Analysis Type image and checkbox setting
+					const analysisType = period.analysis_type
+					let analysisType_Image = undefined
+					let overrideCheckboxDisabled = false
 
-                    // Adjust inclusion for user input
-                    let calculatedInclusion = period.default_inclusion
-                    if (period.inclusion_override) {
-                        calculatedInclusion = !calculatedInclusion
-                    }
+					/* switch case for 1, -1, 0 */
+					switch (analysisType) {
+						case 1:
+							analysisType_Image = HeatingUsage
+							break
+						case -1:
+							analysisType_Image = NonHeatingUsage
+							break
+						case 0:
+							analysisType_Image = NotAllowedInCalculations
+							overrideCheckboxDisabled = true
+							break
+					}
 
-                    const variant = calculatedInclusion ? 'included' : 'excluded'
+					// Adjust inclusion for user input
+					let calculatedInclusion = period.default_inclusion
+					if (period.inclusion_override) {
+						calculatedInclusion = !calculatedInclusion
+					}
 
-                    return (
-                        <TableRow key={index} variant={variant}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className='justify-items-center'>
-                                <img src={analysisType_Image} alt="Analysis Type" />
-                            </TableCell>
-                            <TableCell>{startDate.toLocaleDateString()}</TableCell>
-                            <TableCell>{endDate.toLocaleDateString()}</TableCell>
-                            <TableCell>{daysInPeriod}</TableCell>
-                            <TableCell>{period.usage}</TableCell>
-                            <TableCell>
-                                {period.whole_home_heat_loss_rate
-                                    ? period.whole_home_heat_loss_rate.toFixed(0)
-                                    : '-'}
-                            </TableCell>
-                            <TableCell>
-                                <Checkbox
-                                    checked={period.inclusion_override}
-                                    disabled={overrideCheckboxDisabled}
-                                    onClick={() => onClick(index)}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    )
-                })}
-            </TableBody>
-        </Table>
-    )
+					const variant = calculatedInclusion ? 'included' : 'excluded'
+
+					return (
+						<TableRow key={index} variant={variant}>
+							<TableCell className="font-medium">{index + 1}</TableCell>
+							<TableCell className="justify-items-center">
+								<img src={analysisType_Image} alt="Analysis Type" />
+							</TableCell>
+							<TableCell>{startDate.toLocaleDateString()}</TableCell>
+							<TableCell>{endDate.toLocaleDateString()}</TableCell>
+							<TableCell>{daysInPeriod}</TableCell>
+							<TableCell>{period.usage}</TableCell>
+							<TableCell>
+								{period.whole_home_heat_loss_rate
+									? period.whole_home_heat_loss_rate.toFixed(0)
+									: '-'}
+							</TableCell>
+							<TableCell>
+								<Checkbox
+									checked={period.inclusion_override}
+									disabled={overrideCheckboxDisabled}
+									onClick={() => onClick(index)}
+								/>
+							</TableCell>
+						</TableRow>
+					)
+				})}
+			</TableBody>
+		</Table>
+	)
 }

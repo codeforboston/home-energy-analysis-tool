@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { useHints, useOptionalHints } from '#app/utils/client-hints.tsx'
 import {
-	useOptionalRequestInfo,
+	//useOptionalRequestInfo,
 	useRequestInfo,
 } from '#app/utils/request-info.ts'
 import { type Theme, setTheme } from '#app/utils/theme.server.ts'
@@ -124,7 +124,7 @@ export function useOptimisticThemeMode() {
  */
 export function useTheme() {
 	const hints = useHints()
-	const requestInfo = useRequestInfo()
+	//const requestInfo = useRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? hints.theme : optimisticMode
@@ -135,7 +135,7 @@ export function useTheme() {
 
 export function useOptionalTheme() {
 	const optionalHints = useOptionalHints()
-	const optionalRequestInfo = useOptionalRequestInfo()
+	//const optionalRequestInfo = useOptionalRequestInfo()
 	const optimisticMode = useOptimisticThemeMode()
 	if (optimisticMode) {
 		return optimisticMode === 'system' ? optionalHints?.theme : optimisticMode

@@ -1,25 +1,25 @@
 import { Upload } from 'lucide-react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
-import { ErrorList } from './ErrorList';
+import { ErrorList } from './ErrorList'
 
 interface EnergyUseUploadProps {
-	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
-	fields: any;
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
+	fields: any
 }
 
-export function EnergyUseUpload(
-	{ setScrollAfterSubmit, fields }: EnergyUseUploadProps
-) {
+export function EnergyUseUpload({
+	setScrollAfterSubmit,
+	fields,
+}: EnergyUseUploadProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
 	When the calculate button is pressed, sets scrollAfterSubmit to
 	true because we want the page to scroll then.
 	*/
 	const handleSubmit = () => {
-		setScrollAfterSubmit(true);
+		setScrollAfterSubmit(true)
 	}
-
 
 	return (
 		<fieldset>
@@ -29,14 +29,19 @@ export function EnergyUseUpload(
 				errors={fields.energy_use_upload.errors}
 			/>
 
-			<CustomFileUpload
-				name={fields.energy_use_upload.name}
-			/>
+			<CustomFileUpload name={fields.energy_use_upload.name} />
 
 			<div>
 				{/* Button type submit is processed by action in single.tsx */}
-				<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
-					<Upload className="mr-2 h-4 w-4" />Calculate
+				<Button
+					type="submit"
+					name="intent"
+					value="upload"
+					onClick={handleSubmit}
+					style={{ marginBottom: '20px' }}
+				>
+					<Upload className="mr-2 h-4 w-4" />
+					Calculate
 				</Button>
 
 				<a
