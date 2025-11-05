@@ -1,5 +1,5 @@
-import  { type TooltipProps } from 'recharts'
-import  { type ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import { type TooltipProps } from 'recharts'
+import { type ValueType } from 'recharts/types/component/DefaultTooltipContent'
 
 interface SharedCustomTooltipProps extends TooltipProps<ValueType, string> {
 	active?: boolean
@@ -37,21 +37,28 @@ export const SharedCustomTooltip = ({
 }: SharedCustomTooltipProps): React.ReactElement | null => {
 	if (active && payload && payload.length) {
 		// Check if this is "This Home" data point
-		const isThisHome = payload[0]?.payload?.name === 'This Home' || 
-		                  payload[0]?.payload?.label === 'This Home';
-		
+		const isThisHome =
+			payload[0]?.payload?.name === 'This Home' ||
+			payload[0]?.payload?.label === 'This Home'
+
 		return (
-			<div className={`tooltip-content rounded border ${isThisHome ? 'border-orange-500 bg-orange-50' : 'border-gray-300 bg-white'} p-2 shadow-md`}>
+			<div
+				className={`tooltip-content rounded border ${isThisHome ? 'border-orange-500 bg-orange-50' : 'border-gray-300 bg-white'} p-2 shadow-md`}
+			>
 				{isThisHome && (
-					<div className="font-bold text-orange-600 mb-1">This Home</div>
+					<div className="mb-1 font-bold text-orange-600">This Home</div>
 				)}
-				
+
 				<div className="grid grid-cols-2 gap-x-2">
 					<div className="text-gray-600">Living Area:</div>
-					<div className="text-right font-medium">{payload[0]?.payload?.x || 0} sf</div>
-					
+					<div className="text-right font-medium">
+						{payload[0]?.payload?.x || 0} sf
+					</div>
+
 					<div className="text-gray-600">Heat Loss Rate:</div>
-					<div className="text-right font-medium">{payload[0]?.payload?.y || 0} BTU/h-°F</div>
+					<div className="text-right font-medium">
+						{payload[0]?.payload?.y || 0} BTU/h-°F
+					</div>
 				</div>
 			</div>
 		)

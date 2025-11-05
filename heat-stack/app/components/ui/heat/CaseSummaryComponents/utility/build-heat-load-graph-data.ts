@@ -1,4 +1,4 @@
-import { SummaryOutputSchema } from '../../../../../../types/types.ts'
+import { type SummaryOutputSchema } from '../../../../../../types/types.ts'
 import {
 	calculateAvgHeatLoad,
 	calculateAvgHeatLoadEndPoint,

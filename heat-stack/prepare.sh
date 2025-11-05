@@ -1,1 +1,0 @@
-npx prettier --write "./app/**/*.{js,ts,css}"

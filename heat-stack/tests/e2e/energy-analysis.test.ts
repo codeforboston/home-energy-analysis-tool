@@ -5,7 +5,6 @@ const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 	return await page.getByTestId('analysis-header').textContent()
 }
 
-
 type TestFixtures = {
 	uploadEnergyBill: (filename?: string) => Promise<void>
 }
@@ -28,9 +27,11 @@ const test = base.extend<TestFixtures>({
 	},
 })
 
-
 test.setTimeout(120000)
-test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({ page, uploadEnergyBill }) => {
+test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
+	page,
+	uploadEnergyBill,
+}) => {
 	// Visit the root
 	await page.goto('/')
 
@@ -38,31 +39,33 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	await page.getByText('Get Started (with Demo Data)').click()
 
 	await uploadEnergyBill()
-	// await page.screenshot({ 
+	// await page.screenshot({
 	// 	path: 'full-page.png',
-	// 	fullPage: true 
+	// 	fullPage: true
 	// 	})
 
 	//Toggle table row checkbox, expecting "Analysis Header" text to change.
 	// save the analysis header text before checkbox click
-	const tableHeaderContentBeforeClick = await getAnalysisHeaderTextContent(page);
+	const tableHeaderContentBeforeClick = await getAnalysisHeaderTextContent(page)
 
 	// click the first checkbox and wait
-	const checkbox = page.locator('[role="checkbox"]').first();
+	const checkbox = page.locator('[role="checkbox"]').first()
 
 	// Assert the un-checked state
-	await expect(checkbox).not.toBeChecked();
+	await expect(checkbox).not.toBeChecked()
 
 	// Click the checkbox
-	await checkbox.click();
+	await checkbox.click()
 
 	// Assert the checked state
-	await expect(checkbox).toBeChecked();
+	await expect(checkbox).toBeChecked()
 	// save the analysis header text after checkbox click and wait
-	const tableHeaderContentAfterClick = await getAnalysisHeaderTextContent(page);
-	
+	const tableHeaderContentAfterClick = await getAnalysisHeaderTextContent(page)
+
 	// expect not equal
-	expect(tableHeaderContentAfterClick).not.toEqual(tableHeaderContentBeforeClick);
+	expect(tableHeaderContentAfterClick).not.toEqual(
+		tableHeaderContentBeforeClick,
+	)
 })
 
 test('Custom name persists after form submission', async ({ page }) => {
@@ -125,7 +128,7 @@ test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
 	let table = page.getByTestId('EnergyUseHistoryChart')
 	let isTableVisible = await table.isVisible()
 	expect(isTableVisible).toBe(true)
-	
+
 	await expect
 		.poll(
 			async () => {
@@ -137,9 +140,8 @@ test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
 		)
 		.toBe(26)
 
-
 	await uploadEnergyBill('tests/fixtures/csv/natural-gas-eversource.csv')
-	
+
 	// TODO Update tests to test table values instead of test that the content change
 	// This is a hack to check if table has updated.
 	// First submit, uploadEnergyBill() will wait for url to change from /single?dev=true to /single
@@ -159,7 +161,7 @@ test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
 			},
 		)
 		.toBe(37)
-	
+
 	const headerForSecondCsvUpload = await getAnalysisHeaderTextContent(page)
 	expect(headerForSecondCsvUpload).not.toBeNull()
 	expect(headerForSecondCsvUpload).not.toEqual(headerForOriginalCsvUpload)

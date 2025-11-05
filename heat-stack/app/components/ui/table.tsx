@@ -3,7 +3,6 @@ import * as React from 'react'
 
 import { cn } from '#app/utils/misc.tsx'
 
-
 const Table = React.forwardRef<
 	HTMLTableElement,
 	React.HTMLAttributes<HTMLTableElement>
@@ -67,7 +66,7 @@ const tableRowVariants = cva(
 			variant: {
 				default: '',
 				included: 'bg-white',
-				excluded: 'opacity-40 bg-[#F5F5F5]',
+				excluded: 'bg-[#F5F5F5] opacity-40',
 			},
 		},
 		defaultVariants: {
@@ -75,15 +74,15 @@ const tableRowVariants = cva(
 		},
 	},
 )
-const TableRow = React.forwardRef<
-	HTMLTableRowElement,
-	TableRowProps
->(({ className, variant, ...props }, ref) => (
-	<tr
-		ref={ref}
-		className={cn(tableRowVariants({ variant, className }))}
-		{...props} />
-))
+const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
+	({ className, variant, ...props }, ref) => (
+		<tr
+			ref={ref}
+			className={cn(tableRowVariants({ variant, className }))}
+			{...props}
+		/>
+	),
+)
 TableRow.displayName = 'TableRow'
 
 const TableHead = React.forwardRef<

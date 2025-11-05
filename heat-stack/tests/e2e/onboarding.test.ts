@@ -1,6 +1,6 @@
 import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
-import { EMAIL_FROM  } from '#app/utils/constants.ts'
+import { EMAIL_FROM } from '#app/utils/constants.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	normalizeEmail,

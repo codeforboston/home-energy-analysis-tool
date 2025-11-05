@@ -1,6 +1,7 @@
 # Database
 
-Important information on fixing Fly.io and prisma migrations from https://github.com/epicweb-dev/epic-stack/blob/main/docs/database.md on Oct 2025
+Important information on fixing Fly.io and prisma migrations from
+https://github.com/epicweb-dev/epic-stack/blob/main/docs/database.md on Oct 2025
 
 ## Primary Instance
 
