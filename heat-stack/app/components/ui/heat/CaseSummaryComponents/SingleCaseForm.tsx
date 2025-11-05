@@ -186,6 +186,14 @@ export default function SingleCaseForm({
 						value={JSON.stringify(billingRecords)} 
 					/>
 				)}
+				{/* Include heat load output for save operations in edit mode */}
+				{isEditMode && usageData?.heat_load_output && (
+					<input 
+						type="hidden" 
+						name="heat_load_output" 
+						value={JSON.stringify(usageData.heat_load_output)} 
+					/>
+				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} isEditMode={isEditMode} />

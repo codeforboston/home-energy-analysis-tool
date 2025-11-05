@@ -253,8 +253,20 @@ export async function action({ request, params }: Route.ActionArgs) {
 				}
 			}
 			
+			// Parse heat load output from form data if present
+			const heatLoadOutputJson = formData.get('heat_load_output') as string | null
+			let heatLoadOutput: any | undefined
+			if (heatLoadOutputJson) {
+				try {
+					heatLoadOutput = JSON.parse(heatLoadOutputJson)
+					console.log('📊 Parsed heat load output:', heatLoadOutput)
+				} catch (error) {
+					console.error('❌ Failed to parse heat load output:', error)
+				}
+			}
+			
 			const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
-			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId, billingRecords)
+			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId, billingRecords, heatLoadOutput)
 			console.log('✅ Case updated successfully:', { caseId: updatedCase?.id, analysisId: updatedCase?.analysis?.[0]?.id })
 
 			// For save operations, add a dummy energy_use_upload to match expected type
@@ -315,6 +327,9 @@ export default function EditCase({
 	// Local state for calculated usage data
 	const [calculatedUsageData, setCalculatedUsageData] = useState<any>(undefined)
 	
+	// Track if initial calculation is complete
+	const [isInitialCalculationComplete, setIsInitialCalculationComplete] = useState(false)
+	
 	// Error modal state
 	const [errorModal, setErrorModal] = useState<{
 		isOpen: boolean
@@ -331,64 +346,11 @@ export default function EditCase({
 		setLocalBillingRecords(loaderData.billingRecords)
 	}, [loaderData.billingRecords])
 
-	// Perform initial calculation on mount
+	// Mark initial load as complete immediately - we'll use database data
 	useEffect(() => {
-		console.log('🔧 Initial calculation effect triggered')
-		
-		// Skip if we already have calculated data (prevents flash on save)
-		if (calculatedUsageData) {
-			console.log('⏭️  Skipping initial calculation - already have calculated data')
-			return
-		}
-		
-		if (loaderData.billingRecords && loaderData.billingRecords.length > 0) {
-			console.log('✅ Performing initial calculation...')
-			
-			// Wrap in async to handle any promise issues
-			const performCalculation = async () => {
-				try {
-					// Create userAdjustedData structure
-					const userAdjustedData = {
-						processed_energy_bills: loaderData.billingRecords
-					}
-					
-					console.log('🧮 Calling executeRoundtripAnalyticsFromFormJs')
-					
-					// Call the function and immediately handle the result
-					let calcResult: any
-					try {
-						const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
-							parsedAndValidatedFormSchemaForEffects as any,
-							loaderData.convertedDatesTIWD as any,
-							userAdjustedData as any,
-							loaderData.state_id,
-							loaderData.county_id,
-						)
-						
-						// toJs() converts Python objects to JS - dicts become Maps by default
-						calcResult = calcResultPyProxy.toJs()
-						
-						// Destroy immediately after conversion
-						calcResultPyProxy.destroy()
-					} catch (pyError) {
-						console.error('❌ PyProxy error:', pyError)
-						throw pyError
-					}
-					
-					console.log('📊 Calculation result type:', calcResult instanceof Map, calcResult)
-					
-					const newUsageData = buildCurrentUsageData(calcResult)
-					setCalculatedUsageData(newUsageData)
-					console.log('✅ Initial calculation completed successfully', newUsageData)
-				} catch (error) {
-					console.error('❌ Initial calculation failed:', error)
-					// Don't show error modal on initial load, just log it
-				}
-			}
-			
-			void performCalculation()
-		}
-	}, [loaderData.billingRecords, loaderData.convertedDatesTIWD, loaderData.state_id, loaderData.county_id, parsedAndValidatedFormSchemaForEffects, calculatedUsageData])
+		console.log('� Marking initial load complete - using database data')
+		setIsInitialCalculationComplete(true)
+	}, [])
 
 	// Handle errors from regular form submissions (save, process-file)
 	useEffect(() => {
@@ -405,10 +367,13 @@ export default function EditCase({
 	// Use calculated data when available, fallback to local billing records with database heat load output
 	console.log('📊 Usage data selection:', { 
 		hasCalculatedData: !!calculatedUsageData,
-		hasLocalBillingRecords: !!(localBillingRecords && localBillingRecords.length > 0)
+		hasLocalBillingRecords: !!(localBillingRecords && localBillingRecords.length > 0),
+		isInitialCalculationComplete
 	})
 	
-	const usageData = calculatedUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
+	// On initial load, don't show any data until calculation completes to avoid flash
+	// After initial load, use calculated data or fallback
+	const usageData = !isInitialCalculationComplete ? undefined : (calculatedUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
 		heat_load_output: loaderData.heatLoadOutput || {
 			estimated_balance_point: 1,
 			other_fuel_usage: 1,
@@ -424,7 +389,7 @@ export default function EditCase({
 			records: [],
 		},
 		processed_energy_bills: localBillingRecords,
-	} : undefined)
+	} : undefined))
 
 	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
 	const editModeToggleBillingPeriod = (index: number) => {

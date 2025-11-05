@@ -96,7 +96,7 @@ export async function createCaseRecord(formValues: any, _locationData: any, user
 	}
 }
 
-export async function updateCaseRecord(caseId: number, formValues: any, _locationData: any, _userId: string, billingRecords?: any[]) {
+export async function updateCaseRecord(caseId: number, formValues: any, _locationData: any, _userId: string, billingRecords?: any[], heatLoadOutput?: any) {
 	// Get the existing case with its relations
 	const existingCase = await prisma.case.findUnique({
 		where: { id: caseId },
@@ -110,6 +110,7 @@ export async function updateCaseRecord(caseId: number, formValues: any, _locatio
 							processedEnergyBill: true,
 						},
 					},
+					heatingOutput: true,
 				},
 			},
 		},
@@ -174,6 +175,27 @@ export async function updateCaseRecord(caseId: number, formValues: any, _locatio
 					}
 				}
 			}
+		}
+	}
+
+	// Update heating output if provided
+	if (heatLoadOutput && firstAnalysis?.heatingOutput?.length && firstAnalysis.heatingOutput.length > 0) {
+		const firstHeatingOutput = firstAnalysis.heatingOutput[0]
+		if (firstHeatingOutput) {
+			await prisma.heatingOutput.update({
+				where: { id: firstHeatingOutput.id },
+				data: {
+					estimatedBalancePoint: heatLoadOutput.estimated_balance_point,
+					otherFuelUsage: heatLoadOutput.other_fuel_usage,
+					averageIndoorTemperature: heatLoadOutput.average_indoor_temperature,
+					differenceBetweenTiAndTbp: heatLoadOutput.difference_between_ti_and_tbp,
+					designTemperature: heatLoadOutput.design_temperature,
+					wholeHomeHeatLossRate: heatLoadOutput.whole_home_heat_loss_rate,
+					standardDeviationOfHeatLossRate: heatLoadOutput.standard_deviation_of_heat_loss_rate,
+					averageHeatLoad: heatLoadOutput.average_heat_load,
+					maximumHeatLoad: heatLoadOutput.maximum_heat_load,
+				},
+			})
 		}
 	}
 
