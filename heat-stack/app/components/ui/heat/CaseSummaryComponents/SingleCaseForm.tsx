@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
+import { Schema, SaveOnlySchema, type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type UsageDataSchema, type BillingRecordsSchema } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
@@ -114,46 +114,12 @@ export default function SingleCaseForm({
 	const [form, fields] = useForm({
 		lastResult: lastResult,
 		onValidate({ formData }) {
-			console.log('🔍 Form validation triggered', { 
-				isEditMode, 
-				intent: formData.get('intent'),
-				hasFile: !!formData.get('energy_use_upload'),
-				fileValue: formData.get('energy_use_upload')
-			})
-			// In edit mode with save intent, add dummy file to satisfy client-side validation
-			if (isEditMode) {
-				const intent = formData.get('intent') as string
-				const fileValue = formData.get('energy_use_upload')
-				const isEmpty = !fileValue || (fileValue instanceof File && fileValue.size === 0)
-				console.log('🎯 Edit mode check:', { 
-					intent, 
-					fileValue: fileValue instanceof File ? { name: fileValue.name, size: fileValue.size, type: fileValue.type } : fileValue, 
-					isEmpty, 
-					condition: intent === 'save' && isEmpty 
-				})
-				if (intent === 'save') {
-					console.log('📝 Adding dummy file for save validation')
-					// Create a new FormData with all existing data plus a dummy file
-					const newFormData = new FormData()
-					for (const [key, value] of formData.entries()) {
-						newFormData.append(key, value)
-					}
-					// Add dummy file to satisfy Schema requirements
-					const dummyFile = new File([''], 'dummy.csv', { type: 'text/csv' })
-					newFormData.set('energy_use_upload', dummyFile)
-					const result = parseWithZod(newFormData, { schema: Schema })
-					console.log('✅ Dummy validation result:', result.status)
-					return result
-				}
-			}
-			
-			// Use normal validation for all other cases
-			const result = parseWithZod(formData, { schema: Schema })
-			console.log('✅ Normal validation result:', result.status)
-			return result
+			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
+			const intent = formData.get('intent') as string
+			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+			return parseWithZod(formData, { schema })
 		},
-		onSubmit(event, { formData }) {
-			console.log('🚀 Form submitting with intent:', formData.get('intent'))
+		onSubmit() {
 			beforeSubmit()
 		},
 		defaultValue: defaultFormValues,

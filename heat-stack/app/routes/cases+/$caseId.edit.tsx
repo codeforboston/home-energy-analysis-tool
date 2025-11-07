@@ -2,7 +2,6 @@ import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 import { data } from 'react-router'
-import { z } from 'zod'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
@@ -15,7 +14,7 @@ import { buildCurrentUsageData } from '#app/utils/index.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
-import { Schema } from '#types/single-form.ts'
+import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
@@ -27,21 +26,6 @@ const percentToDecimal = (value: number, errorMessage: string) => {
 
 	return decimal
 }
-
-// Schema for save operations that doesn't require file upload
-const SaveOnlySchema = z.object({
-	name: z.string(),
-	living_area: z.number().min(500).max(10000),
-	street_address: z.string(),
-	town: z.string(),
-	state: z.string(),
-	fuel_type: z.enum(['GAS', 'OIL', 'PROPANE']),
-	heating_system_efficiency: z.number().min(0.5).max(1),
-	design_temperature_override: z.number().optional(),
-	thermostat_set_point: z.number(),
-	setback_temperature: z.number(),
-	setback_hours_per_day: z.number(),
-})
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
