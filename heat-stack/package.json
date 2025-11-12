@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
+    "lint:fix": "nom run lint -- --fix",
     "setup": "npm run build && prisma migrate deploy && prisma generate --sql && playwright install",
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
