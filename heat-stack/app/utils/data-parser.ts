@@ -1,5 +1,5 @@
 // These functions are used to process data returned from the Action on
-// /workspaces/home-energy-analysis-tool/heat-stack/app/routes/_heat+/single.tsx
+// /workspaces/home-energy-analysis-tool/heat-stack/app/routes/cases+/new.tsx
 
 /** Pass this to JSON.stringify()
  *

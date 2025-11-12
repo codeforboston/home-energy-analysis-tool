@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
-import { type UsageDataSchema } from '#types/types.ts'
+import { Schema, SaveOnlySchema, type SchemaZodFromFormType } from '#types/single-form.ts'
+import { type UsageDataSchema, type BillingRecordsSchema } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from './EnergyUseUpload.tsx'
@@ -35,10 +35,18 @@ export type SubmitAnalysisProps = {
 	onClickBillingRow: (index: number) => void
 	/**
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
-	 * TODO: I don't think this field should exist but since we have /single?dev=true that we want to redirect to /single, this seemed nececssary for now
+	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
 	 */
-	action?: '/single' | undefined
+	action?: "/cases/new" | undefined
 	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
+	/**
+	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
+	 */
+	isEditMode?: boolean
+	/**
+	 * Billing records to save when form is submitted (edit mode only)
+	 */
+	billingRecords?: BillingRecordsSchema
 	// actionData: (RulesEngineActionData & {
 	// 	/**
 	// 	 * Results returned from `parseWithZod` in the action function
@@ -59,6 +67,8 @@ export default function SingleCaseForm({
 	action,
 	onClickBillingRow,
 	parsedAndValidatedFormSchema,
+	isEditMode = false,
+	billingRecords,
 }: SubmitAnalysisProps) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 	// const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
@@ -104,7 +114,10 @@ export default function SingleCaseForm({
 	const [form, fields] = useForm({
 		lastResult: lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: Schema })
+			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
+			const intent = formData.get('intent') as string
+			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+			return parseWithZod(formData, { schema })
 		},
 		onSubmit() {
 			beforeSubmit()
@@ -126,12 +139,25 @@ export default function SingleCaseForm({
 				aria-describedby={form.errors ? form.errorId : undefined}
 			>
 				<div>Case {caseInfo?.caseId}</div>
+				{/* Include billing records as hidden input for save operations in edit mode */}
+				{isEditMode && billingRecords && (
+					<input 
+						type="hidden" 
+						name="billing_records" 
+						value={JSON.stringify(billingRecords)} 
+					/>
+				)}
+				{/* Include heat load output for save operations in edit mode */}
+				{isEditMode && usageData?.heat_load_output && (
+					<input 
+						type="hidden" 
+						name="heat_load_output" 
+						value={JSON.stringify(usageData.heat_load_output)} 
+					/>
+				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload
-					setScrollAfterSubmit={setScrollAfterSubmit}
-					fields={fields}
-				/>
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} isEditMode={isEditMode} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && (

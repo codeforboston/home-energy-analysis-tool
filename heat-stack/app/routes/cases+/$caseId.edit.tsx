@@ -1,32 +1,25 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { useEffect, useState } from 'react'
 import { data } from 'react-router'
+
+import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
-import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
-import {
-	fileUploadHandler,
-	uploadHandler,
-} from '#app/utils/file-upload-handler.ts'
-import { useRulesEngine } from '#app/utils/hooks/use-rules-engine.ts'
-import {
-	executeGetAnalyticsFromFormJs,
-	executeParseGasBillPy,
-} from '#app/utils/rules-engine.ts'
-import {
-	invariantResponse,
-	invariant,
-} from '#node_modules/@epic-web/invariant/dist'
-import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type NaturalGasUsageDataSchema } from '#types/index.ts'
-import { Schema, type SchemaZodFromFormType } from '#types/single-form.ts'
+import { uploadHandler } from '#app/utils/file-upload-handler.ts'
+import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import { buildCurrentUsageData } from '#app/utils/index.ts'
+import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
+import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
+import { Schema, SaveOnlySchema } from '#types/single-form.ts'
+import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
 const percentToDecimal = (value: number, errorMessage: string) => {
 	const decimal = parseFloat((value / 100).toFixed(2))
-	console.log('decimal ', { value, decimal })
 	if (isNaN(decimal) || decimal > 1) {
 		throw new Error(errorMessage)
 	}
@@ -34,69 +27,7 @@ const percentToDecimal = (value: number, errorMessage: string) => {
 	return decimal
 }
 
-const generateRulesEngineData = async (
-	formInputs: SchemaZodFromFormType,
-	uploadedTextFile: string,
-) => {
-	// TODO: WI: in single.tsx a call to a PyProxy is made that duplicates this logic and calls proxy.destroy.
-	// 			 Check if I need to do the same thing
-	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-		executeParseGasBillPy(uploadedTextFile).toJs()
-
-	const { state_id, county_id, convertedDatesTIWD } =
-		await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			formInputs.street_address,
-			formInputs.town,
-			formInputs.state,
-		)
-
-	console.log('getConvertedDatesTIWD outputs>', {
-		state_id,
-		county_id,
-		convertedDatesTIWD,
-	})
-
-	invariant(state_id, 'StateID not found')
-	invariant(county_id, 'county_id not found')
-	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
-	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
-
-	// Call to the rules-engine with raw text file
-	console.log('executeGetAnalyticsFromFormJs inputs>', {
-		formInputs,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	})
-	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		formInputs,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-	gasBillDataFromTextFilePyProxy.destroy()
-
-	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
-
-	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
-
-	return {
-		data: str_version,
-		parsedAndValidatedFormSchema: formInputs,
-		convertedDatesTIWD,
-		state_id,
-		county_id,
-	}
-}
-
 export async function loader({ request, params }: Route.LoaderArgs) {
-	// TODO: Add logic to redirect if feature flag is not turned on
-	// process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === "true"
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -113,31 +44,87 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		status: 500,
 	})
 
-	const uploadedTextFile = analysis.analysisDataFile[0]?.EnergyUsageFile.content
-	invariantResponse(uploadedTextFile, 'Invalid energy usage data detected', {
-		status: 500,
-	})
+	const heatingOutput = analysis.heatingOutput?.[0]
 
-	const TODO_TEMP_ENERGY_USE_UPLOAD = {
-		name: 'foo.csv',
-		type: 'csv',
-		size: 1,
+	// Transform billing records from database format to BillingRecordsSchema format
+	const billingRecords: BillingRecordsSchema = (heatingInput.processedEnergyBill || []).map(bill => ({
+		period_start_date: bill.periodStartDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+		period_end_date: bill.periodEndDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+		usage: bill.usageQuantity,
+		inclusion_override: bill.invertDefaultInclusion,
+		analysis_type: bill.analysisType,
+		default_inclusion: bill.defaultInclusion,
+		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
+		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
+	}))
+
+	// Calculate geographic data for rules engine recalculation
+	const geocodeUtil = new GeocodeUtil()
+	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
+	const { state_id, county_id, coordinates } = await geocodeUtil.getLL(combined_address)
+
+	// Get temperature data for the billing period date range
+	// We need this for recalculation when checkboxes are toggled
+	let convertedDatesTIWD = {
+		dates: [] as string[],
+		temperatures: [] as number[],
 	}
-	// TODO: WI: Geocoder API is not returning the street number and therefore the rulesEngine calculation is failing
-	//			 Not sure how to intrepret the data returned
+
+	if (heatingInput.processedEnergyBill && heatingInput.processedEnergyBill.length > 0) {
+		// Find the earliest and latest dates from billing records
+		const dates = heatingInput.processedEnergyBill
+			.map(bill => [bill.periodStartDate, bill.periodEndDate])
+			.flat()
+			.filter((date): date is Date => date !== null && date !== undefined)
+		
+		if (dates.length > 0) {
+			const startDate = new Date(Math.min(...dates.map(d => d.getTime())))
+			const endDate = new Date(Math.max(...dates.map(d => d.getTime())))
+			
+			// Fetch weather data for the billing period
+			const { x, y } = coordinates ?? { x: 0, y: 0 }
+			if (x !== 0 && y !== 0) {
+				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
+				const weatherUtil = new WeatherUtil()
+				
+				const formatDateString = (date: Date): string => {
+					return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10)
+				}
+				
+				const weatherData = await weatherUtil.getThatWeathaData(
+					x,
+					y,
+					formatDateString(startDate),
+					formatDateString(endDate),
+				)
+				
+				if (weatherData) {
+					const datesFromTIWD = weatherData.dates
+						.map((datestring) => new Date(datestring).toISOString().split('T')[0])
+						.filter((date): date is string => date !== undefined)
+					convertedDatesTIWD = {
+						dates: datesFromTIWD,
+						temperatures: weatherData.temperatures.filter((temp): temp is number => temp !== null),
+					}
+				}
+			}
+		}
+	}
+
 	const parsedAndValidatedFormData = Schema.parse({
-		// TODO: WI: Should we just have separate fields for first and last name? Do we care if a person has a middle name?
+		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
+		energy_use_upload: {
+			name: 'existing-energy-data.csv',
+			size: 0,
+			type: 'text/csv'
+		},
 		name: `${caseRecord.homeOwner.firstName1} ${caseRecord.homeOwner.lastName1}`,
 		living_area: caseRecord.location.livingAreaSquareFeet,
-		// TODO: WI: There is a bug where street number is not getting saved
 		street_address: caseRecord.location.address,
-		// TODO: WI: Find out why name mismatch exists, e.g.  app code use city but schema uses town
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-		// TODO: WI: when we save heatingInput we are rounding and converting the efficiency value from decimal to percent
-		//           therefore we need to do the opposite conversion. See if we should be saving the raw value and format in the UI instead.
-
+		
 		heating_system_efficiency: percentToDecimal(
 			heatingInput.heatingSystemEfficiency,
 			'Invalid heating system efficiency value detected',
@@ -145,47 +132,65 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		thermostat_set_point: heatingInput.thermostatSetPoint,
 		setback_temperature: heatingInput.setbackTemperature,
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,
-		// TODO: I am not sure if energy_use_upload is getting saved anywhere. Revisit
-		energy_use_upload: TODO_TEMP_ENERGY_USE_UPLOAD,
-		// TODO: WI: when we save designTemperatureOverride we are converting from number to boolean
-		//           See if we should be using boolean on UI side.
-		//           Assuming that if true designTemperatureOverride should be 1 else 0
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})
 
-	return {
-		rulesEngineData: await generateRulesEngineData(
-			parsedAndValidatedFormData,
-			uploadedTextFile,
-		),
+	// Convert heating output from database format to UI format if available
+	const heatLoadOutput = heatingOutput ? {
+		estimated_balance_point: heatingOutput.estimatedBalancePoint,
+		other_fuel_usage: heatingOutput.otherFuelUsage,
+		average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+		difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+		design_temperature: heatingOutput.designTemperature,
+		whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+		standard_deviation_of_heat_loss_rate: heatingOutput.standardDeviationOfHeatLossRate,
+		average_heat_load: heatingOutput.averageHeatLoad,
+		maximum_heat_load: heatingOutput.maximumHeatLoad,
+	} : undefined
 
-		// Return case information for linking to case details
+	return {
+		defaultFormValues: parsedAndValidatedFormData,
 		caseInfo: {
 			caseId: caseRecord.id,
 			analysisId: analysis.id,
 			heatingInputId: heatingInput.id,
 		},
+		billingRecords,
+		heatLoadOutput,
+		state_id,
+		county_id,
+		convertedDatesTIWD,
 	}
 }
 
-// TODO: Implement updating a case
-export async function action({ request }: Route.ActionArgs) {
-	// TODO: Keep making this call, is there a better way to authenticate routes?
+export async function action({ request, params }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
-
-	// Checks if url has a homeId parameter, throws 400 if not there
-	// invariantResponse(params.homeId, 'homeId param is required')
-	const formData = await parseMultipartFormData(request, uploadHandler)
-	const submission = parseWithZod(formData, {
-		schema: Schema,
-	})
+	const caseId = parseInt(params.caseId)
+	
+	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
+	
+	// Parse form data based on content type
+	// useFetcher sends regular form data, file uploads send multipart
+	const contentType = request.headers.get('content-type') || ''
+	const formData = contentType.includes('multipart/form-data')
+		? await parseMultipartFormData(request, uploadHandler)
+		: await request.formData()
+	
+	// Check the intent to determine validation approach
+	const intent = formData.get('intent') as string
+	
+	let submission;
+	
+	if (intent === 'save') {
+		// For save intent, use schema without file validation
+		submission = parseWithZod(formData, { schema: SaveOnlySchema })
+	} else {
+		// Use full validation for process-file intent
+		submission = parseWithZod(formData, { schema: Schema })
+	}
 
 	if (submission.status !== 'success') {
-		if (process.env.NODE_ENV === 'development') {
-			// this can have personal identifying information, so only active in development.
-			console.error('submission failed', submission)
-		}
 		return {
 			submitResult: submission.reply(),
 			parsedAndValidatedFormSchema: undefined,
@@ -197,158 +202,99 @@ export async function action({ request }: Route.ActionArgs) {
 		}
 	}
 
-	const parsedAndValidatedFormSchema = Schema.parse({
-		name: `${submission.value.name}'s home`,
-		living_area: submission.value.living_area,
-		street_address: submission.value.street_address,
-		town: submission.value.town,
-		state: submission.value.state,
-		fuel_type: submission.value.fuel_type,
-		heating_system_efficiency: submission.value.heating_system_efficiency,
-		thermostat_set_point: submission.value.thermostat_set_point,
-		setback_temperature: submission.value.setback_temperature,
-		setback_hours_per_day: submission.value.setback_hours_per_day,
-		design_temperature_override: submission.value.design_temperature_override,
-		energy_use_upload: submission.value.energy_use_upload,
-		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	})
-
 	try {
-		const uploadedTextFile: string = await fileUploadHandler(formData)
-		// This assignment of the same name is a special thing. We don't remember the name right now.
-		// It's not necessary, but it is possible.
-		// TODO: WI: Why do we call executeParseGasBillPy twice? Firs ttime creates a proxy, second time we actually call the func.
-		const pyodideResultsFromTextFilePyProxy: PyProxy =
-			executeParseGasBillPy(uploadedTextFile)
-		const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-			executeParseGasBillPy(uploadedTextFile).toJs()
-		pyodideResultsFromTextFilePyProxy.destroy()
 
-		/**
-		 * This function takes a CSV string and an address
-		 * and returns date and weather data,
-		 * and geolocation information
-		 */
-		// Define variables at function scope for access in the return statement
-		let caseRecord: { id: number } | undefined
-		let analysis: { id: number } | undefined
-		let heatingInput: { id: number } | undefined
+		if (intent === 'process-file') {
+			// Full update with new energy file - use the original processCaseUpdate
+			const result = await processCaseUpdate(caseId, submission, userId, formData)
 
-		const result = await getConvertedDatesTIWD(
-			pyodideResultsFromTextFile,
-			submission.value.street_address,
-			submission.value.town,
-			submission.value.state,
-		)
-
-		const convertedDatesTIWD = result.convertedDatesTIWD
-		const state_id = result.state_id
-		const county_id = result.county_id
-
-		if (process.env.FEATUREFLAG_PRISMA_HEAT_BETA2 === 'true') {
-			if (userId) {
-				/**
-				 * TODO: WI:
-				 * 0. Find location
-				 * 0.1. Find homeowner
-				 * 0.2. Test what happens if you change location or homeowner so fields are no longer unique
-				 * 1. Update case info data
-				 * 2. Create new EnergyUsageFileRecord
-				 * 3. Create new AnalysisDataFile
-				 * 4. Create new analysis input
-				 * 5. Create new analysis output
-				 */
-				// const records = await createCase(submission.value, result, userId)
-				// caseRecord = records.caseRecord
-				// analysis = records.analysis
-				// heatingInput = records.heatingInput
-				// const energyUsageFileRecord = await prisma.energyUsageFile.create({
-				// 	data: {
-				// 		fuelType: parsedAndValidatedFormSchema.fuel_type,
-				// 		content: uploadedTextFile,
-				// 		// TODO: WI: What are description, precedingDeliveryDate, and provider values supposed to be?
-				// 		description: '',
-				// 		precedingDeliveryDate: new Date(),
-				// 		provider: '',
-				// 	},
-				// })
-				// await prisma.analysisDataFile.create({
-				// 	data: {
-				// 		analysisId: analysis.id,
-				// 		energyUsageFileId: energyUsageFileRecord.id,
-				// 	},
-				// })
-				/* TODO: store rules-engine output in database too */
+			return {
+				submitResult: submission.reply(),
+				data: JSON.stringify(result.gasBillData, replacer),
+				parsedAndValidatedFormSchema: submission.value,
+				convertedDatesTIWD: result.convertedDatesTIWD,
+				state_id: result.state_id,
+				county_id: result.county_id,
+				caseInfo: {
+					caseId: result.updatedCase?.id,
+					analysisId: result.updatedCase?.analysis?.[0]?.id,
+				},
 			}
-		}
-
-		// Call to the rules-engine with raw text file
-		const gasBillDataFromTextFilePyProxy: PyProxy =
-			executeGetAnalyticsFromFormJs(
-				parsedAndValidatedFormSchema,
-				convertedDatesTIWD,
-				uploadedTextFile,
-				state_id,
-				county_id,
-			)
-		const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-		gasBillDataFromTextFilePyProxy.destroy()
-
-		// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-		// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
-
-		return {
-			submitResult: submission.reply(),
-			data: JSON.stringify(gasBillDataFromTextFile, replacer),
-			parsedAndValidatedFormSchema,
-			convertedDatesTIWD,
-			state_id,
-			county_id,
-			// Return case information for linking to case details
-			caseInfo: {
-				caseId: caseRecord?.id,
-				analysisId: analysis?.id,
-				heatingInputId: heatingInput?.id,
-			},
-		}
-	} catch (error: unknown) {
-		console.error('Calculate failed')
-		if (error instanceof Error) {
-			console.error(error.message)
-			const errorLines = error.message.split('\n').filter(Boolean)
-			const lastLine = errorLines[errorLines.length - 1] || error.message
-			return data(
-				// see comment for first submission.reply for additional options
-				{
-					submitResult: submission.reply({
-						formErrors: [lastLine],
-					}),
-					parsedAndValidatedFormSchema: undefined,
-					data: undefined,
-					convertedDatesTIWD: undefined,
-					state_id: undefined,
-					county_id: undefined,
-					caseInfo: undefined,
-				},
-				{ status: 500 },
-			)
 		} else {
-			return data(
-				// see comment for first submission.reply for additional options
-				{
-					submitResult: submission.reply({
-						formErrors: ['Unknown Error'],
-					}),
-					parsedAndValidatedFormSchema: undefined,
-					data: undefined,
-					convertedDatesTIWD: undefined,
-					state_id: undefined,
-					county_id: undefined,
-					caseInfo: undefined,
+			// Simple form update (intent === 'save' or fallback) - just update the database fields
+			console.log('🔄 Processing save operation for case:', caseId)
+			
+			// Parse billing records from form data if present
+			const billingRecordsJson = formData.get('billing_records') as string | null
+			let billingRecords: any[] | undefined
+			if (billingRecordsJson) {
+				try {
+					const parsed = JSON.parse(billingRecordsJson)
+					billingRecords = Array.isArray(parsed) ? parsed : undefined
+					console.log('📊 Parsed billing records:', billingRecords)
+				} catch (error) {
+					console.error('❌ Failed to parse billing records:', error)
+				}
+			}
+			
+			// Parse heat load output from form data if present
+			const heatLoadOutputJson = formData.get('heat_load_output') as string | null
+			let heatLoadOutput: any | undefined
+			if (heatLoadOutputJson) {
+				try {
+					heatLoadOutput = JSON.parse(heatLoadOutputJson)
+					console.log('📊 Parsed heat load output:', heatLoadOutput)
+				} catch (error) {
+					console.error('❌ Failed to parse heat load output:', error)
+				}
+			}
+			
+			const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
+			const updatedCase = await updateCaseRecord(caseId, submission.value, {}, userId, billingRecords, heatLoadOutput)
+			console.log('✅ Case updated successfully:', { caseId: updatedCase?.id, analysisId: updatedCase?.analysis?.[0]?.id })
+
+			// For save operations, add a dummy energy_use_upload to match expected type
+			const formDataWithFile = {
+				...submission.value,
+				energy_use_upload: {
+					name: 'existing-data.csv',
+					size: 0,
+					type: 'text/csv'
+				}
+			}
+
+			const result = {
+				submitResult: submission.reply(),
+				data: undefined, // No new calculation data
+				parsedAndValidatedFormSchema: formDataWithFile,
+				convertedDatesTIWD: undefined,
+				state_id: undefined,
+				county_id: undefined,
+				caseInfo: {
+					caseId: updatedCase?.id,
+					analysisId: updatedCase?.analysis?.[0]?.id,
 				},
-				{ status: 500 },
-			)
+			}
+			console.log('📤 Returning save result:', result)
+			return result
 		}
+	} catch (error: any) {
+		console.error('❌ Case update failed', error)
+		const message =
+			error instanceof Error ? error.message : 'Unknown error during case update'
+		return data(
+			{
+				submitResult: submission.reply({ formErrors: [message] }),
+				parsedAndValidatedFormSchema: undefined,
+				data: undefined,
+				convertedDatesTIWD: undefined,
+				state_id: undefined,
+				county_id: undefined,
+				caseInfo: undefined,
+				error: message, // Add error field for consistent error handling
+			},
+			{ status: 500 },
+		)
 	}
 }
 
@@ -356,39 +302,188 @@ export default function EditCase({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	const rulesEngineData = loaderData.rulesEngineData || actionData
-	// TODO: WI: Remove all references to @ts-ignore and fix the ts errors that come up
+	// Get parsedAndValidatedFormSchema early for use in effects
+	const parsedAndValidatedFormSchemaForEffects = actionData?.parsedAndValidatedFormSchema || loaderData.defaultFormValues
 
-	const { usageData, lazyLoadRulesEngine, toggleBillingPeriod } =
-		useRulesEngine(rulesEngineData)
+	// Local state for billing records to handle checkbox toggling
+	const [localBillingRecords, setLocalBillingRecords] = useState(loaderData.billingRecords)
+	
+	// Local state for calculated usage data
+	const [calculatedUsageData, setCalculatedUsageData] = useState<any>(undefined)
+	
+	// Track if initial calculation is complete
+	const [isInitialCalculationComplete, setIsInitialCalculationComplete] = useState(false)
+	
+	// Error modal state
+	const [errorModal, setErrorModal] = useState<{
+		isOpen: boolean
+		title: string
+		message: string
+	}>({
+		isOpen: false,
+		title: '',
+		message: ''
+	})
 
-	console.log('usageData>', usageData)
+	// Update local state when loader data changes
+	useEffect(() => {
+		setLocalBillingRecords(loaderData.billingRecords)
+	}, [loaderData.billingRecords])
 
-	const parsedAndValidatedFormSchema =
-		actionData?.parsedAndValidatedFormSchema ??
-		loaderData.rulesEngineData.parsedAndValidatedFormSchema
-	console.log('loaderData>', loaderData)
-	// TODO: Move form up here. This means we will have to duplicate some hooks
-	// 			But problem because it is part of a sibling with another element
+	// Mark initial load as complete immediately - we'll use database data
+	useEffect(() => {
+		console.log('� Marking initial load complete - using database data')
+		setIsInitialCalculationComplete(true)
+	}, [])
 
-	// TODO: WI: Do we want a separate save button on edit page? Disable inputs? What do?
-	// 			 Add question about adding hidden fields to 'single.tsx' to handle updates after creating a case
+	// Handle errors from regular form submissions (save, process-file)
+	useEffect(() => {
+		if (actionData && (actionData as any).error) {
+			const errorMessage = (actionData as any).error
+			setErrorModal({
+				isOpen: true,
+				title: 'Error',
+				message: typeof errorMessage === 'string' ? errorMessage : 'An error occurred'
+			})
+		}
+	}, [actionData])
+
+	// Use calculated data when available, fallback to local billing records with database heat load output
+	console.log('📊 Usage data selection:', { 
+		hasCalculatedData: !!calculatedUsageData,
+		hasLocalBillingRecords: !!(localBillingRecords && localBillingRecords.length > 0),
+		isInitialCalculationComplete
+	})
+	
+	// On initial load, don't show any data until calculation completes to avoid flash
+	// After initial load, use calculated data or fallback
+	const usageData = !isInitialCalculationComplete ? undefined : (calculatedUsageData || (localBillingRecords && localBillingRecords.length > 0 ? {
+		heat_load_output: loaderData.heatLoadOutput || {
+			estimated_balance_point: 1,
+			other_fuel_usage: 1,
+			average_indoor_temperature: 70,
+			difference_between_ti_and_tbp: 1,
+			design_temperature: 10, // Non-zero placeholder value
+			whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+			standard_deviation_of_heat_loss_rate: 1,
+			average_heat_load: 1,
+			maximum_heat_load: 1,
+		},
+		balance_point_graph: {
+			records: [],
+		},
+		processed_energy_bills: localBillingRecords,
+	} : undefined))
+
+	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
+	const editModeToggleBillingPeriod = (index: number) => {
+		console.log('🔄 Toggle billing period called for index:', index)
+		const updatedRecords = localBillingRecords.map((record, i) => {
+			if (i === index) {
+				const newRecord = { ...record, inclusion_override: !record.inclusion_override }
+				console.log('📝 Updated record:', { index: i, old: record.inclusion_override, new: newRecord.inclusion_override })
+				return newRecord
+			}
+			return record
+		})
+		
+		console.log('📊 Setting updated records:', updatedRecords.map(r => r.inclusion_override))
+		setLocalBillingRecords(updatedRecords)
+		
+		// Trigger client-side recalculation with updated billing records
+		if (parsedAndValidatedFormSchemaForEffects && loaderData.state_id && loaderData.county_id) {
+			console.log('🚀 Triggering client-side recalculation...')
+			console.log('📋 Current usageData:', usageData)
+			console.log('🔍 Function check:', typeof executeRoundtripAnalyticsFromFormJs, executeRoundtripAnalyticsFromFormJs)
+			
+			try {
+				// Check if the function is still valid (not destroyed)
+				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
+					throw new Error('executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded')
+				}
+				
+				// Create userAdjustedData structure with updated records
+				const userAdjustedData = {
+					processed_energy_bills: updatedRecords
+				}
+				
+				console.log('🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records')
+				console.log('🔍 Arg 1 (form):', typeof parsedAndValidatedFormSchemaForEffects, parsedAndValidatedFormSchemaForEffects)
+				console.log('🔍 Arg 2 (temp):', typeof loaderData.convertedDatesTIWD, loaderData.convertedDatesTIWD)
+				console.log('🔍 Arg 3 (adjusted):', typeof userAdjustedData, userAdjustedData)
+				console.log('🔍 Arg 4 (state):', typeof loaderData.state_id, loaderData.state_id)
+				console.log('🔍 Arg 5 (county):', typeof loaderData.county_id, loaderData.county_id)
+				
+				// Call the function and immediately handle the result
+				let calcResult: any
+				try {
+					const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
+						parsedAndValidatedFormSchemaForEffects as any,
+						loaderData.convertedDatesTIWD as any,
+						userAdjustedData as any,
+						loaderData.state_id,
+						loaderData.county_id,
+					)
+					
+					// toJs() converts Python objects to JS - dicts become Maps by default
+					calcResult = calcResultPyProxy.toJs()
+					
+					// Destroy immediately after conversion
+					calcResultPyProxy.destroy()
+				} catch (pyError) {
+					console.error('❌ PyProxy error:', pyError)
+					throw pyError
+				}
+				
+				console.log('📊 Recalculation result type:', calcResult instanceof Map, calcResult)
+				
+				const newUsageData = buildCurrentUsageData(calcResult)
+				setCalculatedUsageData(newUsageData)
+				console.log('✅ Recalculation completed successfully', newUsageData)
+			} catch (error) {
+				console.error('❌ Recalculation failed:', error)
+				setErrorModal({
+					isOpen: true,
+					title: 'Recalculation Failed',
+					message: `An error occurred during recalculation: ${error instanceof Error ? error.message : 'Unknown error'}`
+				})
+			}
+		} else {
+			console.error('❌ Cannot recalculate - missing required data:', { 
+				hasSchema: !!parsedAndValidatedFormSchemaForEffects, 
+				hasStateId: !!loaderData.state_id,
+				hasCountyId: !!loaderData.county_id,
+			})
+			setErrorModal({
+				isOpen: true,
+				title: 'Recalculation Failed',
+				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`
+			})
+		}
+	}
 
 	return (
-		<SingleCaseForm
-			beforeSubmit={() => lazyLoadRulesEngine()}
-			lastResult={actionData?.submitResult}
-			defaultFormValues={
-				loaderData.rulesEngineData.parsedAndValidatedFormSchema
-			}
-			// TODO: WI: Test unhappy paths and see how the UI reacts
-			//           I am pretty sure that the case saved box will appear
-			showSavedCaseIdMsg={!!actionData}
-			caseInfo={loaderData.caseInfo}
-			usageData={usageData}
-			showUsageData={!!usageData}
-			onClickBillingRow={toggleBillingPeriod}
-			parsedAndValidatedFormSchema={parsedAndValidatedFormSchema}
-		/>
+		<>
+			<SingleCaseForm
+				beforeSubmit={() => {}}
+				lastResult={actionData?.submitResult}
+				defaultFormValues={loaderData.defaultFormValues}
+				showSavedCaseIdMsg={!!actionData}
+				caseInfo={actionData?.caseInfo || loaderData.caseInfo}
+				usageData={usageData}
+				showUsageData={!!usageData}
+				onClickBillingRow={editModeToggleBillingPeriod}
+				parsedAndValidatedFormSchema={parsedAndValidatedFormSchemaForEffects as any}
+				isEditMode={true}
+				billingRecords={localBillingRecords}
+			/>
+			
+			<ErrorModal
+				isOpen={errorModal.isOpen}
+				onClose={() => setErrorModal(prev => ({ ...prev, isOpen: false }))}
+				title={errorModal.title}
+				message={errorModal.message}
+			/>
+		</>
 	)
 }

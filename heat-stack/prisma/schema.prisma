@@ -220,7 +220,7 @@ model ProcessedEnergyBill {
   periodStartDate        DateTime // for oil and propane, this is the previous delivery date
   periodEndDate          DateTime // for oil and propane, this is the delivery date
   usageQuantity          Float // for natural gas, this is therms, and for oil and propane, this is gallons
-  wholeHomeHeatLossRate  Float
+  wholeHomeHeatLossRate  Float?
   analysisType           Int
   defaultInclusion       Boolean
   invertDefaultInclusion Boolean
