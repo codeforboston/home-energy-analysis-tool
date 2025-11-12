@@ -1,9 +1,10 @@
 /**
  * @vitest-environment jsdom
  */
-import { createMemoryRouter, RouterProvider } from 'react-router'
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { createMemoryRouter, RouterProvider } from 'react-router'
+import { d
+	escribe, expect, it, vi } from 'vitest'
 
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 
