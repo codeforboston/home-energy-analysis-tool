@@ -132,7 +132,7 @@ jobs:
         working-directory:  ${{ env.heat-stack-working-directory }}
 
   format-js:  
-    name: ⬣ Heat-Stack - ESLint
+    name: ⬣ Heat-Stack - Prettier
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
