@@ -7,13 +7,18 @@ import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import { executeParseGasBillPy, executeGetAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 
+/**
+ * processes CSV (uploadTextFile) and create a new case, and runs pyodide
+ **/
+
 export async function processCaseSubmission(submission: any, userId: string, formData: FormData) {
 	const parsedForm = submission.value
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const pyodideResults = pyodideProxy.toJs()
-	pyodideProxy.destroy()
+	// TODO: make function that destroys if it exists
+	// pyodideProxy.destroy()
 
 	const result = await getConvertedDatesTIWD(
 		pyodideResults,
@@ -34,7 +39,7 @@ export async function processCaseSubmission(submission: any, userId: string, for
 		county_id,
 	)
 	const gasBillData = gasBillDataProxy.toJs()
-	gasBillDataProxy.destroy()
+	// gasBillDataProxy.destroy()
 
 	const newCase = await createCaseRecord(parsedForm, result, userId, gasBillData)
 	
@@ -54,13 +59,16 @@ export async function processCaseSubmission(submission: any, userId: string, for
 	}
 }
 
+/**
+ * processes CSV (uploadTextFile) and update an existing case, and runs pyodide
+ */
 export async function processCaseUpdate(caseId: number, submission: any, userId: string, formData: FormData) {
 	const parsedForm = submission.value
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const pyodideResults = pyodideProxy.toJs()
-	pyodideProxy.destroy()
+	// pyodideProxy.destroy()
 
 	const result = await getConvertedDatesTIWD(
 		pyodideResults,
@@ -81,7 +89,7 @@ export async function processCaseUpdate(caseId: number, submission: any, userId:
 		county_id,
 	)
 	const gasBillData = gasBillDataProxy.toJs()
-	gasBillDataProxy.destroy()
+	//gasBillDataProxy.destroy()
 
 	const updatedCase = await updateCaseRecord(caseId, parsedForm, result, userId)
 	

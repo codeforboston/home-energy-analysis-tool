@@ -7,6 +7,7 @@ import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
+import { safeDestroy } from './pyodide'
 
 // Import Python code as raw string assets
 
@@ -145,11 +146,10 @@ type ExecuteRoundtripAnalyticsFunction = ((
 }
 // When you're done with your application or this module
 // Destroy all the Python function proxies
-export function cleanupPyodideResources(): void {
-	// Destroy the function proxies
-	executeParseGasBillPy.destroy()
-	executeGetAnalyticsFromFormJs.destroy()
-	executeRoundtripAnalyticsFromFormJs.destroy()
+	// Safely destroy the function proxies
+	safeDestroy(executeParseGasBillPy)
+	safeDestroy(executeGetAnalyticsFromFormJs)
+	safeDestroy(executeRoundtripAnalyticsFromFormJs)
 
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// This is not always necessary or possible depending on your architecture

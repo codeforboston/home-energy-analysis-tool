@@ -11,63 +11,6 @@ import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
 import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
 
-// TODO: WI: figure out if this is needed - probably
-// const percentToDecimal = (value: number, errorMessage: string) => {
-// 	const decimal = parseFloat((value / 100).toFixed(2))
-// 	if (isNaN(decimal) || decimal > 1) {
-// 		throw new Error(errorMessage)
-// 	}
-
-// 	return decimal
-// }
-
-// const generateRulesEngineData = async (
-// 	formInputs: SchemaZodFromFormType,
-// 	uploadedTextFile: string,
-// ) => {
-// 	// TODO: WI: in single.tsx a call to a PyProxy is made that duplicates this logic and calls proxy.destroy.
-// 	// 			 Check if I need to do the same thing
-// 	const pyodideResultsFromTextFile: NaturalGasUsageDataSchema =
-// 		executeParseGasBillPy(uploadedTextFile).toJs()
-
-// 	const { state_id, county_id, convertedDatesTIWD } =
-// 		await getConvertedDatesTIWD(
-// 			pyodideResultsFromTextFile,
-// 			formInputs.street_address,
-// 			formInputs.town,
-// 			formInputs.state,
-// 		)
-
-
-// 	invariant(state_id, 'StateID not found')
-// 	invariant(county_id, 'county_id not found')
-// 	invariant(convertedDatesTIWD.dates.length, 'Missing dates')
-// 	invariant(convertedDatesTIWD.temperatures.length, 'Missing temperatures')
-
-
-// 	const gasBillDataFromTextFilePyProxy: PyProxy = executeGetAnalyticsFromFormJs(
-// 		formInputs,
-// 		convertedDatesTIWD,
-// 		uploadedTextFile,
-// 		state_id,
-// 		county_id,
-// 	)
-// 	const gasBillDataFromTextFile = gasBillDataFromTextFilePyProxy.toJs()
-// 	gasBillDataFromTextFilePyProxy.destroy()
-
-// 	// Call to the rules-engine with adjusted data (see checkbox implementation in recalculateFromBillingRecordsChange)
-// 	// const calculatedData: any = executeRoundtripAnalyticsFromFormJs(parsedAndValidatedFormSchema, convertedDatesTIWD, gasBillDataFromTextFile, state_id, county_id).toJs()
-
-// 	const str_version = JSON.stringify(gasBillDataFromTextFile, replacer)
-
-// 	return {
-// 		data: str_version,
-// 		parsedAndValidatedFormSchema: formInputs,
-// 		convertedDatesTIWD,
-// 		state_id,
-// 		county_id,
-// 	}
-// }
 
 export async function loader({ request }: Route.LoaderArgs) {
     let url = new URL(request.url)

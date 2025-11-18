@@ -24,7 +24,8 @@ const cacheDb = remember('cacheDb', createDatabase)
 
 function createDatabase(tryAgain = true): Database.Database {
 	const db = new Database(CACHE_DATABASE_PATH)
-	const { currentIsPrimary } = getInstanceInfoSync()
+	const litefsDir = process.env.LITEFS_DIR
+	const { currentIsPrimary } = getInstanceInfoSync(litefsDir)
 	if (!currentIsPrimary) return db
 
 	try {

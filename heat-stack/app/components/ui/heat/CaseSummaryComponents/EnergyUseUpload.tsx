@@ -45,12 +45,8 @@ export function EnergyUseUpload(
 							variant="default"
 							onClick={() => console.log('💾 Save Changes button clicked')}
 						>
-							Save Changes
-						</Button>
-						<Button type="submit" name="intent" value="process-file" onClick={handleSubmit}>
-							<Upload className="mr-2 h-4 w-4" />
-							Process New File
-						</Button>
+							Save Changes						</Button>
+
 					</div>
 				) : (
 					// Single button for new cases
