@@ -5,7 +5,7 @@ export function safeDestroy(obj: any) {
       // Some PyProxy objects have an isDestroyed property
       if ('isDestroyed' in obj && obj.isDestroyed) return
       obj.destroy()
-    } catch (e) {
+    } catch {
       // Ignore errors if already destroyed or not a PyProxy
     }
   }
