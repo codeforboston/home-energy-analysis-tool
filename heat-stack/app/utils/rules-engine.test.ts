@@ -32,7 +32,7 @@ vi.mock('../pycode/roundtrip_analytics.py?raw', () => ({
 // Import the module being tested after mocking
 import {
 	type ExecuteParseFunction,
-	cleanupPyodideResources
+	cleanupPyodideProxies
 } from './rules-engine.ts'
 
 describe('rules-engine', () => {
@@ -88,7 +88,7 @@ describe('rules-engine', () => {
 		})
 	})
 
-	describe('cleanupPyodideResources', () => {
+	describe('cleanupPyodideProxies', () => {
 		it('should destroy all Python function proxies', async () => {
 			// Create mock functions that match the expected interface
 			const mockExecuteParseGasBillPy = {
@@ -118,7 +118,7 @@ describe('rules-engine', () => {
 			})
 
 			// Import the cleanup function
-			const { cleanupPyodideResources: cleanup } = await import('./rules-engine.ts')
+			const { cleanupPyodideProxies: cleanup } = await import('./rules-engine.ts')
 			
 			// Call cleanup
 			cleanup()
@@ -176,7 +176,7 @@ describe('rules-engine', () => {
 
 	describe('Function proxy management', () => {
 		it('should provide destroy method for cleanup', () => {
-			expect(typeof cleanupPyodideResources).toBe('function')
+			expect(typeof cleanupPyodideProxies).toBe('function')
 		})
 
 		it('should handle Map-based data structures for processed energy bills', () => {

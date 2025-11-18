@@ -178,8 +178,8 @@ export const useRulesEngine = (
 	useEffect(() => {
 		return () => {
 			// Memory cleanup of pyodide fn's when component unmounts
-			if (rulesEngineRef.current?.cleanupPyodideResources) {
-				rulesEngineRef.current.cleanupPyodideResources()
+			if (rulesEngineRef.current?.cleanupPyodideProxies) {
+				rulesEngineRef.current.cleanupPyodideProxies()
 				rulesEngineRef.current = null
 			}
 		}
