@@ -144,14 +144,11 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	destroy(): void
 	toJs?(): any
 }
-// When you're done with your application or this module
-// Destroy all the Python function proxies
-	// Safely destroy the function proxies
+// When you're done with your application or this module, call this to destroy all the Python function proxies
+export function cleanupPyodideProxies() {
 	safeDestroy(executeParseGasBillPy)
 	safeDestroy(executeGetAnalyticsFromFormJs)
 	safeDestroy(executeRoundtripAnalyticsFromFormJs)
-
 	// If you have access to the pyodide instance itself, you might want to clean it up too
-	// This is not always necessary or possible depending on your architecture
 	// pyodide.destroy(); // If supported by your pyodide version
 }
