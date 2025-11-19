@@ -22,13 +22,14 @@ export default function Cases({
 			<div className="flex items-center justify-between">
 				<h1 className="mb-6 text-3xl font-bold">Cases</h1>
 				<Link
-					to="/single?dev=true"
+					to="/cases/new"
 					className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
 				>
 					Create New Case
 				</Link>
 			</div>
-
+/* TODO:why /new why not case/new
+*/
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
@@ -38,7 +39,7 @@ export default function Cases({
 						Get started by creating your first case analysis.
 					</p>
 					<Link
-						to="/single?dev=true"
+						to="/cases/new"
 						className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
 					>
 						📈 Create New Case

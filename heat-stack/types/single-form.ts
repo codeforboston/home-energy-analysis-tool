@@ -27,4 +27,8 @@ export const Schema = UploadEnergyUseFileSchema.and(
 	HomeFormSchema.and(CurrentHeatingSystemSchema),
 ) /* .and(HeatLoadAnalysisZod.pick({design_temperature: true})) */
 
+// Schema for save operations that doesn't require file upload
+export const SaveOnlySchema = HomeFormSchema.and(CurrentHeatingSystemSchema)
+
 export type SchemaZodFromFormType = z.infer<typeof Schema>
+export type SaveOnlySchemaType = z.infer<typeof SaveOnlySchema>

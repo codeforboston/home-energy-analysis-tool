@@ -188,7 +188,7 @@ export default function Analysis({
 
 			<div className="mt-6">
 				<a
-					href={`/single?dev=true`}
+					href={`/new?dev=true`}
 					className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
 				>
 					Create Another Analysis

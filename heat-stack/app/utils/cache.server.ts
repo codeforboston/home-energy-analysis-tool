@@ -22,9 +22,17 @@ const CACHE_DATABASE_PATH = process.env.CACHE_DATABASE_PATH
 
 const cacheDb = remember('cacheDb', createDatabase)
 
+
 function createDatabase(tryAgain = true): Database.Database {
+	if (!CACHE_DATABASE_PATH) {
+		throw new Error('CACHE_DATABASE_PATH environment variable is not set. Please set it in your environment.')
+	}
 	const db = new Database(CACHE_DATABASE_PATH)
-	const { currentIsPrimary } = getInstanceInfoSync()
+	const litefsDir = process.env.LITEFS_DIR
+	if (!litefsDir) {
+		throw new Error('LITEFS_DIR environment variable is not set. Please set it in your environment.')
+	}
+	const { currentIsPrimary } = getInstanceInfoSync(litefsDir)
 	if (!currentIsPrimary) return db
 
 	try {

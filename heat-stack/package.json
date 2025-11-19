@@ -29,6 +29,8 @@
     "buildpy": "cd ../python && (if [ -d .venv ]; then . .venv/bin/activate; else . ./setup-python.sh; fi) && uv pip install build && uv build && cp dist/rules_engine-0.0.1-py3-none-any.whl ../heat-stack/public/pyodide-env",
     "buildpy-docker": "cd ../py/python",
     "coverage": "vitest run --coverage",
+    "coverage:unit": "vitest run --coverage",
+    "coverage:e2e": "cross-env COLLECT_COVERAGE=true playwright test",
     "test:e2e": "npm run test:e2e:dev --silent",
     "test:e2e:dev": "playwright test --ui",
     "pretest:e2e:run": "npm run build",
