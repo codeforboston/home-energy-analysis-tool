@@ -1,11 +1,10 @@
 import { data, Link } from 'react-router'
-import { requireUserId } from '#app/utils/auth.server.ts'
+import { getUserId } from '#app/utils/auth.server.ts'
 import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userId = await requireUserId(request)
-	// Fetch all cases with their related data
+	const userId = await getUserId(request)
 	const cases = await getCasesByUser(userId)
 
 	return data({ cases })

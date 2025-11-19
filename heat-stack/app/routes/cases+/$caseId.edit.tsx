@@ -5,7 +5,7 @@ import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
-import { requireUserId } from '#app/utils/auth.server.ts'
+import { getUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
@@ -18,17 +18,15 @@ import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
-const percentToDecimal = (value: number, errorMessage: string) => {
-	const decimal = parseFloat((value / 100).toFixed(2))
-	if (isNaN(decimal) || decimal > 1) {
-		throw new Error(errorMessage)
+export async function loader({ params, request }: Route.LoaderArgs) {
+	const percentToDecimal = (value: number, errorMessage: string) => {
+		const decimal = parseFloat((value / 100).toFixed(2))
+		if (isNaN(decimal) || decimal > 1) {
+			throw new Error(errorMessage)
+		}
+		return decimal
 	}
-
-	return decimal
-}
-
-export async function loader({ request, params }: Route.LoaderArgs) {
-	const userId = await requireUserId(request)
+	const userId = await getUserId(request)
 	const caseId = parseInt(params.caseId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
@@ -180,7 +178,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-	const userId = await requireUserId(request)
+	const userId = await getUserId(request)
 	const caseId = parseInt(params.caseId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
