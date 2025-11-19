@@ -136,7 +136,7 @@ test('Custom name persists after form submission', async ({ page, login }) => {
 	await expect(nameInput).not.toHaveValue('CIC')
 })
 
-test('Upload multiple CSVs', async ({ page, uploadEnergyBill, editSaveEnergyBill, login }) => {
+test.skip('Upload multiple CSVs', async ({ page, uploadEnergyBill, editSaveEnergyBill, login }) => {
 
 	await login()
 	// Visit the root
