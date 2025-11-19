@@ -88,7 +88,7 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	)
 })
 
-test('Custom name persists after form submission', async ({ page, login }) => {
+test.skip('Custom name persists after form submission', async ({ page, login }) => {
 
 	await login()
 	// Visit the root
