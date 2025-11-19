@@ -6,9 +6,8 @@ const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 }
 
 type TestFixtures = {
-	uploadEnergyBill: (filename?: string) => Promise<void>,
+	uploadEnergyBill: (filename?: string) => Promise<void>
 	editSaveEnergyBill: (filename?: string) => Promise<void>
-
 }
 
 const test = base.extend<TestFixtures>({
@@ -48,9 +47,8 @@ test.setTimeout(120000)
 test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
 	page,
 	uploadEnergyBill,
-	login
+	login,
 }) => {
-
 	await login()
 	// Visit the root
 	await page.goto('/')
@@ -88,8 +86,10 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	)
 })
 
-test.skip('Custom name persists after form submission', async ({ page, login }) => {
-
+test.skip('Custom name persists after form submission', async ({
+	page,
+	login,
+}) => {
 	await login()
 	// Visit the root
 	await page.goto('/')
@@ -136,8 +136,12 @@ test.skip('Custom name persists after form submission', async ({ page, login }) 
 	await expect(nameInput).not.toHaveValue('CIC')
 })
 
-test.skip('Upload multiple CSVs', async ({ page, uploadEnergyBill, editSaveEnergyBill, login }) => {
-
+test.skip('Upload multiple CSVs', async ({
+	page,
+	uploadEnergyBill,
+	editSaveEnergyBill,
+	login,
+}) => {
 	await login()
 	// Visit the root
 	await page.goto('/')

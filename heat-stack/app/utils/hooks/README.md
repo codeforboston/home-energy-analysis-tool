@@ -2,11 +2,16 @@
 
 ## Overview
 
-The `useFetcherErrorHandler` hook provides a global, reusable pattern for handling errors from React Router actions. This ensures consistent error handling across all forms in the application.
+The `useFetcherErrorHandler` hook provides a global, reusable pattern for
+handling errors from React Router actions. This ensures consistent error
+handling across all forms in the application.
 
 ## Why Use This?
 
-When using raw `fetch()` to call React Router actions, the framework returns an HTML document instead of JSON, making error extraction difficult. Using `useFetcher()` from React Router solves this by properly communicating with actions as data requests.
+When using raw `fetch()` to call React Router actions, the framework returns an
+HTML document instead of JSON, making error extraction difficult. Using
+`useFetcher()` from React Router solves this by properly communicating with
+actions as data requests.
 
 ## Features
 
@@ -25,32 +30,39 @@ import { useFetcher } from 'react-router'
 import { useFetcherErrorHandler } from '#app/utils/hooks/use-fetcher-error-handler.ts'
 
 function MyForm() {
-  const fetcher = useFetcher()
-  const [errorModal, setErrorModal] = useState({ isOpen: false, title: '', message: '' })
+	const fetcher = useFetcher()
+	const [errorModal, setErrorModal] = useState({
+		isOpen: false,
+		title: '',
+		message: '',
+	})
 
-  // Handle errors globally
-  useFetcherErrorHandler(fetcher, (errorMessage) => {
-    setErrorModal({
-      isOpen: true,
-      title: 'Server Error',
-      message: errorMessage
-    })
-  })
+	// Handle errors globally
+	useFetcherErrorHandler(fetcher, (errorMessage) => {
+		setErrorModal({
+			isOpen: true,
+			title: 'Server Error',
+			message: errorMessage,
+		})
+	})
 
-  const handleSubmit = () => {
-    const formData = new FormData()
-    formData.append('intent', 'myAction')
-    formData.append('data', 'value')
-    
-    void fetcher.submit(formData, { method: 'POST' })
-  }
+	const handleSubmit = () => {
+		const formData = new FormData()
+		formData.append('intent', 'myAction')
+		formData.append('data', 'value')
 
-  return (
-    <>
-      <button onClick={handleSubmit}>Submit</button>
-      <ErrorModal {...errorModal} onClose={() => setErrorModal(prev => ({ ...prev, isOpen: false }))} />
-    </>
-  )
+		void fetcher.submit(formData, { method: 'POST' })
+	}
+
+	return (
+		<>
+			<button onClick={handleSubmit}>Submit</button>
+			<ErrorModal
+				{...errorModal}
+				onClose={() => setErrorModal((prev) => ({ ...prev, isOpen: false }))}
+			/>
+		</>
+	)
 }
 ```
 
@@ -58,13 +70,13 @@ function MyForm() {
 
 ```tsx
 useFetcherErrorHandler(
-  fetcher,
-  (errorMessage) => {
-    toast.error(errorMessage)
-  },
-  () => {
-    toast.success('Action completed successfully!')
-  }
+	fetcher,
+	(errorMessage) => {
+		toast.error(errorMessage)
+	},
+	() => {
+		toast.success('Action completed successfully!')
+	},
 )
 ```
 
@@ -73,22 +85,19 @@ useFetcherErrorHandler(
 ```tsx
 const [localData, setLocalData] = useState(loaderData.items)
 
-useFetcherErrorHandler(
-  fetcher,
-  (errorMessage) => {
-    setErrorModal({ isOpen: true, title: 'Error', message: errorMessage })
-    // Revert optimistic update on error
-    setLocalData(loaderData.items)
-  }
-)
+useFetcherErrorHandler(fetcher, (errorMessage) => {
+	setErrorModal({ isOpen: true, title: 'Error', message: errorMessage })
+	// Revert optimistic update on error
+	setLocalData(loaderData.items)
+})
 
 const handleUpdate = (newValue) => {
-  // Optimistic update
-  setLocalData(newValue)
-  
-  const formData = new FormData()
-  formData.append('data', JSON.stringify(newValue))
-  void fetcher.submit(formData, { method: 'POST' })
+	// Optimistic update
+	setLocalData(newValue)
+
+	const formData = new FormData()
+	formData.append('data', JSON.stringify(newValue))
+	void fetcher.submit(formData, { method: 'POST' })
 }
 ```
 
@@ -98,21 +107,21 @@ Your action handler should return errors in a consistent format:
 
 ```tsx
 export async function action({ request }: Route.ActionArgs) {
-  try {
-    // Your logic here
-    return { success: true, data: result }
-  } catch (error: any) {
-    console.error('Action failed:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    
-    return data(
-      {
-        error: message, // The hook looks for this 'error' field
-        // ... other fields
-      },
-      { status: 500 }
-    )
-  }
+	try {
+		// Your logic here
+		return { success: true, data: result }
+	} catch (error: any) {
+		console.error('Action failed:', error)
+		const message = error instanceof Error ? error.message : 'Unknown error'
+
+		return data(
+			{
+				error: message, // The hook looks for this 'error' field
+				// ... other fields
+			},
+			{ status: 500 },
+		)
+	}
 }
 ```
 
@@ -120,7 +129,8 @@ export async function action({ request }: Route.ActionArgs) {
 
 The hook automatically formats errors using these rules:
 
-1. **If stack trace contains `/app/`**: Includes all lines up to and including the first line with `/app/`
+1. **If stack trace contains `/app/`**: Includes all lines up to and including
+   the first line with `/app/`
 2. **Otherwise**: Takes the first 500 characters of the error message
 3. **Preserves newlines**: Stack traces remain readable
 
@@ -150,12 +160,12 @@ console.log(formatted)
 
 ```tsx
 const response = await fetch(window.location.pathname, {
-  method: 'POST',
-  body: formData,
+	method: 'POST',
+	body: formData,
 })
 
 if (!response.ok) {
-  throw new Error('Request failed')
+	throw new Error('Request failed')
 }
 
 const result = await response.json()
@@ -168,7 +178,7 @@ const result = await response.json()
 const fetcher = useFetcher()
 
 useFetcherErrorHandler(fetcher, (errorMessage) => {
-  setErrorModal({ isOpen: true, title: 'Error', message: errorMessage })
+	setErrorModal({ isOpen: true, title: 'Error', message: errorMessage })
 })
 
 void fetcher.submit(formData, { method: 'POST' })
