@@ -20,7 +20,7 @@ const test = base.extend<TestFixtures>({
 
 			// Waits for the URL, continues as soon as the URL appears
 			// and times out if 15 seconds have passed without the URL appearing
-			await page.waitForURL('/new', { timeout: 15_000 })
+			await page.waitForURL('/cases/new', { timeout: 15_000 })
 		}
 
 		await use(uploadFile)
@@ -97,7 +97,7 @@ test('Custom name persists after form submission', async ({ page }) => {
 
 	// Waits for the URL, continues as soon as the URL appears
 	// and times out if 15 seconds have passed without the URL appearing
-	await page.waitForURL('/new', { timeout: 15_000 })
+	await page.waitForURL('/cases/new', { timeout: 15_000 })
 
 	const tableHeaderContent = await getAnalysisHeaderTextContent(page)
 
