@@ -29,7 +29,20 @@ export async function getUserId(request: Request) {
 	const authSession = await authSessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
-	return authSession.get('userId') ?? null
+	const sessionId = authSession.get(sessionKey)
+	if (!sessionId) return null
+	const session = await prisma.session.findUnique({
+		select: { userId: true },
+		where: { id: sessionId, expirationDate: { gt: new Date() } },
+	})
+	if (!session?.userId) {
+		throw redirect('/', {
+			headers: {
+				'set-cookie': await authSessionStorage.destroySession(authSession),
+			},
+		})
+	}
+	return session.userId
 }
 
 export async function requireUserId(
@@ -75,11 +88,7 @@ export async function login({
 			userId: user.id,
 		},
 	})
-	const authSession = await authSessionStorage.getSession()
-	authSession.set('userId', user.id)
-	authSession.set(sessionKey, session.id)
-	// Optionally set expiration, etc. here
-	return authSession
+	return session
 }
 
 export async function resetUserPassword({
@@ -115,32 +124,27 @@ export async function signup({
 }) {
 	const hashedPassword = await getPasswordHash(password)
 
-	const user = await prisma.user.create({
+	const session = await prisma.session.create({
 		data: {
-			email: email.toLowerCase(),
-			username: username.toLowerCase(),
-			name,
-			roles: { connect: { name: 'user' } },
-			password: {
+			expirationDate: getSessionExpirationDate(),
+			user: {
 				create: {
-					hash: hashedPassword,
+					email: email.toLowerCase(),
+					username: username.toLowerCase(),
+					name,
+					roles: { connect: { name: 'user' } },
+					password: {
+						create: {
+							hash: hashedPassword,
+						},
+					},
 				},
 			},
 		},
-		select: { id: true },
+		select: { id: true, expirationDate: true },
 	})
-	const session = await prisma.session.create({
-		select: { id: true, expirationDate: true, userId: true },
-		data: {
-			expirationDate: getSessionExpirationDate(),
-			userId: user.id,
-		},
-	})
-	const authSession = await authSessionStorage.getSession()
-	authSession.set('userId', user.id)
-	authSession.set(sessionKey, session.id)
-	// Optionally set expiration, etc. here
-	return authSession
+
+	return session
 }
 
 export async function signupWithConnection({
@@ -168,6 +172,7 @@ export async function signupWithConnection({
 		},
 		select: { id: true },
 	})
+
 	if (imageUrl) {
 		const imageFile = await downloadFile(imageUrl)
 		await prisma.user.update({
@@ -181,19 +186,17 @@ export async function signupWithConnection({
 			},
 		})
 	}
+
 	// Create and return the session
 	const session = await prisma.session.create({
-		select: { id: true, expirationDate: true, userId: true },
 		data: {
 			expirationDate: getSessionExpirationDate(),
 			userId: user.id,
 		},
+		select: { id: true, expirationDate: true },
 	})
-	const authSession = await authSessionStorage.getSession()
-	authSession.set('userId', user.id)
-	authSession.set(sessionKey, session.id)
-	// Optionally set expiration, etc. here
-	return authSession
+
+	return session
 }
 
 export async function logout(
