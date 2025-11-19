@@ -44,13 +44,11 @@ export const getCaseForEditing = async (caseId: number, userId: string) => {
 				include: {
 					heatingInput: {
 						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-					},
-					analysisDataFile: {
-						take: 1,
 						include: {
-							EnergyUsageFile: true,
+							processedEnergyBill: true,
 						},
 					},
+					heatingOutput: true, // Include the calculated results for display
 				},
 			},
 		},
@@ -117,16 +115,7 @@ export const updateCase = async (
 		heatingInput: z.infer<typeof HeatingInputSchema>
 	},
 ) => {
-	/**
-	 * X - 0. Find location
-	 * X - 0.1. Find homeowner
-	 * X - 0.2. Test what happens if you change location or homeowner so fields are no longer unique
-	 * 1. Update case info data
-	 * 2. Create new EnergyUsageFileRecord
-	 * 3. Create new AnalysisDataFile
-	 * 4. Create new analysis input
-	 * 5. Create new analysis output
-	 */
+
 
 	const caseRecord = await prisma.case.findUnique({
 		where: {
@@ -201,25 +190,6 @@ export const createCase = async (
 		})
 
 		// Create location using geocoded information
-		console.log('Location saved is ', {
-			addressComponents: result.addressComponents,
-			formInputComponents: {
-				street_address: formInputs.street_address,
-				town: formInputs.town,
-				state: formInputs.state,
-				living_area: formInputs.living_area,
-			},
-			data: {
-				address: result.addressComponents?.street || formInputs.street_address,
-				city: result.addressComponents?.city || formInputs.town,
-				state: result.addressComponents?.state || formInputs.state,
-				zipcode: result.addressComponents?.zip || '',
-				country: 'USA',
-				livingAreaSquareFeet: Math.round(formInputs.living_area),
-				latitude: result.coordinates?.y || 0,
-				longitude: result.coordinates?.x || 0,
-			},
-		})
 		const location = await tx.location.create({
 			data: {
 				// address: result.addressComponents?.street || formInputs.street_address,

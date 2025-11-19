@@ -47,14 +47,18 @@ export const useRulesEngine = (
 
 	const lazyLoadRulesEngine = () => {
 		if (isInitialized) {
+			console.log('⚠️ Rules engine already initialized')
 			return
 		}
+		console.log('🔄 Starting to load rules engine...')
 		importRulesEngine()
 			.then((rulesEngine) => {
-				setIsInitialized(true)
+				console.log('✅ Rules engine loaded successfully')
 				rulesEngineRef.current = rulesEngine
+				setIsInitialized(true)
 			})
-			.catch(() => {
+			.catch((error) => {
+				console.error('❌ Failed to load rules engine:', error)
 				throw new Error('Failed to load rules engine.')
 			})
 	}
@@ -69,14 +73,32 @@ export const useRulesEngine = (
 		county_id: any,
 	) => {
 		const rulesEngine = rulesEngineRef.current
+		
+		console.log('🔧 recalculateFromBillingRecordsChange called', {
+			hasParsedLastResult: !!parsedLastResult,
+			isInitialized,
+			hasRulesEngine: !!rulesEngine,
+			billingRecordsCount: billingRecords.length
+		})
 
-		if (!parsedLastResult || !isInitialized || !rulesEngine) return
+		if (!parsedLastResult) {
+			console.warn('⚠️ No parsedLastResult provided')
+			return
+		}
+		
+		if (!rulesEngine) {
+			console.warn('⚠️ Rules engine not loaded yet - please wait for initialization')
+			return
+		}
+		
+		console.log('🔄 Building current map of usage data...')
 		// replace original Rules Engine's billing records with new UI's billingRecords
 		const parsedNextResult = buildCurrentMapOfUsageData(
 			parsedLastResult,
 			billingRecords,
 		)
 
+		console.log('🧮 Calling executeRoundtripAnalyticsFromFormJs...')
 		// why are set back temp and set back hour not optional for this one?? do we need to put nulls in or something?
 		const calcResultPyProxy = rulesEngine.executeRoundtripAnalyticsFromFormJs(
 			parsedAndValidatedFormSchema,
@@ -87,29 +109,21 @@ export const useRulesEngine = (
 		)
 		const calcResult = calcResultPyProxy.toJs()
 		calcResultPyProxy.destroy()
+		console.log('✅ Rules engine calculation completed')
 
 		const newUsageData = calcResult && buildCurrentUsageData(calcResult)
+		console.log('📊 New usage data built:', newUsageData)
 
 		setUsageData((prevUsageData) => {
-			let v = prevUsageData?.processed_energy_bills || []
-			console.log(
-				'rules engine prev',
-				v[0]?.inclusion_override,
-				v[1]?.inclusion_override,
-				v[2]?.inclusion_override,
-			)
-			const v2 = prevUsageData?.processed_energy_bills || []
-			console.log(
-				'rules engine 2',
-				v2[0]?.inclusion_override,
-				v[1]?.inclusion_override,
-				v[2]?.inclusion_override,
-			)
+			console.log('🔄 Comparing usage data...')
+			console.log('Previous:', prevUsageData)
+			console.log('New:', newUsageData)
+
 			if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
-				console.log('new')
+				console.log('✅ Usage data changed, updating state')
 				return newUsageData
 			}
-			console.log('prev')
+			console.log('⚠️ Usage data unchanged, keeping previous')
 			return prevUsageData
 		})
 	}
@@ -164,8 +178,8 @@ export const useRulesEngine = (
 	useEffect(() => {
 		return () => {
 			// Memory cleanup of pyodide fn's when component unmounts
-			if (rulesEngineRef.current?.cleanupPyodideResources) {
-				rulesEngineRef.current.cleanupPyodideResources()
+			if (rulesEngineRef.current?.cleanupPyodideProxies) {
+				rulesEngineRef.current.cleanupPyodideProxies()
 				rulesEngineRef.current = null
 			}
 		}
@@ -187,7 +201,7 @@ export const useRulesEngine = (
 		lazyLoadRulesEngine,
 		toggleBillingPeriod,
 		usageData,
-		recalculateFromBillingRecordsChange: isInitialized
+		recalculateFromBillingRecordsChange: isInitialized && rulesEngineRef.current
 			? recalculateFromBillingRecordsChange
 			: null,
 	}

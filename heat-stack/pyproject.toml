@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heat-stack"
+version = "0.0.1"
+description = "Heat Stack - Home Energy Analysis Tool Frontend"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "black==23.3.0",
+    "isort==5.12.0",
+    "mypy==1.4.0",
+    "pytest==7.3.2",
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+disallow_any_generics = true
+disallow_incomplete_defs = true
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.git
+  | \.venv
+  | node_modules
+  | build
+  | dist
+)/
+'''

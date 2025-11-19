@@ -2,14 +2,14 @@ import * as pyodideModule from 'pyodide'
 import { type PyodideInterface } from 'pyodide'
 import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-
-// Import Python code as raw string assets
 import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
-
+import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
+
+// Import Python code as raw string assets
 
 const isServer = typeof window === 'undefined'
 const basePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/'
@@ -144,15 +144,11 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	destroy(): void
 	toJs?(): any
 }
-// When you're done with your application or this module
-// Destroy all the Python function proxies
-export function cleanupPyodideResources(): void {
-	// Destroy the function proxies
-	executeParseGasBillPy.destroy()
-	executeGetAnalyticsFromFormJs.destroy()
-	executeRoundtripAnalyticsFromFormJs.destroy()
-
+// When you're done with your application or this module, call this to destroy all the Python function proxies
+export function cleanupPyodideProxies() {
+	safeDestroy(executeParseGasBillPy)
+	safeDestroy(executeGetAnalyticsFromFormJs)
+	safeDestroy(executeRoundtripAnalyticsFromFormJs)
 	// If you have access to the pyodide instance itself, you might want to clean it up too
-	// This is not always necessary or possible depending on your architecture
 	// pyodide.destroy(); // If supported by your pyodide version
 }

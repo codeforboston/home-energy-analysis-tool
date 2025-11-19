@@ -90,7 +90,7 @@ export function AnalysisHeader({
 
 	This useEffect is part of a state machine to manage automatic scrolling
 	after the user clicks the calculate button, with other, likewise-marked code
-	single.tsx and EnergyUseHistory.tsx.  Do not change it lightly.
+	new.tsx, $caseid.edit.tsx EnergyUseHistory.tsx.  Do not change it lightly.
 	*/
 	useEffect(() => {
 		if (scrollAfterSubmit) {
