@@ -6,7 +6,9 @@ const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 }
 
 type TestFixtures = {
-	uploadEnergyBill: (filename?: string) => Promise<void>
+	uploadEnergyBill: (filename?: string) => Promise<void>,
+	editSaveEnergyBill: (filename?: string) => Promise<void>
+
 }
 
 const test = base.extend<TestFixtures>({
@@ -20,7 +22,22 @@ const test = base.extend<TestFixtures>({
 
 			// Waits for the URL, continues as soon as the URL appears
 			// and times out if 15 seconds have passed without the URL appearing
-			await page.waitForURL('/cases/new', { timeout: 15_000 })
+			await page.waitForURL('/cases/*/edit', { timeout: 15_000 })
+		}
+
+		await use(uploadFile)
+	},
+	editSaveEnergyBill: async ({ page }, use) => {
+		const uploadFile = async (
+			filepath: string = 'tests/fixtures/csv/natural-gas-eversource.csv',
+		) => {
+			await page.getByTestId('upload-billing').nth(0).setInputFiles(filepath)
+
+			await page.locator('button[name="intent"][value="save"]').click()
+
+			// Waits for the URL, continues as soon as the URL appears
+			// and times out if 15 seconds have passed without the URL appearing
+			await page.waitForURL('/cases/*/edit', { timeout: 15_000 })
 		}
 
 		await use(uploadFile)
@@ -31,7 +48,10 @@ test.setTimeout(120000)
 test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
 	page,
 	uploadEnergyBill,
+	login
 }) => {
+
+	await login()
 	// Visit the root
 	await page.goto('/')
 
@@ -68,7 +88,9 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	)
 })
 
-test('Custom name persists after form submission', async ({ page }) => {
+test('Custom name persists after form submission', async ({ page, login }) => {
+
+	await login()
 	// Visit the root
 	await page.goto('/')
 
@@ -93,11 +115,11 @@ test('Custom name persists after form submission', async ({ page }) => {
 		)
 
 	// Submit the form by clicking the Calculate button
-	await page.locator('button[name="intent"][value="upload"]').click()
+	await page.locator('button[name="intent"][value="save"]').click()
 
 	// Waits for the URL, continues as soon as the URL appears
 	// and times out if 15 seconds have passed without the URL appearing
-	await page.waitForURL('/cases/new', { timeout: 15_000 })
+	await page.waitForURL('/cases/*/edit', { timeout: 15_000 })
 
 	const tableHeaderContent = await getAnalysisHeaderTextContent(page)
 
@@ -114,7 +136,9 @@ test('Custom name persists after form submission', async ({ page }) => {
 	await expect(nameInput).not.toHaveValue('CIC')
 })
 
-test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
+test('Upload multiple CSVs', async ({ page, uploadEnergyBill, editSaveEnergyBill, login }) => {
+
+	await login()
 	// Visit the root
 	await page.goto('/')
 
@@ -140,7 +164,7 @@ test('Upload multiple CSVs', async ({ page, uploadEnergyBill }) => {
 		)
 		.toBe(26)
 
-	await uploadEnergyBill('tests/fixtures/csv/natural-gas-eversource.csv')
+	await editSaveEnergyBill('tests/fixtures/csv/natural-gas-eversource.csv')
 
 	// TODO Update tests to test table values instead of test that the content change
 	// This is a hack to check if table has updated.
