@@ -15,11 +15,17 @@ export default function HEATLandingPage() {
 					<p className="mb-8 mt-6 text-xl md:text-2xl">
 						Right-Size Your Heat Pump
 					</p>
-					<div className="flex flex-col sm:flex-row justify-center gap-4">
-						<Link to="/cases/new" className="inline-block bg-white text-emerald-700 font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
+					<div className="flex flex-col justify-center gap-4 sm:flex-row">
+						<Link
+							to="/cases/new"
+							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+						>
 							Get Started (with Empty Form)
 						</Link>
-						<Link to="/cases/new?dev=true" className="inline-block bg-white text-emerald-700 font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
+						<Link
+							to="/cases/new?dev=true"
+							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+						>
 							Get Started (with Demo Data)
 						</Link>
 						<a
@@ -146,7 +152,10 @@ export default function HEATLandingPage() {
 								unique heating requirements, ensuring you get the right-sized
 								system for optimal comfort and efficiency.
 							</p>
-							<Link to="/cases/new" className="inline-block bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition-all">
+							<Link
+								to="/cases/new"
+								className="inline-block rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+							>
 								Start Your Analysis
 							</Link>
 						</div>
@@ -219,7 +228,10 @@ export default function HEATLandingPage() {
 						Join the thousands of homeowners who have used our tool to make the
 						switch to efficient, climate-friendly heating.
 					</p>
-					<Link to="/cases/new" className="inline-block bg-white text-emerald-700 font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
+					<Link
+						to="/cases/new"
+						className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+					>
 						Start Your Free Analysis
 					</Link>
 				</div>

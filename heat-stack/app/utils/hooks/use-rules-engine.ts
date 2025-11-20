@@ -73,24 +73,26 @@ export const useRulesEngine = (
 		county_id: any,
 	) => {
 		const rulesEngine = rulesEngineRef.current
-		
+
 		console.log('🔧 recalculateFromBillingRecordsChange called', {
 			hasParsedLastResult: !!parsedLastResult,
 			isInitialized,
 			hasRulesEngine: !!rulesEngine,
-			billingRecordsCount: billingRecords.length
+			billingRecordsCount: billingRecords.length,
 		})
 
 		if (!parsedLastResult) {
 			console.warn('⚠️ No parsedLastResult provided')
 			return
 		}
-		
+
 		if (!rulesEngine) {
-			console.warn('⚠️ Rules engine not loaded yet - please wait for initialization')
+			console.warn(
+				'⚠️ Rules engine not loaded yet - please wait for initialization',
+			)
 			return
 		}
-		
+
 		console.log('🔄 Building current map of usage data...')
 		// replace original Rules Engine's billing records with new UI's billingRecords
 		const parsedNextResult = buildCurrentMapOfUsageData(
@@ -201,8 +203,9 @@ export const useRulesEngine = (
 		lazyLoadRulesEngine,
 		toggleBillingPeriod,
 		usageData,
-		recalculateFromBillingRecordsChange: isInitialized && rulesEngineRef.current
-			? recalculateFromBillingRecordsChange
-			: null,
+		recalculateFromBillingRecordsChange:
+			isInitialized && rulesEngineRef.current
+				? recalculateFromBillingRecordsChange
+				: null,
 	}
 }

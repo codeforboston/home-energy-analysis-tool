@@ -19,8 +19,8 @@ describe('buildHeatLoadGraphData', () => {
 		const result = buildHeatLoadGraphData(
 			mockHeatLoadSummaryOutput,
 			-10, // startTemperature
-			70,  // designSetPoint
-			90   // endTemperature
+			70, // designSetPoint
+			90, // endTemperature
 		)
 
 		expect(result).toHaveLength(6)
@@ -30,8 +30,8 @@ describe('buildHeatLoadGraphData', () => {
 		const result = buildHeatLoadGraphData(
 			mockHeatLoadSummaryOutput,
 			-10, // startTemperature
-			70,  // designSetPoint
-			90   // endTemperature
+			70, // designSetPoint
+			90, // endTemperature
 		)
 
 		// Check avg line start point
@@ -64,9 +64,9 @@ describe('buildHeatLoadGraphData', () => {
 	it('should handle different start and end temperatures', () => {
 		const result = buildHeatLoadGraphData(
 			mockHeatLoadSummaryOutput,
-			0,   // startTemperature
-			72,  // designSetPoint
-			80   // endTemperature
+			0, // startTemperature
+			72, // designSetPoint
+			80, // endTemperature
 		)
 
 		expect(result[0]!.temperature).toBe(0)
@@ -84,12 +84,7 @@ describe('buildHeatLoadGraphData', () => {
 			whole_home_heat_loss_rate: 0,
 		}
 
-		const result = buildHeatLoadGraphData(
-			zeroHeatLossSummary,
-			-10,
-			70,
-			90
-		)
+		const result = buildHeatLoadGraphData(zeroHeatLossSummary, -10, 70, 90)
 
 		// All heat load values should be 0
 		expect(result[0]!.avgLine).toBe(0)
@@ -105,7 +100,7 @@ describe('buildHeatLoadGraphData', () => {
 			mockHeatLoadSummaryOutput,
 			-50, // very cold start
 			70,
-			100  // very hot end
+			100, // very hot end
 		)
 
 		expect(result[0]!.temperature).toBe(-50)
@@ -120,11 +115,11 @@ describe('buildHeatLoadGraphData', () => {
 			mockHeatLoadSummaryOutput,
 			-10,
 			70,
-			90
+			90,
 		)
 
 		// Check that all points have temperature
-		result.forEach(point => {
+		result.forEach((point) => {
 			expect(point).toHaveProperty('temperature')
 			expect(typeof point.temperature).toBe('number')
 		})

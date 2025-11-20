@@ -14,14 +14,18 @@ export const test = base.extend<TestFixtures>({
 		await use(async () => {
 			// Collect and save coverage
 			const coverage = await page.coverage.stopJSCoverage()
-			
+
 			// Filter for only TSX files
-			const tsxCoverage = coverage.filter(entry => 
-				entry.url.includes('/app/') && 
-				(entry.url.endsWith('.tsx') || entry.url.endsWith('.jsx'))
+			const tsxCoverage = coverage.filter(
+				(entry) =>
+					entry.url.includes('/app/') &&
+					(entry.url.endsWith('.tsx') || entry.url.endsWith('.jsx')),
 			)
 
-			console.log('TSX Coverage collected for:', tsxCoverage.map(c => c.url))
+			console.log(
+				'TSX Coverage collected for:',
+				tsxCoverage.map((c) => c.url),
+			)
 		})
 	},
 })

@@ -221,7 +221,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const result = await processCaseUpdate(
 				caseId,
 				submission,
-				userId ?? '',
+				userId,
 				formData,
 			)
 
@@ -242,7 +242,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 			console.log('🔄 Processing save operation for case:', caseId)
 
 			// Parse billing records from form data if present
-			const billingRecordsJson = (formData.get('billing_records') as string | null) ?? ""
+			const billingRecordsJson = formData.get('billing_records') as
+				| string
+				| null
 			let billingRecords: any[] | undefined
 			if (billingRecordsJson) {
 				try {
@@ -255,7 +257,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 
 			// Parse heat load output from form data if present
-			const heatLoadOutputJson = (formData.get('heat_load_output') as string | null) ?? ""
+			const heatLoadOutputJson = formData.get('heat_load_output') as
+				| string
+				| null
 			let heatLoadOutput: any | undefined
 			if (heatLoadOutputJson) {
 				try {
@@ -273,7 +277,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				caseId,
 				submission.value,
 				{},
-				userId ?? '',
+				userId,
 				billingRecords,
 				heatLoadOutput,
 			)
