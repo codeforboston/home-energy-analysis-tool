@@ -221,7 +221,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const result = await processCaseUpdate(
 				caseId,
 				submission,
-				userId,
+				userId || '',
 				formData,
 			)
 
@@ -277,7 +277,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				caseId,
 				submission.value,
 				{},
-				userId,
+				userId || '',
 				billingRecords,
 				heatLoadOutput,
 			)
