@@ -18,27 +18,27 @@ vi.mock('pyodide', () => ({
 
 // Mock Python code imports
 vi.mock('../pycode/parse_gas_bill.py?raw', () => ({
-	default: 'def executeParse(): pass',
+	default: 'def executeParse(): pass'
 }))
 
 vi.mock('../pycode/get_analytics.py?raw', () => ({
-	default: 'def executeGetAnalyticsFromForm(): pass',
+	default: 'def executeGetAnalyticsFromForm(): pass'
 }))
 
 vi.mock('../pycode/roundtrip_analytics.py?raw', () => ({
-	default: 'def executeRoundtripAnalyticsFromForm(): pass',
+	default: 'def executeRoundtripAnalyticsFromForm(): pass'
 }))
 
 // Import the module being tested after mocking
 import {
 	type ExecuteParseFunction,
-	cleanupPyodideProxies,
+	cleanupPyodideProxies
 } from './rules-engine.ts'
 
 describe('rules-engine', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-
+		
 		// Reset mock implementations
 		mockPyodideInterface.loadPackage.mockResolvedValue(undefined)
 		mockPyodideInterface.runPythonAsync.mockResolvedValue(mockPyProxy)
@@ -52,40 +52,38 @@ describe('rules-engine', () => {
 		it('should load required packages on module import', () => {
 			// Since the module loads packages on import, we can verify the calls were made
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining(
-					'pydantic_core-2.27.2-cp313-cp313-pyodide_2025_0_wasm32.whl',
-				),
+				expect.stringContaining('pydantic_core-2.27.2-cp313-cp313-pyodide_2025_0_wasm32.whl')
 			)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('pydantic-2.10.6-py3-none-any.whl'),
+				expect.stringContaining('pydantic-2.10.6-py3-none-any.whl')
 			)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('typing_extensions-4.14.0-py3-none-any.whl'),
+				expect.stringContaining('typing_extensions-4.14.0-py3-none-any.whl')
 			)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('annotated_types-0.7.0-py3-none-any.whl'),
+				expect.stringContaining('annotated_types-0.7.0-py3-none-any.whl')
 			)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('rules_engine-0.0.1-py3-none-any.whl'),
+				expect.stringContaining('rules_engine-0.0.1-py3-none-any.whl')
 			)
 		})
 
 		it('should use correct base path based on environment', () => {
 			// The test runs in Node.js environment (server-side)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('public/pyodide-env/'),
+				expect.stringContaining('public/pyodide-env/')
 			)
 		})
 
 		it('should initialize Python functions on module import', () => {
 			expect(mockPyodideInterface.runPythonAsync).toHaveBeenCalledWith(
-				expect.stringContaining('executeParse'),
+				expect.stringContaining('executeParse')
 			)
 			expect(mockPyodideInterface.runPythonAsync).toHaveBeenCalledWith(
-				expect.stringContaining('executeGetAnalyticsFromForm'),
+				expect.stringContaining('executeGetAnalyticsFromForm')
 			)
 			expect(mockPyodideInterface.runPythonAsync).toHaveBeenCalledWith(
-				expect.stringContaining('executeRoundtripAnalyticsFromForm'),
+				expect.stringContaining('executeRoundtripAnalyticsFromForm')
 			)
 		})
 	})
@@ -110,21 +108,18 @@ describe('rules-engine', () => {
 
 			// Mock the module exports
 			vi.doMock('./rules-engine.ts', async (importOriginal) => {
-				const original = (await importOriginal()) as any
+				const original = await importOriginal() as any
 				return {
 					...original,
 					executeParseGasBillPy: mockExecuteParseGasBillPy,
 					executeGetAnalyticsFromFormJs: mockExecuteGetAnalyticsFromFormJs,
-					executeRoundtripAnalyticsFromFormJs:
-						mockExecuteRoundtripAnalyticsFromFormJs,
+					executeRoundtripAnalyticsFromFormJs: mockExecuteRoundtripAnalyticsFromFormJs,
 				}
 			})
 
 			// Import the cleanup function
-			const { cleanupPyodideProxies: cleanup } = await import(
-				'./rules-engine.ts'
-			)
-
+			const { cleanupPyodideProxies: cleanup } = await import('./rules-engine.ts')
+			
 			// Call cleanup
 			cleanup()
 
@@ -151,25 +146,17 @@ describe('rules-engine', () => {
 	describe('Error handling', () => {
 		it('should handle package loading failures gracefully', async () => {
 			// Reset the mock to simulate failure
-			mockPyodideInterface.loadPackage.mockRejectedValue(
-				new Error('Package load failed'),
-			)
+			mockPyodideInterface.loadPackage.mockRejectedValue(new Error('Package load failed'))
 
 			// Since the module loads on import, we need to test error handling indirectly
 			// In a real application, you might want to wrap the loading in try-catch
-			await expect(mockPyodideInterface.loadPackage).rejects.toThrow(
-				'Package load failed',
-			)
+			await expect(mockPyodideInterface.loadPackage).rejects.toThrow('Package load failed')
 		})
 
 		it('should handle Python script execution failures', async () => {
-			mockPyodideInterface.runPythonAsync.mockRejectedValue(
-				new Error('Python execution failed'),
-			)
+			mockPyodideInterface.runPythonAsync.mockRejectedValue(new Error('Python execution failed'))
 
-			await expect(mockPyodideInterface.runPythonAsync).rejects.toThrow(
-				'Python execution failed',
-			)
+			await expect(mockPyodideInterface.runPythonAsync).rejects.toThrow('Python execution failed')
 		})
 	})
 
@@ -181,10 +168,8 @@ describe('rules-engine', () => {
 
 		it('should use correct basePath for server environment', () => {
 			const isServer = typeof window === 'undefined'
-			const expectedBasePath = isServer
-				? 'public/pyodide-env/'
-				: '/pyodide-env/'
-
+			const expectedBasePath = isServer ? 'public/pyodide-env/' : '/pyodide-env/'
+			
 			expect(expectedBasePath).toBe('public/pyodide-env/')
 		})
 	})
@@ -201,7 +186,7 @@ describe('rules-engine', () => {
 				['period_end_date', '2023-01-31'],
 				['usage', 100],
 				['analysis_type_override', false],
-				['inclusion_override', true],
+				['inclusion_override', true]
 			] as [string, any][])
 
 			expect(mockProcessedBill).toBeInstanceOf(Map)
@@ -215,9 +200,9 @@ describe('rules-engine', () => {
 					new Map([
 						['period_start_date', '2023-01-01'],
 						['period_end_date', '2023-01-31'],
-						['usage', 100],
-					] as [string, any][]),
-				],
+						['usage', 100]
+					] as [string, any][])
+				]
 			}
 
 			expect(mockUserAdjustedData.processed_energy_bills).toHaveLength(1)

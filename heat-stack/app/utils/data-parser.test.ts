@@ -4,25 +4,19 @@ import { replacer, reviver, replacedMapToObject } from './data-parser.ts'
 describe('data-parser', () => {
 	describe('replacer', () => {
 		it('should serialize Map objects', () => {
-			const testMap = new Map([
-				['a', 1],
-				['b', 2],
-			])
+			const testMap = new Map([['a', 1], ['b', 2]])
 			const result = replacer('testKey', testMap)
-
+			
 			expect(result).toEqual({
 				dataType: 'Map',
-				value: [
-					['a', 1],
-					['b', 2],
-				],
+				value: [['a', 1], ['b', 2]]
 			})
 		})
 
 		it('should pass through non-Map values unchanged', () => {
 			const testObject = { foo: 'bar' }
 			const result = replacer('testKey', testObject)
-
+			
 			expect(result).toBe(testObject)
 		})
 
@@ -36,7 +30,7 @@ describe('data-parser', () => {
 		it('should handle arrays', () => {
 			const testArray = [1, 2, 3]
 			const result = replacer('key', testArray)
-
+			
 			expect(result).toBe(testArray)
 		})
 	})
@@ -45,13 +39,10 @@ describe('data-parser', () => {
 		it('should reconstruct Map objects', () => {
 			const serializedMap = {
 				dataType: 'Map',
-				value: [
-					['a', 1],
-					['b', 2],
-				],
+				value: [['a', 1], ['b', 2]]
 			}
 			const result = reviver('testKey', serializedMap)
-
+			
 			expect(result).toBeInstanceOf(Map)
 			expect(result.get('a')).toBe(1)
 			expect(result.get('b')).toBe(2)
@@ -60,7 +51,7 @@ describe('data-parser', () => {
 		it('should pass through non-Map objects unchanged', () => {
 			const testObject = { foo: 'bar' }
 			const result = reviver('testKey', testObject)
-
+			
 			expect(result).toBe(testObject)
 		})
 
@@ -74,7 +65,7 @@ describe('data-parser', () => {
 		it('should handle objects without dataType property', () => {
 			const testObject = { someProperty: 'value' }
 			const result = reviver('key', testObject)
-
+			
 			expect(result).toBe(testObject)
 		})
 	})
@@ -84,7 +75,7 @@ describe('data-parser', () => {
 			const originalMap = new Map<string, any>([
 				['key1', 'value1'],
 				['key2', { nested: 'object' }],
-				['key3', [1, 2, 3]],
+				['key3', [1, 2, 3]]
 			])
 
 			const serialized = JSON.stringify(originalMap, replacer)
@@ -105,9 +96,7 @@ describe('data-parser', () => {
 
 			expect(deserialized).toBeInstanceOf(Map)
 			expect(deserialized.get('outer')).toBeInstanceOf(Map)
-			expect((deserialized.get('outer') as Map<string, any>).get('inner')).toBe(
-				'value',
-			)
+			expect((deserialized.get('outer') as Map<string, any>).get('inner')).toBe('value')
 		})
 	})
 
@@ -117,15 +106,15 @@ describe('data-parser', () => {
 				dataType: 'Map',
 				value: [
 					['key1', 'value1'],
-					['key2', 'value2'],
-				],
+					['key2', 'value2']
+				]
 			}
 
 			const result = replacedMapToObject(mapLikeObject)
 
 			expect(result).toEqual({
 				key1: 'value1',
-				key2: 'value2',
+				key2: 'value2'
 			})
 		})
 
@@ -133,22 +122,19 @@ describe('data-parser', () => {
 			const nestedMapLikeObject = {
 				dataType: 'Map',
 				value: [
-					[
-						'outer',
-						{
-							dataType: 'Map',
-							value: [['inner', 'value']],
-						},
-					],
-				],
+					['outer', {
+						dataType: 'Map',
+						value: [['inner', 'value']]
+					}]
+				]
 			}
 
 			const result = replacedMapToObject(nestedMapLikeObject)
 
 			expect(result).toEqual({
 				outer: {
-					inner: 'value',
-				},
+					inner: 'value'
+				}
 			})
 		})
 
@@ -156,17 +142,20 @@ describe('data-parser', () => {
 			const arrayWithMaps = [
 				{
 					dataType: 'Map',
-					value: [['key1', 'value1']],
+					value: [['key1', 'value1']]
 				},
 				{
 					dataType: 'Map',
-					value: [['key2', 'value2']],
-				},
+					value: [['key2', 'value2']]
+				}
 			]
 
 			const result = replacedMapToObject(arrayWithMaps)
 
-			expect(result).toEqual([{ key1: 'value1' }, { key2: 'value2' }])
+			expect(result).toEqual([
+				{ key1: 'value1' },
+				{ key2: 'value2' }
+			])
 		})
 
 		it('should pass through primitive values unchanged', () => {
@@ -179,7 +168,7 @@ describe('data-parser', () => {
 		it('should pass through regular objects unchanged', () => {
 			const regularObject = { foo: 'bar', num: 123 }
 			const result = replacedMapToObject(regularObject)
-
+			
 			expect(result).toBe(regularObject)
 		})
 
@@ -189,9 +178,9 @@ describe('data-parser', () => {
 				42,
 				{
 					dataType: 'Map',
-					value: [['mapKey', 'mapValue']],
+					value: [['mapKey', 'mapValue']]
 				},
-				{ regularObject: 'value' },
+				{ regularObject: 'value' }
 			]
 
 			const result = replacedMapToObject(mixedArray)
@@ -200,7 +189,7 @@ describe('data-parser', () => {
 				'string',
 				42,
 				{ mapKey: 'mapValue' },
-				{ regularObject: 'value' },
+				{ regularObject: 'value' }
 			])
 		})
 
@@ -208,32 +197,28 @@ describe('data-parser', () => {
 			const complexStructure = {
 				dataType: 'Map',
 				value: [
-					[
-						'level1',
-						{
-							dataType: 'Map',
-							value: [
-								[
-									'level2',
-									[
-										{
-											dataType: 'Map',
-											value: [['level3', 'deepValue']],
-										},
-									],
-								],
-							],
-						},
-					],
-				],
+					['level1', {
+						dataType: 'Map',
+						value: [
+							['level2', [
+								{
+									dataType: 'Map',
+									value: [['level3', 'deepValue']]
+								}
+							]]
+						]
+					}]
+				]
 			}
 
 			const result = replacedMapToObject(complexStructure)
 
 			expect(result).toEqual({
 				level1: {
-					level2: [{ level3: 'deepValue' }],
-				},
+					level2: [
+						{ level3: 'deepValue' }
+					]
+				}
 			})
 		})
 	})

@@ -1,10 +1,11 @@
 import { data, Link } from 'react-router'
-import { getUserId } from '#app/utils/auth.server.ts'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userId = await getUserId(request)
+	const userId = await requireUserId(request)
+	// Fetch all cases with their related data
 	const cases = await getCasesByUser(userId)
 
 	return data({ cases })
@@ -27,7 +28,8 @@ export default function Cases({
 					Create New Case
 				</Link>
 			</div>
-			/* TODO:why /new why not case/new */
+/* TODO:why /new why not case/new
+*/
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">

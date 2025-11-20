@@ -9,7 +9,7 @@ vi.mock('@remix-run/server-runtime/dist/upload/memoryUploadHandler.js', () => ({
 describe('file-upload-handler', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-
+		
 		// Mock console.error to avoid noise in tests
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 	})
@@ -20,10 +20,8 @@ describe('file-upload-handler', () => {
 
 	describe('uploadHandler', () => {
 		it('should create memory upload handler with correct configuration', async () => {
-			const { createMemoryUploadHandler } = await import(
-				'@remix-run/server-runtime/dist/upload/memoryUploadHandler.js'
-			)
-
+			const { createMemoryUploadHandler } = await import('@remix-run/server-runtime/dist/upload/memoryUploadHandler.js')
+			
 			expect(createMemoryUploadHandler).toHaveBeenCalledWith({
 				maxPartSize: 1024 * 1024 * 5, // 5 MB
 			})
@@ -38,7 +36,7 @@ describe('file-upload-handler', () => {
 	describe('fileUploadHandler', () => {
 		it('should process file and return its text content', async () => {
 			const mockFileContent = 'Date,Usage\n2023-01-01,100\n2023-02-01,85'
-
+			
 			const mockFile = {
 				text: vi.fn().mockResolvedValue(mockFileContent),
 				name: 'energy_usage.csv',
@@ -82,10 +80,7 @@ describe('file-upload-handler', () => {
 
 			const result = await fileUploadHandler(mockFormData)
 
-			expect(console.error).toHaveBeenCalledWith(
-				'Error reading file:',
-				expect.any(Error),
-			)
+			expect(console.error).toHaveBeenCalledWith('Error reading file:', expect.any(Error))
 			expect(result).toBe('')
 		})
 
@@ -121,18 +116,18 @@ describe('file-upload-handler', () => {
 				{
 					content: 'CSV content',
 					type: 'text/csv',
-					name: 'test.csv',
+					name: 'test.csv'
 				},
 				{
 					content: 'XML content',
 					type: 'text/xml',
-					name: 'test.xml',
+					name: 'test.xml'
 				},
 				{
 					content: 'Plain text content',
 					type: 'text/plain',
-					name: 'test.txt',
-				},
+					name: 'test.txt'
+				}
 			]
 
 			for (const testCase of testCases) {
@@ -154,7 +149,7 @@ describe('file-upload-handler', () => {
 
 		it('should handle large file content', async () => {
 			const largeContent = 'x'.repeat(1000000) // 1MB of text
-
+			
 			const mockFile = {
 				text: vi.fn().mockResolvedValue(largeContent),
 				name: 'large_file.csv',
@@ -173,9 +168,8 @@ describe('file-upload-handler', () => {
 		})
 
 		it('should handle special characters in file content', async () => {
-			const specialContent =
-				'Date,Usage\n2023-01-01,"1,000"\n2023-02-01,"2,500€"\n2023-03-01,"Special chars: àáâãäåæçèéêë"'
-
+			const specialContent = 'Date,Usage\n2023-01-01,"1,000"\n2023-02-01,"2,500€"\n2023-03-01,"Special chars: àáâãäåæçèéêë"'
+			
 			const mockFile = {
 				text: vi.fn().mockResolvedValue(specialContent),
 				name: 'special_chars.csv',
@@ -206,10 +200,7 @@ describe('file-upload-handler', () => {
 
 			const result = await fileUploadHandler(mockFormData)
 
-			expect(console.error).toHaveBeenCalledWith(
-				'Error reading file:',
-				'String error',
-			)
+			expect(console.error).toHaveBeenCalledWith('Error reading file:', 'String error')
 			expect(result).toBe('')
 		})
 
@@ -274,7 +265,7 @@ describe('file-upload-handler', () => {
 
 			// This should throw an error, but we want to test graceful handling
 			await expect(
-				fileUploadHandler(malformedFormData as any),
+				fileUploadHandler(malformedFormData as any)
 			).rejects.toThrow()
 		})
 

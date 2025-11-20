@@ -115,6 +115,8 @@ export const updateCase = async (
 		heatingInput: z.infer<typeof HeatingInputSchema>
 	},
 ) => {
+
+
 	const caseRecord = await prisma.case.findUnique({
 		where: {
 			id: caseId,

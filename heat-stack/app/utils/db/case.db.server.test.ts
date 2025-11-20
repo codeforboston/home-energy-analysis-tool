@@ -1,16 +1,8 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 
-import {
-	createCaseRecord,
-	updateCaseRecord,
-} from '#app/utils/db/case.db.server.ts'
+import { createCaseRecord, updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import {
-	createTestUser,
-	createFormData,
-	createLocationData,
-	createTestCase,
-} from '#tests/test-utils.ts'
+import { createTestUser, createFormData, createLocationData, createTestCase } from '#tests/test-utils.ts'
 
 describe('case.db.server', () => {
 	let testUser: Awaited<ReturnType<typeof createTestUser>>
@@ -24,11 +16,7 @@ describe('case.db.server', () => {
 			const formValues = createFormData()
 			const locationData = createLocationData()
 
-			const result = await createCaseRecord(
-				formValues,
-				locationData,
-				testUser.id,
-			)
+			const result = await createCaseRecord(formValues, locationData, testUser.id)
 
 			expect(result).toBeDefined()
 			expect(result.id).toBeDefined()
@@ -65,17 +53,11 @@ describe('case.db.server', () => {
 			const heatingInput = analysis?.heatingInput[0]
 			expect(heatingInput?.fuelType).toBe(formValues.fuel_type)
 			expect(heatingInput?.heatingSystemEfficiency).toBe(
-				Math.round(formValues.heating_system_efficiency * 100),
+				Math.round(formValues.heating_system_efficiency * 100)
 			)
-			expect(heatingInput?.thermostatSetPoint).toBe(
-				formValues.thermostat_set_point,
-			)
-			expect(heatingInput?.setbackTemperature).toBe(
-				formValues.setback_temperature,
-			)
-			expect(heatingInput?.setbackHoursPerDay).toBe(
-				formValues.setback_hours_per_day,
-			)
+			expect(heatingInput?.thermostatSetPoint).toBe(formValues.thermostat_set_point)
+			expect(heatingInput?.setbackTemperature).toBe(formValues.setback_temperature)
+			expect(heatingInput?.setbackHoursPerDay).toBe(formValues.setback_hours_per_day)
 			expect(heatingInput?.livingArea).toBe(formValues.living_area)
 		})
 
@@ -83,11 +65,7 @@ describe('case.db.server', () => {
 			const formValues = createFormData()
 			const locationData = createLocationData()
 
-			const result = await createCaseRecord(
-				formValues,
-				locationData,
-				testUser.id,
-			)
+			const result = await createCaseRecord(formValues, locationData, testUser.id)
 
 			// Verify case is connected to user
 			const caseWithUsers = await prisma.case.findUnique({
@@ -110,7 +88,7 @@ describe('case.db.server', () => {
 				caseRecord.id,
 				updatedFormValues,
 				locationData,
-				testUser.id,
+				testUser.id
 			)
 
 			expect(result).toBeDefined()
@@ -141,7 +119,7 @@ describe('case.db.server', () => {
 				caseRecord.id,
 				updatedFormValues,
 				locationData,
-				testUser.id,
+				testUser.id
 			)
 
 			// Verify HeatingInput was updated
@@ -151,20 +129,12 @@ describe('case.db.server', () => {
 
 			expect(updatedHeatingInput?.fuelType).toBe(updatedFormValues.fuel_type)
 			expect(updatedHeatingInput?.heatingSystemEfficiency).toBe(
-				Math.round(updatedFormValues.heating_system_efficiency * 100),
+				Math.round(updatedFormValues.heating_system_efficiency * 100)
 			)
-			expect(updatedHeatingInput?.thermostatSetPoint).toBe(
-				updatedFormValues.thermostat_set_point,
-			)
-			expect(updatedHeatingInput?.setbackTemperature).toBe(
-				updatedFormValues.setback_temperature,
-			)
-			expect(updatedHeatingInput?.setbackHoursPerDay).toBe(
-				updatedFormValues.setback_hours_per_day,
-			)
-			expect(updatedHeatingInput?.livingArea).toBe(
-				updatedFormValues.living_area,
-			)
+			expect(updatedHeatingInput?.thermostatSetPoint).toBe(updatedFormValues.thermostat_set_point)
+			expect(updatedHeatingInput?.setbackTemperature).toBe(updatedFormValues.setback_temperature)
+			expect(updatedHeatingInput?.setbackHoursPerDay).toBe(updatedFormValues.setback_hours_per_day)
+			expect(updatedHeatingInput?.livingArea).toBe(updatedFormValues.living_area)
 		})
 
 		it('should throw error when case is not found', async () => {
@@ -173,12 +143,7 @@ describe('case.db.server', () => {
 			const locationData = createLocationData()
 
 			await expect(
-				updateCaseRecord(
-					nonExistentCaseId,
-					formValues,
-					locationData,
-					testUser.id,
-				),
+				updateCaseRecord(nonExistentCaseId, formValues, locationData, testUser.id)
 			).rejects.toThrow('Case with id 99999 not found')
 		})
 	})

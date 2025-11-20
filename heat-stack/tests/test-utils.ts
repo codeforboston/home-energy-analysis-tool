@@ -9,15 +9,8 @@ export function createFormData() {
 		street_address: faker.location.streetAddress(),
 		town: faker.location.city(),
 		state: faker.location.state({ abbreviated: true }),
-		fuel_type: faker.helpers.arrayElement(['GAS', 'OIL', 'PROPANE']) as
-			| 'GAS'
-			| 'OIL'
-			| 'PROPANE',
-		heating_system_efficiency: faker.number.float({
-			min: 0.7,
-			max: 0.98,
-			fractionDigits: 2,
-		}),
+		fuel_type: faker.helpers.arrayElement(['GAS', 'OIL', 'PROPANE']) as 'GAS' | 'OIL' | 'PROPANE',
+		heating_system_efficiency: faker.number.float({ min: 0.7, max: 0.98, fractionDigits: 2 }),
 		thermostat_set_point: faker.number.int({ min: 65, max: 75 }),
 		setback_temperature: faker.number.int({ min: 60, max: 70 }),
 		setback_hours_per_day: faker.number.int({ min: 0, max: 12 }),
@@ -35,18 +28,10 @@ export function createLocationData() {
 		state_id: faker.string.uuid(),
 		county_id: faker.string.uuid(),
 		convertedDatesTIWD: {
-			dates: Array.from({ length: 12 }, () =>
-				faker.date.recent().toISOString(),
-			),
-			temperatures: Array.from({ length: 12 }, () =>
-				faker.number.float({ min: -10, max: 80 }),
-			),
-			insulationValues: Array.from({ length: 12 }, () =>
-				faker.number.float({ min: 0.1, max: 2.0 }),
-			),
-			weatherData: Array.from({ length: 12 }, () =>
-				faker.number.float({ min: 0, max: 100 }),
-			),
+			dates: Array.from({ length: 12 }, () => faker.date.recent().toISOString()),
+			temperatures: Array.from({ length: 12 }, () => faker.number.float({ min: -10, max: 80 })),
+			insulationValues: Array.from({ length: 12 }, () => faker.number.float({ min: 0.1, max: 2.0 })),
+			weatherData: Array.from({ length: 12 }, () => faker.number.float({ min: 0, max: 100 })),
 		},
 		addressComponents: {
 			street: faker.location.streetAddress(),
@@ -170,18 +155,16 @@ export async function createTestCase(userId: string) {
 
 export function createMockFormData(data: Record<string, any>): FormData {
 	const formData = new FormData()
-
+	
 	Object.entries(data).forEach(([key, value]) => {
 		if (typeof value === 'object' && value.name) {
 			// Handle file uploads
-			const blob = new Blob([JSON.stringify(value)], {
-				type: 'application/json',
-			})
+			const blob = new Blob([JSON.stringify(value)], { type: 'application/json' })
 			formData.append(key, blob, value.name)
 		} else {
 			formData.append(key, String(value))
 		}
 	})
-
+	
 	return formData
 }

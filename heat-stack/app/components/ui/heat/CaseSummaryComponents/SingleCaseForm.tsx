@@ -4,15 +4,8 @@ import { useState } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
-import {
-	Schema,
-	SaveOnlySchema,
-	type SchemaZodFromFormType,
-} from '#types/single-form.ts'
-import {
-	type UsageDataSchema,
-	type BillingRecordsSchema,
-} from '#types/types.ts'
+import { Schema, SaveOnlySchema, type SchemaZodFromFormType } from '#types/single-form.ts'
+import { type UsageDataSchema, type BillingRecordsSchema } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
 import { EnergyUseUpload } from './EnergyUseUpload.tsx'
@@ -44,7 +37,7 @@ export type SubmitAnalysisProps = {
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
 	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
 	 */
-	action?: '/cases/new' | undefined
+	action?: "/cases/new" | undefined
 	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
 	/**
 	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
@@ -148,27 +141,23 @@ export default function SingleCaseForm({
 				<div>Case {caseInfo?.caseId}</div>
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
-					<input
-						type="hidden"
-						name="billing_records"
-						value={JSON.stringify(billingRecords)}
+					<input 
+						type="hidden" 
+						name="billing_records" 
+						value={JSON.stringify(billingRecords)} 
 					/>
 				)}
 				{/* Include heat load output for save operations in edit mode */}
 				{isEditMode && usageData?.heat_load_output && (
-					<input
-						type="hidden"
-						name="heat_load_output"
-						value={JSON.stringify(usageData.heat_load_output)}
+					<input 
+						type="hidden" 
+						name="heat_load_output" 
+						value={JSON.stringify(usageData.heat_load_output)} 
 					/>
 				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload
-					setScrollAfterSubmit={setScrollAfterSubmit}
-					fields={fields}
-					isEditMode={isEditMode}
-				/>
+				<EnergyUseUpload setScrollAfterSubmit={setScrollAfterSubmit} fields={fields} isEditMode={isEditMode} />
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && (

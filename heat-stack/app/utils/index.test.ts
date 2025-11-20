@@ -36,11 +36,9 @@ describe('index utilities', () => {
 		it('should handle nested structures', () => {
 			const nested = {
 				arr: [1, 2],
-				obj: { inner: 'value' },
+				obj: { inner: 'value' }
 			}
-			expect(objectToString(nested)).toBe(
-				'{ "arr": [1, 2], "obj": { "inner": "value" } }',
-			)
+			expect(objectToString(nested)).toBe('{ "arr": [1, 2], "obj": { "inner": "value" } }')
 		})
 
 		it('should handle arrays with objects', () => {
@@ -53,7 +51,7 @@ describe('index utilities', () => {
 		it('should update processed_energy_bills in the map', () => {
 			const originalMap = new Map([
 				['existing_key', 'existing_value'],
-				['processed_energy_bills', 'old_bills'],
+				['processed_energy_bills', 'old_bills']
 			])
 
 			const newBillingRecords: BillingRecordsSchema = [
@@ -65,7 +63,7 @@ describe('index utilities', () => {
 					analysis_type: 1,
 					default_inclusion: true,
 					eliminated_as_outlier: false,
-					whole_home_heat_loss_rate: 50,
+					whole_home_heat_loss_rate: 50
 				},
 				{
 					period_start_date: '2023-02-01',
@@ -75,19 +73,16 @@ describe('index utilities', () => {
 					analysis_type: 1,
 					default_inclusion: true,
 					eliminated_as_outlier: false,
-					whole_home_heat_loss_rate: 45,
-				},
+					whole_home_heat_loss_rate: 45
+				}
 			]
 
 			const result = buildCurrentMapOfUsageData(originalMap, newBillingRecords)
 
 			expect(result.get('existing_key')).toBe('existing_value')
 			expect(result.get('processed_energy_bills')).toHaveLength(2)
-
-			const billMaps = result.get('processed_energy_bills') as Map<
-				string,
-				any
-			>[]
+			
+			const billMaps = result.get('processed_energy_bills') as Map<string, any>[]
 			expect(billMaps[0]).toBeInstanceOf(Map)
 			expect(billMaps[0]!.get('usage')).toBe(100)
 			expect(billMaps[1]!.get('usage')).toBe(80)
@@ -96,7 +91,7 @@ describe('index utilities', () => {
 		it('should preserve original map structure while updating bills', () => {
 			const originalMap = new Map([
 				['heat_load_output', { some: 'data' }],
-				['balance_point_graph', { other: 'data' }],
+				['balance_point_graph', { other: 'data' }]
 			])
 
 			const newBillingRecords: BillingRecordsSchema = [
@@ -108,8 +103,8 @@ describe('index utilities', () => {
 					analysis_type: 1,
 					default_inclusion: true,
 					eliminated_as_outlier: false,
-					whole_home_heat_loss_rate: 40,
-				},
+					whole_home_heat_loss_rate: 40
+				}
 			]
 
 			const result = buildCurrentMapOfUsageData(originalMap, newBillingRecords)
@@ -131,22 +126,19 @@ describe('index utilities', () => {
 				['difference_between_ti_and_tbp', 5],
 				['standard_deviation_of_heat_loss_rate', 15],
 				['average_heat_load', 5000],
-				['maximum_heat_load', 6000],
+				['maximum_heat_load', 6000]
 			]) as Map<string, any>
 
 			const balancePointGraph = new Map([
-				[
-					'records',
-					[
-						{
-							balance_point: 65,
-							heat_loss_rate: 100,
-							change_in_heat_loss_rate: 5,
-							percent_change_in_heat_loss_rate: 10,
-							standard_deviation: 15,
-						},
-					],
-				],
+				['records', [
+					{
+						balance_point: 65,
+						heat_loss_rate: 100,
+						change_in_heat_loss_rate: 5,
+						percent_change_in_heat_loss_rate: 10,
+						standard_deviation: 15
+					}
+				]]
 			]) as Map<string, any>
 
 			const processedBills = [
@@ -158,8 +150,8 @@ describe('index utilities', () => {
 					['analysis_type', 1],
 					['default_inclusion', true],
 					['eliminated_as_outlier', false],
-					['whole_home_heat_loss_rate', 50],
-				] as [string, any][]) as Map<string, any>,
+					['whole_home_heat_loss_rate', 50]
+				] as [string, any][]) as Map<string, any>
 			]
 
 			const parsedLastResult: Map<any, any> = new Map()
@@ -220,9 +212,7 @@ describe('index utilities', () => {
 
 		it('should return false for objects without parsedAndValidatedFormSchema property', () => {
 			expect(hasParsedAndValidatedFormSchemaProperty({})).toBe(false)
-			expect(hasParsedAndValidatedFormSchemaProperty({ other: 'prop' })).toBe(
-				false,
-			)
+			expect(hasParsedAndValidatedFormSchemaProperty({ other: 'prop' })).toBe(false)
 		})
 
 		it('should validate against Schema for objects with parsedAndValidatedFormSchema', () => {
@@ -237,8 +227,8 @@ describe('index utilities', () => {
 					thermostat_set_point: 70,
 					include_natural_gas_heating: true,
 					square_footage: 2000,
-					number_of_occupants: 3,
-				},
+					number_of_occupants: 3
+				}
 			}
 
 			// Note: This might fail if the actual Schema has different requirements

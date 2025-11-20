@@ -1,15 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
-import getConvertedDatesTIWD, {
-	type AddressComponents,
-} from './date-temp-util.ts'
+import getConvertedDatesTIWD, { type AddressComponents } from './date-temp-util.ts'
 
 // Mock the GeocodeUtil
 const mockGeocodeUtil = {
 	getLL: vi.fn(),
 }
 
-// Mock the WeatherUtil
+// Mock the WeatherUtil  
 const mockWeatherUtil = {
 	getThatWeathaData: vi.fn(),
 }
@@ -27,7 +25,7 @@ describe('getConvertedDatesTIWD', () => {
 	const mockPyodideResults: NaturalGasUsageDataSchema = new Map([
 		['overall_start_date', '2023-01-01'],
 		['overall_end_date', '2023-12-31'],
-		['records', [] as any],
+		['records', [] as any]
 	] as any)
 
 	const mockGeocodeResponse = {
@@ -50,11 +48,11 @@ describe('getConvertedDatesTIWD', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-
+		
 		// Setup default mock implementations
 		mockGeocodeUtil.getLL.mockResolvedValue(mockGeocodeResponse)
 		mockWeatherUtil.getThatWeathaData.mockResolvedValue(mockWeatherData)
-
+		
 		// Mock console methods to avoid noise in tests
 		vi.spyOn(console, 'log').mockImplementation(() => {})
 		vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -70,7 +68,7 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(result).toEqual({
@@ -96,12 +94,10 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
-			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(
-				'123 Main St, Boston, MA',
-			)
+			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith('123 Main St, Boston, MA')
 		})
 
 		it('should call weatherUtil with correct coordinates and dates', async () => {
@@ -109,14 +105,14 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				-71.0589,
 				42.3601,
 				'2023-01-01',
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 
@@ -130,14 +126,14 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				0,
 				0,
 				'2023-01-01',
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 
@@ -151,14 +147,14 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				0,
 				0,
 				'2023-01-01',
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 	})
@@ -168,24 +164,22 @@ describe('getConvertedDatesTIWD', () => {
 			const invalidStartDateResults = new Map([
 				['overall_start_date', 'invalid-date'],
 				['overall_end_date', '2023-12-31'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await getConvertedDatesTIWD(
 				invalidStartDateResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
-			expect(console.warn).toHaveBeenCalledWith(
-				'Invalid start date, using date from 2 years ago',
-			)
+			expect(console.warn).toHaveBeenCalledWith('Invalid start date, using date from 2 years ago')
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				expect.any(Number),
 				expect.any(Number),
 				expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), // Should be a valid date format
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 
@@ -193,24 +187,22 @@ describe('getConvertedDatesTIWD', () => {
 			const invalidEndDateResults = new Map([
 				['overall_start_date', '2023-01-01'],
 				['overall_end_date', 'invalid-date'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await getConvertedDatesTIWD(
 				invalidEndDateResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
-			expect(console.warn).toHaveBeenCalledWith(
-				"Invalid end date, using today's date",
-			)
+			expect(console.warn).toHaveBeenCalledWith("Invalid end date, using today's date")
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				expect.any(Number),
 				expect.any(Number),
 				'2023-01-01',
-				expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), // Should be a valid date format
+				expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) // Should be a valid date format
 			)
 		})
 
@@ -218,22 +210,18 @@ describe('getConvertedDatesTIWD', () => {
 			const invalidDatesResults = new Map([
 				['overall_start_date', 'invalid-start'],
 				['overall_end_date', 'invalid-end'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await getConvertedDatesTIWD(
 				invalidDatesResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
-			expect(console.warn).toHaveBeenCalledWith(
-				'Invalid start date, using date from 2 years ago',
-			)
-			expect(console.warn).toHaveBeenCalledWith(
-				"Invalid end date, using today's date",
-			)
+			expect(console.warn).toHaveBeenCalledWith('Invalid start date, using date from 2 years ago')
+			expect(console.warn).toHaveBeenCalledWith("Invalid end date, using today's date")
 		})
 
 		it('should format dates correctly', async () => {
@@ -241,11 +229,11 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			// Check that all dates are in YYYY-MM-DD format
-			result.convertedDatesTIWD.dates.forEach((date) => {
+			result.convertedDatesTIWD.dates.forEach(date => {
 				expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
 			})
 		})
@@ -255,22 +243,32 @@ describe('getConvertedDatesTIWD', () => {
 		it('should throw error when start date is missing', async () => {
 			const missingStartDate = new Map([
 				['overall_end_date', '2023-12-31'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await expect(
-				getConvertedDatesTIWD(missingStartDate, '123 Main St', 'Boston', 'MA'),
+				getConvertedDatesTIWD(
+					missingStartDate,
+					'123 Main St',
+					'Boston',
+					'MA'
+				)
 			).rejects.toThrow('Start date or end date is missing or invalid')
 		})
 
 		it('should throw error when end date is missing', async () => {
 			const missingEndDate = new Map([
 				['overall_start_date', '2023-01-01'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await expect(
-				getConvertedDatesTIWD(missingEndDate, '123 Main St', 'Boston', 'MA'),
+				getConvertedDatesTIWD(
+					missingEndDate,
+					'123 Main St',
+					'Boston',
+					'MA'
+				)
 			).rejects.toThrow('Start date or end date is missing or invalid')
 		})
 
@@ -278,7 +276,7 @@ describe('getConvertedDatesTIWD', () => {
 			const nonStringStartDate = new Map([
 				['overall_start_date', 123 as any],
 				['overall_end_date', '2023-12-31'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await expect(
@@ -286,8 +284,8 @@ describe('getConvertedDatesTIWD', () => {
 					nonStringStartDate,
 					'123 Main St',
 					'Boston',
-					'MA',
-				),
+					'MA'
+				)
 			).rejects.toThrow('Start date or end date is missing or invalid')
 		})
 
@@ -295,11 +293,16 @@ describe('getConvertedDatesTIWD', () => {
 			const nonStringEndDate = new Map([
 				['overall_start_date', '2023-01-01'],
 				['overall_end_date', 123 as any],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
 			await expect(
-				getConvertedDatesTIWD(nonStringEndDate, '123 Main St', 'Boston', 'MA'),
+				getConvertedDatesTIWD(
+					nonStringEndDate,
+					'123 Main St',
+					'Boston',
+					'MA'
+				)
 			).rejects.toThrow('Start date or end date is missing or invalid')
 		})
 
@@ -311,8 +314,8 @@ describe('getConvertedDatesTIWD', () => {
 					mockPyodideResults,
 					'123 Main St',
 					'Boston',
-					'MA',
-				),
+					'MA'
+				)
 			).rejects.toThrow('weather data failed to fetch')
 		})
 
@@ -324,23 +327,21 @@ describe('getConvertedDatesTIWD', () => {
 					mockPyodideResults,
 					'123 Main St',
 					'Boston',
-					'MA',
-				),
+					'MA'
+				)
 			).rejects.toThrow('Geocoding failed')
 		})
 
 		it('should handle weather service errors', async () => {
-			mockWeatherUtil.getThatWeathaData.mockRejectedValue(
-				new Error('Weather service failed'),
-			)
+			mockWeatherUtil.getThatWeathaData.mockRejectedValue(new Error('Weather service failed'))
 
 			await expect(
 				getConvertedDatesTIWD(
 					mockPyodideResults,
 					'123 Main St',
 					'Boston',
-					'MA',
-				),
+					'MA'
+				)
 			).rejects.toThrow('Weather service failed')
 		})
 	})
@@ -351,21 +352,29 @@ describe('getConvertedDatesTIWD', () => {
 			const town = ''
 			const state = ''
 
-			await getConvertedDatesTIWD(mockPyodideResults, street, town, state)
+			await getConvertedDatesTIWD(
+				mockPyodideResults,
+				street,
+				town,
+				state
+			)
 
 			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(', , ')
 		})
 
 		it('should handle special characters in addresses', async () => {
 			const street = "O'Malley's Pub"
-			const town = "St. John's"
+			const town = 'St. John\'s'
 			const state = 'NY'
 
-			await getConvertedDatesTIWD(mockPyodideResults, street, town, state)
-
-			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(
-				"O'Malley's Pub, St. John's, NY",
+			await getConvertedDatesTIWD(
+				mockPyodideResults,
+				street,
+				town,
+				state
 			)
+
+			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith("O'Malley's Pub, St. John's, NY")
 		})
 
 		it('should handle weather data with empty arrays', async () => {
@@ -378,7 +387,7 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(result.convertedDatesTIWD).toEqual({
@@ -397,14 +406,14 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				0,
 				0,
 				'2023-01-01',
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 	})
@@ -414,16 +423,21 @@ describe('getConvertedDatesTIWD', () => {
 			const isoDateResults = new Map([
 				['overall_start_date', '2023-01-01T00:00:00.000Z'],
 				['overall_end_date', '2023-12-31T23:59:59.999Z'],
-				['records', [] as any],
+				['records', [] as any]
 			] as any) as NaturalGasUsageDataSchema
 
-			await getConvertedDatesTIWD(isoDateResults, '123 Main St', 'Boston', 'MA')
+			await getConvertedDatesTIWD(
+				isoDateResults,
+				'123 Main St',
+				'Boston',
+				'MA'
+			)
 
 			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
 				expect.any(Number),
 				expect.any(Number),
 				'2023-01-01',
-				'2023-12-31',
+				'2023-12-31'
 			)
 		})
 
@@ -439,13 +453,10 @@ describe('getConvertedDatesTIWD', () => {
 				mockPyodideResults,
 				'123 Main St',
 				'Boston',
-				'MA',
+				'MA'
 			)
 
-			expect(result.convertedDatesTIWD.dates).toEqual([
-				'2023-01-01',
-				'2023-01-02',
-			])
+			expect(result.convertedDatesTIWD.dates).toEqual(['2023-01-01', '2023-01-02'])
 		})
 	})
 })

@@ -1,30 +1,17 @@
 import { invariant } from '@epic-web/invariant'
 
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
-import {
-	insertProcessedBills,
-	deleteBillsForAnalysis,
-} from '#app/utils/db/bill.db.server.ts'
-import {
-	createCaseRecord,
-	updateCaseRecord,
-} from '#app/utils/db/case.db.server.ts'
+import { insertProcessedBills, deleteBillsForAnalysis } from '#app/utils/db/bill.db.server.ts'
+import { createCaseRecord, updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
-import {
-	executeParseGasBillPy,
-	executeGetAnalyticsFromFormJs,
-} from '#app/utils/rules-engine.ts'
+import { executeParseGasBillPy, executeGetAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  **/
 
-export async function processCaseSubmission(
-	submission: any,
-	userId: string,
-	formData: FormData,
-) {
+export async function processCaseSubmission(submission: any, userId: string, formData: FormData) {
 	const parsedForm = submission.value
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
@@ -54,17 +41,12 @@ export async function processCaseSubmission(
 	const gasBillData = gasBillDataProxy.toJs()
 	// gasBillDataProxy.destroy()
 
-	const newCase = await createCaseRecord(
-		parsedForm,
-		result,
-		userId,
-		gasBillData,
-	)
-
+	const newCase = await createCaseRecord(parsedForm, result, userId, gasBillData)
+	
 	// Get the HeatingInput ID from the created analysis
 	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
 	invariant(heatingInputId, 'Failed to create HeatingInput record')
-
+	
 	const insertedCount = await insertProcessedBills(heatingInputId, gasBillData)
 
 	return {
@@ -80,12 +62,7 @@ export async function processCaseSubmission(
 /**
  * processes CSV (uploadTextFile) and update an existing case, and runs pyodide
  */
-export async function processCaseUpdate(
-	caseId: number,
-	submission: any,
-	userId: string,
-	formData: FormData,
-) {
+export async function processCaseUpdate(caseId: number, submission: any, userId: string, formData: FormData) {
 	const parsedForm = submission.value
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
@@ -115,13 +92,13 @@ export async function processCaseUpdate(
 	//gasBillDataProxy.destroy()
 
 	const updatedCase = await updateCaseRecord(caseId, parsedForm, result, userId)
-
+	
 	// Get the HeatingInput ID from the updated case
 	const heatingInputId = updatedCase?.analysis?.[0]?.heatingInput?.[0]?.id
 	if (!heatingInputId) {
 		throw new Error('Failed to find HeatingInput record for update')
 	}
-
+	
 	// Delete existing bills and insert new ones
 	await deleteBillsForAnalysis(heatingInputId)
 	const insertedCount = await insertProcessedBills(heatingInputId, gasBillData)
