@@ -1,8 +1,15 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 
-import { insertProcessedBills, deleteBillsForAnalysis } from '#app/utils/db/bill.db.server.ts'
+import {
+	insertProcessedBills,
+	deleteBillsForAnalysis,
+} from '#app/utils/db/bill.db.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { createTestUser, createTestCase, createGasBillData } from '#tests/test-utils.ts'
+import {
+	createTestUser,
+	createTestCase,
+	createGasBillData,
+} from '#tests/test-utils.ts'
 
 describe('bill.db.server', () => {
 	let testUser: Awaited<ReturnType<typeof createTestUser>>
@@ -40,7 +47,10 @@ describe('bill.db.server', () => {
 			}
 			const analysisInputId = testCase.heatingInput.id
 
-			const insertedCount = await insertProcessedBills(analysisInputId, gasBillData)
+			const insertedCount = await insertProcessedBills(
+				analysisInputId,
+				gasBillData,
+			)
 
 			expect(insertedCount).toBe(gasBillData.processed_energy_bills.length)
 
@@ -54,20 +64,29 @@ describe('bill.db.server', () => {
 			// Verify first bill data
 			const firstBill = bills[0]
 			const expectedFirstBill = gasBillData.processed_energy_bills[0]
-			
+
 			expect(firstBill?.analysisInputId).toBe(analysisInputId)
 			expect(firstBill?.usageQuantity).toBe(expectedFirstBill?.usage!)
-			expect(firstBill?.wholeHomeHeatLossRate).toBe(expectedFirstBill?.whole_home_heat_loss_rate)
+			expect(firstBill?.wholeHomeHeatLossRate).toBe(
+				expectedFirstBill?.whole_home_heat_loss_rate,
+			)
 			expect(firstBill?.analysisType).toBe(expectedFirstBill?.analysis_type)
-			expect(firstBill?.defaultInclusion).toBe(expectedFirstBill?.default_inclusion)
-			expect(firstBill?.invertDefaultInclusion).toBe(expectedFirstBill?.inclusion_override)
+			expect(firstBill?.defaultInclusion).toBe(
+				expectedFirstBill?.default_inclusion,
+			)
+			expect(firstBill?.invertDefaultInclusion).toBe(
+				expectedFirstBill?.inclusion_override,
+			)
 		})
 
 		it('should return 0 when no processed energy bills exist', async () => {
 			const gasBillData = { processed_energy_bills: [] }
 			const analysisInputId = testCase.heatingInput.id
 
-			const insertedCount = await insertProcessedBills(analysisInputId, gasBillData)
+			const insertedCount = await insertProcessedBills(
+				analysisInputId,
+				gasBillData,
+			)
 
 			expect(insertedCount).toBe(0)
 
@@ -89,15 +108,17 @@ describe('bill.db.server', () => {
 
 		it('should handle date parsing correctly', async () => {
 			const gasBillData = {
-				processed_energy_bills: [{
-					period_start_date: '2024-01-01T00:00:00.000Z',
-					period_end_date: '2024-01-31T23:59:59.999Z',
-					usage: 100.5,
-					whole_home_heat_loss_rate: 2.5,
-					analysis_type: 1,
-					default_inclusion: true,
-					inclusion_override: false,
-				}]
+				processed_energy_bills: [
+					{
+						period_start_date: '2024-01-01T00:00:00.000Z',
+						period_end_date: '2024-01-31T23:59:59.999Z',
+						usage: 100.5,
+						whole_home_heat_loss_rate: 2.5,
+						analysis_type: 1,
+						default_inclusion: true,
+						inclusion_override: false,
+					},
+				],
 			}
 			const analysisInputId = testCase.heatingInput.id
 
@@ -107,7 +128,9 @@ describe('bill.db.server', () => {
 				where: { analysisInputId },
 			})
 
-			expect(bill?.periodStartDate).toEqual(new Date('2024-01-01T00:00:00.000Z'))
+			expect(bill?.periodStartDate).toEqual(
+				new Date('2024-01-01T00:00:00.000Z'),
+			)
 			expect(bill?.periodEndDate).toEqual(new Date('2024-01-31T23:59:59.999Z'))
 		})
 	})
@@ -149,7 +172,7 @@ describe('bill.db.server', () => {
 		it('should only delete bills for the specified analysis', async () => {
 			// Create another test case
 			const anotherTestCase = await createTestCase(testUser.id)
-			
+
 			const gasBillData1 = createGasBillData()
 			const gasBillData2 = createGasBillData()
 
@@ -158,7 +181,9 @@ describe('bill.db.server', () => {
 			await insertProcessedBills(anotherTestCase.heatingInput.id, gasBillData2)
 
 			// Delete bills for first analysis only
-			const deletedCount = await deleteBillsForAnalysis(testCase.heatingInput.id)
+			const deletedCount = await deleteBillsForAnalysis(
+				testCase.heatingInput.id,
+			)
 
 			expect(deletedCount).toBe(gasBillData1.processed_energy_bills.length)
 
