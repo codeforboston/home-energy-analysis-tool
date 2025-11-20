@@ -47,7 +47,9 @@ describe('geocode loader', () => {
 			},
 		})
 
-		const request = new Request('http://localhost:3000/geocode?address=1%20Broadway%2C%20Cambridge%2C%20MA')
+		const request = new Request(
+			'http://localhost:3000/geocode?address=1%20Broadway%2C%20Cambridge%2C%20MA',
+		)
 		const response = await loader({ request, params: {}, context: {} })
 
 		expect(response.status).toBe(200)
@@ -55,7 +57,9 @@ describe('geocode loader', () => {
 		expect(data).toEqual({
 			coordinates: mockCoordinates,
 		})
-		expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith('1 Broadway, Cambridge, MA')
+		expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(
+			'1 Broadway, Cambridge, MA',
+		)
 	})
 
 	it('should return error when geocoding returns no coordinates', async () => {
@@ -66,7 +70,9 @@ describe('geocode loader', () => {
 			addressComponents: null,
 		})
 
-		const request = new Request('http://localhost:3000/geocode?address=invalid%20address')
+		const request = new Request(
+			'http://localhost:3000/geocode?address=invalid%20address',
+		)
 		const response = await loader({ request, params: {}, context: {} })
 
 		expect(response.status).toBe(200) // Response itself is 200, but contains error info
@@ -86,7 +92,9 @@ describe('geocode loader', () => {
 			addressComponents: null,
 		})
 
-		const request = new Request('http://localhost:3000/geocode?address=invalid%20address')
+		const request = new Request(
+			'http://localhost:3000/geocode?address=invalid%20address',
+		)
 		const response = await loader({ request, params: {}, context: {} })
 
 		expect(response.status).toBe(200)
@@ -100,7 +108,9 @@ describe('geocode loader', () => {
 	it('should handle geocoding service errors', async () => {
 		mockGeocodeUtil.getLL.mockRejectedValue(new Error('Network error'))
 
-		const request = new Request('http://localhost:3000/geocode?address=1%20Broadway%2C%20Cambridge%2C%20MA')
+		const request = new Request(
+			'http://localhost:3000/geocode?address=1%20Broadway%2C%20Cambridge%2C%20MA',
+		)
 		const response = await loader({ request, params: {}, context: {} })
 
 		expect(response.status).toBe(200)
@@ -131,8 +141,10 @@ describe('geocode loader', () => {
 
 		const encodedAddress = '123%20Main%20St%2C%20Boston%2C%20MA%2002101'
 		const decodedAddress = '123 Main St, Boston, MA 02101'
-		
-		const request = new Request(`http://localhost:3000/geocode?address=${encodedAddress}`)
+
+		const request = new Request(
+			`http://localhost:3000/geocode?address=${encodedAddress}`,
+		)
 		await loader({ request, params: {}, context: {} })
 
 		expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(decodedAddress)
@@ -145,7 +157,9 @@ describe('geocode loader', () => {
 		})
 
 		const specialAddress = "O'Malley's Pub, 123 Main St, Boston, MA"
-		const request = new Request(`http://localhost:3000/geocode?address=${encodeURIComponent(specialAddress)}`)
+		const request = new Request(
+			`http://localhost:3000/geocode?address=${encodeURIComponent(specialAddress)}`,
+		)
 		await loader({ request, params: {}, context: {} })
 
 		expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(specialAddress)

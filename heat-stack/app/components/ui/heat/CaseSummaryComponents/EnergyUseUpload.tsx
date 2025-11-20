@@ -4,14 +4,16 @@ import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { ErrorList } from './ErrorList'
 
 interface EnergyUseUploadProps {
-	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>;
-	fields: any;
-	isEditMode?: boolean;
+	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
+	fields: any
+	isEditMode?: boolean
 }
 
-export function EnergyUseUpload(
-	{ setScrollAfterSubmit, fields, isEditMode = false }: EnergyUseUploadProps
-) {
+export function EnergyUseUpload({
+	setScrollAfterSubmit,
+	fields,
+	isEditMode = false,
+}: EnergyUseUploadProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	/*
 	When the calculate button is pressed, sets scrollAfterSubmit to
@@ -37,20 +39,29 @@ export function EnergyUseUpload(
 			<div>
 				{isEditMode ? (
 					// Two buttons for edit mode
-					<div className="flex gap-3 items-center" style={{ marginBottom: '20px' }}>
-						<Button 
-							type="submit" 
-							name="intent" 
-							value="save" 
+					<div
+						className="flex items-center gap-3"
+						style={{ marginBottom: '20px' }}
+					>
+						<Button
+							type="submit"
+							name="intent"
+							value="save"
 							variant="default"
 							onClick={() => console.log('💾 Save Changes button clicked')}
 						>
-							Save Changes						</Button>
-
+							Save Changes{' '}
+						</Button>
 					</div>
 				) : (
 					// Single button for new cases
-					<Button type="submit" name="intent" value="upload" onClick={handleSubmit} style={{ marginBottom: '20px' }}>
+					<Button
+						type="submit"
+						name="intent"
+						value="upload"
+						onClick={handleSubmit}
+						style={{ marginBottom: '20px' }}
+					>
 						<Upload className="mr-2 h-4 w-4" />
 						Calculate
 					</Button>

@@ -12,7 +12,10 @@ import { type SchemaZodFromFormType } from '#types/single-form.ts'
 import { type UsageDataSchema } from '#types/types.ts'
 import { reviver } from '../data-parser'
 import { type TemperatureInputDataConverted } from '../WeatherUtil'
-import { useRulesEngine, type RulesEngineActionData } from './use-rules-engine.ts'
+import {
+	useRulesEngine,
+	type RulesEngineActionData,
+} from './use-rules-engine.ts'
 
 // Mock the dependencies
 vi.mock('#app/utils/index.ts', () => ({
@@ -76,29 +79,33 @@ describe('useRulesEngine', () => {
 			maximum_heat_load: 6000,
 		},
 		balance_point_graph: {
-			records: [{
-				balance_point: 65,
-				heat_loss_rate: 100,
-				change_in_heat_loss_rate: 5,
-				percent_change_in_heat_loss_rate: 10,
-				standard_deviation: 15,
-			}],
+			records: [
+				{
+					balance_point: 65,
+					heat_loss_rate: 100,
+					change_in_heat_loss_rate: 5,
+					percent_change_in_heat_loss_rate: 10,
+					standard_deviation: 15,
+				},
+			],
 		},
-		processed_energy_bills: [{
-			period_start_date: '2023-01-01',
-			period_end_date: '2023-01-31',
-			usage: 100,
-			inclusion_override: true,
-			analysis_type: 1,
-			default_inclusion: true,
-			eliminated_as_outlier: false,
-			whole_home_heat_loss_rate: 50,
-		}],
+		processed_energy_bills: [
+			{
+				period_start_date: '2023-01-01',
+				period_end_date: '2023-01-31',
+				usage: 100,
+				inclusion_override: true,
+				analysis_type: 1,
+				default_inclusion: true,
+				eliminated_as_outlier: false,
+				whole_home_heat_loss_rate: 50,
+			},
+		],
 	}
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		
+
 		// Setup default mock implementations
 		vi.mocked(hasDataProperty).mockReturnValue(true)
 		vi.mocked(buildCurrentUsageData).mockReturnValue(mockUsageData)
@@ -111,7 +118,9 @@ describe('useRulesEngine', () => {
 			toJs: vi.fn().mockReturnValue(new Map()),
 			destroy: vi.fn(),
 		}
-		mockRulesEngine.executeRoundtripAnalyticsFromFormJs.mockReturnValue(mockPyProxy)
+		mockRulesEngine.executeRoundtripAnalyticsFromFormJs.mockReturnValue(
+			mockPyProxy,
+		)
 	})
 
 	afterEach(() => {
@@ -136,7 +145,7 @@ describe('useRulesEngine', () => {
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
 				// Wait for the promise to resolve
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			expect(result.current.recalculateFromBillingRecordsChange).not.toBeNull()
@@ -147,17 +156,20 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
-			const firstRecalculate = result.current.recalculateFromBillingRecordsChange
+			const firstRecalculate =
+				result.current.recalculateFromBillingRecordsChange
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
-			expect(result.current.recalculateFromBillingRecordsChange).toBe(firstRecalculate)
+			expect(result.current.recalculateFromBillingRecordsChange).toBe(
+				firstRecalculate,
+			)
 		})
 	})
 
@@ -188,8 +200,9 @@ describe('useRulesEngine', () => {
 
 		it('should update usageData when actionData changes', () => {
 			const { result, rerender } = renderHook(
-				({ actionData }: { actionData: RulesEngineActionData }) => useRulesEngine(actionData),
-				{ initialProps: { actionData: undefined as RulesEngineActionData } }
+				({ actionData }: { actionData: RulesEngineActionData }) =>
+					useRulesEngine(actionData),
+				{ initialProps: { actionData: undefined as RulesEngineActionData } },
 			)
 
 			expect(result.current.usageData).toBeUndefined()
@@ -206,7 +219,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			expect(() => {
@@ -238,7 +251,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			expect(() => {
@@ -251,7 +264,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			await act(async () => {
@@ -259,12 +272,14 @@ describe('useRulesEngine', () => {
 			})
 
 			expect(buildCurrentMapOfUsageData).toHaveBeenCalled()
-			expect(mockRulesEngine.executeRoundtripAnalyticsFromFormJs).toHaveBeenCalledWith(
+			expect(
+				mockRulesEngine.executeRoundtripAnalyticsFromFormJs,
+			).toHaveBeenCalledWith(
 				mockActionData.parsedAndValidatedFormSchema,
 				mockActionData.convertedDatesTIWD,
 				expect.any(Map),
 				mockActionData.state_id,
-				mockActionData.county_id
+				mockActionData.county_id,
 			)
 		})
 	})
@@ -275,7 +290,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			const recalculate = result.current.recalculateFromBillingRecordsChange!
@@ -287,7 +302,7 @@ describe('useRulesEngine', () => {
 				mockActionData.parsedAndValidatedFormSchema,
 				mockActionData.convertedDatesTIWD,
 				mockActionData.state_id,
-				mockActionData.county_id
+				mockActionData.county_id,
 			)
 
 			expect(buildCurrentMapOfUsageData).not.toHaveBeenCalled()
@@ -298,7 +313,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			const recalculate = result.current.recalculateFromBillingRecordsChange!
@@ -311,25 +326,29 @@ describe('useRulesEngine', () => {
 					mockActionData.parsedAndValidatedFormSchema,
 					mockActionData.convertedDatesTIWD,
 					mockActionData.state_id,
-					mockActionData.county_id
+					mockActionData.county_id,
 				)
 			})
 
 			expect(buildCurrentMapOfUsageData).toHaveBeenCalledWith(
 				mockParsedLastResult,
-				mockUsageData.processed_energy_bills
+				mockUsageData.processed_energy_bills,
 			)
-			expect(mockRulesEngine.executeRoundtripAnalyticsFromFormJs).toHaveBeenCalled()
+			expect(
+				mockRulesEngine.executeRoundtripAnalyticsFromFormJs,
+			).toHaveBeenCalled()
 		})
 
 		it('should update usageData only when it changes', async () => {
-			vi.mocked(objectToString).mockReturnValueOnce('old').mockReturnValueOnce('new')
+			vi.mocked(objectToString)
+				.mockReturnValueOnce('old')
+				.mockReturnValueOnce('new')
 
 			const { result } = renderHook(() => useRulesEngine(mockActionData))
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			const recalculate = result.current.recalculateFromBillingRecordsChange!
@@ -342,7 +361,7 @@ describe('useRulesEngine', () => {
 					mockActionData.parsedAndValidatedFormSchema,
 					mockActionData.convertedDatesTIWD,
 					mockActionData.state_id,
-					mockActionData.county_id
+					mockActionData.county_id,
 				)
 			})
 
@@ -356,7 +375,7 @@ describe('useRulesEngine', () => {
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			const recalculate = result.current.recalculateFromBillingRecordsChange!
@@ -370,7 +389,7 @@ describe('useRulesEngine', () => {
 					mockActionData.parsedAndValidatedFormSchema,
 					mockActionData.convertedDatesTIWD,
 					mockActionData.state_id,
-					mockActionData.county_id
+					mockActionData.county_id,
 				)
 			})
 
@@ -380,11 +399,13 @@ describe('useRulesEngine', () => {
 
 	describe('cleanup', () => {
 		it('should cleanup pyodide resources on unmount', async () => {
-			const { result, unmount } = renderHook(() => useRulesEngine(mockActionData))
+			const { result, unmount } = renderHook(() =>
+				useRulesEngine(mockActionData),
+			)
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
 			unmount()
@@ -412,7 +433,7 @@ describe('useRulesEngine', () => {
 			await expect(async () => {
 				await act(async () => {
 					result.current.lazyLoadRulesEngine()
-					await new Promise(resolve => setTimeout(resolve, 0))
+					await new Promise((resolve) => setTimeout(resolve, 0))
 				})
 			}).rejects.toThrow('Failed to load rules engine.')
 		})
@@ -420,7 +441,7 @@ describe('useRulesEngine', () => {
 		it('should handle JSON parsing errors gracefully', () => {
 			const invalidActionData = {
 				...mockActionData,
-				data: 'invalid json'
+				data: 'invalid json',
 			}
 
 			vi.mocked(reviver).mockImplementation(() => {
