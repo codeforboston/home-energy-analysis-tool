@@ -5,7 +5,7 @@ import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await getUserId(request)
-	const cases = await getCasesByUser(userId)
+	const cases = await getCasesByUser(userId ?? '')
 
 	return data({ cases })
 }
