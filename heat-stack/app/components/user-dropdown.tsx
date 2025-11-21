@@ -14,7 +14,15 @@ import {
 import { Icon } from './ui/icon'
 
 export function UserDropdown() {
-	const user = useUser()
+	// Update type to include is_admin
+	type UserType = {
+		id: string;
+		name?: string | null;
+		username: string;
+		image?: { objectKey?: string } | null;
+		is_admin: boolean;
+	}
+	const user = useUser() as UserType
 	const formRef = useRef<HTMLFormElement>(null)
 	return (
 		<DropdownMenu>
@@ -22,7 +30,6 @@ export function UserDropdown() {
 				<Button asChild variant="secondary">
 					<Link
 						to={`/users/${user.username}`}
-						// this is for progressive enhancement
 						onClick={(e) => e.preventDefault()}
 						className="flex items-center gap-2"
 					>
@@ -55,6 +62,23 @@ export function UserDropdown() {
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link prefetch="intent" to="/cases">
+							<Icon className="text-body-md" name="file-text">
+								Cases
+							</Icon>
+						</Link>
+					</DropdownMenuItem>
+					{/* Admin-only link */}
+					   {user.is_admin ? (
+						   <DropdownMenuItem asChild>
+							   <Link prefetch="intent" to="/users/admin-edit">
+								   <Icon className="text-body-md" name="avatar">
+									   Manage Users
+								   </Icon>
+							   </Link>
+						   </DropdownMenuItem>
+					   ) : null}
 					<Form action="/logout" method="POST" ref={formRef}>
 						<DropdownMenuItem asChild>
 							<button type="submit" className="w-full">
