@@ -28,7 +28,6 @@ export default function Cases({
 					Create New Case
 				</Link>
 			</div>
-			/* TODO:why /new why not case/new */
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
