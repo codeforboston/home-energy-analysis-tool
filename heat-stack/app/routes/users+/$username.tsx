@@ -22,6 +22,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			name: true,
 			username: true,
 			createdAt: true,
+			is_admin: true,
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
@@ -68,6 +69,9 @@ export default function ProfileRoute() {
 					</div>
 					<p className="mt-2 text-center text-muted-foreground">
 						Joined {data.userJoinedDisplay}
+					</p>
+					<p className="mt-2 text-center text-muted-foreground">
+						Admin: {user.is_admin ? 'Yes' : 'No'}
 					</p>
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">

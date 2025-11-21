@@ -114,6 +114,7 @@ async function seed() {
 			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
+			is_admin: true,
 			password: { create: createPassword('kodylovesyou') },
 			connections: {
 				create: {

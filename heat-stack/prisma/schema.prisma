@@ -17,6 +17,7 @@ model User {
   email    String  @unique
   username String  @unique
   name     String?
+  is_admin Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
