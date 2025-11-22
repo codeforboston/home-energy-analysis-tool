@@ -72,7 +72,7 @@ export default function AdminEditUsers() {
                     {u.name ?? ''}
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1 rounded bg-muted text-lg">
-                      <input type="checkbox" checked={u.is_admin} readOnly disabled />
+                    <input type="checkbox" checked={u.is_admin} readOnly />
                   </div>
                   <button type="button" className="ml-2 p-2 rounded hover:bg-accent" onClick={() => setEditingId(u.id)}>
                     <Icon name="pencil-2" size="md" />
