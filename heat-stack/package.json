@@ -22,7 +22,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
-    "setup": "npm run build && prisma migrate deploy && prisma generate --sql && playwright install",
+    "setup": "npm run build && prisma migrate deploy && prisma generate --sql && node scripts/seed-prod.ts && playwright install",
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
     "test": "cd ../python && (if [ -d .venv ]; then . .venv/bin/activate; else . ./setup-python.sh; fi) && uv pip install build && uv build && cd ../heat-stack && vitest && rm -rf ../python/dist",
