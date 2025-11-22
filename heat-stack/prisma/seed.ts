@@ -123,8 +123,8 @@ async function seed() {
 			roles: { connect: [{ name: 'admin' }, { name: 'user' }] },
 		},
 	})
-const kodyDb = await prisma.user.findUnique({ where: { id: kody.id } })
-console.log('Kody in DB:', kodyDb)
+	const kodyDb = await prisma.user.findUnique({ where: { id: kody.id } })
+	console.log('Kody in DB:', kodyDb)
 	await prisma.userImage.create({
 		data: {
 			userId: kody.id,
@@ -241,7 +241,6 @@ console.log('Kody in DB:', kodyDb)
 			})
 		}
 	}
-
 
 	console.log(`🌱 Database has been seeded`)
 }
