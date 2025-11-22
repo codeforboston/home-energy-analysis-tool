@@ -16,11 +16,11 @@ import { Icon } from './ui/icon'
 export function UserDropdown() {
 	// Update type to include is_admin
 	type UserType = {
-		id: string;
-		name?: string | null;
-		username: string;
-		image?: { objectKey?: string } | null;
-		is_admin: boolean;
+		id: string
+		name?: string | null
+		username: string
+		image?: { objectKey?: string } | null
+		is_admin: boolean
 	}
 	const user = useUser() as UserType
 	const formRef = useRef<HTMLFormElement>(null)
@@ -70,15 +70,15 @@ export function UserDropdown() {
 						</Link>
 					</DropdownMenuItem>
 					{/* Admin-only link */}
-					   {user.is_admin ? (
-						   <DropdownMenuItem asChild>
-							   <Link prefetch="intent" to="/users">
-								   <Icon className="text-body-md" name="avatar">
-									   Manage Users
-								   </Icon>
-							   </Link>
-						   </DropdownMenuItem>
-					   ) : null}
+					{user.is_admin ? (
+						<DropdownMenuItem asChild>
+							<Link prefetch="intent" to="/users">
+								<Icon className="text-body-md" name="avatar">
+									Manage Users
+								</Icon>
+							</Link>
+						</DropdownMenuItem>
+					) : null}
 					<Form action="/logout" method="POST" ref={formRef}>
 						<DropdownMenuItem asChild>
 							<button type="submit" className="w-full">
