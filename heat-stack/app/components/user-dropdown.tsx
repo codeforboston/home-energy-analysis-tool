@@ -26,26 +26,26 @@ export function UserDropdown() {
 	const formRef = useRef<HTMLFormElement>(null)
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary">
-					<Link
-						to={`/users/${user.username}`}
-						onClick={(e) => e.preventDefault()}
-						className="flex items-center gap-2"
-					>
-						<Img
-							className="h-8 w-8 rounded-full object-cover"
-							alt={user.name ?? user.username}
-							src={getUserImgSrc(user.image?.objectKey)}
-							width={256}
-							height={256}
-						/>
-						<span className="text-body-sm font-bold">
-							{user.name ?? user.username}
-						</span>
-					</Link>
-				</Button>
-			</DropdownMenuTrigger>
+			 <DropdownMenuTrigger asChild>
+				 <Button asChild variant="secondary" id="user-dropdown-btn">
+					 <Link
+						 to={`/users/${user.username}`}
+						 onClick={(e) => e.preventDefault()}
+						 className="flex items-center gap-2"
+					 >
+						 <Img
+							 className="h-8 w-8 rounded-full object-cover"
+							 alt={user.name ?? user.username}
+							 src={getUserImgSrc(user.image?.objectKey)}
+							 width={256}
+							 height={256}
+						 />
+						 <span className="text-body-sm font-bold">
+							 {user.name ?? user.username}
+						 </span>
+					 </Link>
+				 </Button>
+			 </DropdownMenuTrigger>
 			<DropdownMenuPortal>
 				<DropdownMenuContent sideOffset={8} align="end">
 					<DropdownMenuItem asChild>
