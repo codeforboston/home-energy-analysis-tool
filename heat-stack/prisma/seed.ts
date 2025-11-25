@@ -254,7 +254,28 @@ seed()
 		await prisma.$disconnect()
 	})
 
-// we're ok to import from the test directory in this file
+
+	seed()
+		.catch((e) => {
+			console.error(e)
+			process.exit(1)
+		})
+		.finally(async () => {
+			await prisma.$disconnect()
+		})
+	seed_simple()
+		.catch((e) => {
+			console.error(e)
+			process.exit(1)
+		})
+		.finally(async () => {
+			await prisma.$disconnect()
+		})
+
+		async function seed_simple() {
+	console.log('🌱 Seeding simple data...')
+	console.time(`🌱 Simple seed complete`)
+}
 /*
 eslint
 	no-restricted-imports: "off",
