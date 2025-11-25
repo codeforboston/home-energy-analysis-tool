@@ -24,6 +24,8 @@ type GetOrInsertUserOptions = {
 	username?: UserModel['username']
 	password?: string
 	email?: UserModel['email']
+	name?: string
+	is_admin?: boolean
 }
 
 type User = {
@@ -31,6 +33,7 @@ type User = {
 	email: string
 	username: string
 	name: string | null
+	is_admin?: boolean
 }
 
 async function getOrInsertUser({
