@@ -12,7 +12,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/HomeInformation.tsx',
 	() => ({
 		HomeInformation: () => (
-			<div data-testid="home-information">Home Information</div>
+			<div id="home-information">Home Information</div>
 		),
 	}),
 )
@@ -21,7 +21,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/CurrentHeatingSystem.tsx',
 	() => ({
 		CurrentHeatingSystem: () => (
-			<div data-testid="current-heating-system">Current Heating System</div>
+			<div id="current-heating-system">Current Heating System</div>
 		),
 	}),
 )
@@ -30,7 +30,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx',
 	() => ({
 		EnergyUseUpload: ({ isEditMode }: { isEditMode?: boolean }) => (
-			<div data-testid="energy-use-upload">
+			<div id="energy-use-upload">
 				<button type="submit">
 					{isEditMode ? 'Save Changes' : 'Calculate'}
 				</button>
@@ -43,7 +43,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx',
 	() => ({
 		AnalysisHeader: () => (
-			<div data-testid="analysis-header">Analysis Header</div>
+			<div id="analysis-header">Analysis Header</div>
 		),
 	}),
 )
@@ -52,7 +52,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx',
 	() => ({
 		EnergyUseHistoryChart: () => (
-			<div data-testid="energy-use-history-chart">Energy Use History Chart</div>
+			<div id="energy-use-history-chart">Energy Use History Chart</div>
 		),
 	}),
 )
@@ -61,7 +61,7 @@ vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/HeatLoadAnalysis.tsx',
 	() => ({
 		HeatLoadAnalysis: () => (
-			<div data-testid="heat-load-analysis">Heat Load Analysis</div>
+			<div id="heat-load-analysis">Heat Load Analysis</div>
 		),
 	}),
 )
