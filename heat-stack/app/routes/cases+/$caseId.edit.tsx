@@ -5,7 +5,7 @@ import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
-import { getUserId } from '#app/utils/auth.server.ts'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
 import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
@@ -26,12 +26,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		}
 		return decimal
 	}
-	const userId = await getUserId(request)
+	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
-	const caseRecord = await getCaseForEditing(caseId, userId ?? '')
+	const caseRecord = await getCaseForEditing(caseId, userId)
 	invariantResponse(caseRecord, 'Case not found', { status: 404 })
 
 	const analysis = caseRecord.analysis?.[0]
@@ -178,7 +178,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-	const userId = await getUserId(request)
+	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
@@ -221,7 +221,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const result = await processCaseUpdate(
 				caseId,
 				submission,
-				userId || '',
+				userId,
 				formData,
 			)
 
@@ -277,7 +277,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				caseId,
 				submission.value,
 				{},
-				userId || '',
+				userId,
 				billingRecords,
 				heatLoadOutput,
 			)
