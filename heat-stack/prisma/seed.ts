@@ -254,25 +254,24 @@ seed()
 		await prisma.$disconnect()
 	})
 
+seed()
+	.catch((e) => {
+		console.error(e)
+		process.exit(1)
+	})
+	.finally(async () => {
+		await prisma.$disconnect()
+	})
+seed_simple()
+	.catch((e) => {
+		console.error(e)
+		process.exit(1)
+	})
+	.finally(async () => {
+		await prisma.$disconnect()
+	})
 
-	seed()
-		.catch((e) => {
-			console.error(e)
-			process.exit(1)
-		})
-		.finally(async () => {
-			await prisma.$disconnect()
-		})
-	seed_simple()
-		.catch((e) => {
-			console.error(e)
-			process.exit(1)
-		})
-		.finally(async () => {
-			await prisma.$disconnect()
-		})
-
-		async function seed_simple() {
+async function seed_simple() {
 	console.log('🌱 Seeding simple data...')
 	console.time(`🌱 Simple seed complete`)
 }

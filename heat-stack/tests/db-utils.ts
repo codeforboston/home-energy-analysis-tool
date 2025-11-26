@@ -2,16 +2,27 @@ import { faker } from '@faker-js/faker'
 import { type User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { UniqueEnforcer } from 'enforce-unique'
-import { prisma } from '#app/utils/db.server.ts';
+import { prisma } from '#app/utils/db.server.ts'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 
 // Simple user insert helper
-export async function getOrInsertUser({username, name, email, is_admin=false }: { id?: string; username: string; name?: string; email?: string, is_admin?: boolean }): Promise<User> {
+export async function getOrInsertUser({
+	username,
+	name,
+	email,
+	is_admin = false,
+}: {
+	id?: string
+	username: string
+	name?: string
+	email?: string
+	is_admin?: boolean
+}): Promise<User> {
 	// check if user with username exists
 	let user = await prisma.user.findUnique({ where: { username } })
 	if (user) return user
-	const email_value = email||`${username}@example.com`
+	const email_value = email || `${username}@example.com`
 	const name_value = name || username
 	if (!user) {
 		user = await prisma.user.create({
@@ -20,7 +31,7 @@ export async function getOrInsertUser({username, name, email, is_admin=false }: 
 				name: name_value,
 				email: email_value,
 				is_admin,
-				password: { create: createPassword(username + "pass") },
+				password: { create: createPassword(username + 'pass') },
 				roles: { connect: { name: is_admin ? 'admin' : 'user' } },
 			},
 		})
