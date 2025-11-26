@@ -11,9 +11,7 @@ import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/Single
 vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/HomeInformation.tsx',
 	() => ({
-		HomeInformation: () => (
-			<div id="home-information">Home Information</div>
-		),
+		HomeInformation: () => <div id="home-information">Home Information</div>,
 	}),
 )
 
@@ -42,9 +40,7 @@ vi.mock(
 vi.mock(
 	'#app/components/ui/heat/CaseSummaryComponents/AnalysisHeader.tsx',
 	() => ({
-		AnalysisHeader: () => (
-			<div id="analysis-header">Analysis Header</div>
-		),
+		AnalysisHeader: () => <div id="analysis-header">Analysis Header</div>,
 	}),
 )
 

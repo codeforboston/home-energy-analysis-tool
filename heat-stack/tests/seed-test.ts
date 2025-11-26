@@ -19,4 +19,3 @@ export const otherUsers: User[] = await Promise.all([
 	getOrInsertUser({ username: 'user2', name: 'User Two' }),
 	getOrInsertUser({ username: 'user3', name: 'User Three' }),
 ])
-
