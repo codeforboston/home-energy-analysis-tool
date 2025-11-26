@@ -18,16 +18,14 @@ import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
-const percentToDecimal = (value: number, errorMessage: string) => {
-	const decimal = parseFloat((value / 100).toFixed(2))
-	if (isNaN(decimal) || decimal > 1) {
-		throw new Error(errorMessage)
+export async function loader({ params, request }: Route.LoaderArgs) {
+	const percentToDecimal = (value: number, errorMessage: string) => {
+		const decimal = parseFloat((value / 100).toFixed(2))
+		if (isNaN(decimal) || decimal > 1) {
+			throw new Error(errorMessage)
+		}
+		return decimal
 	}
-
-	return decimal
-}
-
-export async function loader({ request, params }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
