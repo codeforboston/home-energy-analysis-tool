@@ -30,14 +30,20 @@ export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 	const user = useOptionalUser()
 	if (!user || !user.is_admin) {
 		return (
-			<div id="users-page" className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
+			<div
+				id="users-page"
+				className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
+			>
 				<h1 className="text-h1">HEAT Users</h1>
 				<p className="text-error">{ACCESS_DENIED_MESSAGE}</p>
 			</div>
 		)
 	}
 	return (
-		<div id="users-page" className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
+		<div
+			id="users-page"
+			className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
+		>
 			<h1 className="text-h1">HEAT Users</h1>
 			<div className="w-full max-w-[700px]">
 				<SearchBar status={loaderData.status} autoFocus autoSubmit />
