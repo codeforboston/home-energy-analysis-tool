@@ -184,9 +184,6 @@
   "engines": {
     "node": "22"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "epic-stack": {
     "head": "12de6850564e84e411a59e3df2abdcc8aa4eea0e",
     "date": "2025-02-25T20:53:19Z"
