@@ -1,6 +1,6 @@
 - [x]Look at original seed.ts roles
 - [x] Change name of username
-- Get admin test to work
+- [x] Get admin test to work
 - Change is_admin back to role
 - Seed prod with admin and admin user
 - modify seed-test.ts and seed.ts to call seed-prod.ts
