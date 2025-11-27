@@ -11,13 +11,13 @@ export async function getOrInsertUser({
 	username,
 	name,
 	email,
-	is_admin = false,
+	has_admin_role = false,
 }: {
 	id?: string
 	username: string
 	name?: string
 	email?: string
-	is_admin?: boolean
+	has_admin_role?: boolean
 }): Promise<User> {
 	// check if user with username exists
 	let user = await prisma.user.findUnique({ where: { username } })
@@ -30,9 +30,8 @@ export async function getOrInsertUser({
 				username,
 				name: name_value,
 				email: email_value,
-				is_admin,
 				password: { create: createPassword(username + 'pass') },
-				roles: { connect: { name: is_admin ? 'admin' : 'user' } },
+				...(has_admin_role ? { roles: { connect: { name: 'admin' } } } : {}),
 			},
 		})
 	}

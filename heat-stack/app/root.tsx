@@ -87,7 +87,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 									},
 								},
 							},
-							is_admin: true,
 						},
 						where: { id: userId },
 					}),
