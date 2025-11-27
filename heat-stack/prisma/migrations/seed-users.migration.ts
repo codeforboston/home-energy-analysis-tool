@@ -6,16 +6,13 @@ const prisma = new PrismaClient()
 async function main() {
   const adminUsername = process.env.admin_username
   const adminPassword = process.env.admin_password
-  const userUsername = process.env.user_username
-  const userPassword = process.env.user_password
-
-  if (!adminUsername || !adminPassword || !userUsername || !userPassword) {
+  
+  if (!adminUsername || !adminPassword) {
     throw new Error('Missing required environment variables for seeding users')
   }
 
   // Hash passwords
   const adminHash = await bcrypt.hash(adminPassword, 10)
-  const userHash = await bcrypt.hash(userPassword, 10)
 
   // Seed admin user
   await prisma.user.upsert({
@@ -31,19 +28,6 @@ async function main() {
     },
   })
 
-  // Seed regular user
-  await prisma.user.upsert({
-    where: { username: userUsername },
-    update: {},
-    create: {
-      username: userUsername,
-      password: { create: { hash: userHash } },
-      is_admin: false,
-      email: `${userUsername}@example.com`,
-      name: 'Regular User',
-      roles: { connect: { name: 'user' } },
-    },
-  })
 }
 
 main()

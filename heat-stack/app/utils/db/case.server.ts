@@ -1,9 +1,45 @@
+// Get user from request, including is_admin
+
+export async function getUserFromRequest(request: Request) {
+	// Use session-based user lookup
+	const userId = await requireUserId(request)
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { id: true, username: true, is_admin: true }
+	})
+	if (!user) throw new Error('User not found')
+	return user
+}
+
+// Get all cases with usernames for admin
+export async function getAllCasesWithUsernames() {
+	const cases = await prisma.case.findMany({
+		include: {
+			homeOwner: true,
+			location: true,
+			analysis: {
+				include: {
+					heatingInput: { take: 1 },
+				},
+			},
+			users: { select: { username: true } },
+		},
+		orderBy: { id: 'desc' },
+	})
+	// Attach username for each case (first user)
+	return cases.map(c => ({
+		...c,
+		username: c.users?.[0]?.username || 'N/A',
+	}))
+}
 import { invariant } from '@epic-web/invariant'
 import type z from 'zod'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
+export type { SchemaZodFromFormType };
 
 // export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
 // 	const caseRecord = await prisma.case.findUnique({
