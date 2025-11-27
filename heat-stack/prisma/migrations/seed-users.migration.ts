@@ -21,7 +21,6 @@ async function main() {
     create: {
       username: adminUsername,
       password: { create: { hash: adminHash } },
-      is_admin: true,
       email: `${adminUsername}@example.com`,
       name: 'Admin User',
       roles: { connect: { name: 'admin' } },

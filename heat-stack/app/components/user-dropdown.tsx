@@ -2,7 +2,7 @@ import { Img } from 'openimg/react'
 import { useRef } from 'react'
 import { Link, Form } from 'react-router'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
-import { useUser } from '#app/utils/user.ts'
+import { useUser, hasAdminRole } from '#app/utils/user.ts'
 import { Button } from './ui/button'
 import {
 	DropdownMenu,
@@ -14,13 +14,12 @@ import {
 import { Icon } from './ui/icon'
 
 export function UserDropdown() {
-	// Update type to include is_admin
 	type UserType = {
 		id: string
 		name?: string | null
 		username: string
 		image?: { objectKey?: string } | null
-		is_admin: boolean
+		roles?: { name: string }[]
 	}
 	const user = useUser() as UserType
 	const formRef = useRef<HTMLFormElement>(null)
@@ -70,7 +69,7 @@ export function UserDropdown() {
 						</Link>
 					</DropdownMenuItem>
 					{/* Admin-only link */}
-					{user.is_admin ? (
+					{hasAdminRole(user) ? (
 						<DropdownMenuItem asChild>
 							<Link prefetch="intent" to="/users/manage">
 								<Icon className="text-body-md" name="avatar">

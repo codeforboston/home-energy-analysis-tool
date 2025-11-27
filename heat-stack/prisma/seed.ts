@@ -112,7 +112,6 @@ async function seed() {
 			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
-			is_admin: true,
 			password: { create: createPassword('kodylovesyou') },
 			connections: {
 				create: {
@@ -120,7 +119,7 @@ async function seed() {
 					providerId: String(githubUser.profile.id),
 				},
 			},
-			roles: { connect: [{ name: 'admin' }, { name: 'user' }] },
+			roles: { connect: [{ name: 'admin' }] },
 		},
 	})
 	const kodyDb = await prisma.user.findUnique({ where: { id: kody.id } })
@@ -254,27 +253,6 @@ seed()
 		await prisma.$disconnect()
 	})
 
-seed()
-	.catch((e) => {
-		console.error(e)
-		process.exit(1)
-	})
-	.finally(async () => {
-		await prisma.$disconnect()
-	})
-seed_simple()
-	.catch((e) => {
-		console.error(e)
-		process.exit(1)
-	})
-	.finally(async () => {
-		await prisma.$disconnect()
-	})
-
-async function seed_simple() {
-	console.log('🌱 Seeding simple data...')
-	console.time(`🌱 Simple seed complete`)
-}
 /*
 eslint
 	no-restricted-imports: "off",

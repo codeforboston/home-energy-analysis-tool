@@ -5,7 +5,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { useOptionalUser } from '#app/utils/user.ts'
 import { ACCESS_DENIED_MESSAGE } from '../../constants/error-messages'
-
+import { hasAdminRole } from '#app/utils/user.ts'
 export async function loader() {
 	// Only admins can access
 	// This should be enforced in the route config or loader
@@ -16,7 +16,6 @@ export async function loader() {
 			email: true,
 			username: true,
 			name: true,
-			is_admin: true,
 		},
 	})
 	return { users }
@@ -28,10 +27,9 @@ export async function action({ request }: { request: Request }) {
 	const email = formData.get('email') as string
 	const username = formData.get('username') as string
 	const name = formData.get('name') as string
-	const is_admin = formData.get('is_admin') === 'on'
 	await prisma.user.update({
 		where: { id },
-		data: { email, username, name, is_admin },
+		data: { email, username, name },
 	})
 	return null
 }
@@ -43,16 +41,11 @@ export default function AdminEditUsers() {
 			email: string
 			username: string
 			name: string | null
-			is_admin?: boolean
 		}>
 	}
 	const user = useOptionalUser() as (typeof users)[number] | undefined
 
 	const [editingId, setEditingId] = useState<string | null>(null)
-
-	if (!user || !('is_admin' in user) || !user.is_admin) {
-		return <div>{ACCESS_DENIED_MESSAGE}</div>
-	}
 
 	return (
 		<div className="container mt-10">
@@ -89,12 +82,7 @@ export default function AdminEditUsers() {
 									>
 										{u.name ?? ''}
 									</div>
-									<div
-										className="flex items-center gap-2 rounded bg-muted px-2 py-1 text-lg"
-										id={`admin_${u.username}_display`}
-									>
-										<input type="checkbox" checked={u.is_admin} readOnly />
-									</div>
+
 									<button
 										type="button"
 										className="ml-2 rounded p-2 hover:bg-accent"
@@ -145,16 +133,6 @@ export default function AdminEditUsers() {
 											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
 											style={{ width: '100%' }}
 											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex items-center gap-2 px-2 py-1 text-xs">
-										Admin
-										<input
-											type="checkbox"
-											name="is_admin"
-											id={`admin_${u.username}`}
-											defaultChecked={u.is_admin}
-											onChange={(e) => e.target.form?.requestSubmit()}
 										/>
 									</label>
 									<button

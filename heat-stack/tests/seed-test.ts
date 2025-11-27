@@ -48,13 +48,13 @@ function mockConvertedDates(idx: number) {
 export const adminUser: User = await getOrInsertUser({
 	username: 'adminusername',
 	name: 'John Admin',
-	is_admin: true,
+	has_admin_role: true,
 })
 
 export const normalUser: User = await getOrInsertUser({
 	username: 'normalusername',
 	name: 'Jane User',
-	is_admin: false,
+	has_admin_role: false,
 })
 
 export const otherUsers: User[] = await Promise.all([
