@@ -96,7 +96,6 @@ export default function AdminEditUsers() {
 								<Form
 									method="post"
 									className="flex w-full items-center gap-4 text-lg"
-									replace
 									onBlur={(e) => {
 										if (e.relatedTarget === null) setEditingId(null)
 									}}
