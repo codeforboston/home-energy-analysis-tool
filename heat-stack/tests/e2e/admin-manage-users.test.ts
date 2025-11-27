@@ -55,7 +55,6 @@ test('Admin can see Manage Users and access manage screen', async ({
 
 	// Confirm at least one user row exists and first row represents a user
 	const firstRow = userRows[0]
-	console.log('First row text content:', await firstRow?.textContent())
 	const emailText = await firstRow?.locator('div').nth(0).textContent()
 	const usernameText = await firstRow?.locator('div').nth(1).textContent()
 	expect(emailText).toBeTruthy()

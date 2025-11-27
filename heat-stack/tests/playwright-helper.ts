@@ -25,12 +25,9 @@ export async function login_with_ui(
 	// Log current page URL after login
 	console.log('Page URL after login_with_ui:', page.url())
 
-	// Log cookies after login
 	const cookies = await page.context().cookies()
-	console.log('Cookies after login_with_ui:', cookies)
 	// Verify session cookie exists
 	const sessionCookie = cookies.find((c: { name: string | any[] }) => c.name.includes('session'))
-	console.log('Session cookie after login_with_ui:', sessionCookie)
 	if (!sessionCookie) {
 		throw new Error('Session cookie not set after login_with_ui')
 	}
