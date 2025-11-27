@@ -1,11 +1,25 @@
-// Get user from request, including is_admin
 
 export async function getUserFromRequest(request: Request) {
 	// Use session-based user lookup
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
-		select: { id: true, username: true, is_admin: true }
+		select: {
+			id: true,
+			username: true,
+			roles: {
+				select: {
+					name: true,
+					permissions: {
+						select: {
+							action: true,
+							entity: true,
+							access: true,
+						}
+					}
+				}
+			}
+		}
 	})
 	if (!user) throw new Error('User not found')
 	return user

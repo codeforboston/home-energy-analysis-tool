@@ -1,6 +1,6 @@
 import { data, Link } from 'react-router'
 import { getCasesByUser, getAllCasesWithUsernames, getUserFromRequest } from '#app/utils/db/case.server.ts'
-import hasAdminRole from '#app/utils/user.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
 
 type CaseWithUsername = {
 	id: number;

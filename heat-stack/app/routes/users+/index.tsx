@@ -6,7 +6,7 @@ import { ErrorList } from '#app/components/forms.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
-import { useOptionalUser } from '#app/utils/user.ts'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 import { ACCESS_DENIED_MESSAGE } from '../../constants/error-messages'
 // ...existing code...
 import { type Route } from './+types/index.ts'
@@ -28,7 +28,7 @@ export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 		formAction: '/users',
 	})
 	const user = useOptionalUser()
-	if (!user || !user.is_admin) {
+	if (!user || !hasAdminRole(user)) {
 		return (
 			<div
 				id="users-page"
