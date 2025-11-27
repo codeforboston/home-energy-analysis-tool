@@ -1,6 +1,7 @@
 
 
 import { test, expect } from '@playwright/test'
+import fs from 'fs'
 import { login_with_ui } from '../playwright-helper'
 import { adminUser, normalUser } from '../seed-test'
 import { prisma } from '#app/utils/db.server.ts'
@@ -13,6 +14,7 @@ test.describe('Case list admin/user visibility', () => {
 		}) => {
 			// Login as regular user using helper
 			await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
+			await page.waitForTimeout(2000)
 			await page.goto('/cases')
 			// After login, ensure we are not redirected to /login
 			await expect(page).not.toHaveURL(/\/login/)
@@ -23,14 +25,16 @@ test.describe('Case list admin/user visibility', () => {
 
 			expect(rowCount).toEqual(dbCount)
 
-			// Check 'Username' appears somewhere in the page
+			// Check 'Username' column header appears
 			const pageContent = await page.content()
-			expect(pageContent).toContain('Username')
+			const hasUsernameColumn = /<th[^>]*>\s*Username\s*<\/th>/i.test(pageContent)
+			expect(hasUsernameColumn).toBe(true)
+			fs.writeFileSync('page-content.html', pageContent)
 
-			// Check normalUser.username appears somewhere in the page
-			expect(pageContent).toContain(normalUser.username)
+			// Check normalUser.username appears as a standalone value between any HTML tags (e.g., <div>, <td>, etc.)
+			const hasUsernameStandalone = new RegExp(`>\\s*${normalUser.username}\\s*<`, 'i').test(pageContent)
+			expect(hasUsernameStandalone).toBe(true)
 
-			console.log('rowCount', rowCount)
 		})
 
 
@@ -39,11 +43,16 @@ test.describe('Case list admin/user visibility', () => {
 	}) => {
 		// Login as regular user using helper
 		await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+		await page.waitForTimeout(2000)
 		await page.goto('/cases')
 		// Username column should NOT be visible
-		await expect(
-			page.getByRole('columnheader', { name: /username/i }),
-		).not.toBeVisible()
+		const pageContent = await page.content()
+		const hasUsernameColumn = /<th[^>]*>\s*Username\s*<\/th>/i.test(pageContent)
+		expect(hasUsernameColumn).toBe(false)
+
+		// Username value should NOT appear as a standalone cell
+		const hasUsernameCell = new RegExp(`<td[^>]*>\s*${normalUser.username}\s*<\/td>`, 'i').test(pageContent)
+		expect(hasUsernameCell).toBe(false)
 		// Get all rows
 		const rows = await page.locator('table tbody tr')
 		const rowCount = await rows.count()
@@ -61,7 +70,6 @@ test.describe('Case list admin/user visibility', () => {
 		for (let i = 0; i < rowCount; i++) {
 			// For non-admin, home owner is always the 2nd cell (index 1)
 			const homeOwnerCell = await rows.nth(i).locator('td').nth(1).textContent()
-			console.log('Checking row', i, homeOwnerCell)
 			expect(homeOwnerCell).toContain(normalUser.username)
 		}
 	})
