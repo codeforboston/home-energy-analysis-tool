@@ -1,3 +1,10 @@
+/**
+ * Returns true if the user has an admin role.
+ */
+export function hasAdminRole(user: { roles?: { name: string }[] } | null | undefined): boolean {
+	if (!user || !user.roles) return false;
+	return user.roles.some(r => r.name === 'admin');
+}
 import { useRouteLoaderData } from 'react-router'
 import { type loader as rootLoader } from '#app/root.tsx'
 
