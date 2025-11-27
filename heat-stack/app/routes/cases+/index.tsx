@@ -1,5 +1,6 @@
 import { data, Link } from 'react-router'
 import { getCasesByUser, getAllCasesWithUsernames, getUserFromRequest } from '#app/utils/db/case.server.ts'
+import hasAdminRole from '#app/utils/user.ts'
 
 type CaseWithUsername = {
 	id: number;
@@ -12,13 +13,14 @@ import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const user = await getUserFromRequest(request)
+	const isAdmin = hasAdminRole(user)
 	let cases
-	if (user.is_admin) {
+	if (isAdmin) {
 		cases = await getAllCasesWithUsernames()
 	} else {
 		cases = await getCasesByUser(user.id)
 	}
-	return data({ cases, isAdmin: user.is_admin })
+	return data({ cases, isAdmin })
 }
 
 export default function Cases({
