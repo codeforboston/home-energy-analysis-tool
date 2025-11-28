@@ -1,3 +1,41 @@
+test('Admin can check and uncheck admin role for a user', async ({ page }) => {
+	// Log in as seeded admin user
+	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
+	await page.goto('/users/manage')
+
+	// Pick a non-admin user for testing
+	const dbUsers = await prisma.user.findMany({ where: { roles: { none: { name: 'admin' } } } })
+
+	const targetUser = dbUsers[0]
+	if (!targetUser) throw new Error('No non-admin user found for admin toggle test')
+	const username = targetUser.username
+
+	// Edit the user
+	const editBtnId = `#edit_btn_${username}`
+	await page.click(editBtnId)
+
+	// Find the admin checkbox in edit mode
+	const adminCheckboxId = `input[name='admin']` // Should be unique in edit form
+	const adminCheckbox = page.locator(adminCheckboxId).first()
+
+	// Check the box
+	await adminCheckbox.check()
+	await page.waitForTimeout(500)
+	await page.reload()
+
+	// Verify admin is now checked in view mode
+	const viewRow = page.locator(`#username_${username}_display`).locator('..').locator("input[type='checkbox']")
+	expect(await viewRow.isChecked()).toBe(true)
+
+	// Edit again and uncheck
+	await page.click(editBtnId)
+	await adminCheckbox.uncheck()
+	await page.waitForTimeout(500)
+	await page.reload()
+
+	// Verify admin is now unchecked in view mode
+	expect(await viewRow.isChecked()).toBe(false)
+})
 import { ACCESS_DENIED_MESSAGE } from '../../app/constants/error-messages'
 import { prisma } from '../../app/utils/db.server'
 import { login_with_ui } from '../playwright-helper'
@@ -9,7 +47,7 @@ test('Normal user gets Access Denied on /users', async ({ page }) => {
 	await expect(page.locator('text=Access denied')).toBeVisible()
 })
 
-test('Admin user sees Epic Stack /users page', async ({ page }) => {
+test('Admin user can access /users/manage page', async ({ page }) => {
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
 	await page.goto('/users')
 	// Check for users-page id on the main container
