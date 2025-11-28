@@ -1,7 +1,7 @@
 
 
-import { test, expect } from '@playwright/test'
 import { prisma } from '#app/utils/db.server.ts'
+import { expect, test } from '#tests/playwright-utils.ts'
 import { login_with_ui } from '../playwright-helper'
 import { adminUser, normalUser } from '../seed-test'
 
@@ -9,10 +9,12 @@ import { adminUser, normalUser } from '../seed-test'
 test.describe('Case list admin/user visibility', () => {
 
   	test('Admin can see all cases and username column', async ({
-			page,
+			page, login
 		}) => {
 			// Login as regular user using helper
-			await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
+			await login({ username: adminUser.username})
+			console.log('Admin login complete')
+			await page.screenshot({ path: 'before-failure.png', fullPage: true })
 			await page.waitForTimeout(2000)
 			await page.goto('/cases')
 			// After login, ensure we are not redirected to /login

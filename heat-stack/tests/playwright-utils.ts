@@ -48,6 +48,11 @@ async function getOrInsertUser({
 			select,
 			where: { id: id },
 		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
 	} else {
 		const userData = createUser()
 		username ??= userData.username
