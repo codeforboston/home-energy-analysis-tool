@@ -1,10 +1,9 @@
 
 
 import { test, expect } from '@playwright/test'
-import fs from 'fs'
+import { prisma } from '#app/utils/db.server.ts'
 import { login_with_ui } from '../playwright-helper'
 import { adminUser, normalUser } from '../seed-test'
-import { prisma } from '#app/utils/db.server.ts'
 
 // Helper to login as admin or user
 test.describe('Case list admin/user visibility', () => {
@@ -29,7 +28,6 @@ test.describe('Case list admin/user visibility', () => {
 			const pageContent = await page.content()
 			const hasUsernameColumn = /<th[^>]*>\s*Username\s*<\/th>/i.test(pageContent)
 			expect(hasUsernameColumn).toBe(true)
-			fs.writeFileSync('page-content.html', pageContent)
 
 			// Check normalUser.username appears as a standalone value between any HTML tags (e.g., <div>, <td>, etc.)
 			const hasUsernameStandalone = new RegExp(`>\\s*${normalUser.username}\\s*<`, 'i').test(pageContent)
