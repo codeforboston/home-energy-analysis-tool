@@ -19,8 +19,7 @@ export async function loader() {
 		},
 	})
 	// Debug log: print user count and IDs
-	console.log('Loader user count:', users.length)
-	console.log('Loader user IDs:', users.map(u => u.id))
+
 	return { users }
 }
 

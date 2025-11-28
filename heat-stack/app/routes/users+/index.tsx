@@ -28,7 +28,6 @@ export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 		formAction: '/users',
 	})
 	const user = useOptionalUser()
-	console.log('Current user:', user, 'Has admin role:', hasAdminRole(user));	
 	if (!user || !hasAdminRole(user)) {
 		return (
 			<div
