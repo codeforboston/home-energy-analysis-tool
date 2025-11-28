@@ -16,6 +16,7 @@ export async function loader() {
 			email: true,
 			username: true,
 			name: true,
+			roles: { select: { name: true } },
 		},
 	})
 	return { users }
@@ -41,6 +42,7 @@ export default function AdminEditUsers() {
 			email: string
 			username: string
 			name: string | null
+			roles?: { name: string }[]
 		}>
 	}
 	const user = useOptionalUser() as (typeof users)[number] | undefined
@@ -54,7 +56,7 @@ export default function AdminEditUsers() {
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
-				<div className="flex items-center gap-2 px-2">Admin</div>
+				<div className="min-w-[120px] flex items-center gap-2 px-2">Admin</div>
 				<div className="ml-2 px-2">Edit</div>
 			</div>
 			<ul className="divide-y divide-muted">
@@ -81,6 +83,14 @@ export default function AdminEditUsers() {
 										id={`name_${u.username}_display`}
 									>
 										{u.name ?? ''}
+									</div>
+									<div className="min-w-[120px] flex items-center px-2">
+										<input
+											type="checkbox"
+											checked={hasAdminRole(u)}
+											readOnly
+											aria-label="Admin Role"
+										/>
 									</div>
 
 									<button
@@ -134,6 +144,14 @@ export default function AdminEditUsers() {
 											onBlur={(e) => e.target.form?.requestSubmit()}
 										/>
 									</label>
+									<div className="min-w-[120px] flex items-center px-2">
+										<input
+											type="checkbox"
+											checked={hasAdminRole(u)}
+											readOnly
+											aria-label="Admin Role"
+										/>
+									</div>
 									<button
 										type="button"
 										className="ml-2 rounded p-2 hover:bg-accent"
