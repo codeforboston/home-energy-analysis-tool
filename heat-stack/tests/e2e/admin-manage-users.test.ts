@@ -59,6 +59,7 @@ test('Normal user cannot access manage users screen or see manage option', async
 }) => {
 	// Log in as normal user
 	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+	await page.goto('/cases')
 	// Open the user dropdown
 	await page.click('#user-dropdown-btn')
 	// Verify Manage Users option does NOT appear
