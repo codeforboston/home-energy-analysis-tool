@@ -3,9 +3,7 @@ import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import { useOptionalUser } from '#app/utils/user.ts'
-import { ACCESS_DENIED_MESSAGE } from '../../constants/error-messages'
-import { hasAdminRole } from '#app/utils/user.ts'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 export async function loader() {
 	// Only admins can access
 	// This should be enforced in the route config or loader
@@ -28,6 +26,30 @@ export async function action({ request }: { request: Request }) {
 	const email = formData.get('email') as string
 	const username = formData.get('username') as string
 	const name = formData.get('name') as string
+	const adminChecked = formData.get('admin') === 'on'
+
+	// Update admin role
+	if (adminChecked) {
+		await prisma.user.update({
+			where: { id },
+			data: {
+				roles: {
+					connect: { name: 'admin' },
+				},
+			},
+		})
+	} else {
+		await prisma.user.update({
+			where: { id },
+			data: {
+				roles: {
+					disconnect: { name: 'admin' },
+				},
+			},
+		})
+	}
+
+	// Update other fields
 	await prisma.user.update({
 		where: { id },
 		data: { email, username, name },
@@ -147,9 +169,10 @@ export default function AdminEditUsers() {
 									<div className="min-w-[120px] flex items-center px-2">
 										<input
 											type="checkbox"
-											checked={hasAdminRole(u)}
-											readOnly
+											name="admin"
+											defaultChecked={hasAdminRole(u)}
 											aria-label="Admin Role"
+											onChange={e => e.target.form?.requestSubmit()}
 										/>
 									</div>
 									<button
