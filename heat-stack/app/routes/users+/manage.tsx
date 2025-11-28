@@ -4,6 +4,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
+import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 export async function loader() {
 	// Only admins can access
 	// This should be enforced in the route config or loader
@@ -17,6 +18,9 @@ export async function loader() {
 			roles: { select: { name: true } },
 		},
 	})
+	// Debug log: print user count and IDs
+	console.log('Loader user count:', users.length)
+	console.log('Loader user IDs:', users.map(u => u.id))
 	return { users }
 }
 
@@ -70,7 +74,17 @@ export default function AdminEditUsers() {
 	const user = useOptionalUser() as (typeof users)[number] | undefined
 
 	const [editingId, setEditingId] = useState<string | null>(null)
-
+	if (!user || !hasAdminRole(user)) {
+		return (
+			<div
+				id="users-page"
+				className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
+			>
+				<h1 className="text-h1">HEAT Users</h1>
+				<p className="text-error">{ACCESS_DENIED_MESSAGE}</p>
+			</div>
+		)
+	}
 	return (
 		<div className="container mt-10">
 			<h2 className="mb-6 text-h2">Edit Users (Admin Only)</h2>
