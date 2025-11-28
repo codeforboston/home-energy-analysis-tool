@@ -81,11 +81,14 @@ test('Admin can see Manage Users and access manage screen', async ({
 		page.getByRole('menuitem', { name: /Manage Users/i }),
 	).toBeVisible()
 	// Go to /users/manage
+})
+test('Admin can view and edit users in manage users screen', async ({ page }) => {
+	// Log in as seeded admin user
+	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
 	await page.goto('/users/manage')
 
 	// Get user count from database
-	const dbUsers = await prisma.user.findMany()
-	const dbUserCount = dbUsers.length
+	const dbUserCount = await prisma.user.count()
 
 	// Count number of user rows in UI (li elements inside the user list)
 	const userRows = await page.locator('ul.divide-y > li').all()
