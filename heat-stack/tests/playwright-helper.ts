@@ -15,11 +15,13 @@ export async function login_with_ui(
 	await page.waitForFunction(() => !window.location.pathname.includes('/login'), null, { timeout: 10000 })
 	console.log('Login complete, current URL:', page.url())
 	const cookies = await page.context().cookies()
-	console.log('Current cookies:', cookies)
+	console.log('Cookies after login_with_ui:', cookies)
 
 	// Log current page URL after login
 	console.log('Page URL after login_with_ui:', page.url())
+	await page.screenshot({ path: 'line21.png', fullPage: true })
 
+	await page.waitForNavigation()
 	// Verify session cookie exists
 	const sessionCookie = cookies.find((c: { name: string | any[] }) => c.name.includes('session'))
 	if (!sessionCookie) {

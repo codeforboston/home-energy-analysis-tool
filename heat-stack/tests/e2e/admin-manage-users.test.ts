@@ -54,11 +54,12 @@ test('Admin user can access /users/manage page', async ({ page }) => {
 	await expect(page.locator('#users-page')).toBeVisible()
 })
 
-test('Normal user cannot access manage users screen or see manage option', async ({
+test('Normal user cannot access manage users screen or see mana																																																																																																																																																																																																																																																																																																																																																										 	  ge option', async ({
 	page,
 }) => {
 	// Log in as normal user
 	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+
 	await page.goto('/cases')
 	// Open the user dropdown
 	await page.click('#user-dropdown-btn')
