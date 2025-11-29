@@ -47,13 +47,27 @@ test('Normal user gets Access Denied on /users', async ({ page }) => {
 	await expect(page.locator('text=Access denied')).toBeVisible()
 })
 
-test('Admin user can access /users/manage page', async ({ page }) => {
+// test('Admin user can access /users/manage page', async ({ page }) => {
+// 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
+// 	await page.goto('/users')
+// 	// Check for users-page id on the main container
+// 	await expect(page.locator('#users-page')).toBeVisible()
+// })
+
+test('Admin user can access /users/manage page and see Manage Users option', async ({ page }) => {
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
 	await page.goto('/users')
 	// Check for users-page id on the main container
 	await expect(page.locator('#users-page')).toBeVisible()
-})
+	await expect(page.locator('#user-dropdown-btn')).toBeVisible()
+	await page.click('#user-dropdown-btn')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+	// Check for Manage Users option in dropdown
+	await expect(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+		page.getByRole('menuitem', { name: /Manage Users/i }),
+	).toBeVisible()
 
+})
 test('Normal user cannot access manage users screen or see mana																																																																																																																																																																																																																																																																																																																																																										 	  ge option', async ({
 	page,
 }) => {
@@ -71,19 +85,7 @@ test('Normal user cannot access manage users screen or see mana																	
 	// Verify access denied message is shown
 	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
 })
-test('Admin can see Manage Users and access manage screen', async ({
-	page,
-}) => {
-	// Log in as seeded admin user
-	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
-	// Open the user dropdown using id
-	await page.click('#user-dropdown-btn')
-	// Check for Manage Users option in dropdown
-	await expect(
-		page.getByRole('menuitem', { name: /Manage Users/i }),
-	).toBeVisible()
-	// Go to /users/manage
-})
+
 test('Admin can view and edit users in manage users screen', async ({ page }) => {
 	// Log in as seeded admin user
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')

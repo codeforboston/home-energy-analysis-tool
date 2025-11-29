@@ -14,7 +14,7 @@ test.describe('Case list admin/user visibility', () => {
 			// Login as regular user using helper
 			await login({ username: adminUser.username})
 			console.log('Admin login complete')
-			await page.screenshot({ path: 'before-failure.png', fullPage: true })
+				await page.screenshot({ path: 'before-failure.png', fullPage: true })
 			await page.waitForTimeout(2000)
 			await page.goto('/cases')
 			// After login, ensure we are not redirected to /login
