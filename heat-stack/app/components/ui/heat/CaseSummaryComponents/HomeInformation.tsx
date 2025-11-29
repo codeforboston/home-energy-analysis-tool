@@ -98,7 +98,12 @@ export function HomeInformation(props: HomeInformationProps) {
 			<div className={componentMargin}>
 				<div className="mt-4 flex space-x-4">
 					<div>
-						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
+						<Input
+							{...getInputProps(props.fields.name, { type: 'text' })}
+							// onBlur={e => {
+							// 	console.log('[HomeInformation] Name changed:', e.target.value);
+							// }}
+						/>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
 								id={props.fields.name.errorId}

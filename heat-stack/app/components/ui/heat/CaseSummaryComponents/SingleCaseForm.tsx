@@ -1,6 +1,6 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -134,9 +134,14 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
+	// Track last focused field and its value
+	const lastFocusedFieldRef = useRef<{ name: string; value: any } | null>(null);
+	const formRef = useRef<HTMLFormElement>(null);
+
 	return (
 		<>
 			<Form
+				ref={formRef}
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
@@ -144,6 +149,28 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
+				onFocus={e => {
+					if (e.target && e.target.name) {
+						lastFocusedFieldRef.current = {
+							name: e.target.name,
+							value: e.target.value,
+						};
+					}
+				}}
+				onBlur={e => {
+					if (e.target && e.target.name) {
+						const original = lastFocusedFieldRef.current;
+						const valueChanged = original?.name === e.target.name && original.value !== e.target.value;
+						console.log(
+							`[Form] Field blurred: ${e.target.name}, original value: ${original?.name === e.target.name ? original.value : 'unknown'}, new value: ${e.target.value}`
+						);
+						if (isEditMode && valueChanged && formRef.current) {
+							console.log('[Form] Value changed on blur, submitting form...');
+							formRef.current.requestSubmit();
+						}
+						lastFocusedFieldRef.current = null;
+					}
+				}}
 			>
 				<div>Case {caseInfo?.caseId}</div>
 				{/* Include billing records as hidden input for save operations in edit mode */}
