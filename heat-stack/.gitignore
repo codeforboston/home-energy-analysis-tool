@@ -5,11 +5,8 @@ node_modules
 /public/build
 /server-build
 .env
-../**.db
-/prisma/data.db
-/prisma/data.db-journal
+**/**.db*
 /tests/prisma
-/**/*.db
 
 /test-results/
 /playwright-report/
