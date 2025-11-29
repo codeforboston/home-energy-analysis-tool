@@ -108,7 +108,6 @@ async function getOrInsertAdmin({
 
 export const test = base.extend<{
 	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
-	loginAdmin(options?: GetOrInsertUserOptions): Promise<User>
 	login(options?: GetOrInsertUserOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
@@ -121,35 +120,7 @@ export const test = base.extend<{
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
-	loginAdmin: async ({ page }, use) => {
-		let userId: string | undefined = undefined
-		await use(async (options) => {
-			const user = await getOrInsertAdmin(options)
-			userId = user.id
-			const session = await prisma.session.create({
-				data: {
-					expirationDate: getSessionExpirationDate(),
-					userId: user.id,
-				},
-				select: { id: true },
-			})
 
-			const authSession = await authSessionStorage.getSession()
-			authSession.set(sessionKey, session.id)
-			const cookieConfig = setCookieParser.parseString(
-				await authSessionStorage.commitSession(authSession),
-			)
-			const newConfig = {
-				...cookieConfig,
-				domain: 'localhost',
-				expires: cookieConfig.expires?.getTime(),
-				sameSite: cookieConfig.sameSite as 'Strict' | 'Lax' | 'None',
-			}
-			await page.context().addCookies([newConfig])
-			return user
-		})
-		await prisma.user.deleteMany({ where: { id: userId } })
-	},
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {

@@ -60,6 +60,11 @@ test('Admin user can access /users/manage page and see Manage Users option', asy
 	// Check for users-page id on the main container
 	await expect(page.locator('#users-page')).toBeVisible()
 	await expect(page.locator('#user-dropdown-btn')).toBeVisible()
+	// Open the user dropdown - 
+	// TEST IS FRAGILE
+	// Below was timing out before, created different
+	// variations and now this is working, although had the 
+	// same code before.
 	await page.click('#user-dropdown-btn')
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 	// Check for Manage Users option in dropdown
