@@ -71,8 +71,44 @@ async function getOrInsertUser({
 	}
 }
 
+async function getOrInsertAdmin({
+	id,
+	username,
+	password,
+	email,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
+		return await prisma.user.create({
+			select,
+			data: {
+				...userData,
+				email,
+				username,
+				roles: { connect: { name: 'admin' } },
+				password: { create: { hash: await getPasswordHash(password) } },
+			},
+		})
+	}
+}
+
 export const test = base.extend<{
 	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
+	loginAdmin(options?: GetOrInsertUserOptions): Promise<User>
 	login(options?: GetOrInsertUserOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
@@ -84,6 +120,35 @@ export const test = base.extend<{
 			return user
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+	},
+	loginAdmin: async ({ page }, use) => {
+		let userId: string | undefined = undefined
+		await use(async (options) => {
+			const user = await getOrInsertAdmin(options)
+			userId = user.id
+			const session = await prisma.session.create({
+				data: {
+					expirationDate: getSessionExpirationDate(),
+					userId: user.id,
+				},
+				select: { id: true },
+			})
+
+			const authSession = await authSessionStorage.getSession()
+			authSession.set(sessionKey, session.id)
+			const cookieConfig = setCookieParser.parseString(
+				await authSessionStorage.commitSession(authSession),
+			)
+			const newConfig = {
+				...cookieConfig,
+				domain: 'localhost',
+				expires: cookieConfig.expires?.getTime(),
+				sameSite: cookieConfig.sameSite as 'Strict' | 'Lax' | 'None',
+			}
+			await page.context().addCookies([newConfig])
+			return user
+		})
+		await prisma.user.deleteMany({ where: { id: userId } })
 	},
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
@@ -141,6 +206,7 @@ export const test = base.extend<{
 		await deleteGitHubUser(ghUser!.primaryEmail)
 	},
 })
+
 export const { expect } = test
 
 /**
