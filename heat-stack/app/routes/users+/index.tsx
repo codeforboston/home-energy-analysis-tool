@@ -6,6 +6,9 @@ import { ErrorList } from '#app/components/forms.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
+import { ACCESS_DENIED_MESSAGE } from '../../constants/error-messages'
+// ...existing code...
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -24,9 +27,23 @@ export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 		formMethod: 'GET',
 		formAction: '/users',
 	})
-
+	const user = useOptionalUser()
+	if (!user || !hasAdminRole(user)) {
+		return (
+			<div
+				id="users-page"
+				className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
+			>
+				<h1 className="text-h1">HEAT Users</h1>
+				<p className="text-error">{ACCESS_DENIED_MESSAGE}</p>
+			</div>
+		)
+	}
 	return (
-		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
+		<div
+			id="users-page"
+			className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
+		>
 			<h1 className="text-h1">HEAT Users</h1>
 			<div className="w-full max-w-[700px]">
 				<SearchBar status={loaderData.status} autoFocus autoSubmit />

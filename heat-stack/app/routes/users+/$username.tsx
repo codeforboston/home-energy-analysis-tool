@@ -12,7 +12,7 @@ import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
-import { useOptionalUser } from '#app/utils/user.ts'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 import { type Route } from './+types/$username.ts'
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -22,6 +22,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			name: true,
 			username: true,
 			createdAt: true,
+			roles: {
+				select: { name: true }
+			},
 			image: { select: { id: true, objectKey: true } },
 		},
 		where: {
@@ -68,6 +71,9 @@ export default function ProfileRoute() {
 					</div>
 					<p className="mt-2 text-center text-muted-foreground">
 						Joined {data.userJoinedDisplay}
+					</p>
+					<p className="mt-2 text-center text-muted-foreground">
+						Admin: {hasAdminRole(user) ? 'Yes' : 'No'}
 					</p>
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">

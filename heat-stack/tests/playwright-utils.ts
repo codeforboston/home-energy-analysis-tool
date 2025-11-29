@@ -24,6 +24,8 @@ type GetOrInsertUserOptions = {
 	username?: UserModel['username']
 	password?: string
 	email?: UserModel['email']
+	name?: string
+	has_admin_role?: boolean
 }
 
 type User = {
@@ -31,6 +33,7 @@ type User = {
 	email: string
 	username: string
 	name: string | null
+	has_admin_role?: boolean
 }
 
 async function getOrInsertUser({
@@ -45,6 +48,11 @@ async function getOrInsertUser({
 			select,
 			where: { id: id },
 		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
 	} else {
 		const userData = createUser()
 		username ??= userData.username
@@ -57,6 +65,41 @@ async function getOrInsertUser({
 				email,
 				username,
 				roles: { connect: { name: 'user' } },
+				password: { create: { hash: await getPasswordHash(password) } },
+			},
+		})
+	}
+}
+
+async function getOrInsertAdmin({
+	id,
+	username,
+	password,
+	email,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
+		return await prisma.user.create({
+			select,
+			data: {
+				...userData,
+				email,
+				username,
+				roles: { connect: { name: 'admin' } },
 				password: { create: { hash: await getPasswordHash(password) } },
 			},
 		})
@@ -77,6 +120,7 @@ export const test = base.extend<{
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
+
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
@@ -133,6 +177,7 @@ export const test = base.extend<{
 		await deleteGitHubUser(ghUser!.primaryEmail)
 	},
 })
+
 export const { expect } = test
 
 /**

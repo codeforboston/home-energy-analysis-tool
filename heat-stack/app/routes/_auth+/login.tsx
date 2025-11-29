@@ -98,6 +98,8 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
 		shouldRevalidate: 'onBlur',
 	})
 
+	// Hide Log In button until username and password are entered
+	const hideLoginBtn = !fields.username.value || !fields.password.value
 	return (
 		<div className="flex min-h-full flex-col justify-center pb-32 pt-20">
 			<div className="mx-auto w-full max-w-md">
@@ -166,7 +168,9 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
 									className="w-full"
 									status={isPending ? 'pending' : (form.status ?? 'idle')}
 									type="submit"
-									disabled={isPending}
+									id="login-btn-submit"
+									disabled={isPending || hideLoginBtn}
+									style={hideLoginBtn ? { display: 'none' } : {}}
 								>
 									Log in
 								</StatusButton>

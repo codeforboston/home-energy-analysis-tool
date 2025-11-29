@@ -5,6 +5,7 @@ heat-stack/node_modules
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
 *.local.*
+**/*.db*
 
 #local temporary folders
 heat-app
@@ -37,7 +38,7 @@ heat-tmp
 /heat-stack/app/components/ui/icons/*
 
 # react router v7 generated types
-.react-router
+.react-router/
 
 /heat-stack/tests/fixtures/openimg/
 /heat-stack/tests/fixtures/uploaded/
