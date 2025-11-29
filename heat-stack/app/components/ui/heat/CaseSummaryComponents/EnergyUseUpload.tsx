@@ -34,27 +34,10 @@ export function EnergyUseUpload({
 				/>
 			)}
 
-			<CustomFileUpload name={fields.energy_use_upload.name} />
+			{!isEditMode && <CustomFileUpload name={fields.energy_use_upload.name} />}
 
 			<div>
-				{isEditMode ? (
-					// Two buttons for edit mode
-					<div
-						className="flex items-center gap-3"
-						style={{ marginBottom: '20px' }}
-					>
-						<Button
-							type="submit"
-							name="intent"
-							value="save"
-							variant="default"
-							onClick={() => console.log('💾 Save Changes button clicked')}
-						>
-							Save Changes{' '}
-						</Button>
-					</div>
-				) : (
-					// Single button for new cases
+				{!isEditMode && (
 					<Button
 						type="submit"
 						name="intent"
