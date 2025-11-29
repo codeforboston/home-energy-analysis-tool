@@ -26,6 +26,8 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
 			try {
 				const res = await fetch(`/help/${keyName}.md`)
 				const raw = await res.text()
+				console.log('debug markdown', raw)
+				console.log('key', keyName)
 
 				const lines = raw.split('\n')
 
