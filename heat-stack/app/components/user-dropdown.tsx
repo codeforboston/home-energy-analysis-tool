@@ -61,13 +61,6 @@ export function UserDropdown() {
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to="/cases">
-							<Icon className="text-body-md" name="file-text">
-								Cases
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
 					{/* Admin-only link */}
 					{hasAdminRole(user) ? (
 						<DropdownMenuItem asChild>
