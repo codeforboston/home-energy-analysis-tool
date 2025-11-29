@@ -19,7 +19,6 @@ import { CACHE_DATABASE_PATH } from '#app/utils/constants.ts'
 import { getInstanceInfo, getInstanceInfoSync } from './litefs.server.ts'
 import { cachifiedTimingReporter, type Timings } from './timing.server.ts'
 
-
 const cacheDb = remember('cacheDb', createDatabase)
 
 function createDatabase(tryAgain = true): Database.Database {
