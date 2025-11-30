@@ -107,22 +107,21 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
-					<Input
-						id="heating_system_efficiency_display"
-						name="heating_system_efficiency_display"
-						// Don't include a name to prevent it from being submitted
-						placeholder="Enter a percentage (60-100)"
-						type="number"
-						value={percentageValueDisplayed}
-						onChange={handlePercentageChange}
-					/>
+					   <Input
+						   id="heating_system_efficiency_display"
+						   name="heating_system_efficiency_display"
+						   placeholder="Enter a percentage (60-100)"
+						   type="number"
+						   value={percentageValueDisplayed}
+						   onChange={handlePercentageChange}
+					   />
 
 					{/* Use the actual field from Conform but with our calculated decimal value */}
-					<Input
-						type="hidden"
-						name={props.fields.heating_system_efficiency.name}
-						value={decimalValueHidden}
-					/>
+					   <Input
+						   type="hidden"
+						   name={props.fields.heating_system_efficiency.name}
+						   value={decimalValueHidden}
+					   />
 					<span className={`${descriptiveClass}`}>
 						Enter efficiency as a percentage (60-100). Typical natural gas
 						efficiency is 80-95%.
@@ -143,12 +142,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label htmlFor="thermostat_set_point" className="font-bold">
 							Set Point (°F)
 						</Label>
-						<Input
-							placeholder="(Fahrenheit)"
-							{...getInputProps(props.fields.thermostat_set_point, {
-								type: 'text',
-							})}
-						/>
+						   <Input
+							   placeholder="(Fahrenheit)"
+							   {...getInputProps(props.fields.thermostat_set_point, {
+								   type: 'text',
+							   })}
+						   />
 						<span className={`${descriptiveClass}`}>
 							Usual thermostat setting for heating
 						</span>
@@ -164,12 +163,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label className="font-bold" htmlFor="setback_temperature">
 							Setback Temperature (°F)
 						</Label>
-						<Input
-							placeholder="Optional"
-							{...getInputProps(props.fields.setback_temperature, {
-								type: 'text',
-							})}
-						/>
+						   <Input
+							   placeholder="Optional"
+							   {...getInputProps(props.fields.setback_temperature, {
+								   type: 'text',
+							   })}
+						   />
 						<span className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
 							during working or sleep hours
@@ -186,12 +185,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Label className="font-bold" htmlFor="setback_hours_per_day">
 							Setback hours per day
 						</Label>
-						<Input
-							placeholder="Optional"
-							{...getInputProps(props.fields.setback_hours_per_day, {
-								type: 'text',
-							})}
-						/>
+						   <Input
+							   placeholder="Optional"
+							   {...getInputProps(props.fields.setback_hours_per_day, {
+								   type: 'text',
+							   })}
+						   />
 						<span className={`${descriptiveClass}`}>
 							Average hours per day that a lower or higher temperature setting
 							is in effect
