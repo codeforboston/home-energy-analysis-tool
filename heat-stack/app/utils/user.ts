@@ -53,12 +53,12 @@ export function parsePermissionString(permissionString: PermissionString) {
 }
 
 export function userHasPermission(
-	user: Pick<ReturnType<typeof useUser>, 'roles'> | null | undefined,
+	userWithRoles: Pick<ReturnType<typeof useUser>, 'roles'> | null | undefined,
 	permission: PermissionString,
 ) {
-	if (!user) return false
+	if (!userWithRoles) return false
 	const { action, entity, access } = parsePermissionString(permission)
-	return user.roles.some((role) =>
+	return userWithRoles.roles.some((role) =>
 		role.permissions.some(
 			(permission) =>
 				permission.entity === entity &&
