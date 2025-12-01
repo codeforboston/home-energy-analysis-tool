@@ -12,13 +12,13 @@ type CaseWithUsername = {
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userWithRoles = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(userWithRoles)
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
 	let cases
 	if (isAdmin) {
 		cases = await getAllCasesWithUsernames()
 	} else {
-		cases = await getCasesByUser(userWithRoles.id)
+		cases = await getCasesByUser(loggedInUser.id)
 	}
 	return data({ cases, isAdmin })
 }
