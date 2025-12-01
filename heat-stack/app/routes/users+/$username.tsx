@@ -16,7 +16,7 @@ import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 import { type Route } from './+types/$username.ts'
 
 export async function loader({ params }: LoaderFunctionArgs) {
-	const user = await prisma.user.findFirst({
+	const selectedUser = await prisma.user.findFirst({
 		select: {
 			id: true,
 			name: true,
@@ -32,17 +32,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
 		},
 	})
 
-	invariantResponse(user, 'User not found', { status: 404 })
+	invariantResponse(selectedUser, 'User not found', { status: 404 })
 
-	return { user, userJoinedDisplay: user.createdAt.toLocaleDateString() }
+	return { user: selectedUser, userJoinedDisplay: selectedUser.createdAt.toLocaleDateString() }
 }
 
 export default function ProfileRoute() {
 	const data = useLoaderData<typeof loader>()
-	const user = data.user
-	const userDisplayName = user.name ?? user.username
+	const selectedUser = data.user
+	const userDisplayName = selectedUser.name ?? selectedUser.username
 	const loggedInUser = useOptionalUser()
-	const isLoggedInUser = user.id === loggedInUser?.id
+	const isLoggedInUser = selectedUser.id === loggedInUser?.id
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
@@ -73,7 +73,7 @@ export default function ProfileRoute() {
 						Joined {data.userJoinedDisplay}
 					</p>
 					<p className="mt-2 text-center text-muted-foreground">
-						Admin: {hasAdminRole(user) ? 'Yes' : 'No'}
+						Admin: {hasAdminRole(selectedUser) ? 'Yes' : 'No'}
 					</p>
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">

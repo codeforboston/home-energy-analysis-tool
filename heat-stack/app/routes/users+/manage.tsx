@@ -31,26 +31,15 @@ export async function action({ request }: { request: Request }) {
 	const name = formData.get('name') as string
 	const adminChecked = formData.get('admin') === 'on'
 
-	// Update admin role
-	if (adminChecked) {
-		await prisma.user.update({
-			where: { id },
-			data: {
-				roles: {
-					connect: { name: 'admin' },
-				},
-			},
-		})
-	} else {
-		await prisma.user.update({
-			where: { id },
-			data: {
-				roles: {
-					disconnect: { name: 'admin' },
-				},
-			},
-		})
-	}
+	// Update admin role with a single update statement
+	await prisma.user.update({
+		where: { id },
+		data: {
+			roles: adminChecked
+				? { connect: { name: 'admin' } }
+				: { disconnect: { name: 'admin' } },
+		},
+	})
 
 	// Update other fields
 	await prisma.user.update({
@@ -70,10 +59,10 @@ export default function AdminEditUsers() {
 			roles?: { name: string }[]
 		}>
 	}
-	const user = useOptionalUser() as (typeof users)[number] | undefined
+	const loggedInUser = useOptionalUser()
 
 	const [editingId, setEditingId] = useState<string | null>(null)
-	if (!user || !hasAdminRole(user)) {
+	if (!loggedInUser || !hasAdminRole(loggedInUser)) {
 		return (
 			<div
 				id="users-page"

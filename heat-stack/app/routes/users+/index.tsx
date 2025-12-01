@@ -27,8 +27,8 @@ export default function UsersRoute({ loaderData }: Route.ComponentProps) {
 		formMethod: 'GET',
 		formAction: '/users',
 	})
-	const user = useOptionalUser()
-	if (!user || !hasAdminRole(user)) {
+	const loggedInUser = useOptionalUser()
+	if (!loggedInUser || !hasAdminRole(loggedInUser)) {
 		return (
 			<div
 				id="users-page"

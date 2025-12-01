@@ -1,5 +1,5 @@
 
-export async function getUserFromRequest(request: Request) {
+export async function getLoggedInUserFromRequest(request: Request) {
 	// Use session-based user lookup
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findUnique({

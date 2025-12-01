@@ -73,7 +73,7 @@ test('Admin user can access /users/manage page and see Manage Users option', asy
 	).toBeVisible()
 
 })
-test('Normal user cannot access manage users screen or see mana																																																																																																																																																																																																																																																																																																																																																										 	  ge option', async ({
+test('Normal user cannot access manage users screen or see manage option', async ({
 	page,
 }) => {
 	// Log in as normal user

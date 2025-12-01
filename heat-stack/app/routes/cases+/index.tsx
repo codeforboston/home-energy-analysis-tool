@@ -1,5 +1,5 @@
 import { data, Link } from 'react-router'
-import { getCasesByUser, getAllCasesWithUsernames, getUserFromRequest } from '#app/utils/db/case.server.ts'
+import { getCasesByUser, getAllCasesWithUsernames, getLoggedInUserFromRequest } from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 
 type CaseWithUsername = {
@@ -12,13 +12,13 @@ type CaseWithUsername = {
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const user = await getUserFromRequest(request)
-	const isAdmin = hasAdminRole(user)
+	const userWithRoles = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(userWithRoles)
 	let cases
 	if (isAdmin) {
 		cases = await getAllCasesWithUsernames()
 	} else {
-		cases = await getCasesByUser(user.id)
+		cases = await getCasesByUser(userWithRoles.id)
 	}
 	return data({ cases, isAdmin })
 }
