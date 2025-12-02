@@ -1,4 +1,3 @@
-
 export async function getLoggedInUserFromRequest(request: Request) {
 	// Use session-based user lookup
 	const userId = await requireUserId(request)
@@ -15,11 +14,11 @@ export async function getLoggedInUserFromRequest(request: Request) {
 							action: true,
 							entity: true,
 							access: true,
-						}
-					}
-				}
-			}
-		}
+						},
+					},
+				},
+			},
+		},
 	})
 	if (!user) throw new Error('User not found')
 	return user
@@ -41,7 +40,7 @@ export async function getAllCasesWithUsernames() {
 		orderBy: { id: 'desc' },
 	})
 	// Attach username for each case (first user)
-	return cases.map(c => ({
+	return cases.map((c) => ({
 		...c,
 		username: c.users?.[0]?.username || 'N/A',
 	}))
@@ -53,7 +52,7 @@ import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts
 import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
-export type { SchemaZodFromFormType };
+export type { SchemaZodFromFormType }
 
 // export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
 // 	const caseRecord = await prisma.case.findUnique({

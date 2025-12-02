@@ -23,7 +23,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			username: true,
 			createdAt: true,
 			roles: {
-				select: { name: true }
+				select: { name: true },
 			},
 			image: { select: { id: true, objectKey: true } },
 		},
@@ -34,7 +34,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 	invariantResponse(selectedUser, 'User not found', { status: 404 })
 
-	return { user: selectedUser, userJoinedDisplay: selectedUser.createdAt.toLocaleDateString() }
+	return {
+		user: selectedUser,
+		userJoinedDisplay: selectedUser.createdAt.toLocaleDateString(),
+	}
 }
 
 export default function ProfileRoute() {

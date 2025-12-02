@@ -4,10 +4,13 @@ test('Admin can check and uncheck admin role for a user', async ({ page }) => {
 	await page.goto('/users/manage')
 
 	// Pick a non-admin user for testing
-	const dbUsers = await prisma.user.findMany({ where: { roles: { none: { name: 'admin' } } } })
+	const dbUsers = await prisma.user.findMany({
+		where: { roles: { none: { name: 'admin' } } },
+	})
 
 	const targetUser = dbUsers[0]
-	if (!targetUser) throw new Error('No non-admin user found for admin toggle test')
+	if (!targetUser)
+		throw new Error('No non-admin user found for admin toggle test')
 	const username = targetUser.username
 
 	// Edit the user
@@ -24,7 +27,10 @@ test('Admin can check and uncheck admin role for a user', async ({ page }) => {
 	await page.reload()
 
 	// Verify admin is now checked in view mode
-	const viewRow = page.locator(`#username_${username}_display`).locator('..').locator("input[type='checkbox']")
+	const viewRow = page
+		.locator(`#username_${username}_display`)
+		.locator('..')
+		.locator("input[type='checkbox']")
 	expect(await viewRow.isChecked()).toBe(true)
 
 	// Edit again and uncheck
@@ -54,24 +60,25 @@ test('Normal user gets Access Denied on /users', async ({ page }) => {
 // 	await expect(page.locator('#users-page')).toBeVisible()
 // })
 
-test('Admin user can access /users/manage page and see Manage Users option', async ({ page }) => {
+test('Admin user can access /users/manage page and see Manage Users option', async ({
+	page,
+}) => {
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
 	await page.goto('/users')
 	// Check for users-page id on the main container
 	await expect(page.locator('#users-page')).toBeVisible()
 	await expect(page.locator('#user-dropdown-btn')).toBeVisible()
-	// Open the user dropdown - 
+	// Open the user dropdown -
 	// TEST IS FRAGILE
 	// Below was timing out before, created different
-	// variations and now this is working, although had the 
+	// variations and now this is working, although had the
 	// same code before.
 	await page.click('#user-dropdown-btn')
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
 	// Check for Manage Users option in dropdown
-	await expect(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+	await expect(
 		page.getByRole('menuitem', { name: /Manage Users/i }),
 	).toBeVisible()
-
 })
 test('Normal user cannot access manage users screen or see manage option', async ({
 	page,
@@ -91,7 +98,9 @@ test('Normal user cannot access manage users screen or see manage option', async
 	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
 })
 
-test('Admin can view and edit users in manage users screen', async ({ page }) => {
+test('Admin can view and edit users in manage users screen', async ({
+	page,
+}) => {
 	// Log in as seeded admin user
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
 	await page.goto('/users/manage')
