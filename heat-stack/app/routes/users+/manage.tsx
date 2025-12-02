@@ -80,7 +80,7 @@ export default function AdminEditUsers() {
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
-				<div className="min-w-[120px] flex items-center gap-2 px-2">Admin</div>
+				<div className="flex min-w-[120px] items-center gap-2 px-2">Admin</div>
 				<div className="ml-2 px-2">Edit</div>
 			</div>
 			<ul className="divide-y divide-muted">
@@ -108,7 +108,7 @@ export default function AdminEditUsers() {
 									>
 										{u.name ?? ''}
 									</div>
-									<div className="min-w-[120px] flex items-center px-2">
+									<div className="flex min-w-[120px] items-center px-2">
 										<input
 											type="checkbox"
 											checked={hasAdminRole(u)}
@@ -168,13 +168,13 @@ export default function AdminEditUsers() {
 											onBlur={(e) => e.target.form?.requestSubmit()}
 										/>
 									</label>
-									<div className="min-w-[120px] flex items-center px-2">
+									<div className="flex min-w-[120px] items-center px-2">
 										<input
 											type="checkbox"
 											name="admin"
 											defaultChecked={hasAdminRole(u)}
 											aria-label="Admin Role"
-											onChange={e => e.target.form?.requestSubmit()}
+											onChange={(e) => e.target.form?.requestSubmit()}
 										/>
 									</div>
 									<button

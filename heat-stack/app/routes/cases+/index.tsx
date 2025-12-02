@@ -1,14 +1,23 @@
 import { data, Link } from 'react-router'
-import { getCasesByUser, getAllCasesWithUsernames, getLoggedInUserFromRequest } from '#app/utils/db/case.server.ts'
+import {
+	getCasesByUser,
+	getAllCasesWithUsernames,
+	getLoggedInUserFromRequest,
+} from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 
 type CaseWithUsername = {
-	id: number;
-	homeOwner: { firstName1: string; lastName1: string };
-	location: { address: string; city: string; state: string; livingAreaSquareFeet: number };
-	analysis: any[];
-	username?: string;
-};
+	id: number
+	homeOwner: { firstName1: string; lastName1: string }
+	location: {
+		address: string
+		city: string
+		state: string
+		livingAreaSquareFeet: number
+	}
+	analysis: any[]
+	username?: string
+}
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -61,15 +70,50 @@ export default function Cases({
 					<table className="min-w-full divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Case ID</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Case ID
+								</th>
 								{isAdmin && (
-									<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Username</th>
+									<th
+										scope="col"
+										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+									>
+										Username
+									</th>
 								)}
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Home Owner</th>
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Living Area</th>
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fuel Type</th>
-								<th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Home Owner
+								</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Location
+								</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Living Area
+								</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Fuel Type
+								</th>
+								<th
+									scope="col"
+									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+								>
+									Actions
+								</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 bg-white">
@@ -79,29 +123,58 @@ export default function Cases({
 								return (
 									<tr key={caseItem.id} className="hover:bg-gray-50">
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm font-medium text-gray-900">{caseItem.id}</div>
+											<div className="text-sm font-medium text-gray-900">
+												{caseItem.id}
+											</div>
 										</td>
 										{isAdmin && (
 											<td className="whitespace-nowrap px-6 py-4">
-												<div className="text-sm text-gray-900">{caseItem.username}</div>
+												<div className="text-sm text-gray-900">
+													{caseItem.username}
+												</div>
 											</td>
 										)}
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">{caseItem.homeOwner.firstName1} {caseItem.homeOwner.lastName1}</div>
+											<div className="text-sm text-gray-900">
+												{caseItem.homeOwner.firstName1}{' '}
+												{caseItem.homeOwner.lastName1}
+											</div>
 										</td>
 										<td className="px-6 py-4">
-											<div className="text-sm text-gray-900">{caseItem.location.address}, {caseItem.location.city}, {caseItem.location.state}</div>
+											<div className="text-sm text-gray-900">
+												{caseItem.location.address}, {caseItem.location.city},{' '}
+												{caseItem.location.state}
+											</div>
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">{caseItem.location.livingAreaSquareFeet} sq ft</div>
+											<div className="text-sm text-gray-900">
+												{caseItem.location.livingAreaSquareFeet} sq ft
+											</div>
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">{heatingInput?.fuelType || 'N/A'}</div>
+											<div className="text-sm text-gray-900">
+												{heatingInput?.fuelType || 'N/A'}
+											</div>
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
-											<Link to={`/cases/${firstAnalysis?.id}`} className="mx-1 text-indigo-600 hover:text-indigo-900">View</Link>
-											<Link to={`/cases/${firstAnalysis?.id}/edit`} className="mx-1 text-indigo-600 hover:text-indigo-900">Edit</Link>
-											<Link to={`/cases/${firstAnalysis?.id}/delete`} className="hover:text-indigo-9001 mx-1 text-indigo-600">Delete</Link>
+											<Link
+												to={`/cases/${firstAnalysis?.id}`}
+												className="mx-1 text-indigo-600 hover:text-indigo-900"
+											>
+												View
+											</Link>
+											<Link
+												to={`/cases/${firstAnalysis?.id}/edit`}
+												className="mx-1 text-indigo-600 hover:text-indigo-900"
+											>
+												Edit
+											</Link>
+											<Link
+												to={`/cases/${firstAnalysis?.id}/delete`}
+												className="hover:text-indigo-9001 mx-1 text-indigo-600"
+											>
+												Delete
+											</Link>
 										</td>
 									</tr>
 								)

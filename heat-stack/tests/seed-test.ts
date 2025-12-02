@@ -1,6 +1,9 @@
 // seed-users.ts
 import { type User } from '@prisma/client'
-import { createCase, type SchemaZodFromFormType  } from '#app/utils/db/case.server'
+import {
+	createCase,
+	type SchemaZodFromFormType,
+} from '#app/utils/db/case.server'
 import { prisma } from '#app/utils/db.server'
 import { getOrInsertUser } from '#tests/db-utils'
 
@@ -12,7 +15,7 @@ function mockCaseInput(username: string, idx: number): SchemaZodFromFormType {
 		town: 'Testville',
 		state: 'MA',
 		living_area: 1500 + idx * 100,
-		fuel_type: "GAS" as "GAS", // explicit literal
+		fuel_type: 'GAS' as 'GAS', // explicit literal
 		design_temperature_override: 65,
 		heating_system_efficiency: 0.85,
 		thermostat_set_point: 68,
@@ -84,7 +87,7 @@ for (const user of allUsers) {
 					defaultInclusion: true,
 					invertDefaultInclusion: false,
 				},
-			});
+			})
 		}
 	}
 }
