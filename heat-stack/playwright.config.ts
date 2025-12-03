@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 import 'dotenv/config'
 
 const PORT = process.env.PORT || '3000'
+process.env.CACHE_DATABASE_PATH =
+	process.env.CACHE_DATABASE_PATH || './prisma/cache.db'
+process.env.LITEFS_DIR = process.env.LITEFS_DIR || '/litefs/data'
 
 export default defineConfig({
 	testDir: './tests/e2e',

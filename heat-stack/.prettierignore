@@ -1,5 +1,6 @@
 /node_modules
 /.react-router
+/.mypy_cache
 /build
 /public/**
 /server-build
