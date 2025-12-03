@@ -1,4 +1,4 @@
-node_modules
+/node_modules
 .DS_store
 
 /build
@@ -6,13 +6,13 @@ node_modules
 /server-build
 .env
 /tests/prisma
-/**/*.db
+/**/*.db*
 /.react-router/
 
-/test-results/
-/playwright-report/
-/playwright/.cache/
-/tests/fixtures/email/
+/test-results
+/playwright-report
+/playwright/.cache
+/tests/fixtures/email
 /coverage
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
