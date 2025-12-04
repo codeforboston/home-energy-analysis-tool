@@ -5,7 +5,6 @@ heat-stack/node_modules
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
 *.local.*
-**/*.db*
 
 #local temporary folders
 heat-app
