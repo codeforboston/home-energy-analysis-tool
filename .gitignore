@@ -18,8 +18,6 @@ heat-tmp
 /heat-stack/.env
 /heat-stack/.cache
 
-/heat-stack/prisma/data.db
-/heat-stack/prisma/data.db-journal
 /heat-stack/tests/prisma
 
 /heat-stack/test-results/
@@ -28,7 +26,6 @@ heat-tmp
 /heat-stack/tests/fixtures/email/
 /heat-stack/coverage
 
-/heat-stack/other/cache.db
 
 # pyodide files
 /heat-stack/public/pyodide-env/pyodide-whl.zip
@@ -37,7 +34,7 @@ heat-tmp
 /heat-stack/app/components/ui/icons/*
 
 # react router v7 generated types
-.react-router
+/.react-router/
 
 /heat-stack/tests/fixtures/openimg/
 /heat-stack/tests/fixtures/uploaded/
