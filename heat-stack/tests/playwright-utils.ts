@@ -25,7 +25,7 @@ type GetOrInsertUserOptions = {
 	password?: string
 	email?: UserModel['email']
 	name?: string
-	has_admin_role?: boolean
+	is_admin?: boolean
 }
 
 type User = {
@@ -38,9 +38,9 @@ type User = {
 
 async function getOrInsertUser({
 	id,
-	username,
 	password,
 	email,
+	is_admin = false,
 }: GetOrInsertUserOptions = {}): Promise<User> {
 	const select = { id: true, email: true, username: true, name: true }
 	if (id) {
@@ -64,7 +64,7 @@ async function getOrInsertUser({
 				...userData,
 				email,
 				username,
-				roles: { connect: { name: 'user' } },
+				...(has_admin_role ? { roles: { connect: { name: 'admin' } } } : {}),
 				password: { create: { hash: await getPasswordHash(password) } },
 			},
 		})
@@ -106,6 +106,7 @@ async function getOrInsertAdmin({
 	}
 }
 
+let firstFailure = false;
 export const test = base.extend<{
 	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
 	login(options?: GetOrInsertUserOptions): Promise<User>
@@ -176,7 +177,18 @@ export const test = base.extend<{
 		}
 		await deleteGitHubUser(ghUser!.primaryEmail)
 	},
-})
+});
+
+test.afterEach(async ({ page }, testInfo) => {
+	console.log(`Finished test: ${testInfo.title} with status: ${testInfo.status}`);
+	if (testInfo.status === 'failed' && !firstFailure) {
+		console.log("Here's the screenshot for the first failure:");
+		firstFailure = true;
+		await page.screenshot({ path: `failed-test-${testInfo.title}.png`, fullPage: true });
+		// Abort further tests by exiting the process
+		process.exit(1);
+	}
+});
 
 export const { expect } = test
 

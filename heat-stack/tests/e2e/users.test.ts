@@ -1,7 +1,14 @@
+import { ACCESS_DENIED_MESSAGE } from '../../app/constants/error-messages'
+import { prisma } from '../../app/utils/db.server'
+import { login_with_ui } from '../playwright-helper'
+import { test, expect } from '../playwright-utils'
+import { normalUser, adminUser } from '../seed-test'
+
+
 test('Admin can check and uncheck admin role for a user', async ({ page }) => {
 	// Log in as seeded admin user
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
-	await page.goto('/users/manage')
+	await page.goto('/users')
 
 	// Pick a non-admin user for testing
 	const dbUsers = await prisma.user.findMany({
@@ -42,25 +49,8 @@ test('Admin can check and uncheck admin role for a user', async ({ page }) => {
 	// Verify admin is now unchecked in view mode
 	expect(await viewRow.isChecked()).toBe(false)
 })
-import { ACCESS_DENIED_MESSAGE } from '../../app/constants/error-messages'
-import { prisma } from '../../app/utils/db.server'
-import { login_with_ui } from '../playwright-helper'
-import { test, expect } from '../playwright-utils'
-import { normalUser, adminUser } from '../seed-test'
-test('Normal user gets Access Denied on /users', async ({ page }) => {
-	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
-	await page.goto('/users')
-	await expect(page.locator('text=Access denied')).toBeVisible()
-})
 
-// test('Admin user can access /users/manage page', async ({ page }) => {
-// 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
-// 	await page.goto('/users')
-// 	// Check for users-page id on the main container
-// 	await expect(page.locator('#users-page')).toBeVisible()
-// })
-
-test('Admin user can access /users/manage page and see Manage Users option', async ({
+test('Admin user can see Users option', async ({
 	page,
 }) => {
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
@@ -77,33 +67,16 @@ test('Admin user can access /users/manage page and see Manage Users option', asy
 
 	// Check for Manage Users option in dropdown
 	await expect(
-		page.getByRole('menuitem', { name: /Manage Users/i }),
+		page.getByRole('menuitem', { name:  /Users/i }),
 	).toBeVisible()
 })
-test('Normal user cannot access manage users screen or see manage option', async ({
-	page,
-}) => {
-	// Log in as normal user
-	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
 
-	await page.goto('/cases')
-	// Open the user dropdown
-	await page.click('#user-dropdown-btn')
-	// Verify Manage Users option does NOT appear
-	const manageOption = page.getByRole('menuitem', { name: /Manage Users/i })
-	await expect(manageOption).toHaveCount(0)
-	// Try to access /users/manage directly
-	await page.goto('/users/manage')
-	// Verify access denied message is shown
-	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
-})
-
-test('Admin can view and edit users in manage users screen', async ({
+test('Admin can view and edit users', async ({
 	page,
 }) => {
 	// Log in as seeded admin user
 	await login_with_ui(page, adminUser.username, adminUser.username + 'pass')
-	await page.goto('/users/manage')
+	await page.goto('/users')
 
 	// Get user count from database
 	const dbUserCount = await prisma.user.count()
@@ -153,3 +126,28 @@ test('Admin can view and edit users in manage users screen', async ({
 	const revertedEmail = await page.locator(emailDisplayId).textContent()
 	expect(revertedEmail?.trim()).toBe(originalEmail)
 })
+
+test('Normal user cannot see Users option', async ({
+	page,
+}) => {
+	// Log in as normal user
+	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+
+	await page.goto('/cases')
+	// Open the user dropdown
+	await page.click('#user-dropdown-btn')
+	// Verify Manage Users option does NOT appear
+	const manageOption = page.getByRole('menuitem', { name:  /Users/i })
+	await expect(manageOption).toHaveCount(0)
+	// Try to access /users directly
+	await page.goto('/users')
+	// Verify access denied message is shown
+	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
+})
+
+test('Normal user gets Access Denied on /users', async ({ page }) => {
+	await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+	await page.goto('/users')
+	await expect(page.locator('text=Access denied')).toBeVisible()
+})
+

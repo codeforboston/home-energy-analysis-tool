@@ -67,7 +67,7 @@ export function UserDropdown() {
 					{/* Admin-only link */}
 					{hasAdminRole(loggedInUser) ? (
 						<DropdownMenuItem asChild>
-							<Link prefetch="intent" to="/users/manage">
+							<Link prefetch="intent" to="/users">
 								<Icon className="text-body-md" name="avatar">
 									Manage Users
 								</Icon>
