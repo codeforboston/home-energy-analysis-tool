@@ -3,8 +3,8 @@ import { type NoteImage, type Note } from '@prisma/client'
 import { prisma } from '#app/utils/db.server.ts'
 import { expect, test } from '#tests/playwright-utils.ts'
 
-test('Users can create note with an image', async ({ page, login }) => {
-	const user = await login()
+test('Users can create note with an image', async ({ page, loginTemporary }) => {
+	const user = await loginTemporary()
 	await page.goto(`/users/${user.username}/notes`)
 
 	const newNote = createNote()
@@ -28,8 +28,8 @@ test('Users can create note with an image', async ({ page, login }) => {
 	).toBeVisible()
 })
 
-test('Users can create note with multiple images', async ({ page, login }) => {
-	const user = await login()
+test('Users can create note with multiple images', async ({ page, loginTemporary }) => {
+	const user = await loginTemporary()
 	await page.goto(`/users/${user.username}/notes`)
 
 	const newNote = createNote()
@@ -60,8 +60,8 @@ test('Users can create note with multiple images', async ({ page, login }) => {
 	await expect(page.getByAltText(altText2)).toBeVisible()
 })
 
-test('Users can edit note image', async ({ page, login }) => {
-	const user = await login()
+test('Users can edit note image', async ({ page, loginTemporary }) => {
+	const user = await loginTemporary()
 
 	const note = await prisma.note.create({
 		select: { id: true },
@@ -86,8 +86,8 @@ test('Users can edit note image', async ({ page, login }) => {
 	await expect(page.getByAltText(updatedImage.altText)).toBeVisible()
 })
 
-test('Users can delete note image', async ({ page, login }) => {
-	const user = await login()
+test('Users can delete note image', async ({ page, loginTemporary }) => {
+	const user = await loginTemporary()
 
 	const note = await prisma.note.create({
 		select: { id: true, title: true },
