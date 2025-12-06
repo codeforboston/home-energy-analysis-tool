@@ -1,17 +1,19 @@
 import { prisma } from '#app/utils/db.server.ts'
 import { expect, test } from '#tests/playwright-utils.ts'
-import { login_with_ui } from '../playwright-helper'
-import { adminUser, normalUser } from '../seed-test'
+import { createSampleCases } from '../create-case'
 
 // Helper to login as admin or user
 test.describe('Case list admin/user visibility', () => {
 	test('Admin can see all cases and username column', async ({
 		page,
-		login,
+		loginTemporary,
+		insertTemporaryUser,
 	}) => {
 		// Login as regular user using helper
-		await login({ username: adminUser.username })
-		console.log('Admin login complete')
+		const adminLoginUser = await loginTemporary({ is_admin: true })
+		await createSampleCases(adminLoginUser, 3)
+		const otherUser = await insertTemporaryUser({ is_admin: false })
+		await createSampleCases(otherUser, 2)
 		await page.waitForTimeout(2000)
 		await page.goto('/cases')
 		// After login, ensure we are not redirected to /login
@@ -30,7 +32,7 @@ test.describe('Case list admin/user visibility', () => {
 
 		// Check normalUser.username appears as a standalone value between any HTML tags (e.g., <div>, <td>, etc.)
 		const hasUsernameStandalone = new RegExp(
-			`>\\s*${normalUser.username}\\s*<`,
+			`>\\s*${otherUser.username}\\s*<`,
 			'i',
 		).test(pageContent)
 		expect(hasUsernameStandalone).toBe(true)
@@ -38,9 +40,14 @@ test.describe('Case list admin/user visibility', () => {
 
 	test('non-admin sees only own cases, no username column', async ({
 		page,
+		loginTemporary,
+		insertTemporaryUser,
 	}) => {
 		// Login as regular user using helper
-		await login_with_ui(page, normalUser.username, normalUser.username + 'pass')
+		const normalLoginUser = await loginTemporary({ is_admin: false })
+		await createSampleCases(normalLoginUser, 4)
+		const otherUser = await insertTemporaryUser({ is_admin: false })
+		await createSampleCases(otherUser, 2)
 		await page.waitForTimeout(2000)
 		await page.goto('/cases')
 		// Username column should NOT be visible
@@ -50,7 +57,7 @@ test.describe('Case list admin/user visibility', () => {
 
 		// Username value should NOT appear as a standalone cell
 		const hasUsernameCell = new RegExp(
-			`<td[^>]*>\s*${normalUser.username}\s*<\/td>`,
+			`<td[^>]*>\s*${normalLoginUser.username}\s*<\/td>`,
 			'i',
 		).test(pageContent)
 		expect(hasUsernameCell).toBe(false)
@@ -59,19 +66,19 @@ test.describe('Case list admin/user visibility', () => {
 		const rowCount = await rows.count()
 
 		// Check row count matches DB case count for normalUser
-		const dbCaseCount = await prisma.case.count({
+		const normalLoginUserCaseCount = await prisma.case.count({
 			where: {
 				users: {
-					some: { id: normalUser.id },
+					some: { id: normalLoginUser.id },
 				},
 			},
 		})
-		expect(rowCount).toBe(dbCaseCount)
+		expect(rowCount).toBe(normalLoginUserCaseCount)
 		// For each row, check it is for the logged-in user
 		for (let i = 0; i < rowCount; i++) {
 			// For non-admin, home owner is always the 2nd cell (index 1)
 			const homeOwnerCell = await rows.nth(i).locator('td').nth(1).textContent()
-			expect(homeOwnerCell).toContain(normalUser.username)
+			expect(homeOwnerCell).toContain(normalLoginUser.username)
 		}
 	})
 })

@@ -29,12 +29,17 @@ type InsertOptions = {
 	is_admin?: boolean
 }
 
+type Role = {
+	id: string
+	name: string
+}
 type User = {
 	id: string
 	email: string
 	username: string
 	name: string | null
 	has_admin_role?: boolean
+	roles: Role[]
 }
 
 async function insertUser({
@@ -47,7 +52,7 @@ async function insertUser({
 		const email = `tempuser${random_number}@fake.com`
 		const userPassword = password ?? 'password123'
 		const rolesConnect = is_admin
-			? { connect: { name: 'admin' } }
+			? { roles: { connect: { name: 'admin' } } }
 			: {}
 		return await prisma.user.create({
 			data: {
@@ -57,7 +62,8 @@ async function insertUser({
 				password: { create: { hash: await getPasswordHash(userPassword) } },
 				...rolesConnect
 			},
-	})
+			include: { roles: true },
+		})
 }
 
 // We use Playwright's `extend` fixture system here to ensure that any resources (like temporary users)

@@ -1,17 +1,15 @@
-// seed-users.ts
-import { type User } from '@prisma/client'
+// create-sample-cases.ts
 import {
 	createCase,
 	type SchemaZodFromFormType,
 } from '#app/utils/db/case.server'
 import { prisma } from '#app/utils/db.server'
-import { getOrInsertUser } from '#tests/db-utils'
 
 // Helper to create mock case input
 function mockCaseInput(username: string, idx: number): SchemaZodFromFormType {
 	return {
 		name: `${username} Owner ${idx}`,
-		street_address: `123${idx} Main St`,
+		street_address: `123 Main St Apt ${idx}`,
 		town: 'Testville',
 		state: 'MA',
 		living_area: 1500 + idx * 100,
@@ -48,28 +46,10 @@ function mockConvertedDates(idx: number) {
 	}
 }
 
-export const adminUser: User = await getOrInsertUser({
-	username: 'adminusername',
-	name: 'John Admin',
-	has_admin_role: true,
-})
 
-export const normalUser: User = await getOrInsertUser({
-	username: 'normalusername',
-	name: 'Jane User',
-	has_admin_role: false,
-})
 
-export const otherUsers: User[] = await Promise.all([
-	getOrInsertUser({ username: 'user1', name: 'User One' }),
-	getOrInsertUser({ username: 'user2', name: 'User Two' }),
-	getOrInsertUser({ username: 'user3', name: 'User Three' }),
-])
-
-// Create 2–3 cases for each user
-const allUsers = [adminUser, normalUser, ...otherUsers]
-for (const user of allUsers) {
-	for (let i = 1; i <= 3; i++) {
+export async function createSampleCases(user: { username: string; id: string }, caseCount: number): Promise<void> {
+	for (let i = 1; i <= caseCount; i++) {
 		const caseResult = await createCase(
 			mockCaseInput(user.username, i),
 			mockConvertedDates(i),
