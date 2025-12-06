@@ -1,4 +1,9 @@
 import { test as base } from '@playwright/test'
+// NOTE: The Playwright fixtures below must be defined inline with `base.extend`.
+// If these were moved to separate functions and imported, Playwright would not be able to
+// automatically manage their lifecycle and cleanup after each test. This is because Playwright's
+// fixture system relies on direct registration within the test context, not on imported helpers.
+// Keeping them here ensures proper setup and teardown for reliable, isolated tests.
 import { type User as UserModel } from '@prisma/client'
 import * as setCookieParser from 'set-cookie-parser'
 import {
@@ -55,11 +60,16 @@ async function insertTemporaryUser({
 	})
 }
 
+// We use Playwright's `extend` fixture system here to ensure that any resources (like temporary users)
+// created during a test are automatically cleaned up after the test finishes. This prevents test pollution
+// and ensures reliable, isolated test runs. Each fixture below uses `use` and a cleanup step afterward.
 export const test = base.extend<{
 	insertTemporaryUser(options?: InsertTemporaryOptions): Promise<User>
 	loginTemporary(options?: InsertTemporaryOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
+	// This fixture creates a temporary user for the test and ensures that user is deleted after the test completes.
+	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
 	insertTemporaryUser: async ({}, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
@@ -69,6 +79,8 @@ export const test = base.extend<{
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
+	// This fixture creates and logs in a temporary user, then ensures the user is deleted after the test.
+	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
 	loginTemporary: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
@@ -98,6 +110,8 @@ export const test = base.extend<{
 		})
 		await prisma.user.deleteMany({ where: { id: userId } })
 	},
+	// This fixture prepares a mock GitHub user for the test and ensures all related resources are cleaned up after the test.
+	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
 	prepareGitHubUser: async ({ page }, use, testInfo) => {
 		await page.route(/\/auth\/github(?!\/callback)/, async (route, request) => {
 			const headers = {
