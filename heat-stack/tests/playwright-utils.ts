@@ -19,8 +19,12 @@ import {
 
 export * from './db-utils.ts'
 
-type InsertTemporaryOptions = {
+type GetOrInsertUserOptions = {
+	id?: string
+	username?: UserModel['username']
 	password?: string
+	email?: UserModel['email']
+	name?: string
 	is_admin?: boolean
 }
 
@@ -32,48 +36,96 @@ type User = {
 	has_admin_role?: boolean
 }
 
-async function insertTemporaryUser({
+async function getOrInsertUser({
+	id,
 	password,
-	is_admin,
-}: InsertTemporaryOptions = {}): Promise<User> {
-		const random_number = Math.floor(Math.random() * 1000000)
-		const username = `tempuser${random_number}`
-		const name = `Joe User${random_number}`
-		const email = `tempuser${random_number}@fake.com`
-		const userPassword = password ?? 'password123'
-		const rolesConnect = is_admin
-			? { connect: { name: 'admin' } }
-			: {}
+	email,
+	is_admin = false,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
 		return await prisma.user.create({
+			select,
 			data: {
-				username,
-				name,
+				...userData,
 				email,
-				password: { create: { hash: await getPasswordHash(userPassword) } },
-				...rolesConnect
+				username,
+				...(has_admin_role ? { roles: { connect: { name: 'admin' } } } : {}),
+				password: { create: { hash: await getPasswordHash(password) } },
 			},
-	})
+		})
+	}
+}
+
+async function getOrInsertAdmin({
+	id,
+	username,
+	password,
+	email,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else if (username) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { username: username },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
+		return await prisma.user.create({
+			select,
+			data: {
+				...userData,
+				email,
+				username,
+				roles: { connect: { name: 'admin' } },
+				password: { create: { hash: await getPasswordHash(password) } },
+			},
+		})
+	}
 }
 
 let firstFailure = false;
 export const test = base.extend<{
-	insertTemporaryUser(options?: InsertTemporaryOptions): Promise<User>
-	loginTemporary(options?: InsertTemporaryOptions): Promise<User>
+	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
+	login(options?: GetOrInsertUserOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
-	insertTemporaryUser: async ({}, use) => {
+	insertNewUser: async ({}, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertTemporaryUser(options)
+			const user = await getOrInsertUser(options)
 			userId = user.id
 			return user
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
-	loginTemporary: async ({ page }, use) => {
+
+	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertTemporaryUser(options)
+			const user = await getOrInsertUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
