@@ -18,8 +18,8 @@ async function setupWebAuthn(page: any) {
 	return { client, authenticatorId: result.authenticatorId }
 }
 
-test('Users can register and use passkeys', async ({ page, login }) => {
-	const user = await login()
+test('Users can register and use passkeys', async ({ page, loginTemporary }) => {
+	const user = await loginTemporary()
 
 	const { client, authenticatorId } = await setupWebAuthn(page)
 
@@ -125,9 +125,9 @@ test('Users can register and use passkeys', async ({ page, login }) => {
 	await expect(page).toHaveURL(`/login`)
 })
 
-test('Failed passkey verification shows error', async ({ page, login }) => {
+test('Failed passkey verification shows error', async ({ page, loginTemporary }) => {
 	const password = faker.internet.password()
-	await login({ password })
+	await loginTemporary({ password })
 	const { client, authenticatorId } = await setupWebAuthn(page)
 	await page.goto('/settings/profile/passkeys')
 
