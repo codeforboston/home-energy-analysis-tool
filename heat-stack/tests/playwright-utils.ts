@@ -24,7 +24,7 @@ import {
 
 export * from './db-utils.ts'
 
-type InsertTemporaryOptions = {
+type InsertOptions = {
 	password?: string
 	is_admin?: boolean
 }
@@ -37,10 +37,10 @@ type User = {
 	has_admin_role?: boolean
 }
 
-async function insertTemporaryUser({
+async function insertUser({
 	password,
 	is_admin,
-}: InsertTemporaryOptions = {}): Promise<User> {
+}: InsertOptions = {}): Promise<User> {
 		const random_number = Math.floor(Math.random() * 1000000)
 		const username = `tempuser${random_number}`
 		const name = `Joe User${random_number}`
@@ -64,8 +64,8 @@ async function insertTemporaryUser({
 // created during a test are automatically cleaned up after the test finishes. This prevents test pollution
 // and ensures reliable, isolated test runs. Each fixture below uses `use` and a cleanup step afterward.
 export const test = base.extend<{
-	insertTemporaryUser(options?: InsertTemporaryOptions): Promise<User>
-	loginTemporary(options?: InsertTemporaryOptions): Promise<User>
+	insertTemporaryUser(options?: InsertOptions): Promise<User>
+	loginTemporary(options?: InsertOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
 	// This fixture creates a temporary user for the test and ensures that user is deleted after the test completes.
@@ -73,7 +73,7 @@ export const test = base.extend<{
 	insertTemporaryUser: async ({}, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertTemporaryUser(options)
+			const user = await insertUser(options)
 			userId = user.id
 			return user
 		})
@@ -84,7 +84,7 @@ export const test = base.extend<{
 	loginTemporary: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertTemporaryUser(options)
+			const user = await insertUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
