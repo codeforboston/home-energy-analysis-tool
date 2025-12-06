@@ -19,12 +19,8 @@ import {
 
 export * from './db-utils.ts'
 
-type GetOrInsertUserOptions = {
-	id?: string
-	username?: UserModel['username']
+type InsertTemporaryOptions = {
 	password?: string
-	email?: UserModel['email']
-	name?: string
 	is_admin?: boolean
 }
 
@@ -36,96 +32,47 @@ type User = {
 	has_admin_role?: boolean
 }
 
-async function getOrInsertUser({
-	id,
+async function insertTemporaryUser({
 	password,
-	email,
-	is_admin = false,
-}: GetOrInsertUserOptions = {}): Promise<User> {
-	const select = { id: true, email: true, username: true, name: true }
-	if (id) {
-		return await prisma.user.findUniqueOrThrow({
-			select,
-			where: { id: id },
-		})
-	} else if (username) {
-		return await prisma.user.findUniqueOrThrow({
-			select,
-			where: { username: username },
-		})
-	} else {
-		const userData = createUser()
-		username ??= userData.username
-		password ??= userData.username
-		email ??= userData.email
+	is_admin,
+}: InsertTemporaryOptions = {}): Promise<User> {
+		const random_number = Math.floor(Math.random() * 1000000)
+		const username = `tempuser${random_number}`
+		const name = `Joe User${random_number}`
+		const email = `tempuser${random_number}@fake.com`
+		const userPassword = password ?? 'password123'
+		const rolesConnect = is_admin
+			? { connect: { name: 'admin' } }
+			: {}
 		return await prisma.user.create({
-			select,
 			data: {
-				...userData,
-				email,
 				username,
-				...(has_admin_role ? { roles: { connect: { name: 'admin' } } } : {}),
-				password: { create: { hash: await getPasswordHash(password) } },
+				name,
+				email,
+				password: { create: { hash: await getPasswordHash(userPassword) } },
+				...rolesConnect
 			},
-		})
-	}
+	})
 }
 
-async function getOrInsertAdmin({
-	id,
-	username,
-	password,
-	email,
-}: GetOrInsertUserOptions = {}): Promise<User> {
-	const select = { id: true, email: true, username: true, name: true }
-	if (id) {
-		return await prisma.user.findUniqueOrThrow({
-			select,
-			where: { id: id },
-		})
-	} else if (username) {
-		return await prisma.user.findUniqueOrThrow({
-			select,
-			where: { username: username },
-		})
-	} else {
-		const userData = createUser()
-		username ??= userData.username
-		password ??= userData.username
-		email ??= userData.email
-		return await prisma.user.create({
-			select,
-			data: {
-				...userData,
-				email,
-				username,
-				roles: { connect: { name: 'admin' } },
-				password: { create: { hash: await getPasswordHash(password) } },
-			},
-		})
-	}
-}
-
-let firstFailure = false;
 export const test = base.extend<{
-	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
-	login(options?: GetOrInsertUserOptions): Promise<User>
+	insertTemporaryUser(options?: InsertTemporaryOptions): Promise<User>
+	loginTemporary(options?: InsertTemporaryOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
-	insertNewUser: async ({}, use) => {
+	insertTemporaryUser: async ({}, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await getOrInsertUser(options)
+			const user = await insertTemporaryUser(options)
 			userId = user.id
 			return user
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
-
-	login: async ({ page }, use) => {
+	loginTemporary: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await getOrInsertUser(options)
+			const user = await insertTemporaryUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
@@ -177,19 +124,7 @@ export const test = base.extend<{
 		}
 		await deleteGitHubUser(ghUser!.primaryEmail)
 	},
-});
-
-test.afterEach(async ({ page }, testInfo) => {
-	console.log(`Finished test: ${testInfo.title} with status: ${testInfo.status}`);
-	if (testInfo.status === 'failed' && !firstFailure) {
-		console.log("Here's the screenshot for the first failure:");
-		firstFailure = true;
-		await page.screenshot({ path: `failed-test-${testInfo.title}.png`, fullPage: true });
-		// Abort further tests by exiting the process
-		process.exit(1);
-	}
-});
-
+})
 export const { expect } = test
 
 /**
