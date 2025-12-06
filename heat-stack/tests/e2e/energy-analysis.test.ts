@@ -1,5 +1,6 @@
 import { type Page as PlaywrightPage } from 'playwright'
 import { expect, test as base } from '#tests/playwright-utils.ts'
+import { getFormattedDateForName } from '../utils'
 
 const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 	return await page.getByTestId('analysis-header').textContent()
@@ -102,7 +103,8 @@ test.skip('Custom name persists after form submission', async ({
 	await expect(nameInput).toHaveValue('CIC')
 
 	// Change the name to a custom value
-	const customName = 'John Smith'
+	const formattedDate = getFormattedDateForName();
+	const customName = `John Smith ${formattedDate}`;
 	await nameInput.fill(customName)
 	await expect(nameInput).toHaveValue(customName)
 
