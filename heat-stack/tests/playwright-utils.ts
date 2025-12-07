@@ -21,7 +21,8 @@ export * from './db-utils.ts'
 
 type InsertOptions = {
 	password?: string
-	is_admin?: boolean
+	isAdmin?: boolean
+	isAuth?: boolean
 }
 
 type User = {
@@ -33,25 +34,24 @@ type User = {
 
 async function insertUser({
 	password,
-	is_admin,
+	isAdmin,
+	isAuth = false,
 }: InsertOptions = {}): Promise<User> {
-		const userWord = is_admin ? 'adminuser' : 'normaluser'
-		const random_number = Math.floor(Math.random() * 1000000)
-		const username = `temp${userWord}${random_number}`
-		const name = `Joe Smith-${userWord}${random_number}`
-		const email = `temp${userWord}${random_number}@fake.com`
-		const userPassword = password ?? 'password123'
-		const rolesConnect = is_admin
-			? { connect: { name: 'admin' } }
-			: {}
-		return await prisma.user.create({
-			data: {
-				username,
-				name,
-				email,
-				password: { create: { hash: await getPasswordHash(userPassword) } },
-				...rolesConnect
-			},
+	const userWord = isAuth ? 'auth' : '' + isAdmin ? 'admin' : 'normal' + 'user-'
+	const random_number = Math.floor(Math.random() * 1000000)
+	const username = `temp${userWord}${random_number}`
+	const name = `Joe Smith-${userWord}${random_number}`
+	const email = `temp${userWord}${random_number}@fake.com`
+	const userPassword = password ?? 'password123'
+	const rolesConnect = isAdmin ? { connect: { name: 'admin' } } : {}
+	return await prisma.user.create({
+		data: {
+			username,
+			name,
+			email,
+			password: { create: { hash: await getPasswordHash(userPassword) } },
+			...rolesConnect,
+		},
 	})
 }
 
@@ -72,7 +72,7 @@ export const test = base.extend<{
 	loginTemporary: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertUser(options)
+			const user = await insertUser({...options, isAuth: true })
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
