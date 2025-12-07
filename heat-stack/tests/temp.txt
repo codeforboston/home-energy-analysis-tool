@@ -1,5 +1,4 @@
 import { test as base } from '@playwright/test'
-import { type User as UserModel } from '@prisma/client'
 import * as setCookieParser from 'set-cookie-parser'
 import {
 	getPasswordHash,
@@ -16,10 +15,12 @@ import {
 	deleteGitHubUser,
 	insertGitHubUser,
 } from './mocks/github.ts'
+import { getFormattedDateForName } from './utils.ts'
 
 export * from './db-utils.ts'
 
 type InsertOptions = {
+	isAuth?: boolean
 	password?: string
 	is_admin?: boolean
 }
@@ -32,26 +33,29 @@ type User = {
 }
 
 async function insertUser({
+	isAuth = false,
 	password,
 	is_admin,
 }: InsertOptions = {}): Promise<User> {
-		const userWord = is_admin ? 'adminuser' : 'normaluser'
-		const random_number = Math.floor(Math.random() * 1000000)
-		const username = `temp${userWord}${random_number}`
-		const name = `Joe Smith-${userWord}${random_number}`
-		const email = `temp${userWord}${random_number}@fake.com`
-		const userPassword = password ?? 'password123'
-		const rolesConnect = is_admin
-			? { connect: { name: 'admin' } }
-			: {}
-		return await prisma.user.create({
-			data: {
-				username,
-				name,
-				email,
-				password: { create: { hash: await getPasswordHash(userPassword) } },
-				...rolesConnect
-			},
+	// Define wordLower and wordInitCap based on isAuth and is_admin
+	const formattedDate = getFormattedDateForName()
+	const authWord = isAuth ? 'auth' : 'normal'
+	const adminWord = is_admin ? 'admin' : ''
+	const keyWord = `${authWord}-${adminWord}user-${formattedDate}`
+	// Create user data
+	const username = `temp${keyWord}`
+	const name = `Joe Smith-${keyWord}`
+	const email = `temp${keyWord}@fake.com`
+	const userPassword = password ?? 'password123'
+	const rolesConnect = is_admin ? { connect: { name: 'admin' } } : {}
+	return await prisma.user.create({
+		data: {
+			username,
+			name,
+			email,
+			password: { create: { hash: await getPasswordHash(userPassword) } },
+			...rolesConnect,
+		},
 	})
 }
 
@@ -72,7 +76,7 @@ export const test = base.extend<{
 	loginTemporary: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertUser(options)
+			const user = await insertUser({...options, isAuth: true })
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
