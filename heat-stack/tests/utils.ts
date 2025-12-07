@@ -1,6 +1,6 @@
 export function getFormattedDateForName(date: Date = new Date()): string {
 	const pad = (n: number) => n.toString().padStart(2, '0');
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}/${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+	return `${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }
 import * as setCookieParser from 'set-cookie-parser'
 import { sessionKey } from '#app/utils/auth.server.ts'

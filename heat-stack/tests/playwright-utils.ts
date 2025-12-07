@@ -16,6 +16,7 @@ import {
 	deleteGitHubUser,
 	insertGitHubUser,
 } from './mocks/github.ts'
+import { getFormattedDateForName } from './utils.ts'
 
 export * from './db-utils.ts'
 
@@ -37,12 +38,14 @@ async function insertUser({
 	isAdmin,
 	isAuth = false,
 }: InsertOptions = {}): Promise<User> {
-	const userWord = isAuth ? 'auth' : '' + isAdmin ? 'admin' : 'normal' + 'user-'
-	const random_number = Math.floor(Math.random() * 1000000)
-	const username = `temp${userWord}${random_number}`
-	const name = `Joe Smith-${userWord}${random_number}`
-	const email = `temp${userWord}${random_number}@fake.com`
+	const userWord = (isAuth ? 'cur' : 'oth') + (isAdmin ? 'adm' : 'norm')
+	// const date_str = getFormattedDateForName()
+	const date_str = Math.floor(Math.random() * 1000000)
+	const username = `${userWord}${date_str}`
+	const name = `Joe Smith-${userWord}${date_str}`
+	const email = `temp${userWord}${date_str}@fake.com`
 	const userPassword = password ?? 'password123'
+	console.log("debug password", userPassword);
 	const rolesConnect = isAdmin ? { connect: { name: 'admin' } } : {}
 	return await prisma.user.create({
 		data: {
