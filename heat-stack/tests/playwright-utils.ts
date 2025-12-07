@@ -17,7 +17,6 @@ import {
 	insertGitHubUser,
 } from './mocks/github.ts'
 import { getFormattedDateForName } from './utils.ts'
-import { get } from 'lodash'
 
 export * from './db-utils.ts'
 
@@ -41,13 +40,12 @@ async function insertUser({
 }: InsertOptions = {}): Promise<User> {
 	const userWord = (isAuth ? 'cur' : 'oth') + (isAdmin ? 'adm' : 'norm')
 	// const date_str = getFormattedDateForName()
-	const random_number = Math.floor(Math.random() * 1000000)
 	const date_str = getFormattedDateForName();
-	const username = `${userWord}${random_number}`
+	// *** USERNAME CAN NOT EXCEED 19 CHARACTERS AND MUST BE LOWERCASE***
+	const username = `${userWord}${date_str}`.toLowerCase();
 	const name = `Joe Smith-${userWord}${date_str}`
 	const email = `temp${userWord}${date_str}@fake.com`
 	const userPassword = password ?? 'password123'
-	console.log("debug password", userPassword);
 	const rolesConnect = isAdmin ? { connect: { name: 'admin' } } : {}
 	return await prisma.user.create({
 		data: {
