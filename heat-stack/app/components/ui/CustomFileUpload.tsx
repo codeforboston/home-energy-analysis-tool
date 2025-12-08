@@ -37,8 +37,6 @@ export function CustomFileUpload({ name }: { name: string }) {
 				{/* Display filename */}
 				<span className="text-sm">{fileName}</span>
 
-				{/* Help icon immediately after filename */}
-				<HelpButton keyName="download.help" />
 			</div>
 
 			<div className="mt-1 text-sm text-gray-600">The file must be a CSV.</div>
