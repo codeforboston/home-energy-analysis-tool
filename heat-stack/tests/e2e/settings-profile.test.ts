@@ -53,7 +53,10 @@ test('Users can update their password', async ({ page, loginTemporary }) => {
 	).toEqual({ id: user.id })
 })
 
-test('Users can update their profile photo', async ({ page, loginTemporary }) => {
+test('Users can update their profile photo', async ({
+	page,
+	loginTemporary,
+}) => {
 	const user = await loginTemporary()
 	await page.goto('/settings/profile')
 
@@ -83,7 +86,10 @@ test('Users can update their profile photo', async ({ page, loginTemporary }) =>
 	expect(beforeSrc).not.toEqual(afterSrc)
 })
 
-test('Users can change their email address', async ({ page, loginTemporary }) => {
+test('Users can change their email address', async ({
+	page,
+	loginTemporary,
+}) => {
 	const preUpdateUser = await loginTemporary()
 	const newEmailAddress = faker.internet.email().toLowerCase()
 	expect(preUpdateUser.email).not.toEqual(newEmailAddress)

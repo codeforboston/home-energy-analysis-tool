@@ -390,7 +390,10 @@ test('reset password with a link', async ({ page, insertTemporaryUser }) => {
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
 
-test('reset password with a short code', async ({ page, insertTemporaryUser }) => {
+test('reset password with a short code', async ({
+	page,
+	insertTemporaryUser,
+}) => {
 	const user = await insertTemporaryUser()
 	await page.goto('/login')
 

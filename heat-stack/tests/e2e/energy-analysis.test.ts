@@ -103,8 +103,8 @@ test.skip('Custom name persists after form submission', async ({
 	await expect(nameInput).toHaveValue('CIC')
 
 	// Change the name to a custom value
-	const formattedDate = getFormattedDateForName();
-	const customName = `John Smith ${formattedDate}`;
+	const formattedDate = getFormattedDateForName()
+	const customName = `John Smith ${formattedDate}`
 	await nameInput.fill(customName)
 	await expect(nameInput).toHaveValue(customName)
 
