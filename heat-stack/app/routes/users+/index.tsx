@@ -64,16 +64,14 @@ export default function AdminEditUsers() {
 	const [editingId, setEditingId] = useState<string | null>(null)
 	if (!loggedInUser || !hasAdminRole(loggedInUser)) {
 		return (
-			<div
-				className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6"
-			>
+			<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
 				<h1 className="text-h1">HEAT Users</h1>
 				<p className="text-error">{ACCESS_DENIED_MESSAGE}</p>
 			</div>
 		)
 	}
 	return (
-		<div className="container mt-10" id='users-page'>
+		<div className="container mt-10" id="users-page">
 			<h2 className="mb-6 text-h2">Edit Users (Admin Only)</h2>
 			<div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>

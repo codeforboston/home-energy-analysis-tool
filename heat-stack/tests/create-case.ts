@@ -46,9 +46,10 @@ function mockConvertedDates(idx: number) {
 	}
 }
 
-
-
-export async function createSampleCases(user: { username: string; id: string }, caseCount: number): Promise<void> {
+export async function createSampleCases(
+	user: { username: string; id: string },
+	caseCount: number,
+): Promise<void> {
 	for (let i = 1; i <= caseCount; i++) {
 		const caseResult = await createCase(
 			mockCaseInput(user.username, i),

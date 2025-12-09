@@ -5,7 +5,7 @@ import { test, expect } from '../playwright-utils'
 test('Admin can check and uncheck admin role for a user', async ({
 	page,
 	loginTemporary,
-	insertTemporaryUser
+	insertTemporaryUser,
 }) => {
 	// Login as admin user using fixture
 	const loginUser = await loginTemporary({ is_admin: true })
@@ -53,7 +53,11 @@ test('Admin user can see Users option', async ({ page, loginTemporary }) => {
 	await expect(page.getByRole('menuitem', { name: /Users/i })).toBeVisible()
 })
 
-test('Admin can view and edit users', async ({ page, loginTemporary, insertTemporaryUser }) => {
+test('Admin can view and edit users', async ({
+	page,
+	loginTemporary,
+	insertTemporaryUser,
+}) => {
 	await loginTemporary({ is_admin: true })
 	await insertTemporaryUser({ is_admin: false })
 	await insertTemporaryUser({ is_admin: false })
@@ -91,7 +95,10 @@ test('Admin can view and edit users', async ({ page, loginTemporary, insertTempo
 	expect(revertedEmail?.trim()).toBe(originalEmail)
 })
 
-test('Normal user cannot see Users option', async ({ page, loginTemporary }) => {
+test('Normal user cannot see Users option', async ({
+	page,
+	loginTemporary,
+}) => {
 	await loginTemporary({ is_admin: false })
 	await page.goto('/cases')
 	await page.click('#user-dropdown-btn')
@@ -101,7 +108,10 @@ test('Normal user cannot see Users option', async ({ page, loginTemporary }) => 
 	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
 })
 
-test('Normal user gets Access Denied on /users', async ({ page, loginTemporary }) => {
+test('Normal user gets Access Denied on /users', async ({
+	page,
+	loginTemporary,
+}) => {
 	await loginTemporary({ is_admin: false })
 	await page.goto('/users')
 	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()

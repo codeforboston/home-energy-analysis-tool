@@ -46,24 +46,22 @@ async function insertUser({
 	password,
 	is_admin,
 }: InsertOptions = {}): Promise<User> {
-		const random_number = Math.floor(Math.random() * 1000000)
-		const username = `tempuser${random_number}`
-		const name = `Joe User${random_number}`
-		const email = `tempuser${random_number}@fake.com`
-		const userPassword = password ?? 'password123'
-		const rolesConnect = is_admin
-			? { roles: { connect: { name: 'admin' } } }
-			: {}
-		return await prisma.user.create({
-			data: {
-				username,
-				name,
-				email,
-				password: { create: { hash: await getPasswordHash(userPassword) } },
-				...rolesConnect
-			},
-			include: { roles: true },
-		})
+	const random_number = Math.floor(Math.random() * 1000000)
+	const username = `tempuser${random_number}`
+	const name = `Joe User${random_number}`
+	const email = `tempuser${random_number}@fake.com`
+	const userPassword = password ?? 'password123'
+	const rolesConnect = is_admin ? { roles: { connect: { name: 'admin' } } } : {}
+	return await prisma.user.create({
+		data: {
+			username,
+			name,
+			email,
+			password: { create: { hash: await getPasswordHash(userPassword) } },
+			...rolesConnect,
+		},
+		include: { roles: true },
+	})
 }
 
 // We use Playwright's `extend` fixture system here to ensure that any resources (like temporary users)
