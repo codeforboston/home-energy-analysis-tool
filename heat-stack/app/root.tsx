@@ -15,6 +15,7 @@ import { type Route } from './+types/root.ts'
 import appleTouchIconAssetUrl from './assets/favicons/apple-touch-icon.png'
 import faviconAssetUrl from './assets/favicons/favicon.png'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
+import { MainNav } from './components/main-nav.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { useToast } from './components/toaster.tsx'
@@ -203,6 +204,26 @@ function App() {
 		>
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container px-0 py-6">
+					<nav className="mb-4 flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+						<MainNav />
+						<div className="flex items-center gap-4">
+							<div className="ml-auto hidden max-w-sm flex-1 md:block">
+								{searchBar}
+							</div>
+							<div className="flex items-center gap-4 md:gap-10">
+								{user ? (
+									<UserDropdown />
+								) : (
+									<Button asChild variant="default" size="lg">
+										<Link to="/login">Log In</Link>
+									</Button>
+								)}
+							</div>
+							<div className="w-full sm:hidden">{searchBar}</div>
+						</div>
+					</nav>
+
+					{/* HEAT banner - shown on non-homepage */}
 					{!isOnHomePage ? (
 						<Link to="/">
 							<section
@@ -217,20 +238,6 @@ function App() {
 							</section>
 						</Link>
 					) : null}
-
-					<nav className="flex flex-wrap items-center justify-end gap-4 sm:flex-nowrap md:gap-8">
-						<div className="ml-auto hidden max-w-sm flex-1">{searchBar}</div>
-						<div className="flex items-center gap-10">
-							{user ? (
-								<UserDropdown />
-							) : (
-								<Button asChild variant="default" size="lg">
-									<Link to="/login">Log In</Link>
-								</Button>
-							)}
-						</div>
-						<div className="hidden w-full sm:hidden">{searchBar}</div>
-					</nav>
 				</header>
 
 				<div className="flex flex-1 flex-col">
