@@ -4,10 +4,10 @@ import { expect, test } from '#tests/playwright-utils.ts'
 
 test('Users can add 2FA to their account and use it when logging in', async ({
 	page,
-	login,
+	loginTemporary,
 }) => {
 	const password = faker.internet.password()
-	const user = await login({ password })
+	const user = await loginTemporary({ password })
 	await page.goto('/settings/profile')
 
 	await page.getByRole('link', { name: /enable 2fa/i }).click()

@@ -1,23 +1,46 @@
 import { data, Link } from 'react-router'
-import { requireUserId } from '#app/utils/auth.server.ts'
-import { getCasesByUser } from '#app/utils/db/case.server.ts'
+import {
+	getCasesByUser,
+	getAllCasesWithUsernames,
+	getLoggedInUserFromRequest,
+} from '#app/utils/db/case.server.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
+
+type CaseWithUsername = {
+	id: number
+	homeOwner: { firstName1: string; lastName1: string }
+	location: {
+		address: string
+		city: string
+		state: string
+		livingAreaSquareFeet: number
+	}
+	analysis: any[]
+	username?: string
+}
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userId = await requireUserId(request)
-	const cases = await getCasesByUser(userId)
-
-	return data({ cases })
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
+	let cases
+	if (isAdmin) {
+		cases = await getAllCasesWithUsernames()
+	} else {
+		cases = await getCasesByUser(loggedInUser.id)
+	}
+	return data({ cases, isAdmin })
 }
 
 export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases } = loaderData
+	const { cases, isAdmin } = loaderData
+	const typedCases: CaseWithUsername[] = cases
 
 	return (
-		<div className="container mx-auto p-6">
+		<div id="cases-page" className="container mx-auto p-6">
 			<div className="flex items-center justify-between">
 				<h1 className="mb-6 text-3xl font-bold">Cases</h1>
 				<Link
@@ -27,7 +50,6 @@ export default function Cases({
 					Create New Case
 				</Link>
 			</div>
-			/* TODO:why /new why not case/new */
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
@@ -54,6 +76,14 @@ export default function Cases({
 								>
 									Case ID
 								</th>
+								{isAdmin && (
+									<th
+										scope="col"
+										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+									>
+										Username
+									</th>
+								)}
 								<th
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -87,10 +117,9 @@ export default function Cases({
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 bg-white">
-							{cases.map((caseItem) => {
+							{typedCases.map((caseItem) => {
 								const firstAnalysis = caseItem.analysis[0]
 								const heatingInput = firstAnalysis?.heatingInput[0]
-
 								return (
 									<tr key={caseItem.id} className="hover:bg-gray-50">
 										<td className="whitespace-nowrap px-6 py-4">
@@ -98,6 +127,13 @@ export default function Cases({
 												{caseItem.id}
 											</div>
 										</td>
+										{isAdmin && (
+											<td className="whitespace-nowrap px-6 py-4">
+												<div className="text-sm text-gray-900">
+													{caseItem.username}
+												</div>
+											</td>
+										)}
 										<td className="whitespace-nowrap px-6 py-4">
 											<div className="text-sm text-gray-900">
 												{caseItem.homeOwner.firstName1}{' '}
