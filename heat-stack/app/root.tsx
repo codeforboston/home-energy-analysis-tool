@@ -17,7 +17,6 @@ import faviconAssetUrl from './assets/favicons/favicon.png'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { MainNav } from './components/main-nav.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
-import { SearchBar } from './components/search-bar.tsx'
 import { useToast } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
 import { href as iconsHref } from './components/ui/icon.tsx'
@@ -193,7 +192,6 @@ function App() {
 			return data.requestInfo.path === '/'
 		}
 	})
-	const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
 	console.log('Home page rendered.')
 
