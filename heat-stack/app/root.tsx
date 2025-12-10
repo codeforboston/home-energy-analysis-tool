@@ -207,9 +207,6 @@ function App() {
 					<nav className="mb-4 flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 						<MainNav />
 						<div className="flex items-center gap-4">
-							<div className="ml-auto hidden max-w-sm flex-1 md:block">
-								{searchBar}
-							</div>
 							<div className="flex items-center gap-4 md:gap-10">
 								{user ? (
 									<UserDropdown />
@@ -219,7 +216,6 @@ function App() {
 									</Button>
 								)}
 							</div>
-							<div className="w-full sm:hidden">{searchBar}</div>
 						</div>
 					</nav>
 
