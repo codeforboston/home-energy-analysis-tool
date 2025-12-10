@@ -182,7 +182,6 @@ function App() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const matches = useMatches()
-	const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
 	const isOnHomePage = matches.find((match) => {
 		let data = {} as any // Typescript is freaking out about m.data.requestInfo
 		if (match && match.data) {
