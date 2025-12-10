@@ -1,15 +1,16 @@
-node_modules
-
-/build
+/node_modules/
+/.react-router/
+/.mypy_cache/
+/build/
 /public/**
-/server-build
+/server-build/
 .env
 
 /test-results/
 /playwright-report/
 /playwright/.cache/
 /tests/fixtures/email/*.json
-/coverage
-/prisma/migrations
+/coverage/
+/prisma/migrations/
 
 package-lock.json
