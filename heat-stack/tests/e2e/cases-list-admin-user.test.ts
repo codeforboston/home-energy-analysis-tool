@@ -1,16 +1,16 @@
 import { prisma } from '#app/utils/db.server.ts'
-import { expect, test } from '#tests/playwright-utils.ts'
+import { expect, test } from '#tests/playwright-heat-utils.ts'
 import { createSampleCases } from '../create-case'
 
 // Helper to login as admin or user
 test.describe('Case list admin/user visibility', () => {
 	test('Admin can see all cases and username column', async ({
 		page,
-		loginTemporary,
+		insertAndLoginTemporaryUser,
 		insertTemporaryUser,
 	}) => {
 		// Login as regular user using helper
-		const adminLoginUser = await loginTemporary({ is_admin: true })
+		const adminLoginUser = await insertAndLoginTemporaryUser({ is_admin: true })
 		await createSampleCases(adminLoginUser, 3)
 		const otherUser = await insertTemporaryUser({ is_admin: false })
 		await createSampleCases(otherUser, 2)
@@ -40,11 +40,11 @@ test.describe('Case list admin/user visibility', () => {
 
 	test('non-admin sees only own cases, no username column', async ({
 		page,
-		loginTemporary,
+		insertAndLoginTemporaryUser,
 		insertTemporaryUser,
 	}) => {
 		// Login as regular user using helper
-		const normalLoginUser = await loginTemporary({ is_admin: false })
+		const normalLoginUser = await insertAndLoginTemporaryUser({ is_admin: false })
 		await createSampleCases(normalLoginUser, 4)
 		const otherUser = await insertTemporaryUser({ is_admin: false })
 		await createSampleCases(otherUser, 2)

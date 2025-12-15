@@ -1,16 +1,16 @@
 import { ACCESS_DENIED_MESSAGE } from '../../app/constants/error-messages'
 import { prisma } from '../../app/utils/db.server'
-import { test, expect } from '../playwright-utils'
+import { test, expect } from '../playwright-heat-utils'
 
 test('Admin can check and uncheck admin role for a user', async ({
 	page,
-	login,
-	insertNewUser,
+	insertAndLoginTemporaryUser,
+	insertTemporaryUser,
 }) => {
-	// Login as admin user using fixture
-	const loginUser = await login({ is_admin: true })
+	// insertAndLoginTemporaryUser as admin user using fixture
+	const loginUser = await insertAndLoginTemporaryUser({ is_admin: true })
 	// Create a non-admin user for manipulation
-	const otherUser = await insertNewUser({ is_admin: false })
+	const otherUser = await insertTemporaryUser({ is_admin: false })
 	const username = otherUser.username
 	await page.goto('/users')
 
@@ -44,8 +44,8 @@ test('Admin can check and uncheck admin role for a user', async ({
 	expect(await viewRow.isChecked()).toBe(false)
 })
 
-test('Admin user can see Users option', async ({ page, login }) => {
-	await login({ is_admin: true })
+test('Admin user can see Users option', async ({ page, insertAndLoginTemporaryUser }) => {
+	await insertAndLoginTemporaryUser({ is_admin: true })
 	await page.goto('/users')
 	await expect(page.locator('#users-page')).toBeVisible()
 	await expect(page.locator('#user-dropdown-btn')).toBeVisible()
@@ -55,13 +55,13 @@ test('Admin user can see Users option', async ({ page, login }) => {
 
 test('Admin can view and edit users', async ({
 	page,
-	login,
-	insertNewUser,
+	insertAndLoginTemporaryUser,
+	insertTemporaryUser,
 }) => {
-	await login({ is_admin: true })
-	await insertNewUser({ is_admin: false })
-	await insertNewUser({ is_admin: false })
-	const otherUser = await insertNewUser({ is_admin: false })
+	await insertAndLoginTemporaryUser({ is_admin: true })
+	await insertTemporaryUser({ is_admin: false })
+	await insertTemporaryUser({ is_admin: false })
+	const otherUser = await insertTemporaryUser({ is_admin: false })
 	await page.goto('/users')
 	const dbUserCount = await prisma.user.count()
 	const userRows = await page.locator('ul.divide-y > li').all()
@@ -97,9 +97,9 @@ test('Admin can view and edit users', async ({
 
 test('Normal user cannot see Users option', async ({
 	page,
-	login,
+	insertAndLoginTemporaryUser,
 }) => {
-	await login({ is_admin: false })
+	await insertAndLoginTemporaryUser({ is_admin: false })
 	await page.goto('/cases')
 	await page.click('#user-dropdown-btn')
 	const manageOption = page.getByRole('menuitem', { name: /Users/i })
@@ -110,9 +110,9 @@ test('Normal user cannot see Users option', async ({
 
 test('Normal user gets Access Denied on /users', async ({
 	page,
-	login,
+	insertAndLoginTemporaryUser,
 }) => {
-	await login({ is_admin: false })
+	await insertAndLoginTemporaryUser({ is_admin: false })
 	await page.goto('/users')
 	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
 })

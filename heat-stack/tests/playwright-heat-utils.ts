@@ -60,7 +60,7 @@ async function insertUser({
 // and ensures reliable, isolated test runs. Each fixture below uses `use` and a cleanup step afterward.
 export const test = base.extend<{
 	insertTemporaryUser(options?: InsertOptions): Promise<User>
-	loginTemporary(options?: InsertOptions): Promise<User>
+	insertAndLoginTemporaryUser(options?: InsertOptions): Promise<User>
 }>({
 	// This fixture creates a temporary user for the test and ensures that user is deleted after the test completes.
 	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
@@ -75,7 +75,7 @@ export const test = base.extend<{
 	},
 	// This fixture creates and logs in a temporary user, then ensures the user is deleted after the test.
 	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
-	loginTemporary: async ({ page }, use) => {
+	insertAndLoginTemporaryUser: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
 			const user = await insertUser(options)
@@ -104,8 +104,6 @@ export const test = base.extend<{
 		})
 		await prisma.user.deleteMany({ where: { id: userId } })
 	},
-	// This fixture prepares a mock GitHub user for the test and ensures all related resources are cleaned up after the test.
-	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
 })
 export const { expect } = test
 
