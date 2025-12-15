@@ -189,6 +189,9 @@ If using GitHub Codespaces, follow these steps:
 
 ---
 
+
+### Guidelines for Making Changes
+If modifying an existing file, check if it is part of the original Epic Stack codebase.  If it is, read [Guidelines for Editing Epic Stack Fie](./docs/guidelines-for-editing-epic-stack-files.md).
 ### Committing your changes
 
 Before committing your changes, make sure to lint `npm run lint` and format
