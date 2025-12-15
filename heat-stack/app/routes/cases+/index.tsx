@@ -123,9 +123,12 @@ export default function Cases({
 								return (
 									<tr key={caseItem.id} className="hover:bg-gray-50">
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm font-medium text-gray-900">
+											<Link
+												to={`/cases/${firstAnalysis?.id}/edit?edit_mode=true`}
+												className="text-sm font-medium text-indigo-700 underline hover:underline"
+											>
 												{caseItem.id}
-											</div>
+											</Link>
 										</td>
 										{isAdmin && (
 											<td className="whitespace-nowrap px-6 py-4">
@@ -163,12 +166,7 @@ export default function Cases({
 											>
 												View
 											</Link>
-											<Link
-												to={`/cases/${firstAnalysis?.id}/edit`}
-												className="mx-1 text-indigo-600 hover:text-indigo-900"
-											>
-												Edit
-											</Link>
+											{/* Edit button removed; edit now via Case ID link */}
 											<Link
 												to={`/cases/${firstAnalysis?.id}/delete`}
 												className="hover:text-indigo-9001 mx-1 text-indigo-600"

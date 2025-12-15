@@ -4,7 +4,9 @@
 export function hasAdminRole(
 	user: { roles?: { name: string }[] } | null | undefined,
 ): boolean {
+	console.log('debugging hasAdminRole', user?.roles);
 	if (!user || !user.roles) return false
+	console.log('roles:', user.roles.some((r) => r.name === 'admin'));
 	return user.roles.some((r) => r.name === 'admin')
 }
 import { useRouteLoaderData } from 'react-router'

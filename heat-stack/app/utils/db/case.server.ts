@@ -75,33 +75,60 @@ export type { SchemaZodFromFormType }
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
  */
+import { hasAdminRole } from '#app/utils/user.ts'
+
 export const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				take: 1, // TODO: WI: Test that latest / correct analysis is returned
-				include: {
-					heatingInput: {
-						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-						include: {
-							processedEnergyBill: true,
-						},
-					},
-					heatingOutput: true, // Include the calculated results for display
-				},
-			},
-		},
+	// Fetch user and check admin
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { roles: { select: { name: true } } },
 	})
+	const isAdmin = user && user.roles.some((r) => r.name === 'admin')
+
+	if (isAdmin) {
+		// Admin: fetch any case by id
+		return await prisma.case.findUnique({
+			where: { id: caseId },
+			include: {
+				homeOwner: true,
+				location: true,
+				analysis: {
+					take: 1,
+					include: {
+						heatingInput: {
+							take: 1,
+							include: { processedEnergyBill: true },
+						},
+						heatingOutput: true,
+					},
+				},
+			},
+		})
+	} else {
+		// Regular user: must be assigned to case
+		return await prisma.case.findUnique({
+			where: {
+				id: caseId,
+				users: {
+					some: { id: userId },
+				},
+			},
+			include: {
+				homeOwner: true,
+				location: true,
+				analysis: {
+					take: 1,
+					include: {
+						heatingInput: {
+							take: 1,
+							include: { processedEnergyBill: true },
+						},
+						heatingOutput: true,
+					},
+				},
+			},
+		})
+	}
 }
 
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
