@@ -21,7 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "nom run lint -- --fix",
     "setup": "npm run build && prisma migrate deploy && prisma generate --sql && playwright install",
     "start": "cross-env NODE_ENV=production node .",
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
@@ -35,7 +35,7 @@
     "test:e2e": "npm run test:e2e:dev --silent",
     "test:e2e:dev": "playwright test --ui",
     "pretest:e2e:run": "npm run build",
-    "test:e2e:run": "cross-env CI=true playwright test --workers=1",
+    "test:e2e:run": "cross-env CI=true playwright test",
     "test:e2e:install": "npx playwright install --with-deps chromium",
     "typecheck": "react-router typegen && tsc",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
@@ -176,13 +176,16 @@
     "prettier-plugin-sql": "^0.18.1",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "remix-flat-routes": "^0.8.5",
-    "tsx": "^4.21.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.3",
     "vite": "^6.1.1",
     "vitest": "^3.0.7"
   },
   "engines": {
     "node": "22"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "epic-stack": {
     "head": "12de6850564e84e411a59e3df2abdcc8aa4eea0e",

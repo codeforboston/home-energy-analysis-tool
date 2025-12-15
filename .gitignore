@@ -1,4 +1,5 @@
 node_modules
+heat-stack/node_modules
 .DS_Store
 .env
 
@@ -11,19 +12,19 @@ venv
 heat-tmp
 
 ### new
-/heat-stack/build/
-/heat-stack/public/build/
-/heat-stack/server-build/
+/heat-stack/build
+/heat-stack/public/build
+/heat-stack/server-build
 /heat-stack/.env
-/heat-stack/.cache/
+/heat-stack/.cache
 
-/heat-stack/tests/prisma/
+/heat-stack/tests/prisma
 
 /heat-stack/test-results/
 /heat-stack/playwright-report/
 /heat-stack/playwright/.cache/
 /heat-stack/tests/fixtures/email/
-/heat-stack/coverage/
+/heat-stack/coverage
 
 
 # pyodide files

@@ -69,7 +69,9 @@ async function seed() {
 			}
 		}
 	}
-	console.log(`👤 Created ${totalUsers} users...`)
+	console.timeEnd(`👤 Created ${totalUsers} users...`)
+
+	console.time(`🐨 Created admin user "kody"`)
 
 	const kodyImages = {
 		kodyUser: { objectKey: 'user/kody.png' },
@@ -119,11 +121,10 @@ async function seed() {
 					providerId: String(githubUser.profile.id),
 				},
 			},
-			roles: { connect: [{ name: 'admin' }] },
+			roles: { connect: [{ name: 'admin' }, { name: 'user' }] },
 		},
 	})
-	const kodyDb = await prisma.user.findUnique({ where: { id: kody.id } })
-	console.log('Kody in DB:', kodyDb)
+
 	await prisma.userImage.create({
 		data: {
 			userId: kody.id,
@@ -241,7 +242,9 @@ async function seed() {
 		}
 	}
 
-	console.log(`🌱 Database has been seeded`)
+	console.timeEnd(`🐨 Created admin user "kody"`)
+
+	console.timeEnd(`🌱 Database has been seeded`)
 }
 
 seed()
@@ -253,6 +256,7 @@ seed()
 		await prisma.$disconnect()
 	})
 
+// we're ok to import from the test directory in this file
 /*
 eslint
 	no-restricted-imports: "off",

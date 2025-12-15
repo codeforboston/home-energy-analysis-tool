@@ -1,7 +1,0 @@
-- [x]Look at original seed.ts roles
-- [x] Change name of username
-- [x] Get admin test to work
-- [x] Change is_admin back to role
-- [ ] Combine duplicate getOrInsert and login functions 
-- Seed prod with admin and admin user
-- modify seed-test.ts and seed.ts to call seed-prod.ts
