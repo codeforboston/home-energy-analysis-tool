@@ -1,44 +1,70 @@
-import { data, Link } from 'react-router'
+import { Form, data, Link, useSubmit } from 'react-router'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
-	const cases = await getCasesByUser(userId)
+	const search = new URL(request.url).searchParams.get('search')
+	const cases = await getCasesByUser(userId, search)
 
-	return data({ cases })
+	return data({ cases, search })
 }
 
 export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases } = loaderData
+	const { cases, search } = loaderData
+	const submit = useSubmit()
 
 	return (
 		<div className="container mx-auto p-6">
-			<div className="flex items-center justify-between">
-				<h1 className="mb-6 text-3xl font-bold">Cases</h1>
-				<Link
-					to="/cases/new"
-					className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-				>
-					Create New Case
-				</Link>
+			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
+				<h1 className="text-3xl font-bold">Cases</h1>
+				<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-end">
+					<Form
+						method="GET"
+						action="/cases"
+						className="relative flex w-full max-w-sm"
+						onChange={(event) => submit(event.currentTarget)}
+					>
+						<div className="absolute left-4 top-1/2 -translate-y-1/2">
+							<Icon
+								name="magnifying-glass"
+								className="h-5 w-5 text-emerald-600"
+							/>
+						</div>
+						<input
+							type="search"
+							name="search"
+							defaultValue={search ?? ''}
+							placeholder="Search by homeowner or location"
+							className="w-full rounded-full border-2 border-emerald-500 bg-white py-2.5 pl-12 pr-4 text-sm shadow-md transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+						/>
+					</Form>
+					<Link
+						to="/cases/new"
+						className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+					>
+						Create New Case
+					</Link>
+				</div>
 			</div>
-			/* TODO:why /new why not case/new */
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
-						No Cases Found
+						{search && search.trim().length > 0
+							? `No cases found for "${search}".`
+							: 'No Cases Found'}
 					</h2>
 					<p className="mb-4 text-gray-500">
 						Get started by creating your first case analysis.
 					</p>
 					<Link
 						to="/cases/new"
-						className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+						className="inline-block rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
 					>
 						📈 Create New Case
 					</Link>
@@ -58,7 +84,7 @@ export default function Cases({
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
 								>
-									Home Owner
+									Homeowner
 								</th>
 								<th
 									scope="col"
