@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { HelpButton } from './HelpButton'
 
 export function CustomFileUpload({ name }: { name: string }) {
 	const [fileName, setFileName] = useState('No file chosen')
