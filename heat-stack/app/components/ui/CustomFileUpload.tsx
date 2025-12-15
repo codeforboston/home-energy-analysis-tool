@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { HelpButton } from './HelpButton'
 
 export function CustomFileUpload({ name }: { name: string }) {
 	const [fileName, setFileName] = useState('No file chosen')
@@ -37,6 +38,8 @@ export function CustomFileUpload({ name }: { name: string }) {
 				<span className="text-sm">{fileName}</span>
 			</div>
 
+			{/* Help icon immediately after filename */}
+			<HelpButton keyName="download.help" />
 			<div className="mt-1 text-sm text-gray-600">The file must be a CSV.</div>
 		</div>
 	)
