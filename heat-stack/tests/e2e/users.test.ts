@@ -44,7 +44,10 @@ test('Admin can check and uncheck admin role for a user', async ({
 	expect(await viewRow.isChecked()).toBe(false)
 })
 
-test('Admin user can see Users option', async ({ page, insertAndLoginTemporaryUser }) => {
+test('Admin user can see Users option', async ({
+	page,
+	insertAndLoginTemporaryUser,
+}) => {
 	await insertAndLoginTemporaryUser({ is_admin: true })
 	await page.goto('/users')
 	await expect(page.locator('#users-page')).toBeVisible()

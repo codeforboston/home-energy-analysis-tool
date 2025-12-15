@@ -44,7 +44,9 @@ test.describe('Case list admin/user visibility', () => {
 		insertTemporaryUser,
 	}) => {
 		// Login as regular user using helper
-		const normalLoginUser = await insertAndLoginTemporaryUser({ is_admin: false })
+		const normalLoginUser = await insertAndLoginTemporaryUser({
+			is_admin: false,
+		})
 		await createSampleCases(normalLoginUser, 4)
 		const otherUser = await insertTemporaryUser({ is_admin: false })
 		await createSampleCases(otherUser, 2)
