@@ -92,10 +92,10 @@ export default function NoteRoute({
 	loaderData,
 	actionData,
 }: Route.ComponentProps) {
-	const loggedInUser = useOptionalUser()
-	const isOwner = loggedInUser?.id === loaderData.note.ownerId
+	const user = useOptionalUser()
+	const isOwner = user?.id === loaderData.note.ownerId
 	const canDelete = userHasPermission(
-		loggedInUser,
+		user,
 		isOwner ? `delete:note:own` : `delete:note:any`,
 	)
 	const displayBar = canDelete || isOwner

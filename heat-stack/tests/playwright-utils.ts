@@ -1,9 +1,4 @@
 import { test as base } from '@playwright/test'
-// NOTE: The Playwright fixtures below must be defined inline with `base.extend`.
-// If these were moved to separate functions and imported, Playwright would not be able to
-// automatically manage their lifecycle and cleanup after each test. This is because Playwright's
-// fixture system relies on direct registration within the test context, not on imported helpers.
-// Keeping them here ensures proper setup and teardown for reliable, isolated tests.
 import { type User as UserModel } from '@prisma/client'
 import * as setCookieParser from 'set-cookie-parser'
 import {
@@ -24,71 +19,68 @@ import {
 
 export * from './db-utils.ts'
 
-type InsertOptions = {
+type GetOrInsertUserOptions = {
+	id?: string
+	username?: UserModel['username']
 	password?: string
-	is_admin?: boolean
+	email?: UserModel['email']
 }
 
-type Role = {
-	id: string
-	name: string
-}
 type User = {
 	id: string
 	email: string
 	username: string
 	name: string | null
-	has_admin_role?: boolean
-	roles: Role[]
 }
 
-async function insertUser({
+async function getOrInsertUser({
+	id,
+	username,
 	password,
-	is_admin,
-}: InsertOptions = {}): Promise<User> {
-	const random_number = Math.floor(Math.random() * 1000000)
-	const username = `tempuser${random_number}`
-	const name = `Joe User${random_number}`
-	const email = `tempuser${random_number}@fake.com`
-	const userPassword = password ?? 'password123'
-	const rolesConnect = is_admin ? { roles: { connect: { name: 'admin' } } } : {}
-	return await prisma.user.create({
-		data: {
-			username,
-			name,
-			email,
-			password: { create: { hash: await getPasswordHash(userPassword) } },
-			...rolesConnect,
-		},
-		include: { roles: true },
-	})
+	email,
+}: GetOrInsertUserOptions = {}): Promise<User> {
+	const select = { id: true, email: true, username: true, name: true }
+	if (id) {
+		return await prisma.user.findUniqueOrThrow({
+			select,
+			where: { id: id },
+		})
+	} else {
+		const userData = createUser()
+		username ??= userData.username
+		password ??= userData.username
+		email ??= userData.email
+		return await prisma.user.create({
+			select,
+			data: {
+				...userData,
+				email,
+				username,
+				roles: { connect: { name: 'user' } },
+				password: { create: { hash: await getPasswordHash(password) } },
+			},
+		})
+	}
 }
 
-// We use Playwright's `extend` fixture system here to ensure that any resources (like temporary users)
-// created during a test are automatically cleaned up after the test finishes. This prevents test pollution
-// and ensures reliable, isolated test runs. Each fixture below uses `use` and a cleanup step afterward.
 export const test = base.extend<{
-	insertTemporaryUser(options?: InsertOptions): Promise<User>
-	loginTemporary(options?: InsertOptions): Promise<User>
+	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
+	login(options?: GetOrInsertUserOptions): Promise<User>
 	prepareGitHubUser(): Promise<GitHubUser>
 }>({
-	// This fixture creates a temporary user for the test and ensures that user is deleted after the test completes.
-	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
-	insertTemporaryUser: async ({}, use) => {
+	insertNewUser: async ({}, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertUser(options)
+			const user = await getOrInsertUser(options)
 			userId = user.id
 			return user
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
-	// This fixture creates and logs in a temporary user, then ensures the user is deleted after the test.
-	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
-	loginTemporary: async ({ page }, use) => {
+	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
 		await use(async (options) => {
-			const user = await insertUser(options)
+			const user = await getOrInsertUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
 				data: {
@@ -114,8 +106,6 @@ export const test = base.extend<{
 		})
 		await prisma.user.deleteMany({ where: { id: userId } })
 	},
-	// This fixture prepares a mock GitHub user for the test and ensures all related resources are cleaned up after the test.
-	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
 	prepareGitHubUser: async ({ page }, use, testInfo) => {
 		await page.route(/\/auth\/github(?!\/callback)/, async (route, request) => {
 			const headers = {

@@ -323,9 +323,9 @@ test('shows help texts on entering invalid details on onboarding page after GitH
 	await expect(page.getByText(/thanks for signing up/i)).toBeVisible()
 })
 
-test('login as existing user', async ({ page, insertTemporaryUser }) => {
+test('login as existing user', async ({ page, insertNewUser }) => {
 	const password = faker.internet.password()
-	const user = await insertTemporaryUser({ password })
+	const user = await insertNewUser({ password })
 	invariant(user.name, 'User name not found')
 	await page.goto('/login')
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
@@ -336,9 +336,9 @@ test('login as existing user', async ({ page, insertTemporaryUser }) => {
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
 
-test('reset password with a link', async ({ page, insertTemporaryUser }) => {
+test('reset password with a link', async ({ page, insertNewUser }) => {
 	const originalPassword = faker.internet.password()
-	const user = await insertTemporaryUser({ password: originalPassword })
+	const user = await insertNewUser({ password: originalPassword })
 	invariant(user.name, 'User name not found')
 	await page.goto('/login')
 
@@ -390,11 +390,8 @@ test('reset password with a link', async ({ page, insertTemporaryUser }) => {
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
 
-test('reset password with a short code', async ({
-	page,
-	insertTemporaryUser,
-}) => {
-	const user = await insertTemporaryUser()
+test('reset password with a short code', async ({ page, insertNewUser }) => {
+	const user = await insertNewUser()
 	await page.goto('/login')
 
 	await page.getByRole('link', { name: /forgot password/i }).click()

@@ -47,9 +47,9 @@ test.setTimeout(120000)
 test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
 	page,
 	uploadEnergyBill,
-	loginTemporary,
+	login,
 }) => {
-	await loginTemporary()
+	await login()
 	// Visit the root
 	await page.goto('/')
 
@@ -88,9 +88,9 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 
 test.skip('Custom name persists after form submission', async ({
 	page,
-	loginTemporary,
+	login,
 }) => {
-	await loginTemporary()
+	await login()
 	// Visit the root
 	await page.goto('/')
 
@@ -140,9 +140,9 @@ test.skip('Upload multiple CSVs', async ({
 	page,
 	uploadEnergyBill,
 	editSaveEnergyBill,
-	loginTemporary,
+	login,
 }) => {
-	await loginTemporary()
+	await login()
 	// Visit the root
 	await page.goto('/')
 
