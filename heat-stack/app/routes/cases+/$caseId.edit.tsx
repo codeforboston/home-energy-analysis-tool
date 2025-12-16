@@ -178,27 +178,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-			// ...existing code...
-			// Parse form data from request
-			const contentType = request.headers.get('content-type') || '';
-			console.log('📝 Content-Type:', contentType);
-			let formData: FormData;
-			if (contentType.includes('multipart/form-data')) {
-				formData = await parseMultipartFormData(request, uploadHandler);
-			} else {
-				formData = await request.formData();
-			}
-			// Log all received form values for debugging
-			if (formData && typeof formData.forEach === 'function') {
-				console.log('🔎 Backend received form values:');
-				formData.forEach((value: unknown, key: string) => {
-					console.log(`  ${key}:`, value);
-				});
-			}
-			// Log action trigger and incoming form data
-			console.log('🚩 Action triggered for case:', params.caseId);
-			const intent = formData.get('intent') as string;
-			console.log('🚩 Received intent:', intent);
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -206,7 +185,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Parse form data based on content type
 	// useFetcher sends regular form data, file uploads send multipart
-	// contentType, formData, and intent already declared and logged above
+	const contentType = request.headers.get('content-type') || ''
+	const formData = contentType.includes('multipart/form-data')
+		? await parseMultipartFormData(request, uploadHandler)
+		: await request.formData()
+
+	// Check the intent to determine validation approach
+	const intent = formData.get('intent') as string
 
 	let submission
 
