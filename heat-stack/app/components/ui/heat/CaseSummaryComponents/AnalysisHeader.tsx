@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { type UsageDataSchema } from '#/types/types.ts'
-import { HelpButton } from '../../HelpButton'
 
 interface AnalysisHeaderProps {
 	usageData: UsageDataSchema
@@ -116,8 +115,6 @@ export function AnalysisHeader({
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis
 				</h2>
-				{/* TODO: add help text here */}
-				<HelpButton keyName="heat_load_analysis.help" />
 			</div>
 			<div
 				data-pw="analysis-header"
