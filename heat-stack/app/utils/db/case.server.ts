@@ -1,3 +1,11 @@
+import { invariant } from '@epic-web/invariant'
+import type z from 'zod'
+import { requireUserId } from '#app/utils/auth.server.ts'
+import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
+import { prisma } from '#app/utils/db.server.ts'
+import { HomeSchema } from '#types/index.ts'
+import { type SchemaZodFromFormType } from '#types/single-form.ts'
+
 export async function getLoggedInUserFromRequest(request: Request) {
 	// Use session-based user lookup
 	const userId = await requireUserId(request)
@@ -45,13 +53,7 @@ export async function getAllCasesWithUsernames() {
 		username: c.users?.[0]?.username || 'N/A',
 	}))
 }
-import { invariant } from '@epic-web/invariant'
-import type z from 'zod'
-import { requireUserId } from '#app/utils/auth.server.ts'
-import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
-import { prisma } from '#app/utils/db.server.ts'
-import { HomeSchema } from '#types/index.ts'
-import { type SchemaZodFromFormType } from '#types/single-form.ts'
+
 export type { SchemaZodFromFormType }
 
 // export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
@@ -74,9 +76,7 @@ export type { SchemaZodFromFormType }
  * @param caseId id of the case
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
- */
-import { hasAdminRole } from '#app/utils/user.ts'
-
+ */	
 export const getCaseForEditing = async (caseId: number, userId: string) => {
 	// Fetch user and check admin
 	const user = await prisma.user.findUnique({

@@ -25,7 +25,9 @@ export async function loader() {
 
 export async function action({ request }: { request: Request }) {
 	// Require admin role for all user modifications and deletions
-	const { requireUserWithRole } = await import('#app/utils/permissions.server.ts')
+	const { requireUserWithRole } = await import(
+		'#app/utils/permissions.server.ts'
+	)
 	await requireUserWithRole(request, 'admin')
 
 	const formData = await (request as Request).formData()
