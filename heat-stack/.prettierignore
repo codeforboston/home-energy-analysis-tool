@@ -12,5 +12,7 @@
 /tests/fixtures/email/*.json
 /coverage/
 /prisma/migrations/
+/tests/fixtures/uploaded/
+/heat-stack/tests/fixtures/openimg/fly-storage-tigris-dev/mock-bucket/users
 
 package-lock.json

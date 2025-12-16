@@ -76,7 +76,6 @@ test('Admin can view and edit users', async ({
 	expect(usernameText).toBeTruthy()
 	// Manipulate otherUser (not admin)
 	const editBtnId = `#edit_btn_${otherUser.username}`
-	await page.screenshot({ path: `screenshot_${otherUser.username}.png` })
 
 	const emailInputId = `#email_${otherUser.username}`
 	const emailDisplayId = `#email_${otherUser.username}_display`

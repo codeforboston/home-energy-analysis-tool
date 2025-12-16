@@ -76,7 +76,7 @@ export type { SchemaZodFromFormType }
  * @param caseId id of the case
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
- */	
+ */
 export const getCaseForEditing = async (caseId: number, userId: string) => {
 	// Fetch user and check admin
 	const user = await prisma.user.findUnique({
