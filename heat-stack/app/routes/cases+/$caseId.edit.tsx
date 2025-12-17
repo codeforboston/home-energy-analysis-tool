@@ -238,9 +238,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 				},
 			}
 		} else {
-			// Simple form update (intent === 'save' or fallback) - just update the database fields
-			console.log('🔄 Processing save operation for case:', caseId)
-
 			// Parse billing records from form data if present
 			const billingRecordsJson = formData.get('billing_records') as
 				| string
@@ -250,9 +247,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 				try {
 					const parsed = JSON.parse(billingRecordsJson)
 					billingRecords = Array.isArray(parsed) ? parsed : undefined
-					console.log('📊 Parsed billing records:', billingRecords)
 				} catch (error) {
 					console.error('❌ Failed to parse billing records:', error)
+					throw new Error('Invalid billing records data')
 				}
 			}
 
@@ -264,9 +261,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 			if (heatLoadOutputJson) {
 				try {
 					heatLoadOutput = JSON.parse(heatLoadOutputJson)
-					console.log('📊 Parsed heat load output:', heatLoadOutput)
 				} catch (error) {
 					console.error('❌ Failed to parse heat load output:', error)
+					throw new Error('Invalid heat load output data')
 				}
 			}
 
@@ -281,10 +278,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 				billingRecords,
 				heatLoadOutput,
 			)
-			console.log('✅ Case updated successfully:', {
-				caseId: updatedCase?.id,
-				analysisId: updatedCase?.analysis?.[0]?.id,
-			})
 
 			// For save operations, add a dummy energy_use_upload to match expected type
 			const formDataWithFile = {
