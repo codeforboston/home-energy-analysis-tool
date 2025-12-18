@@ -70,7 +70,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		dates: [] as string[],
 		temperatures: [] as number[],
 	}
-
 	if (
 		heatingInput.processedEnergyBill &&
 		heatingInput.processedEnergyBill.length > 0
@@ -249,7 +248,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 					billingRecords = Array.isArray(parsed) ? parsed : undefined
 				} catch (error) {
 					console.error('❌ Failed to parse billing records:', error)
-					throw new Error('Invalid billing records data')
 				}
 			}
 
@@ -263,7 +261,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 					heatLoadOutput = JSON.parse(heatLoadOutputJson)
 				} catch (error) {
 					console.error('❌ Failed to parse heat load output:', error)
-					throw new Error('Invalid heat load output data')
 				}
 			}
 
@@ -301,7 +298,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 					analysisId: updatedCase?.analysis?.[0]?.id,
 				},
 			}
-			console.log('📤 Returning save result:', result)
 			return result
 		}
 	} catch (error: any) {
@@ -364,7 +360,6 @@ export default function EditCase({
 
 	// Mark initial load as complete immediately - we'll use database data
 	useEffect(() => {
-		console.log('� Marking initial load complete - using database data')
 		setIsInitialCalculationComplete(true)
 	}, [])
 
@@ -382,13 +377,7 @@ export default function EditCase({
 	}, [actionData])
 
 	// Use calculated data when available, fallback to local billing records with database heat load output
-	console.log('📊 Usage data selection:', {
-		hasCalculatedData: !!calculatedUsageData,
-		hasLocalBillingRecords: !!(
-			localBillingRecords && localBillingRecords.length > 0
-		),
-		isInitialCalculationComplete,
-	})
+
 
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
@@ -417,18 +406,12 @@ export default function EditCase({
 
 	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
 	const editModeToggleBillingPeriod = (index: number) => {
-		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
 			if (i === index) {
 				const newRecord = {
 					...record,
 					inclusion_override: !record.inclusion_override,
 				}
-				console.log('📝 Updated record:', {
-					index: i,
-					old: record.inclusion_override,
-					new: newRecord.inclusion_override,
-				})
 				return newRecord
 			}
 			return record
@@ -442,14 +425,6 @@ export default function EditCase({
 			loaderData.state_id &&
 			loaderData.county_id
 		) {
-			console.log('🚀 Triggering client-side recalculation...')
-			console.log('📋 Current usageData:', usageData)
-			console.log(
-				'🔍 Function check:',
-				typeof executeRoundtripAnalyticsFromFormJs,
-				executeRoundtripAnalyticsFromFormJs,
-			)
-
 			try {
 				// Check if the function is still valid (not destroyed)
 				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
@@ -463,34 +438,6 @@ export default function EditCase({
 					processed_energy_bills: updatedRecords,
 				}
 
-				console.log(
-					'🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records',
-				)
-				console.log(
-					'🔍 Arg 1 (form):',
-					typeof parsedAndValidatedFormSchemaForEffects,
-					parsedAndValidatedFormSchemaForEffects,
-				)
-				console.log(
-					'🔍 Arg 2 (temp):',
-					typeof loaderData.convertedDatesTIWD,
-					loaderData.convertedDatesTIWD,
-				)
-				console.log(
-					'🔍 Arg 3 (adjusted):',
-					typeof userAdjustedData,
-					userAdjustedData,
-				)
-				console.log(
-					'🔍 Arg 4 (state):',
-					typeof loaderData.state_id,
-					loaderData.state_id,
-				)
-				console.log(
-					'🔍 Arg 5 (county):',
-					typeof loaderData.county_id,
-					loaderData.county_id,
-				)
 
 				// Call the function and immediately handle the result
 				let calcResult: any
@@ -513,15 +460,8 @@ export default function EditCase({
 					throw pyError
 				}
 
-				console.log(
-					'📊 Recalculation result type:',
-					calcResult instanceof Map,
-					calcResult,
-				)
-
 				const newUsageData = buildCurrentUsageData(calcResult)
 				setCalculatedUsageData(newUsageData)
-				console.log('✅ Recalculation completed successfully', newUsageData)
 			} catch (error) {
 				console.error('❌ Recalculation failed:', error)
 				setErrorModal({
