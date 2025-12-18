@@ -1,6 +1,7 @@
 import { invariant } from '@epic-web/invariant'
 
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import getConvertedDatesTIWD, { calculateResults } from '#app/utils/date-temp-util.ts'
 import {
 	insertProcessedBills,
 	deleteBillsForAnalysis,
@@ -25,38 +26,13 @@ export async function processCaseSubmission(
 	userId: string,
 	formData: FormData,
 ) {
-	const parsedForm = submission.value
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	const pyodideResults = pyodideProxy.toJs()
-	// TODO: make function that destroys if it exists
-	// pyodideProxy.destroy()
-
-	const result = await getConvertedDatesTIWD(
-		pyodideResults,
-		parsedForm.street_address,
-		parsedForm.town,
-		parsedForm.state,
-	)
-
-	const { convertedDatesTIWD, state_id, county_id } = result
-	invariant(state_id, 'Missing state_id')
-	invariant(county_id, 'Missing county_id')
-
-	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		parsedForm,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillData = gasBillDataProxy.toJs()
-	// gasBillDataProxy.destroy()
+	const { convertedDatesTIWD, state_id, county_id, gasBillData, parsedForm } = await calculateResults(submission, formData, uploadedTextFile)
 
 	const newCase = await createCaseRecord(
 		parsedForm,
-		result,
+		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 		gasBillData,
 	)
@@ -93,14 +69,12 @@ export async function processCaseUpdate(
 	const pyodideResults = pyodideProxy.toJs()
 	// pyodideProxy.destroy()
 
-	const result = await getConvertedDatesTIWD(
+	const { convertedDatesTIWD, state_id, county_id } = await getConvertedDatesTIWD(
 		pyodideResults,
 		parsedForm.street_address,
 		parsedForm.town,
 		parsedForm.state,
 	)
-
-	const { convertedDatesTIWD, state_id, county_id } = result
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
@@ -114,7 +88,12 @@ export async function processCaseUpdate(
 	const gasBillData = gasBillDataProxy.toJs()
 	//gasBillDataProxy.destroy()
 
-	const updatedCase = await updateCaseRecord(caseId, parsedForm, result, userId)
+	const updatedCase = await updateCaseRecord(
+		caseId,
+		parsedForm,
+		{ convertedDatesTIWD, state_id, county_id },
+		userId,
+	)
 
 	// Get the HeatingInput ID from the updated case
 	const heatingInputId = updatedCase?.analysis?.[0]?.heatingInput?.[0]?.id

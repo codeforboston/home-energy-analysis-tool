@@ -184,23 +184,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Parse form data based on content type
 	// useFetcher sends regular form data, file uploads send multipart
-	const contentType = request.headers.get('content-type') || ''
-	const formData = contentType.includes('multipart/form-data')
-		? await parseMultipartFormData(request, uploadHandler)
-		: await request.formData()
-
-	// Check the intent to determine validation approach
-	const intent = formData.get('intent') as string
+	const formData = await request.formData()
 
 	let submission
-
-	if (intent === 'save') {
-		// For save intent, use schema without file validation
-		submission = parseWithZod(formData, { schema: SaveOnlySchema })
-	} else {
-		// Use full validation for process-file intent
-		submission = parseWithZod(formData, { schema: Schema })
-	}
+	submission = parseWithZod(formData, { schema: SaveOnlySchema })
 
 	if (submission.status !== 'success') {
 		return {
@@ -215,91 +202,59 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	try {
-		if (intent === 'process-file') {
-			// Full update with new energy file - use the original processCaseUpdate
-			const result = await processCaseUpdate(
-				caseId,
-				submission,
-				userId,
-				formData,
-			)
-
-			return {
-				submitResult: submission.reply(),
-				data: JSON.stringify(result.gasBillData, replacer),
-				parsedAndValidatedFormSchema: submission.value,
-				convertedDatesTIWD: result.convertedDatesTIWD,
-				state_id: result.state_id,
-				county_id: result.county_id,
-				caseInfo: {
-					caseId: result.updatedCase?.id,
-					analysisId: result.updatedCase?.analysis?.[0]?.id,
-				},
+		const billingRecordsJson = formData.get('billing_records') as
+			| string
+			| null
+		let billingRecords: any[] | undefined
+		if (billingRecordsJson) {
+			try {
+				const parsed = JSON.parse(billingRecordsJson)
+				billingRecords = Array.isArray(parsed) ? parsed : undefined
+			} catch (error) {
+				console.error('❌ Failed to parse billing records:', error)
 			}
-		} else {
-			// Parse billing records from form data if present
-			const billingRecordsJson = formData.get('billing_records') as
-				| string
-				| null
-			let billingRecords: any[] | undefined
-			if (billingRecordsJson) {
-				try {
-					const parsed = JSON.parse(billingRecordsJson)
-					billingRecords = Array.isArray(parsed) ? parsed : undefined
-				} catch (error) {
-					console.error('❌ Failed to parse billing records:', error)
-				}
-			}
-
-			// Parse heat load output from form data if present
-			const heatLoadOutputJson = formData.get('heat_load_output') as
-				| string
-				| null
-			let heatLoadOutput: any | undefined
-			if (heatLoadOutputJson) {
-				try {
-					heatLoadOutput = JSON.parse(heatLoadOutputJson)
-				} catch (error) {
-					console.error('❌ Failed to parse heat load output:', error)
-				}
-			}
-
-			const { updateCaseRecord } = await import(
-				'#app/utils/db/case.db.server.ts'
-			)
-			const updatedCase = await updateCaseRecord(
-				caseId,
-				submission.value,
-				{},
-				userId,
-				billingRecords,
-				heatLoadOutput,
-			)
-
-			// For save operations, add a dummy energy_use_upload to match expected type
-			const formDataWithFile = {
-				...submission.value,
-				energy_use_upload: {
-					name: 'existing-data.csv',
-					size: 0,
-					type: 'text/csv',
-				},
-			}
-
-			const result = {
-				submitResult: submission.reply(),
-				data: undefined, // No new calculation data
-				parsedAndValidatedFormSchema: formDataWithFile,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: {
-					caseId: updatedCase?.id,
-					analysisId: updatedCase?.analysis?.[0]?.id,
-				},
-			}
-			return result
 		}
+
+		// Parse heat load output from form data if present
+		const heatLoadOutputJson = formData.get('heat_load_output') as
+			| string
+			| null
+		let heatLoadOutput: any | undefined
+		if (heatLoadOutputJson) {
+			try {
+				heatLoadOutput = JSON.parse(heatLoadOutputJson)
+			} catch (error) {
+				console.error('❌ Failed to parse heat load output:', error)
+			}
+		}
+
+		const { updateCaseRecord } = await import(
+			'#app/utils/db/case.db.server.ts'
+		)
+		const updatedCase = await updateCaseRecord(
+			caseId,
+			submission.value,
+			{},
+			userId,
+			billingRecords,
+			heatLoadOutput,
+		)
+
+		// For save operations, add a dummy energy_use_upload to match expected type
+
+		const result = {
+			submitResult: submission.reply(),
+			data: undefined, // No new calculation data
+			parsedAndValidatedFormSchema: submission.value,
+			convertedDatesTIWD: undefined,
+			state_id: undefined,
+			county_id: undefined,
+			caseInfo: {
+				caseId: updatedCase?.id,
+				analysisId: updatedCase?.analysis?.[0]?.id,
+			},
+		}
+		return result
 	} catch (error: any) {
 		console.error('❌ Case update failed', error)
 		const message =
