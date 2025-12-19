@@ -113,69 +113,6 @@ export default async function getConvertedDatesTIWD(
 	}
 }
 
-export default async function getConvertedDatesTIWD(
-	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
-	street_address: string,
-	town: string,
-	state: string,
-): Promise<{
-	convertedDatesTIWD: TemperatureInputDataConverted
-	state_id: string | undefined
-	county_id: string | number | undefined
-	coordinates: { x: number; y: number } | null | undefined
-	addressComponents: AddressComponents | null
-}> {
-	console.log('loading geocodeUtil/weatherUtil')
-
-	const geocodeUtil = new GeocodeUtil()
-	const weatherUtil = new WeatherUtil()
-
-	const combined_address = `${street_address}, ${town}, ${state}`
-	const { coordinates, state_id, county_id, addressComponents } =
-		await geocodeUtil.getLL(combined_address)
-	let { x, y } = coordinates ?? { x: 0, y: 0 }
-
-	console.log('geocoded', x, y)
-
-	const startDateString = pyodideResultsFromTextFile.get('overall_start_date') as string
-	const endDateString = pyodideResultsFromTextFile.get('overall_end_date') as string
-
-	const { start_date, end_date } = parseOrDefaultDates(startDateString, endDateString)
-
-	// Utility function to parse start and end dates, with defaults if invalid
-
-
-	// Function to ensure we always return a valid date string
-
-
-	const weatherData = await weatherUtil.getThatWeathaData(
-		x,
-		y,
-		formatDateString(start_date),
-		formatDateString(end_date),
-	)
-
-	if (weatherData === undefined) {
-		throw new Error('weather data failed to fetch')
-	}
-
-	const datesFromTIWD = weatherData.dates.map(
-		(datestring) => new Date(datestring).toISOString().split('T')[0],
-	)
-	const convertedDatesTIWD: TemperatureInputDataConverted = {
-		dates: datesFromTIWD,
-		temperatures: weatherData.temperatures,
-	}
-
-	return {
-		convertedDatesTIWD,
-		state_id,
-		county_id,
-		coordinates,
-		addressComponents,
-	}
-}
-
 export type GetConvertedDatesTIWDResponse = Awaited<
 	ReturnType<typeof getConvertedDatesTIWD>
 >
