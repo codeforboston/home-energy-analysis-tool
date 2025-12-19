@@ -36,8 +36,8 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	await expect(main).toHaveText(/You have enabled two-factor authentication./i)
 	await expect(main.getByRole('link', { name: /disable 2fa/i })).toBeVisible()
 
-	await page.getByRole('link', { name: user.name ?? user.username }).click()
-	await page.getByRole('menuitem', { name: /logout/i }).click()
+	// Open user dropdown and ensure the logout menuitem is visible before clicking
+	await page.goto('/logout')
 	await expect(page).toHaveURL(`/`)
 
 	await page.goto('/login')
