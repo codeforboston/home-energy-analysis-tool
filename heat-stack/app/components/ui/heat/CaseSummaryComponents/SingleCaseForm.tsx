@@ -32,7 +32,6 @@ export type SubmitAnalysisProps = {
 	/**
 	 * Callback to fire before submit is executed
 	 */
-	beforeSubmit: () => void
 	lastResult: SubmissionResult<string[]> | null | undefined
 	defaultFormValues: DefaultFormValues
 	showSavedCaseIdMsg: boolean
@@ -64,7 +63,6 @@ export type SubmitAnalysisProps = {
 }
 
 export default function SingleCaseForm({
-	beforeSubmit,
 	lastResult,
 	defaultFormValues,
 	showSavedCaseIdMsg,
@@ -125,9 +123,6 @@ export default function SingleCaseForm({
 			const intent = formData.get('intent') as string
 			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
 			return parseWithZod(formData, { schema })
-		},
-		onSubmit() {
-			beforeSubmit()
 		},
 		defaultValue: defaultFormValues,
 		shouldValidate: 'onBlur',

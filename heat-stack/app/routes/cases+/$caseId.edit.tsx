@@ -442,7 +442,6 @@ export default function EditCase({
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => {}}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}

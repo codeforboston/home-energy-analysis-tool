@@ -9,7 +9,7 @@ import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
 	type RulesEngineActionData,
 	useRulesEngine,
-} from '#app/utils/hooks/use-rules-engine.ts'
+} from '#app/utils/hooks/use-rules-engine2.ts'
 import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
 import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
@@ -70,7 +70,7 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { lazyLoadRulesEngine, usageData, toggleBillingPeriod } =
+	const { usageData } =
 		useRulesEngine(actionData as RulesEngineActionData)
 
 	// ✅ Extract structured values from actionData
@@ -112,7 +112,6 @@ export default function CreateCase({
 	// ✅ Pass `result` as `lastResult`
 	return (
 		<SingleCaseForm
-			beforeSubmit={() => lazyLoadRulesEngine()}
 			lastResult={actionData?.submitResult}
 			defaultFormValues={defaultValue}
 			showSavedCaseIdMsg={!!actionData}

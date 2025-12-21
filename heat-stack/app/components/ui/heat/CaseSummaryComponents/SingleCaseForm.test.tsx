@@ -86,7 +86,6 @@ function renderWithRouter(component: React.ReactElement) {
 
 describe('SingleCaseForm', () => {
 	const defaultProps = {
-		beforeSubmit: vi.fn(),
 		lastResult: null,
 		defaultFormValues: { fuel_type: 'GAS' as const },
 		showSavedCaseIdMsg: false,
