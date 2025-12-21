@@ -36,7 +36,8 @@ export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases, isAdmin } = loaderData
+	const { cases, search, isAdmin } = loaderData
+	const submit = useSubmit()
 	const typedCases: CaseWithUsername[] = cases
 
 	return (
@@ -53,7 +54,9 @@ export default function Cases({
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
-						No Cases Found
+						{search && search.trim().length > 0
+							? `No cases found for "${search}".`
+							: 'No Cases Found'}
 					</h2>
 					<p className="mb-4 text-gray-500">
 						Get started by creating your first case analysis.
