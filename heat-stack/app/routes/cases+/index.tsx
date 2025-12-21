@@ -1,55 +1,55 @@
-import { data, Link } from 'react-router'
-import {
-	getCasesByUser,
-	getAllCasesWithUsernames,
-	getLoggedInUserFromRequest,
-} from '#app/utils/db/case.server.ts'
-import { hasAdminRole } from '#app/utils/user.ts'
-
-type CaseWithUsername = {
-	id: number
-	homeOwner: { firstName1: string; lastName1: string }
-	location: {
-		address: string
-		city: string
-		state: string
-		livingAreaSquareFeet: number
-	}
-	analysis: any[]
-	username?: string
-}
+import { Form, data, Link, useSubmit } from 'react-router'
+import { requireUserId } from '#app/utils/auth.server.ts'
+import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const loggedInUser = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(loggedInUser)
-	let cases
-	if (isAdmin) {
-		cases = await getAllCasesWithUsernames()
-	} else {
-		cases = await getCasesByUser(loggedInUser.id)
-	}
-	return data({ cases, isAdmin })
+	const userId = await requireUserId(request)
+	const search = new URL(request.url).searchParams.get('search')
+	const cases = await getCasesByUser(userId, search)
+
+	return data({ cases, search })
 }
 
 export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases, search, isAdmin } = loaderData
+	const { cases, search } = loaderData
 	const submit = useSubmit()
-	const typedCases: CaseWithUsername[] = cases
 
 	return (
-		<div id="cases-page" className="container mx-auto p-6">
-			<div className="flex items-center justify-between">
-				<h1 className="mb-6 text-3xl font-bold">Cases</h1>
-				<Link
-					to="/cases/new"
-					className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-				>
-					Create New Case
-				</Link>
+		<div className="container mx-auto p-6">
+			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
+				<h1 className="text-3xl font-bold">Cases</h1>
+				<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-end">
+					<Form
+						method="GET"
+						action="/cases"
+						className="flex w-full max-w-sm items-center gap-2"
+						onChange={(event) => submit(event.currentTarget)}
+					>
+						<input
+							type="search"
+							name="search"
+							defaultValue={search ?? ''}
+							placeholder="Search by owner or location"
+							className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+						/>
+						<button
+							type="submit"
+							className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+						>
+							Search
+						</button>
+					</Form>
+					<Link
+						to="/cases/new"
+						className="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+					>
+						Create New Case
+					</Link>
+				</div>
 			</div>
 			{cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
@@ -79,14 +79,6 @@ export default function Cases({
 								>
 									Case ID
 								</th>
-								{isAdmin && (
-									<th
-										scope="col"
-										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-									>
-										Username
-									</th>
-								)}
 								<th
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -120,26 +112,17 @@ export default function Cases({
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 bg-white">
-							{typedCases.map((caseItem) => {
+							{cases.map((caseItem) => {
 								const firstAnalysis = caseItem.analysis[0]
 								const heatingInput = firstAnalysis?.heatingInput[0]
+
 								return (
 									<tr key={caseItem.id} className="hover:bg-gray-50">
 										<td className="whitespace-nowrap px-6 py-4">
-											<Link
-												to={`/cases/${firstAnalysis?.id}/edit?edit_mode=true`}
-												className="text-sm font-medium text-indigo-700 underline hover:underline"
-											>
+											<div className="text-sm font-medium text-gray-900">
 												{caseItem.id}
-											</Link>
+											</div>
 										</td>
-										{isAdmin && (
-											<td className="whitespace-nowrap px-6 py-4">
-												<div className="text-sm text-gray-900">
-													{caseItem.username}
-												</div>
-											</td>
-										)}
 										<td className="whitespace-nowrap px-6 py-4">
 											<div className="text-sm text-gray-900">
 												{caseItem.homeOwner.firstName1}{' '}
@@ -169,7 +152,12 @@ export default function Cases({
 											>
 												View
 											</Link>
-											{/* Edit button removed; edit now via Case ID link */}
+											<Link
+												to={`/cases/${firstAnalysis?.id}/edit`}
+												className="mx-1 text-indigo-600 hover:text-indigo-900"
+											>
+												Edit
+											</Link>
 											<Link
 												to={`/cases/${firstAnalysis?.id}/delete`}
 												className="hover:text-indigo-9001 mx-1 text-indigo-600"
