@@ -43,57 +43,32 @@ export type { SchemaZodFromFormType }
  * @returns case and necessary related data required for editing a case.
  */
 export const getCaseForEditing = async (caseId: number, userId: string) => {
-	// Fetch user and check admin
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: { roles: { select: { name: true } } },
+	return await prisma.case.findUnique({
+		where: {
+			id: caseId,
+			users: {
+				some: {
+					id: userId,
+				},
+			},
+		},
+		include: {
+			homeOwner: true,
+			location: true,
+			analysis: {
+				take: 1, // TODO: WI: Test that latest / correct analysis is returned
+				include: {
+					heatingInput: {
+						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
+						include: {
+							processedEnergyBill: true,
+						},
+					},
+					heatingOutput: true, // Include the calculated results for display
+				},
+			},
+		},
 	})
-	const isAdmin = user && user.roles.some((r) => r.name === 'admin')
-
-	if (isAdmin) {
-		// Admin: fetch any case by id
-		return await prisma.case.findUnique({
-			where: { id: caseId },
-			include: {
-				homeOwner: true,
-				location: true,
-				analysis: {
-					take: 1,
-					include: {
-						heatingInput: {
-							take: 1,
-							include: { processedEnergyBill: true },
-						},
-						heatingOutput: true,
-					},
-				},
-			},
-		})
-	} else {
-		// Regular user: must be assigned to case
-		return await prisma.case.findUnique({
-			where: {
-				id: caseId,
-				users: {
-					some: { id: userId },
-				},
-			},
-			include: {
-				homeOwner: true,
-				location: true,
-				analysis: {
-					take: 1,
-					include: {
-						heatingInput: {
-							take: 1,
-							include: { processedEnergyBill: true },
-						},
-						heatingOutput: true,
-					},
-				},
-			},
-		})
-	}
 }
 
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
@@ -127,8 +102,8 @@ export const getCases = async (userId?: string, search?: string | null) => {
 				// If userId is provided, search within the assigned user(s).
 				// case <=> users is a many-to-many relationship
 				userId === 'all'
-					? undefined
-					: { users: { some: { username: { contains: search } } } },
+					? { users: { some: { username: { contains: search } } } }
+					: undefined,
 				{ homeOwner: { firstName1: { contains: search } } },
 				{ homeOwner: { lastName1: { contains: search } } },
 				{ location: { address: { contains: search } } },
@@ -142,18 +117,7 @@ export const getCases = async (userId?: string, search?: string | null) => {
 	const where = { ...where1, ...where2 }
 
 	return await prisma.case.findMany({
-		where,
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				include: {
-					heatingInput: {
-						take: 1,
-					},
-				},
-			},
-		},
+		where: where,
 		orderBy: {
 			id: 'desc',
 		},
