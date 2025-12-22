@@ -88,7 +88,11 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	})
 }
 
-export const getCases = async (userId?: string, search?: string | null) => {
+export const getCases = async (
+	userId?: string,
+	search?: string | null,
+	isAdmin?: boolean,
+) => {
 	let where1 = undefined
 	let where2 = undefined
 
@@ -115,9 +119,20 @@ export const getCases = async (userId?: string, search?: string | null) => {
 	}
 
 	const where = { ...where1, ...where2 }
+	console.log('debug', where)
 
 	return await prisma.case.findMany({
 		where: where,
+		include: {
+			homeOwner: true,
+			location: true,
+			analysis: {
+				include: {
+					heatingInput: true,
+				},
+			},
+			...(isAdmin ? { users: { select: { username: true } } } : {}),
+		},
 		orderBy: {
 			id: 'desc',
 		},

@@ -21,18 +21,16 @@ type CaseWithUsername = {
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userId = await requireUserId(request)
 	const search = new URL(request.url).searchParams.get('search')
-	let cases = await getCases(userId, search)
-
-	const loggedInUser = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(loggedInUser)
-	if (isAdmin) {
-		cases = await getCases('all', search)
-	} else {
-		cases = await getCases(loggedInUser.id, search)
-	}
-	return data({ cases, search, isAdmin })
+	       const loggedInUser = await getLoggedInUserFromRequest(request)
+	       const isAdmin = hasAdminRole(loggedInUser)
+	       let cases
+	       if (isAdmin) {
+		       cases = await getCases('all', search, true)
+	       } else {
+		       cases = await getCases(loggedInUser.id, search, false)
+	       }
+	       return data({ cases, search, isAdmin })
 }
 
 export default function Cases({
@@ -41,7 +39,7 @@ export default function Cases({
 }: Route.ComponentProps) {
 	const { cases = [], search, isAdmin } = loaderData
 	const submit = useSubmit()
-	const typedCases: CaseWithUsername[] = cases
+	const typedCases = cases
 
 	return (
 		<div className="container mx-auto p-6">
@@ -170,7 +168,7 @@ export default function Cases({
 												{isAdmin && (
 													<td className="whitespace-nowrap px-6 py-4">
 														<div className="text-sm text-gray-900">
-															{caseItem.username}
+															{ caseItem.users[0]?.username || 'N/A'}
 														</div>
 													</td>
 												)}
