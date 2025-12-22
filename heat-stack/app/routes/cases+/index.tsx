@@ -1,8 +1,7 @@
 import { Form, data, Link, useSubmit } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import {
-	getCasesByUser,
-	getAllCasesWithUsernames,
+	getCases,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
@@ -24,14 +23,14 @@ import { type Route } from './+types/index.ts'
 export async function loader({ request }: Route.LoaderArgs) {
 	const userId = await requireUserId(request)
 	const search = new URL(request.url).searchParams.get('search')
-	let cases = await getCasesByUser(userId, search)
+	let cases = await getCases(userId, search)
 
 	const loggedInUser = await getLoggedInUserFromRequest(request)
 	const isAdmin = hasAdminRole(loggedInUser)
 	if (isAdmin) {
-		cases = await getAllCasesWithUsernames()
+		cases = await getCases('all', search)
 	} else {
-		cases = await getCasesByUser(loggedInUser.id)
+		cases = await getCases(loggedInUser.id, search)
 	}
 	return data({ cases, search, isAdmin })
 }
@@ -40,7 +39,7 @@ export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases, search, isAdmin } = loaderData
+	const { cases = [], search, isAdmin } = loaderData
 	const submit = useSubmit()
 	const typedCases: CaseWithUsername[] = cases
 
@@ -183,8 +182,8 @@ export default function Cases({
 												</td>
 												<td className="px-6 py-4">
 													<div className="text-sm text-gray-900">
-														{caseItem.location.address}, {caseItem.location.city},{' '}
-														{caseItem.location.state}
+														{caseItem.location.address},{' '}
+														{caseItem.location.city}, {caseItem.location.state}
 													</div>
 												</td>
 												<td className="whitespace-nowrap px-6 py-4">

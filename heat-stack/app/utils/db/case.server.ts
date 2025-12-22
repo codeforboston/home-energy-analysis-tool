@@ -33,43 +33,9 @@ export async function getLoggedInUserFromRequest(request: Request) {
 }
 
 // Get all cases with usernames for admin
-export async function getAllCasesWithUsernames() {
-	const cases = await prisma.case.findMany({
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				include: {
-					heatingInput: { take: 1 },
-				},
-			},
-			users: { select: { username: true } },
-		},
-		orderBy: { id: 'desc' },
-	})
-	// Attach username for each case (first user)
-	return cases.map((c) => ({
-		...c,
-		username: c.users?.[0]?.username || 'N/A',
-	}))
-}
 
 export type { SchemaZodFromFormType }
 
-// export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
-// 	const caseRecord = await prisma.case.findUnique({
-// 		where: {
-// 			id: caseId,
-// 			users: {
-// 				some: {
-// 					id: userId,
-// 				},
-// 			},
-// 		},
-// 	})
-
-// 	return caseRecord
-// }
 
 /**
  * Return a case assigned to user and all related data necessary for editing a case.
@@ -148,44 +114,35 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	})
 }
 
-export const getCasesByUser = async (
+export const getCases = async (
 	userId?: string,
 	search?: string | null,
 ) => {
 	let where1 = undefined
 	let where2 = undefined
 
-	if (userId) {
-		where1 = {
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		}
+	if (userId !== 'all') {
+		where1 = { users: { some: { id: userId } }}
 	}
 
 	if (search && search.trim().length > 0) {
 		where2 = {
 			OR: [
+				// If userId is provided, search within the assigned user(s).
+				// case <=> users is a many-to-many relationship
+				userId === 'all' ? undefined : { users: { some: { username: { contains: search } } } },
 				{ homeOwner: { firstName1: { contains: search } } },
 				{ homeOwner: { lastName1: { contains: search } } },
 				{ location: { address: { contains: search } } },
 				{ location: { city: { contains: search } } },
 				{ location: { state: { contains: search } } },
 				{ location: { zipcode: { contains: search } } },
-			],
+			].filter(Boolean), // filter out undefineds
 		}
 	}
 
-	let where = {}
-	if (where1 && where2) {
-		where = { ...where1, ...where2 }
-	} else if (where1) {
-		where = where1
-	} else if (where2) {
-		where = where2
-	}
+	const where = { ...where1, ...where2 }
+
 
 	return await prisma.case.findMany({
 		where,

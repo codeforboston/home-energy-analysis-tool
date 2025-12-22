@@ -43,16 +43,21 @@ export default async function getConvertedDatesTIWD(
 
 	console.log('geocoded', x, y)
 
-	const startDateString = pyodideResultsFromTextFile.get('overall_start_date') as string
-	const endDateString = pyodideResultsFromTextFile.get('overall_end_date') as string
+	const startDateString = pyodideResultsFromTextFile.get(
+		'overall_start_date',
+	) as string
+	const endDateString = pyodideResultsFromTextFile.get(
+		'overall_end_date',
+	) as string
 
-	const { start_date, end_date } = parseOrDefaultDates(startDateString, endDateString)
+	const { start_date, end_date } = parseOrDefaultDates(
+		startDateString,
+		endDateString,
+	)
 
 	// Utility function to parse start and end dates, with defaults if invalid
 
-
 	// Function to ensure we always return a valid date string
-
 
 	const weatherData = await weatherUtil.getThatWeathaData(
 		x,

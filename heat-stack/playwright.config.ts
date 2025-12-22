@@ -14,11 +14,11 @@ export default defineConfig({
 	retries: 2,
 	workers: 1,
 	reporter: 'html',
-	       use: {
-		       baseURL: `http://localhost:${PORT}/`,
-		       trace: 'on-first-retry',
-		       screenshot: 'only-on-failure',
-	       },
+	use: {
+		baseURL: `http://localhost:${PORT}/`,
+		trace: 'on-first-retry',
+		screenshot: 'only-on-failure',
+	},
 
 	projects: [
 		{
