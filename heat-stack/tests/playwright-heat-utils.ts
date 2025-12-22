@@ -1,3 +1,15 @@
+// ...existing imports and types...
+
+// Helper to delete all test data from related tables
+async function deleteAllTestData() {
+	await prisma.heatingOutput.deleteMany({})
+	await prisma.heatingInput.deleteMany({})
+	await prisma.analysis.deleteMany({})
+	await prisma.case.deleteMany({})
+	await prisma.homeOwner.deleteMany({})
+}
+// Helper to delete all cases for a user
+
 import { test as base } from '@playwright/test'
 // NOTE: The Playwright fixtures below must be defined inline with `base.extend`.
 // If these were moved to separate functions and imported, Playwright would not be able to
@@ -12,7 +24,6 @@ import {
 	sessionKey,
 } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { normalizeEmail } from '#app/utils/providers/provider.js'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 
 type InsertOptions = {
@@ -69,9 +80,11 @@ export const test = base.extend<{
 		await use(async (options) => {
 			const user = await insertUser(options)
 			userId = user.id
+			// ...existing code...
 			return user
 		})
-		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+			   await deleteAllTestData()
+			   await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
 	// This fixture creates and logs in a temporary user, then ensures the user is deleted after the test.
 	// The cleanup step (delete) runs automatically after each test, so no manual teardown is needed in test files.
@@ -80,6 +93,7 @@ export const test = base.extend<{
 		await use(async (options) => {
 			const user = await insertUser(options)
 			userId = user.id
+			// ...existing code...
 			const session = await prisma.session.create({
 				data: {
 					expirationDate: getSessionExpirationDate(),
@@ -102,7 +116,8 @@ export const test = base.extend<{
 			await page.context().addCookies([newConfig])
 			return user
 		})
-		await prisma.user.deleteMany({ where: { id: userId } })
+			   await deleteAllTestData()
+			   await prisma.user.deleteMany({ where: { id: userId } })
 	},
 })
 export const { expect } = test

@@ -1,3 +1,7 @@
+// Utility function to delete all records in the Case table (and related records via cascade)
+export async function deleteAllCases() {
+	await prisma.case.deleteMany({})
+}
 import { invariant } from '@epic-web/invariant'
 import type z from 'zod'
 import { requireUserId } from '#app/utils/auth.server.ts'
