@@ -1,4 +1,14 @@
+// Log the current page URL if a test failases
 import { test as base } from '@playwright/test'
+
+base.afterEach(async ({ page }, testInfo) => {
+	if (testInfo.status !== testInfo.expectedStatus) {
+		if (page && page.url) {
+			// eslint-disable-next-line no-console
+			console.log(`Test failed at URL: ${await page.url()}`)
+		}
+	}
+})
 import { type User as UserModel } from '@prisma/client'
 import * as setCookieParser from 'set-cookie-parser'
 import {
