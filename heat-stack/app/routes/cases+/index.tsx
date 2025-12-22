@@ -203,7 +203,7 @@ export default function Cases({
 														className="mx-1 text-indigo-600 hover:text-indigo-900"
 													>
 														Edit
-													</Link>													
+													</Link>
 													<Link
 														to={`/cases/${firstAnalysis?.id}`}
 														className="mx-1 text-indigo-600 hover:text-indigo-900"
@@ -226,5 +226,7 @@ export default function Cases({
 						</div>
 					)}
 				</div>
-				)
+			</div>
+		</div>
+	)
 }

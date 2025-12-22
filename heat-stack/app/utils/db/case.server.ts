@@ -149,69 +149,43 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 }
 
 export const getCasesByUser = async (
-	userId: string,
+	userId?: string,
 	search?: string | null,
 ) => {
-	const where =
-		search && search.trim().length > 0
-			? {
-					users: {
-						some: {
-							id: userId,
-						},
-					},
-					OR: [
-						{
-							homeOwner: {
-								OR: [
-									{
-										firstName1: {
-											contains: search,
-										},
-									},
-									{
-										lastName1: {
-											contains: search,
-										},
-									},
-								],
-							},
-						},
-						{
-							location: {
-								OR: [
-									{
-										address: {
-											contains: search,
-										},
-									},
-									{
-										city: {
-											contains: search,
-										},
-									},
-									{
-										state: {
-											contains: search,
-										},
-									},
-									{
-										zipcode: {
-											contains: search,
-										},
-									},
-								],
-							},
-						},
-					],
-				}
-			: {
-					users: {
-						some: {
-							id: userId,
-						},
-					},
-				}
+	let where1 = undefined
+	let where2 = undefined
+
+	if (userId) {
+		where1 = {
+			users: {
+				some: {
+					id: userId,
+				},
+			},
+		}
+	}
+
+	if (search && search.trim().length > 0) {
+		where2 = {
+			OR: [
+				{ homeOwner: { firstName1: { contains: search } } },
+				{ homeOwner: { lastName1: { contains: search } } },
+				{ location: { address: { contains: search } } },
+				{ location: { city: { contains: search } } },
+				{ location: { state: { contains: search } } },
+				{ location: { zipcode: { contains: search } } },
+			],
+		}
+	}
+
+	let where = {}
+	if (where1 && where2) {
+		where = { ...where1, ...where2 }
+	} else if (where1) {
+		where = where1
+	} else if (where2) {
+		where = where2
+	}
 
 	return await prisma.case.findMany({
 		where,
