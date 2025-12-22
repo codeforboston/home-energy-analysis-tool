@@ -3,7 +3,7 @@ import { default as defaultConfig } from '@epic-web/config/eslint'
 /** @type {import("eslint").Linter.Config} */
 export default [
 	{
-		ignores: ['public/**', 'build/index.js'],
+		ignores: ['public/**', 'build/index.js', 'node_modules/'],
 	},
 	...defaultConfig,
 	// add custom config objects here:

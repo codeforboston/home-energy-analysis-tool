@@ -1,3 +1,17 @@
+/**
+ * Returns true if the user has an admin role.
+ */
+export function hasAdminRole(
+	user: { roles?: { name: string }[] } | null | undefined,
+): boolean {
+	console.log('debugging hasAdminRole', user?.roles)
+	if (!user || !user.roles) return false
+	console.log(
+		'roles:',
+		user.roles.some((r) => r.name === 'admin'),
+	)
+	return user.roles.some((r) => r.name === 'admin')
+}
 import { useRouteLoaderData } from 'react-router'
 import { type loader as rootLoader } from '#app/root.tsx'
 
@@ -46,12 +60,12 @@ export function parsePermissionString(permissionString: PermissionString) {
 }
 
 export function userHasPermission(
-	user: Pick<ReturnType<typeof useUser>, 'roles'> | null | undefined,
+	userWithRoles: Pick<ReturnType<typeof useUser>, 'roles'> | null | undefined,
 	permission: PermissionString,
 ) {
-	if (!user) return false
+	if (!userWithRoles) return false
 	const { action, entity, access } = parsePermissionString(permission)
-	return user.roles.some((role) =>
+	return userWithRoles.roles.some((role) =>
 		role.permissions.some(
 			(permission) =>
 				permission.entity === entity &&

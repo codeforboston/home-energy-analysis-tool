@@ -57,10 +57,6 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	await page.getByText('Get Started (with Demo Data)').click()
 
 	await uploadEnergyBill()
-	// await page.screenshot({
-	// 	path: 'full-page.png',
-	// 	fullPage: true
-	// 	})
 
 	//Toggle table row checkbox, expecting "Analysis Header" text to change.
 	// save the analysis header text before checkbox click

@@ -40,6 +40,7 @@ export async function calculateResults(submission: any, formData: FormData, uplo
  */
 
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
+import { formatDateString, parseOrDefaultDates } from './dateHelpers.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, {
 	type TemperatureInputDataConverted,
@@ -78,39 +79,21 @@ export default async function getConvertedDatesTIWD(
 
 	console.log('geocoded', x, y)
 
-	const startDateString = pyodideResultsFromTextFile.get('overall_start_date')
-	const endDateString = pyodideResultsFromTextFile.get('overall_end_date')
+	const startDateString = pyodideResultsFromTextFile.get(
+		'overall_start_date',
+	) as string
+	const endDateString = pyodideResultsFromTextFile.get(
+		'overall_end_date',
+	) as string
 
-	if (
-		typeof startDateString !== 'string' ||
-		typeof endDateString !== 'string'
-	) {
-		throw new Error('Start date or end date is missing or invalid')
-	}
+	const { start_date, end_date } = parseOrDefaultDates(
+		startDateString,
+		endDateString,
+	)
 
-	// Get today's date
-	const today = new Date()
-	// Calculate the date 2 years ago from today
-	const twoYearsAgo = new Date(today)
-	twoYearsAgo.setFullYear(today.getFullYear() - 2)
-
-	let start_date = new Date(startDateString)
-	let end_date = new Date(endDateString)
-
-	// Use default dates if parsing fails
-	if (isNaN(start_date.getTime())) {
-		console.warn('Invalid start date, using date from 2 years ago')
-		start_date = twoYearsAgo
-	}
-	if (isNaN(end_date.getTime())) {
-		console.warn("Invalid end date, using today's date")
-		end_date = today
-	}
+	// Utility function to parse start and end dates, with defaults if invalid
 
 	// Function to ensure we always return a valid date string
-	const formatDateString = (date: Date): string => {
-		return date.toISOString().split('T')[0] || date.toISOString().slice(0, 10)
-	}
 
 	const weatherData = await weatherUtil.getThatWeathaData(
 		x,

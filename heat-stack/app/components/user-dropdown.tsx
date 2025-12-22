@@ -2,7 +2,7 @@ import { Img } from 'openimg/react'
 import { useRef } from 'react'
 import { Link, Form } from 'react-router'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
-import { useUser } from '#app/utils/user.ts'
+import { useUser, hasAdminRole } from '#app/utils/user.ts'
 import { Button } from './ui/button'
 import {
 	DropdownMenu,
@@ -14,27 +14,33 @@ import {
 import { Icon } from './ui/icon'
 
 export function UserDropdown() {
-	const user = useUser()
+	type UserType = {
+		id: string
+		name?: string | null
+		username: string
+		image?: { objectKey?: string } | null
+		roles?: { name: string }[]
+	}
+	const loggedInUser = useUser() as UserType
 	const formRef = useRef<HTMLFormElement>(null)
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary">
+				<Button asChild variant="secondary" id="user-dropdown-btn">
 					<Link
-						to={`/users/${user.username}`}
-						// this is for progressive enhancement
+						to={`/users/${loggedInUser.username}`}
 						onClick={(e) => e.preventDefault()}
 						className="flex items-center gap-2"
 					>
 						<Img
 							className="h-8 w-8 rounded-full object-cover"
-							alt={user.name ?? user.username}
-							src={getUserImgSrc(user.image?.objectKey)}
+							alt={loggedInUser.name ?? loggedInUser.username}
+							src={getUserImgSrc(loggedInUser.image?.objectKey)}
 							width={256}
 							height={256}
 						/>
 						<span className="text-body-sm font-bold">
-							{user.name ?? user.username}
+							{loggedInUser.name ?? loggedInUser.username}
 						</span>
 					</Link>
 				</Button>
@@ -42,12 +48,13 @@ export function UserDropdown() {
 			<DropdownMenuPortal>
 				<DropdownMenuContent sideOffset={8} align="end">
 					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}`}>
+						<Link prefetch="intent" to={`/users/${loggedInUser.username}`}>
 							<Icon className="text-body-md" name="avatar">
 								Profile
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
+
 					<Form action="/logout" method="POST" ref={formRef}>
 						<DropdownMenuItem asChild>
 							<button type="submit" className="w-full">
