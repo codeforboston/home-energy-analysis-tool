@@ -36,7 +36,6 @@ export async function getLoggedInUserFromRequest(request: Request) {
 
 export type { SchemaZodFromFormType }
 
-
 /**
  * Return a case assigned to user and all related data necessary for editing a case.
  * @param caseId id of the case
@@ -114,15 +113,12 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	})
 }
 
-export const getCases = async (
-	userId?: string,
-	search?: string | null,
-) => {
+export const getCases = async (userId?: string, search?: string | null) => {
 	let where1 = undefined
 	let where2 = undefined
 
 	if (userId !== 'all') {
-		where1 = { users: { some: { id: userId } }}
+		where1 = { users: { some: { id: userId } } }
 	}
 
 	if (search && search.trim().length > 0) {
@@ -130,7 +126,9 @@ export const getCases = async (
 			OR: [
 				// If userId is provided, search within the assigned user(s).
 				// case <=> users is a many-to-many relationship
-				userId === 'all' ? undefined : { users: { some: { username: { contains: search } } } },
+				userId === 'all'
+					? undefined
+					: { users: { some: { username: { contains: search } } } },
 				{ homeOwner: { firstName1: { contains: search } } },
 				{ homeOwner: { lastName1: { contains: search } } },
 				{ location: { address: { contains: search } } },
@@ -142,7 +140,6 @@ export const getCases = async (
 	}
 
 	const where = { ...where1, ...where2 }
-
 
 	return await prisma.case.findMany({
 		where,
