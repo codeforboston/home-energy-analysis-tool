@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
-import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 
 type HomeInformationProps = { fields: any }
 
@@ -32,7 +32,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const [streetAddress, setStreetAddress] = useState(
 		props.fields.street_address.value ||
-			props.fields.street_address.defaultValue,
+		props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town,
@@ -70,6 +70,7 @@ export function HomeInformation(props: HomeInformationProps) {
 			if (!data.coordinates && !data.state_id && !data.county_id) {
 				setGeoError(data.message)
 			} else {
+				console.log("geo", data)
 				setGeoError(null)
 				setGeoStateId(data.state_id)
 				setGeoCountyId(data.county_id)
@@ -191,37 +192,46 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 
-			{geoStateId && geoCountyId && <div className="mt-9">
+			{geoStateId && geoCountyId && <fieldset>
 				<legend className={subtitleClass}>Heating Design Temperature</legend>
-				<Label>
-					County-Level Design Temperature ({JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))}) °F
-				</Label>
-				
-				<Label htmlFor="design_temperature_override">
-					Design Temperature Override
-				</Label>
-				
-				<HelpButton keyName="design_temperature_override.help" className="ml-[1ch]" />
 
-				<div className={componentMargin}>
-					<div className="mt-4 flex space-x-4">
-						<div>
-							<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.design_temperature_override.errorId}
-									errors={props.fields.design_temperature_override.errors}
-								/>
+				<div className="mt-4 flex space-x-4">
+					<div className="basis-1/2">
+						<Label>
+							County-Level Design Temperature is {JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))} °F
+						</Label>
+					</div>
+
+					<div className="basis-1/2">
+
+						<Label htmlFor="design_temperature_override">
+							Design Temperature Override
+						</Label>
+
+						<HelpButton keyName="design_temperature_override.help" className="ml-[1ch]" />
+
+						<div className={componentMargin}>
+							<div className="mt-4 flex space-x-4">
+								<div>
+									<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
+									<div className="min-h-[32px] px-4 pb-3 pt-1">
+										<ErrorList
+											id={props.fields.design_temperature_override.errorId}
+											errors={props.fields.design_temperature_override.errors}
+										/>
+									</div>
+								</div>
 							</div>
 						</div>
+						<span className={descriptiveClass}>
+							If a value is entered, it will be used in place of the County-Level Design Temperature
+						</span>
 					</div>
-				</div>
 
-				<span className={descriptiveClass}>
-					If a value is entered, it will be used in place of the County-Level Design Temperature
-				</span>
-			</div>
-}
+
+				</div>
+			</fieldset>
+			}
 			<div className="mt-9">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
