@@ -49,11 +49,12 @@ test('Admin user can see Users option', async ({
 	insertAndLoginTemporaryUser,
 }) => {
 	await insertAndLoginTemporaryUser({ is_admin: true })
-	await page.goto('/users')
-	await expect(page.locator('#users-page')).toBeVisible()
-	await expect(page.locator('#user-dropdown-btn')).toBeVisible()
-	await page.click('#user-dropdown-btn')
-	await expect(page.getByRole('menuitem', { name: /Users/i })).toBeVisible()
+	await page.goto('/')
+	// Find the Users link in the main nav (desktop and mobile)
+	const usersLink = page.getByRole('link', { name: /^Users$/i })
+	await expect(usersLink).toBeVisible()
+	await usersLink.click()
+	await expect(page).toHaveURL(/\/users$/)
 })
 
 test('Admin can view and edit users', async ({
@@ -102,12 +103,9 @@ test('Normal user cannot see Users option', async ({
 	insertAndLoginTemporaryUser,
 }) => {
 	await insertAndLoginTemporaryUser({ is_admin: false })
-	await page.goto('/cases')
-	await page.click('#user-dropdown-btn')
-	const manageOption = page.getByRole('menuitem', { name: /Users/i })
-	await expect(manageOption).toHaveCount(0)
-	await page.goto('/users')
-	await expect(page.locator('text=' + ACCESS_DENIED_MESSAGE)).toBeVisible()
+	await page.goto('/')
+	const usersLink = page.getByRole('link', { name: /^Users$/i })
+	await expect(usersLink).not.toBeVisible()
 })
 
 test('Normal user gets Access Denied on /users', async ({

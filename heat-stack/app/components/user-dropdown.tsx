@@ -2,7 +2,7 @@ import { Img } from 'openimg/react'
 import { useRef } from 'react'
 import { Link, Form } from 'react-router'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
-import { useUser, hasAdminRole } from '#app/utils/user.ts'
+import { useUser } from '#app/utils/user.ts'
 import { Button } from './ui/button'
 import {
 	DropdownMenu,

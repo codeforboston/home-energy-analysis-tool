@@ -1,3 +1,5 @@
+// ...existing imports and types...
+
 import { test as base } from '@playwright/test'
 // NOTE: The Playwright fixtures below must be defined inline with `base.extend`.
 // If these were moved to separate functions and imported, Playwright would not be able to
@@ -12,7 +14,6 @@ import {
 	sessionKey,
 } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { normalizeEmail } from '#app/utils/providers/provider.js'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 
 type InsertOptions = {
@@ -55,6 +56,37 @@ async function insertUser({
 	})
 }
 
+// Helper to delete all data related to a user's cases
+async function deleteUserCaseRelatedData(userId?: string) {
+	if (!userId) return
+	// Find all cases associated with the user, including analysis and homeOwnerId
+	const cases = await prisma.case.findMany({
+		where: { users: { some: { id: userId } } },
+		select: { id: true, analysis: { select: { id: true } }, homeOwnerId: true },
+	})
+	const caseIds = cases.map((c) => c.id)
+	if (caseIds.length === 0) return
+	// Collect all analysis IDs for these cases
+	const analysisIds = cases.flatMap((c) => c.analysis.map((a) => a.id))
+	// Delete related heatingOutput and heatingInput for each analysis
+	if (analysisIds.length > 0) {
+		await prisma.heatingOutput.deleteMany({
+			where: { analysisId: { in: analysisIds } },
+		})
+		await prisma.heatingInput.deleteMany({
+			where: { analysisId: { in: analysisIds } },
+		})
+		await prisma.analysis.deleteMany({ where: { id: { in: analysisIds } } })
+	}
+	// Delete homeOwners for these cases
+	const homeOwnerIds = cases.map((c) => c.homeOwnerId)
+	if (homeOwnerIds.length > 0) {
+		await prisma.homeOwner.deleteMany({ where: { id: { in: homeOwnerIds } } })
+	}
+	// Finally, delete the cases
+	await prisma.case.deleteMany({ where: { id: { in: caseIds } } })
+}
+
 // We use Playwright's `extend` fixture system here to ensure that any resources (like temporary users)
 // created during a test are automatically cleaned up after the test finishes. This prevents test pollution
 // and ensures reliable, isolated test runs. Each fixture below uses `use` and a cleanup step afterward.
@@ -69,8 +101,10 @@ export const test = base.extend<{
 		await use(async (options) => {
 			const user = await insertUser(options)
 			userId = user.id
+			// ...existing code...
 			return user
 		})
+		await deleteUserCaseRelatedData(userId)
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
 	},
 	// This fixture creates and logs in a temporary user, then ensures the user is deleted after the test.
@@ -80,6 +114,7 @@ export const test = base.extend<{
 		await use(async (options) => {
 			const user = await insertUser(options)
 			userId = user.id
+			// ...existing code...
 			const session = await prisma.session.create({
 				data: {
 					expirationDate: getSessionExpirationDate(),

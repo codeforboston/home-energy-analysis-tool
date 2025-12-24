@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { cn } from '#app/utils/misc.tsx'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 import { Button } from './ui/button.tsx'
 import {
 	DropdownMenu,
@@ -9,15 +10,19 @@ import {
 	DropdownMenuItem,
 } from './ui/dropdown-menu.tsx'
 
-const navItems = [
-	{ label: 'Home', href: '/' },
-	{ label: 'Cases', href: '/cases' },
-	{ label: 'Privacy', href: '/privacy' },
-]
-
 export function MainNav() {
 	const location = useLocation()
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+	const user = useOptionalUser()
+	const isAdmin = hasAdminRole(user)
+
+	const navItems = [
+		{ label: 'Home', href: '/' },
+		{ label: 'Cases', href: '/cases' },
+		isAdmin ? { label: 'Users', href: '/users' } : null,
+		{ label: 'Privacy', href: '/privacy' },
+	].filter(Boolean)
 
 	const isActive = (href: string) => {
 		if (href === '/') {
