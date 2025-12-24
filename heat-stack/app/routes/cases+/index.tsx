@@ -22,15 +22,15 @@ import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const search = new URL(request.url).searchParams.get('search')
-	       const loggedInUser = await getLoggedInUserFromRequest(request)
-	       const isAdmin = hasAdminRole(loggedInUser)
-	       let cases
-	       if (isAdmin) {
-		       cases = await getCases('all', search, true)
-	       } else {
-		       cases = await getCases(loggedInUser.id, search, false)
-	       }
-	       return data({ cases, search, isAdmin })
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
+	let cases
+	if (isAdmin) {
+		cases = await getCases('all', search, true)
+	} else {
+		cases = await getCases(loggedInUser.id, search, false)
+	}
+	return data({ cases, search, isAdmin })
 }
 
 export default function Cases({
@@ -168,7 +168,7 @@ export default function Cases({
 												{isAdmin && (
 													<td className="whitespace-nowrap px-6 py-4">
 														<div className="text-sm text-gray-900">
-															{ caseItem.users[0]?.username || 'N/A'}
+															{caseItem.users[0]?.username || 'N/A'}
 														</div>
 													</td>
 												)}
