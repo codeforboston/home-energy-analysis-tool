@@ -6,6 +6,7 @@ import { Label } from '#/app/components/ui/label.tsx'
 import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
+import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 
 type HomeInformationProps = { fields: any }
 
@@ -40,6 +41,10 @@ export function HomeInformation(props: HomeInformationProps) {
 		props.fields.state.value || props.fields.state.defaultValue?.state,
 	)
 	const [geoError, setGeoError] = useState<string | null>(null)
+	const [geoStateId, setGeoStateId] = useState<string | null>(null)
+	const [geoCountyId, setGeoCountyId] = useState<string | null>(null)
+
+
 
 	const handleStreetAddressBlur = async () => {
 		await validateGeocode()
@@ -62,10 +67,13 @@ export function HomeInformation(props: HomeInformationProps) {
 		try {
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json()
-			if (!data.coordinates) {
+			if (!data.coordinates && !data.state_id && !data.county_id) {
 				setGeoError(data.message)
 			} else {
 				setGeoError(null)
+				setGeoStateId(data.state_id)
+				setGeoCountyId(data.county_id)
+
 			}
 		} catch (error) {
 			setGeoError('Error connecting to geocoding service' + error)
@@ -183,6 +191,37 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 
+			{geoStateId && geoCountyId && <div className="mt-9">
+				<legend className={subtitleClass}>Heating Design Temperature</legend>
+				<Label>
+					County-Level Design Temperature ({JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))}) °F
+				</Label>
+				
+				<Label htmlFor="design_temperature_override">
+					Design Temperature Override
+				</Label>
+				
+				<HelpButton keyName="design_temperature_override.help" className="ml-[1ch]" />
+
+				<div className={componentMargin}>
+					<div className="mt-4 flex space-x-4">
+						<div>
+							<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
+							<div className="min-h-[32px] px-4 pb-3 pt-1">
+								<ErrorList
+									id={props.fields.design_temperature_override.errorId}
+									errors={props.fields.design_temperature_override.errors}
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<span className={descriptiveClass}>
+					If a value is entered, it will be used in place of the County-Level Design Temperature
+				</span>
+			</div>
+}
 			<div className="mt-9">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
