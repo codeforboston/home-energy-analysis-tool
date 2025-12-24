@@ -1,9 +1,9 @@
 // Extracted from case.logic.server.ts
+import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
 	executeParseGasBillPy,
 	executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
-import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 
 export async function calculateResults(

@@ -44,8 +44,6 @@ export default function ProfileRoute() {
 	const data = useLoaderData<typeof loader>()
 	const selectedUser = data.user
 	const userDisplayName = selectedUser.name ?? selectedUser.username
-	const loggedInUser = useOptionalUser()
-	const isLoggedInUser = selectedUser.id === loggedInUser?.id
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
