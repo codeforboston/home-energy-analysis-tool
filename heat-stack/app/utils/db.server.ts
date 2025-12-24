@@ -7,7 +7,7 @@ export const prisma = remember('prisma', () => {
 	// the dev server to see your changes.
 
 	// Feel free to change this log threshold to something that makes sense for you
-	const logThreshold = 20
+	// const logThreshold = 20
 
 	const client = new PrismaClient({
 		log: [

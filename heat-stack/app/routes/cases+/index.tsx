@@ -1,23 +1,10 @@
 import { Form, data, Link, useSubmit } from 'react-router'
-import { requireUserId } from '#app/utils/auth.server.ts'
 import {
 	getCases,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 
-type CaseWithUsername = {
-	id: number
-	homeOwner: { firstName1: string; lastName1: string }
-	location: {
-		address: string
-		city: string
-		state: string
-		livingAreaSquareFeet: number
-	}
-	analysis: any[]
-	username?: string
-}
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {

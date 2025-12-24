@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { cn } from '#app/utils/misc.tsx'
-import { useOptionalUser, hasAdminRole  } from '#app/utils/user.ts'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
 import { Button } from './ui/button.tsx'
 import {
 	DropdownMenu,
