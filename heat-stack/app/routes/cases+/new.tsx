@@ -70,8 +70,7 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { usageData } =
-		useRulesEngine(actionData as RulesEngineActionData)
+	const { usageData } = useRulesEngine(actionData as RulesEngineActionData)
 
 	// ✅ Extract structured values from actionData
 

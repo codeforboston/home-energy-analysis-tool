@@ -202,9 +202,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	try {
-		const billingRecordsJson = formData.get('billing_records') as
-			| string
-			| null
+		const billingRecordsJson = formData.get('billing_records') as string | null
 		let billingRecords: any[] | undefined
 		if (billingRecordsJson) {
 			try {
@@ -216,9 +214,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 
 		// Parse heat load output from form data if present
-		const heatLoadOutputJson = formData.get('heat_load_output') as
-			| string
-			| null
+		const heatLoadOutputJson = formData.get('heat_load_output') as string | null
 		let heatLoadOutput: any | undefined
 		if (heatLoadOutputJson) {
 			try {
@@ -228,9 +224,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			}
 		}
 
-		const { updateCaseRecord } = await import(
-			'#app/utils/db/case.db.server.ts'
-		)
+		const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
 		const updatedCase = await updateCaseRecord(
 			caseId,
 			submission.value,
@@ -333,7 +327,6 @@ export default function EditCase({
 
 	// Use calculated data when available, fallback to local billing records with database heat load output
 
-
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
 	const usageData = !isInitialCalculationComplete
@@ -392,7 +385,6 @@ export default function EditCase({
 				const userAdjustedData = {
 					processed_energy_bills: updatedRecords,
 				}
-
 
 				// Call the function and immediately handle the result
 				let calcResult: any

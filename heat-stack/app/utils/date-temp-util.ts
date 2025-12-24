@@ -1,9 +1,16 @@
 // Extracted from case.logic.server.ts
-import { executeParseGasBillPy, executeGetAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+import {
+	executeParseGasBillPy,
+	executeGetAnalyticsFromFormJs,
+} from '#app/utils/rules-engine.ts'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 
-export async function calculateResults(submission: any, formData: FormData, uploadedTextFile: string) {
+export async function calculateResults(
+	submission: any,
+	formData: FormData,
+	uploadedTextFile: string,
+) {
 	const parsedForm = submission.value
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const pyodideResults = pyodideProxy.toJs()

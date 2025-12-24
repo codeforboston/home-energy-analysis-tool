@@ -1,6 +1,8 @@
 import { invariant } from '@epic-web/invariant'
 
-import getConvertedDatesTIWD, { calculateResults } from '#app/utils/date-temp-util.ts'
+import getConvertedDatesTIWD, {
+	calculateResults,
+} from '#app/utils/date-temp-util.ts'
 import {
 	insertProcessedBills,
 	deleteBillsForAnalysis,
@@ -27,7 +29,8 @@ export async function processCaseSubmission(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	const { convertedDatesTIWD, state_id, county_id, gasBillData, parsedForm } = await calculateResults(submission, formData, uploadedTextFile)
+	const { convertedDatesTIWD, state_id, county_id, gasBillData, parsedForm } =
+		await calculateResults(submission, formData, uploadedTextFile)
 
 	const newCase = await createCaseRecord(
 		parsedForm,
@@ -68,12 +71,13 @@ export async function processCaseUpdate(
 	const pyodideResults = pyodideProxy.toJs()
 	// pyodideProxy.destroy()
 
-	const { convertedDatesTIWD, state_id, county_id } = await getConvertedDatesTIWD(
-		pyodideResults,
-		parsedForm.street_address,
-		parsedForm.town,
-		parsedForm.state,
-	)
+	const { convertedDatesTIWD, state_id, county_id } =
+		await getConvertedDatesTIWD(
+			pyodideResults,
+			parsedForm.street_address,
+			parsedForm.town,
+			parsedForm.state,
+		)
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 

@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react'
-import {
-	buildCurrentUsageData,
-	hasDataProperty,
-} from '#app/utils/index.ts'
+import { buildCurrentUsageData, hasDataProperty } from '#app/utils/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
-import {
-	type UsageDataSchema,
-} from '#types/types.ts'
+import { type UsageDataSchema } from '#types/types.ts'
 import { reviver } from '../data-parser'
 import { type TemperatureInputDataConverted } from '../WeatherUtil'
-
-
 
 /**
  * Custom React hook for interacting with a Pyodide-backed rules engine and keeps track of usage data.
@@ -66,7 +59,6 @@ export const useRulesEngine = (
 		period.inclusion_override = !currentOverride
 
 		newRecords[index] = { ...period }
-
 	}
 
 	// shutdown pyodide when component unmounts
