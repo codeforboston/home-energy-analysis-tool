@@ -54,26 +54,6 @@ export function UserDropdown() {
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link
-							prefetch="intent"
-							to={`/users/${loggedInUser.username}/notes`}
-						>
-							<Icon className="text-body-md" name="pencil-2">
-								Notes
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					{/* Admin-only link */}
-					{hasAdminRole(loggedInUser) ? (
-						<DropdownMenuItem asChild>
-							<Link prefetch="intent" to="/users">
-								<Icon className="text-body-md" name="avatar">
-									Manage Users
-								</Icon>
-							</Link>
-						</DropdownMenuItem>
-					) : null}
 					<Form action="/logout" method="POST" ref={formRef}>
 						<DropdownMenuItem asChild>
 							<button type="submit" className="w-full">
