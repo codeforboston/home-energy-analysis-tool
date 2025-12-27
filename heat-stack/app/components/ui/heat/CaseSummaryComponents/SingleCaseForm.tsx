@@ -38,7 +38,6 @@ export type SubmitAnalysisProps = {
 	caseInfo: CaseInfo | undefined
 	usageData: UsageDataSchema | undefined
 	showUsageData: boolean
-	onClickBillingRow: (index: number) => void
 	/**
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
 	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
@@ -70,7 +69,6 @@ export default function SingleCaseForm({
 	usageData,
 	showUsageData,
 	action,
-	onClickBillingRow,
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
@@ -179,38 +177,6 @@ export default function SingleCaseForm({
 					/>
 				)}
 				<ErrorList id={form.errorId} errors={form.errors} />
-
-				{showUsageData && usageData && (
-					<>
-						<AnalysisHeader
-							usageData={usageData}
-							scrollAfterSubmit={scrollAfterSubmit}
-							setScrollAfterSubmit={setScrollAfterSubmit}
-						/>
-						<EnergyUseHistoryChart
-							usageData={usageData}
-							onClick={onClickBillingRow}
-						/>
-
-						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						!!parsedAndValidatedFormSchema ? (
-							<HeatLoadAnalysis
-								heatLoadSummaryOutput={usageData.heat_load_output}
-								livingArea={parsedAndValidatedFormSchema.living_area}
-							/>
-						) : (
-							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
-								<h2 className="mb-4 text-xl font-bold text-red-600">
-									Not rendering Heat Load
-								</h2>
-								<p>usageData is undefined or missing key values</p>
-							</div>
-						)}
-					</>
-				)}
 			</Form>
 			{/* Autosave Toast */}
 			{showToast && (
