@@ -31,7 +31,7 @@ type User = {
 	roles: Role[]
 }
 
-export async function insertSeedUser({ username, password, is_admin }: InsertOptions = {}): Promise<User> {
+export async function insertSeedUser({ username, password, is_admin }: InsertOptions = {}, caseCount: number = 2): Promise<User> {
 	const random_number = Math.floor(Math.random() * 1000000)
 	const insertUsername = username || `tempuser${random_number}`
 	const name = `Joe Homeowner${random_number}`
@@ -39,7 +39,7 @@ export async function insertSeedUser({ username, password, is_admin }: InsertOpt
 	const userPassword = password ?? 'password123'
 	const rolesConnect = is_admin ? { roles: { connect: { name: 'admin' } } } : {}
 	console.log(`Inserting user: ${insertUsername} (admin: ${is_admin ? 'yes' : 'no'})`	)
-	return await prisma.user.create({
+	const user = await prisma.user.create({
 		data: {
 			username: insertUsername,
 			name,
@@ -49,6 +49,8 @@ export async function insertSeedUser({ username, password, is_admin }: InsertOpt
 		},
 		include: { roles: true },
 	})
+	await createSampleCases({ username: user.username, id: user.id }, caseCount)
+	return user
 }
 
 // --- createSampleCases ---

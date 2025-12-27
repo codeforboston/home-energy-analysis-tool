@@ -9,17 +9,16 @@ async function seed() {
 	const totalUsers = 5
 	console.time(`👤 Created ${totalUsers} users and cases...`)
 	for (let i = 0; i < totalUsers; i++) {
-		const user = await insertSeedUser({})
+		await insertSeedUser({}, 2)
 		// Optionally, you can also create cases for each user
-		await createSampleCases({ username: user.username, id: user.id }, 2)
 	}
 	console.timeEnd(`👤 Created ${totalUsers} users and cases...`)
 
 	console.time(`🐨 Created admin user "kody"`)
 
 	// Create kody user using insertUser (some info like connections will be lost)
-	await insertSeedUser({ username: "kody", password: 'kodylovesyou', is_admin: true })
-	await insertSeedUser({ username: "normaluser", password: 'normaluserpassword', is_admin: false })
+	await insertSeedUser({ username: "kody", password: 'kodylovesyou', is_admin: true }, 3)
+	await insertSeedUser({ username: "normaluser", password: 'normaluserpassword', is_admin: false }, 2)
 
 
 	console.timeEnd(`🐨 Created admin user "kody"`)
