@@ -1,13 +1,6 @@
+
 import { prisma } from '#app/utils/db.server.ts'
-import { MOCK_CODE_GITHUB } from '#app/utils/providers/constants'
-import { insertGitHubUser } from '#tests/mocks/github.ts'
-import { includes } from 'lodash';
-import Cases from '../app/routes/cases+/index';
-import {
-	createPassword,
-	insertSeedUser,
-	createSampleCases,
-} from './seed-utils.js'
+import { insertSeedUser, createSampleCases  } from './seed-utils.js'
 
 async function seed() {
 	console.log('🌱 Seeding...')
@@ -25,15 +18,9 @@ async function seed() {
 	console.time(`🐨 Created admin user "kody"`)
 
 	// Create kody user using insertUser (some info like connections will be lost)
-	await insertSeedUser({
-		username: 'kody',
-		password: 'kodylovesyou',
-		is_admin: true,
-	})
-	await insertSeedUser({
-		username: 'normaluser',
-		password: 'normallovesyou',
-	})
+	await insertSeedUser({ username: "kody", password: 'kodylovesyou', is_admin: true })
+	await insertSeedUser({ username: "normaluser", password: 'normaluserpassword', is_admin: false })
+
 
 	console.timeEnd(`🐨 Created admin user "kody"`)
 

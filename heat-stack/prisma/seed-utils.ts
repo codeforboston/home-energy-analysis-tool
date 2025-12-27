@@ -33,7 +33,7 @@ type User = {
 
 export async function insertSeedUser({ username, password, is_admin }: InsertOptions = {}): Promise<User> {
 	const random_number = Math.floor(Math.random() * 1000000)
-	const insertUsername = username ||`tempuser${random_number}`
+	const insertUsername = username || `tempuser${random_number}`
 	const name = `Joe Homeowner${random_number}`
 	const email = `fake_email${random_number}@fake.com`
 	const userPassword = password ?? 'password123'
