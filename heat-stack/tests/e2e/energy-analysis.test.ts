@@ -1,5 +1,5 @@
 import { type Page as PlaywrightPage } from 'playwright'
-import { expect, test as base } from '#tests/playwright-utils.ts'
+import { expect, test as base } from '#tests/playwright-heat-utils.ts'
 
 const getAnalysisHeaderTextContent = async (page: PlaywrightPage) => {
 	return await page.getByTestId('analysis-header').textContent()
@@ -47,9 +47,9 @@ test.setTimeout(120000)
 test('Logged out user can upload CSV, toggle table row checkbox, expecting analysis header to adjust.', async ({
 	page,
 	uploadEnergyBill,
-	login,
+	insertAndLoginTemporaryUser,
 }) => {
-	await login()
+	await insertAndLoginTemporaryUser()
 	// Visit the root
 	await page.goto('/')
 
@@ -84,9 +84,9 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 
 test.skip('Custom name persists after form submission', async ({
 	page,
-	login,
+	insertAndLoginTemporaryUser,
 }) => {
-	await login()
+	await insertAndLoginTemporaryUser()
 	// Visit the root
 	await page.goto('/')
 
@@ -136,9 +136,9 @@ test.skip('Upload multiple CSVs', async ({
 	page,
 	uploadEnergyBill,
 	editSaveEnergyBill,
-	login,
+	insertAndLoginTemporaryUser,
 }) => {
-	await login()
+	await insertAndLoginTemporaryUser()
 	// Visit the root
 	await page.goto('/')
 

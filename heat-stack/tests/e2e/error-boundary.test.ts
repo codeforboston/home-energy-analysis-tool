@@ -1,4 +1,4 @@
-import { expect, test } from '#tests/playwright-utils.ts'
+import { expect, test } from '#tests/playwright-heat-utils.ts'
 
 test('Test root error boundary caught', async ({ page }) => {
 	const pageUrl = '/does-not-exist'

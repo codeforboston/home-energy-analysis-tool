@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { expect, test } from '#tests/playwright-utils.ts'
+import { expect, test } from '#tests/playwright-heat-utils.ts'
 
 async function setupWebAuthn(page: any) {
 	const client = await page.context().newCDPSession(page)
@@ -18,8 +18,8 @@ async function setupWebAuthn(page: any) {
 	return { client, authenticatorId: result.authenticatorId }
 }
 
-test('Users can register and use passkeys', async ({ page, login }) => {
-	const user = await login()
+test('Users can register and use passkeys', async ({ page, insertAndLoginTemporaryUser }) => {
+	const user = await insertAndLoginTemporaryUser()
 
 	const { client, authenticatorId } = await setupWebAuthn(page)
 
@@ -125,9 +125,9 @@ test('Users can register and use passkeys', async ({ page, login }) => {
 	await expect(page).toHaveURL(`/login`)
 })
 
-test('Failed passkey verification shows error', async ({ page, login }) => {
+test('Failed passkey verification shows error', async ({ page, insertAndLoginTemporaryUser }) => {
 	const password = faker.internet.password()
-	await login({ password })
+	await insertAndLoginTemporaryUser({ password })
 	const { client, authenticatorId } = await setupWebAuthn(page)
 	await page.goto('/settings/profile/passkeys')
 
