@@ -1,6 +1,6 @@
 
 import { prisma } from '#app/utils/db.server.ts'
-import { insertSeedUser, createSampleCases  } from './seed-utils.js'
+import { insertSeedUser  } from './seed-utils.js'
 
 async function seed() {
 	console.log('🌱 Seeding...')
