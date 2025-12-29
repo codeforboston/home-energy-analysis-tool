@@ -1,7 +1,3 @@
-// Utility function to delete all records in the Case table (and related records via cascade)
-export async function deleteAllCases() {
-	await prisma.case.deleteMany({})
-}
 import { invariant } from '@epic-web/invariant'
 import type z from 'zod'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -10,32 +6,10 @@ import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
 
-export async function getLoggedInUserFromRequest(request: Request) {
-	// Use session-based user lookup
-	const userId = await requireUserId(request)
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: {
-			id: true,
-			username: true,
-			roles: {
-				select: {
-					name: true,
-					permissions: {
-						select: {
-							action: true,
-							entity: true,
-							access: true,
-						},
-					},
-				},
-			},
-		},
-	})
-	if (!user) throw new Error('User not found')
-	return user
+// Utility function to delete all records in the Case table (and related records via cascade)
+export async function deleteAllCases() {
+	await prisma.case.deleteMany({})
 }
-
 // Get all cases with usernames for admin
 
 export type { SchemaZodFromFormType }
@@ -46,102 +20,6 @@ export type { SchemaZodFromFormType }
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
  */
-export const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				take: 1, // TODO: WI: Test that latest / correct analysis is returned
-				include: {
-					heatingInput: {
-						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-						include: {
-							processedEnergyBill: true,
-						},
-					},
-					heatingOutput: true, // Include the calculated results for display
-				},
-			},
-		},
-	})
-}
-
-export const deleteCaseWithUser = async (caseId: number, userId: string) => {
-	// WIll need to delete:
-	// 1. analysis
-	// 2. csv records
-	// 3. Do we leave location and homeOwner alone?
-	return await prisma.case.delete({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-	})
-}
-
-export const getCases = async (
-	userId?: string,
-	search?: string | null,
-	isAdmin?: boolean,
-) => {
-	let where1 = undefined
-	let where2 = undefined
-
-	if (userId !== 'all') {
-		where1 = { users: { some: { id: userId } } }
-	}
-
-	if (search && search.trim().length > 0) {
-		where2 = {
-			OR: [
-				// If userId is provided, search within the assigned user(s).
-				// case <=> users is a many-to-many relationship
-				userId === 'all'
-					? { users: { some: { username: { contains: search } } } }
-					: undefined,
-				{ homeOwner: { firstName1: { contains: search } } },
-				{ homeOwner: { lastName1: { contains: search } } },
-				{ location: { address: { contains: search } } },
-				{ location: { city: { contains: search } } },
-				{ location: { state: { contains: search } } },
-				{ location: { zipcode: { contains: search } } },
-			].filter(Boolean), // filter out undefineds
-		}
-	}
-
-	const where = { ...where1, ...where2 }
-	console.log('debug', where)
-
-	return await prisma.case.findMany({
-		where: where,
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				include: {
-					heatingInput: true,
-				},
-			},
-			...(isAdmin ? { users: { select: { username: true } } } : {}),
-		},
-		orderBy: {
-			id: 'desc',
-		},
-	})
-}
 
 const HeatingInputSchema = HomeSchema.pick({
 	fuel_type: true,

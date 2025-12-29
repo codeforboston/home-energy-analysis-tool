@@ -1,17 +1,12 @@
 import { parseWithZod } from '@conform-to/zod'
-import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 import { data } from 'react-router'
-
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { replacer } from '#app/utils/data-parser.ts'
-import { getCaseForEditing } from '#app/utils/db/case.server.ts'
-import { uploadHandler } from '#app/utils/file-upload-handler.ts'
+import { getCase } from '#app/utils/db/case.db.server.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
-import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
@@ -31,7 +26,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
-	const caseRecord = await getCaseForEditing(caseId, userId)
+	const caseRecord = await getCase(caseId, userId)
 	invariantResponse(caseRecord, 'Case not found', { status: 404 })
 
 	const analysis = caseRecord.analysis?.[0]
@@ -61,7 +56,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
 	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
-	const { state_id, county_id, coordinates } =
+	const { coordinates } =
 		await geocodeUtil.getLL(combined_address)
 
 	// Get temperature data for the billing period date range
@@ -70,10 +65,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		dates: [] as string[],
 		temperatures: [] as number[],
 	}
-	if (
-		heatingInput.processedEnergyBill &&
-		heatingInput.processedEnergyBill.length > 0
-	) {
+	if (!heatingInput.processedEnergyBill || heatingInput.processedEnergyBill.length === 0) {
+		throw new Error('No processed energy bills found for this case.')
+	}
 		// Find the earliest and latest dates from billing records
 		const dates = heatingInput.processedEnergyBill
 			.map((bill) => [bill.periodStartDate, bill.periodEndDate])
@@ -179,6 +173,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
+	const caseRecord = getCase(caseId, userId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
@@ -204,24 +199,26 @@ export async function action({ request, params }: Route.ActionArgs) {
 	try {
 		const billingRecordsJson = formData.get('billing_records') as string | null
 		let billingRecords: any[] | undefined
-		if (billingRecordsJson) {
-			try {
-				const parsed = JSON.parse(billingRecordsJson)
-				billingRecords = Array.isArray(parsed) ? parsed : undefined
-			} catch (error) {
-				console.error('❌ Failed to parse billing records:', error)
-			}
+		if (!billingRecordsJson) {
+			throw new Error('Billing records data is missing.')
+		}
+		try {
+			const parsed = JSON.parse(billingRecordsJson)
+			billingRecords = Array.isArray(parsed) ? parsed : undefined
+		} catch (error) {
+			console.error('❌ Failed to parse billing records:', error)
 		}
 
 		// Parse heat load output from form data if present
 		const heatLoadOutputJson = formData.get('heat_load_output') as string | null
 		let heatLoadOutput: any | undefined
-		if (heatLoadOutputJson) {
-			try {
-				heatLoadOutput = JSON.parse(heatLoadOutputJson)
-			} catch (error) {
-				console.error('❌ Failed to parse heat load output:', error)
-			}
+		if (!heatLoadOutputJson) {
+			throw new Error('Heat load output data is missing.')
+		}
+		try {
+			heatLoadOutput = JSON.parse(heatLoadOutputJson)
+		} catch (error) {
+			throw new Error('❌ Failed to parse heat load output:', error)
 		}
 
 		const { updateCaseRecord } = await import('#app/utils/db/case.db.server.ts')
@@ -366,7 +363,6 @@ export default function EditCase({
 		})
 
 		setLocalBillingRecords(updatedRecords)
-
 		// Trigger client-side recalculation with updated billing records
 		if (
 			parsedAndValidatedFormSchemaForEffects &&
@@ -374,39 +370,13 @@ export default function EditCase({
 			loaderData.county_id
 		) {
 			try {
-				// Check if the function is still valid (not destroyed)
-				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
-					throw new Error(
-						'executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded',
-					)
-				}
-
-				// Create userAdjustedData structure with updated records
-				const userAdjustedData = {
-					processed_energy_bills: updatedRecords,
-				}
-
-				// Call the function and immediately handle the result
-				let calcResult: any
-				try {
-					const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
-						parsedAndValidatedFormSchemaForEffects as any,
-						loaderData.convertedDatesTIWD as any,
-						userAdjustedData as any,
-						loaderData.state_id,
-						loaderData.county_id,
-					)
-
-					// toJs() converts Python objects to JS - dicts become Maps by default
-					calcResult = calcResultPyProxy.toJs()
-
-					// Destroy immediately after conversion
-					calcResultPyProxy.destroy()
-				} catch (pyError) {
-					console.error('❌ PyProxy error:', pyError)
-					throw pyError
-				}
-
+				const calcResult = recalculateWithUpdatedBillingRecords(
+					parsedAndValidatedFormSchemaForEffects,
+					loaderData.convertedDatesTIWD,
+					updatedRecords,
+					loaderData.state_id,
+					loaderData.county_id
+				)
 				const newUsageData = buildCurrentUsageData(calcResult)
 				setCalculatedUsageData(newUsageData)
 			} catch (error) {
@@ -429,6 +399,50 @@ export default function EditCase({
 				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`,
 			})
 		}
+	}
+
+	// Extracted function for recalculation logic
+	function recalculateWithUpdatedBillingRecords(
+		parsedAndValidatedFormSchemaForEffects: any,
+		convertedDatesTIWD: any,
+		updatedRecords: any[],
+		state_id: any,
+		county_id: any
+	) {
+		// Check if the function is still valid (not destroyed)
+		if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
+			throw new Error(
+				'executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded',
+			)
+		}
+
+		// Create userAdjustedData structure with updated records
+		const userAdjustedData = {
+			processed_energy_bills: updatedRecords,
+		}
+
+		// Call the function and immediately handle the result
+		console.log('🔄 Debug Recalculating with updated billing records...')
+		let calcResult: any
+		try {
+			const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
+				parsedAndValidatedFormSchemaForEffects as any,
+				convertedDatesTIWD as any,
+				userAdjustedData as any,
+				state_id,
+				county_id,
+			)
+
+			// toJs() converts Python objects to JS - dicts become Maps by default
+			calcResult = calcResultPyProxy.toJs()
+
+			// Destroy immediately after conversion
+			calcResultPyProxy.destroy()
+		} catch (pyError) {
+			console.error('❌ PyProxy error:', pyError)
+			throw pyError
+		}
+		return calcResult
 	}
 
 	return (
