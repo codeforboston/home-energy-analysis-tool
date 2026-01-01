@@ -2,14 +2,12 @@ import { prisma } from '#app/utils/db.server.ts'
 
 export async function createCaseRecord(
 	formValues: any,
-	latitude: number,
-	longitude: number,
+	_locationData: any,
 	userId: string,
 	rulesEngineOutput?: Map<string, any>,
 ) {
 	// Create HomeOwner first
 	const homeOwner = await prisma.homeOwner.create({
-		// Form is only collecting name field for now
 		data: {
 			firstName1: formValues.name || 'Unknown',
 			lastName1: '',
@@ -29,8 +27,8 @@ export async function createCaseRecord(
 			zipcode: '',
 			country: 'USA',
 			livingAreaSquareFeet: formValues.living_area,
-			latitude: latitude, // Will need to be populated from geocoding
-			longitude: longitude, // Will need to be populated from geocoding
+			latitude: 0, // Will need to be populated from geocoding
+			longitude: 0, // Will need to be populated from geocoding
 		},
 	})
 
@@ -254,101 +252,4 @@ export async function updateCaseRecord(
 	})
 
 	return updatedCase
-}
-
-export const getCase = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				take: 1, // TODO: WI: Test that latest / correct analysis is returned
-				include: {
-					heatingInput: {
-						take: 1, // TODO: WI: Test that latest / correct heatingInput is returned
-						include: {
-							processedEnergyBill: true,
-						},
-					},
-					heatingOutput: true, // Include the calculated results for display
-				},
-			},
-		},
-	})
-}
-
-export const deleteCaseWithUser = async (caseId: number, userId: string) => {
-	// WIll need to delete:
-	// 1. analysis
-	// 2. csv records
-	// 3. Do we leave location and homeOwner alone?
-	return await prisma.case.delete({
-		where: {
-			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
-		},
-	})
-}
-
-export const getCases = async (
-	userId?: string,
-	search?: string | null,
-	isAdmin?: boolean,
-) => {
-	let where1 = undefined
-	let where2 = undefined
-
-	if (userId !== 'all') {
-		where1 = { users: { some: { id: userId } } }
-	}
-
-	if (search && search.trim().length > 0) {
-		where2 = {
-			OR: [
-				// If userId is provided, search within the assigned user(s).
-				// case <=> users is a many-to-many relationship
-				userId === 'all'
-					? { users: { some: { username: { contains: search } } } }
-					: undefined,
-				{ homeOwner: { firstName1: { contains: search } } },
-				{ homeOwner: { lastName1: { contains: search } } },
-				{ location: { address: { contains: search } } },
-				{ location: { city: { contains: search } } },
-				{ location: { state: { contains: search } } },
-				{ location: { zipcode: { contains: search } } },
-			].filter(Boolean), // filter out undefineds
-		}
-	}
-
-	const where = { ...where1, ...where2 }
-	console.log('debug', where)
-
-	return await prisma.case.findMany({
-		where: where,
-		include: {
-			homeOwner: true,
-			location: true,
-			analysis: {
-				include: {
-					heatingInput: true,
-				},
-			},
-			...(isAdmin ? { users: { select: { username: true } } } : {}),
-		},
-		orderBy: {
-			id: 'desc',
-		},
-	})
 }

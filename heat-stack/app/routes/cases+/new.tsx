@@ -112,10 +112,6 @@ export default function CreateCase({
 	return (
 		<SingleCaseForm
 			lastResult={actionData?.submitResult}
-			// onClickBillingRow is not applicable in new case form, so we provide a no-op function
-			onClickBillingRow = {(index: number) => {
-				alert(`Clicked billing row at index: ${index} cannot be processed in new case form`)
-			}}
 			defaultFormValues={defaultValue}
 			showSavedCaseIdMsg={!!actionData}
 			caseInfo={actionData?.caseInfo}

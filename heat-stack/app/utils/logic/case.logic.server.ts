@@ -22,34 +22,7 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  **/
 
-export async function getLoggedInUserFromRequest(request: Request) {
-	// Use session-based user lookup
-	const userId = await requireUserId(request)
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: {
-			id: true,
-			username: true,
-			roles: {
-				select: {
-					name: true,
-					permissions: {
-						select: {
-							action: true,
-							entity: true,
-							access: true,
-						},
-					},
-				},
-			},
-		},
-	})
-	if (!user) throw new Error('User not found')
-	return user
-}
-
-
-export async function processNewCase(
+export async function processCaseSubmission(
 	submission: any,
 	userId: string,
 	formData: FormData,
