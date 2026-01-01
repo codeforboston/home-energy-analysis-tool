@@ -9,6 +9,7 @@ import { getCaseForEditing } from '#app/utils/db/case.server.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
@@ -23,11 +24,20 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		return decimal
 	}
 	const userId = await requireUserId(request)
+
+	// Get user details for userId
+	const { prisma } = await import('#app/utils/db.server.ts')
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		include: { roles: { include: { permissions: true } } },
+	})
+
+	const isAdmin = hasAdminRole(user)
 	const caseId = parseInt(params.caseId)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
-	const caseRecord = await getCaseForEditing(caseId, userId)
+	const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
 	invariantResponse(caseRecord, 'Case not found', { status: 404 })
 
 	const analysis = caseRecord.analysis?.[0]
@@ -173,6 +183,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+	console.log('Debug Processing action for case edit route')
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -181,6 +192,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Parse form data based on content type
 	// useFetcher sends regular form data, file uploads send multipart
 	const formData = await request.formData()
+	console.log('Processing action for case ID:', caseId, formData)
 
 	let submission
 	submission = parseWithZod(formData, { schema: SaveOnlySchema })

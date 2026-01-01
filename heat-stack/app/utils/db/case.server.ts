@@ -46,16 +46,25 @@ export type { SchemaZodFromFormType }
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
  */
-export const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
+export const getCaseForEditing = async (
+	caseId: number,
+	userId: string,
+	isAdmin?: boolean,
+) => {
+	let userWhere
+	if (isAdmin) {
+		userWhere = {}
+	} else {
+		userWhere = {
 			users: {
 				some: {
 					id: userId,
 				},
 			},
-		},
+		}
+	}
+	return await prisma.case.findUnique({
+		where: { id: caseId, ...userWhere },
 		include: {
 			homeOwner: true,
 			location: true,
