@@ -17,9 +17,7 @@ from .web_weather_utils import WebWeatherUtil
 
 def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
     try:
-        print("debug csv", csv_data)
         parsed_gas_data = parser.parse_gas_bill(csv_data)
-        print("debug done")
     except Exception as e:
         return {"errors": {"parsing": str(e)}}
     return calculate_from_parsed_bills(parsed_gas_data, form_data)

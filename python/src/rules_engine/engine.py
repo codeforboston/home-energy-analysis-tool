@@ -99,7 +99,6 @@ def get_outputs_normalized(
     fuel-type-agnostic billing records, the heat load based on them,
     and a balance-point graph.
     """
-    sys.stdout.write(f"Debug Efficiency: {heat_load_input.heating_system_efficiency}\n")
     sys.stdout.flush()
     initial_balance_point = 60
     intermediate_processed_energy_bills = (

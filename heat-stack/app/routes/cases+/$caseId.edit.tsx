@@ -284,6 +284,7 @@ export default function EditCase({
 	actionData,
 }: Route.ComponentProps) {
 	// Get parsedAndValidatedFormSchema early for use in effects
+	console.log('Debug here', loaderData)
 	const parsedAndValidatedFormSchemaForEffects =
 		actionData?.parsedAndValidatedFormSchema || loaderData.defaultFormValues
 

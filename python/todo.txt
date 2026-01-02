@@ -1,0 +1,9 @@
+Refactor new case
+- Use logic from central calculate method in action that:
+  - gets temperature unless already provided
+  - does rest of calculation
+Refactor updateCase
+- Calls same function, includes temperatureDates
+
+EditCase
+- Get rid of any proxy calculations
