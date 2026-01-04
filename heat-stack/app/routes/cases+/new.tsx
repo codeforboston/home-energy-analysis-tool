@@ -38,7 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processCaseSubmission(submission, userId, formData)
+		const result = await processCaseSubmission(formData, submission.value, userId)
 
 		// Redirect to the edit page for the newly created case
 		return redirect(`/cases/${result.newCase.id}/edit`)

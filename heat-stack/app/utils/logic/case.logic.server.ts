@@ -17,20 +17,44 @@ import {
 	executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { p } from '#node_modules/@react-router/dev/dist/routes-DHIOx0R9.js'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  **/
 
 export async function processCaseSubmission(
-	submission: any,
+	formData: FormData, // form as a dictionary and a file - needed for file
+	parsedForm: any, // form values as a parsed object - needed for pycall
 	userId: string,
-	formData: FormData,
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	const { convertedDatesTIWD, state_id, county_id, gasBillData, parsedForm } =
-		await calculateResults(submission, formData, uploadedTextFile)
+	const pyodideProxy: PyProxy = executeCalculateWithCSVPy(uploadedTextFile, parsedForm)
+	const pyodideResults = pyodideProxy.toJs()
+	// TODO: make function that destroys if it exists
+	// pyodideProxy.destroy()
+
+	const result = await getConvertedDatesTIWD(
+		pyodideResults,
+		parsedForm.street_address,
+		parsedForm.town,
+		parsedForm.state,
+	)
+
+	const { convertedDatesTIWD, state_id, county_id } = result
+	invariant(state_id, 'Missing state_id')
+	invariant(county_id, 'Missing county_id')
+
+	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
+		parsedForm,
+		convertedDatesTIWD,
+		uploadedTextFile,
+		state_id,
+		county_id,
+	)
+	const gasBillData = gasBillDataProxy.toJs()
+	// gasBillDataProxy.destroy()
 
 	const newCase = await createCaseRecord(
 		parsedForm,
