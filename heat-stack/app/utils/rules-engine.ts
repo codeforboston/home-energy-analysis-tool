@@ -3,6 +3,7 @@ import { type PyodideInterface } from 'pyodide'
 import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type Schema } from '#types/single-form.ts'
+import calculateWithCsvPyCode from '../pycode/calculate_with_csv.py?raw'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
@@ -53,6 +54,9 @@ await pyodide.loadPackage(
 await pyodide.loadPackage(`${basePath}annotated_types-0.7.0-py3-none-any.whl`)
 await pyodide.loadPackage(`${basePath}rules_engine-0.0.1-py3-none-any.whl`)
 
+export const executeCalculateWithCsvPy: ExecuteCalculateWithCsvFunction =
+	await pyodide.runPythonAsync(calculateWithCsvPyCode + '\nexecuteCalculateWithCsv')
+
 /* 
     RULES-ENGINE CALLS
 */
@@ -95,6 +99,14 @@ export const executeRoundtripAnalyticsFromFormJs: ExecuteRoundtripAnalyticsFunct
 
 // Type for the execute parse function
 export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
+	destroy(): void
+	toJs?(): any
+}
+
+type ExecuteCalculateWithCsvFunction = ((
+	csvDataJs: string,
+	parsedFormJs:any,
+) => PyProxy) & {
 	destroy(): void
 	toJs?(): any
 }

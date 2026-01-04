@@ -29,6 +29,7 @@ def calculate_from_parsed_bills(parsed_gas_data: str, form_data: dict) -> dict:
     from .pydantic_models import NaturalGasBillingInput
 
     # Convert dict/JSON to Pydantic model
+    print("Debug - parsed_gas_data:", parsed_gas_data)
     gas_data_model = NaturalGasBillingInput.parse_obj(parsed_gas_data)
     billing_records = gas_data_model.records
     start_date = min(r.period_start_date for r in billing_records)

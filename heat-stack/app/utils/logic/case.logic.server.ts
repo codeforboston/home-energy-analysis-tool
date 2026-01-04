@@ -1,5 +1,5 @@
 import { invariant } from '@epic-web/invariant'
-
+// TODO: comment out unused code
 import getConvertedDatesTIWD, {
 	calculateResults,
 } from '#app/utils/date-temp-util.ts'
@@ -13,6 +13,7 @@ import {
 } from '#app/utils/db/case.db.server.ts'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
+	executeCalculateWithCsvPy,
 	executeParseGasBillPy,
 	executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
@@ -30,31 +31,33 @@ export async function processCaseSubmission(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	const pyodideProxy: PyProxy = executeCalculateWithCSVPy(uploadedTextFile, parsedForm)
-	const pyodideResults = pyodideProxy.toJs()
+	const pyodideProxy: PyProxy = executeCalculateWithCsvPy(uploadedTextFile, parsedForm)
+	const { gasBillData, convertedDatesTIWD, state_id, county_id } = pyodideProxy.toJs()
+
+
 	// TODO: make function that destroys if it exists
 	// pyodideProxy.destroy()
 
-	const result = await getConvertedDatesTIWD(
-		pyodideResults,
-		parsedForm.street_address,
-		parsedForm.town,
-		parsedForm.state,
-	)
+	// const result = await getConvertedDatesTIWD(
+	// 	pyodideResults,
+	// 	parsedForm.street_address,
+	// 	parsedForm.town,
+	// 	parsedForm.state,
+	// )
 
-	const { convertedDatesTIWD, state_id, county_id } = result
-	invariant(state_id, 'Missing state_id')
-	invariant(county_id, 'Missing county_id')
+	// const { convertedDatesTIWD, state_id, county_id } = result
+	// invariant(state_id, 'Missing state_id')
+	// invariant(county_id, 'Missing county_id')
 
-	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		parsedForm,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillData = gasBillDataProxy.toJs()
-	// gasBillDataProxy.destroy()
+	// const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
+	// 	parsedForm,
+	// 	convertedDatesTIWD,
+	// 	uploadedTextFile,
+	// 	state_id,
+	// 	county_id,
+	// )
+	// const gasBillData = gasBillDataProxy.toJs()
+	// // gasBillDataProxy.destroy()
 
 	const newCase = await createCaseRecord(
 		parsedForm,
