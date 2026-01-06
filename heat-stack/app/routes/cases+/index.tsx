@@ -146,7 +146,7 @@ export default function Cases({
 											<tr key={caseItem.id} className="hover:bg-gray-50">
 												<td className="whitespace-nowrap px-6 py-4">
 													<Link
-														to={`/cases/${firstAnalysis?.id}/edit?edit_mode=true`}
+														to={`/cases/${firstAnalysis?.id}/`}
 														className="text-sm font-medium text-indigo-700 underline hover:underline"
 													>
 														{caseItem.id}
