@@ -198,8 +198,16 @@ export function HomeInformation(props: HomeInformationProps) {
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/2">
 						<Label>
-							County-Level Design Temperature is {JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))} °F
+							County-Level Design Temperature
 						</Label>
+
+						<div className="item font-bold mt-4">
+							{JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))} °F
+						</div>
+						<span className={descriptiveClass}>
+							This value is calculated from the address and will be used unless an override value is entered.
+						</span>
+
 					</div>
 
 					<div className="basis-1/2">
@@ -210,22 +218,20 @@ export function HomeInformation(props: HomeInformationProps) {
 
 						<HelpButton keyName="design_temperature_override.help" className="ml-[1ch]" />
 
-						<div className={componentMargin}>
-							<div className="mt-4 flex space-x-4">
-								<div>
-									<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
-									<div className="min-h-[32px] px-4 pb-3 pt-1">
-										<ErrorList
-											id={props.fields.design_temperature_override.errorId}
-											errors={props.fields.design_temperature_override.errors}
-										/>
-									</div>
+						<div className="mt-4 flex space-x-4">
+							<div>
+								<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
+								<span className={`${descriptiveClass}`}>
+									Enter a value in the range -10 to 32
+								</span>
+								<div className="min-h-[32px] px-4 pb-3 pt-1">
+									<ErrorList
+										id={props.fields.design_temperature_override.errorId}
+										errors={props.fields.design_temperature_override.errors}
+									/>
 								</div>
 							</div>
 						</div>
-						<span className={descriptiveClass}>
-							If a value is entered, it will be used in place of the County-Level Design Temperature
-						</span>
 					</div>
 
 
