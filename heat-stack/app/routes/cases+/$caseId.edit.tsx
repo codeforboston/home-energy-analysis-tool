@@ -444,10 +444,6 @@ export default function EditCase({
 			return record
 		})
 
-		console.log(
-			'📊 Setting updated records:',
-			updatedRecords.map((r) => r.inclusion_override),
-		)
 		setLocalBillingRecords(updatedRecords)
 
 		// Trigger client-side recalculation with updated billing records

@@ -132,7 +132,6 @@ export const getCases = async (
 	}
 
 	const where = { ...where1, ...where2 }
-	console.log('debug', where)
 
 	return await prisma.case.findMany({
 		where: where,

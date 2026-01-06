@@ -278,13 +278,6 @@ const server = app.listen(portToUse, () => {
 		lanUrl = `http://${localIp}:${portToUse}`
 	}
 
-	console.log(
-		`
-${styleText('bold', 'Local:')}            ${styleText('cyan', localUrl)}
-${lanUrl ? `${styleText('bold', 'On Your Network:')}  ${styleText('cyan', lanUrl)}` : ''}
-${styleText('bold', 'Press Ctrl+C to stop')}
-		`.trim(),
-	)
 })
 
 closeWithGrace(async ({ err }) => {
