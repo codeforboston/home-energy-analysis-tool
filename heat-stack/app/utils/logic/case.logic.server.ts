@@ -19,6 +19,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { p } from '#node_modules/@react-router/dev/dist/routes-DHIOx0R9.js'
+import { NaturalGasUsageDataSchema } from '#types/index.ts'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -30,15 +31,12 @@ export async function processCaseSubmission(
 	userId: string,
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
-
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	const pyodideResults = pyodideProxy.toJs()
-
-
+	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// pyodideProxy.destroy()
 
 	const result = await getConvertedDatesTIWD(
-		pyodideResults,
+		gasBillingData,
 		parsedForm.street_address,
 		parsedForm.town,
 		parsedForm.state,

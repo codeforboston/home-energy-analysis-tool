@@ -1,6 +1,5 @@
 from rules_engine import engine, helpers, parser
-from rules_engine.pydantic_models import (FuelType, HeatLoadInput,
-                                          TemperatureInput)
+from rules_engine.pydantic_models import FuelType, HeatLoadInput, TemperatureInput
 
 
 def executeGetAnalyticsFromForm(
@@ -14,8 +13,8 @@ def executeGetAnalyticsFromForm(
     # pack the get_design_temp output into heat_load_input
     """
 
-    summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-    temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
+    summaryInputFromJs = summaryInputJs.to_py()
+    temperatureInputFromJs = temperatureInputJs.to_py()
 
     # We will just pass in this data
     naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
