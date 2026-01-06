@@ -7,7 +7,7 @@ import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
-import { getCaseForEditing } from '#app/utils/db/case.server.ts'
+import { getCaseForEditing, getLoggedInUserFromRequest } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
@@ -17,6 +17,7 @@ import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
+import { hasAdminRole } from '#app/utils/user.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	const percentToDecimal = (value: number, errorMessage: string) => {
@@ -28,10 +29,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	}
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
+	const user = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(user)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
-	const caseRecord = await getCaseForEditing(caseId, userId)
+	const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
 	invariantResponse(caseRecord, 'Case not found', { status: 404 })
 
 	const analysis = caseRecord.analysis?.[0]
