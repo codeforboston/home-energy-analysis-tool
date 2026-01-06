@@ -35,4 +35,6 @@ def executeGetAnalyticsFromForm(
     outputs = engine.get_outputs_natural_gas(
         summaryInput, temperatureInput, gasBillingDataInput
     )
-    return outputs.model_dump(mode="json")
+    result = outputs.model_dump(mode="json")
+    result["design_temp_lookup"] = design_temp_looked_up
+    return result
