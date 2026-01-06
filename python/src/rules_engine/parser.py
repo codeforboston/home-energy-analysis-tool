@@ -317,6 +317,7 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
+    print("Parsing gas bill...", data[:100])
     data = _newline_line_ending(data)
     data = _remove_double_quotes(data)
     data = _replace_tabs_with_commas(data)

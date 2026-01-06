@@ -13,13 +13,11 @@ import {
 } from '#app/utils/db/case.db.server.ts'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
-	executeCalculateWithCsvPy,
 	executeParseGasBillPy,
 	executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { p } from '#node_modules/@react-router/dev/dist/routes-DHIOx0R9.js'
-import { NaturalGasUsageDataSchema } from '#types/index.ts'
+import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -35,43 +33,43 @@ export async function processCaseSubmission(
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// pyodideProxy.destroy()
 
-	const result = await getConvertedDatesTIWD(
-		gasBillingData,
-		parsedForm.street_address,
-		parsedForm.town,
-		parsedForm.state,
-	)
+	const { convertedDatesTIWD, state_id, county_id } =
+		await getConvertedDatesTIWD(
+			gasBillingData,
+			parsedForm.street_address,
+			parsedForm.town,
+			parsedForm.state,
+		)
 
-	const { convertedDatesTIWD, state_id, county_id } = result
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
-	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
+	const rulesEngineResultProxy: PyProxy = executeGetAnalyticsFromFormJs(
 		parsedForm,
 		convertedDatesTIWD,
-		uploadedTextFile,
+		gasBillingData,
 		state_id,
 		county_id,
 	)
-	const gasBillData = gasBillDataProxy.toJs()
-	gasBillDataProxy.destroy()
+	const rulesEngineResult = rulesEngineResultProxy.toJs()
+	rulesEngineResultProxy.destroy()
 
 	const newCase = await createCaseRecord(
 		parsedForm,
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
-		gasBillData,
+		rulesEngineResult,
 	)
 
 	// Get the HeatingInput ID from the created analysis
 	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
 	invariant(heatingInputId, 'Failed to create HeatingInput record')
 
-	const insertedCount = await insertProcessedBills(heatingInputId, gasBillData)
+	const insertedCount = await insertProcessedBills(heatingInputId, rulesEngineResult)
 
 	return {
 		newCase,
-		gasBillData,
+		gasBillData: rulesEngineResult,
 		insertedCount,
 		state_id,
 		county_id,
@@ -89,55 +87,38 @@ export async function processCaseUpdate(
 	formData: FormData,
 ) {
 	const parsedForm = submission.value
-	const uploadedTextFile: string = await fileUploadHandler(formData)
+	// const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	const pyodideResults = pyodideProxy.toJs()
+	// const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
+	// const pyodideResults = pyodideProxy.toJs()
 	// pyodideProxy.destroy()
 
-	const { convertedDatesTIWD, state_id, county_id } =
-		await getConvertedDatesTIWD(
-			pyodideResults,
-			parsedForm.street_address,
-			parsedForm.town,
-			parsedForm.state,
-		)
-	invariant(state_id, 'Missing state_id')
-	invariant(county_id, 'Missing county_id')
+	// const { convertedDatesTIWD, state_id, county_id } =
+	// 	await getConvertedDatesTIWD(
+	// 		pyodideResults,
+	// 		parsedForm.street_address,
+	// 		parsedForm.town,
+	// 		parsedForm.state,
+	// 	)
+	// invariant(state_id, 'Missing state_id')
+	// invariant(county_id, 'Missing county_id')
 
-	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		parsedForm,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillData = gasBillDataProxy.toJs()
+	// const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
+	// 	parsedForm,
+	// 	convertedDatesTIWD,
+	// 	uploadedTextFile,
+	// 	state_id,
+	// 	county_id,
+	// )
+	// const gasBillData = gasBillDataProxy.toJs()
 	//gasBillDataProxy.destroy()
 
-	const updatedCase = await updateCaseRecord(
-		caseId,
-		parsedForm,
-		{ convertedDatesTIWD, state_id, county_id },
-		userId,
-	)
+	// const updatedCase = await updateCaseRecord(
+	// 	caseId,
+	// 	parsedForm,
+	// 	{ convertedDatesTIWD, state_id, county_id },
+	// 	userId,
+	// )
 
 	// Get the HeatingInput ID from the updated case
-	const heatingInputId = updatedCase?.analysis?.[0]?.heatingInput?.[0]?.id
-	if (!heatingInputId) {
-		throw new Error('Failed to find HeatingInput record for update')
-	}
-
-	// Delete existing bills and insert new ones
-	await deleteBillsForAnalysis(heatingInputId)
-	const insertedCount = await insertProcessedBills(heatingInputId, gasBillData)
-
-	return {
-		updatedCase,
-		gasBillData,
-		insertedCount,
-		state_id,
-		county_id,
-		convertedDatesTIWD,
-	}
 }

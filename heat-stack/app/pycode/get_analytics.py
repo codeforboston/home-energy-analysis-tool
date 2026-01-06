@@ -1,9 +1,13 @@
 from rules_engine import engine, helpers, parser
-from rules_engine.pydantic_models import FuelType, HeatLoadInput, TemperatureInput
+from rules_engine.pydantic_models import (
+    HeatLoadInput,
+    NaturalGasBillingInput,
+    TemperatureInput,
+)
 
 
 def executeGetAnalyticsFromForm(
-    summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id
+    summaryInputJs, temperatureInputJs, gasBillingDataJs, state_id, county_id
 ):
     """
     second step: this will be the first time to draw the table
@@ -15,9 +19,10 @@ def executeGetAnalyticsFromForm(
 
     summaryInputFromJs = summaryInputJs.to_py()
     temperatureInputFromJs = temperatureInputJs.to_py()
+    gasBillingDataFromJs = gasBillingDataJs.to_py()
 
     # We will just pass in this data
-    naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
+    # naturalGasInputRecords = parser.parse_gas_bill(gasBillingDataJs)
 
     design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(
@@ -25,8 +30,9 @@ def executeGetAnalyticsFromForm(
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
+    gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
 
     outputs = engine.get_outputs_natural_gas(
-        summaryInput, temperatureInput, naturalGasInputRecords
+        summaryInput, temperatureInput, gasBillingDataInput
     )
     return outputs.model_dump(mode="json")
