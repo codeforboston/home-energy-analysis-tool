@@ -46,7 +46,11 @@ export const HomeSchema = z.object({
 	 */
 	living_area: z.number().min(500).max(10000),
 	fuel_type: z.enum(['GAS', 'OIL', 'PROPANE']),
-	design_temperature_override: z.number().optional(),
+	design_temperature_override: z
+    .number()
+    .min(-10, {message: "Override value can't be below -10"})
+    .max(32, {message: 'Override value cannot exceed 32'})
+    .optional(),
 	/**
 	 * unit: percentage in decimal numbers, but not 0 to 1
 	 */
