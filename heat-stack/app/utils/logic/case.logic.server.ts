@@ -31,6 +31,9 @@ export async function processCaseSubmission(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 
+	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
+	const pyodideResults = pyodideProxy.toJs()
+
 
 	// pyodideProxy.destroy()
 

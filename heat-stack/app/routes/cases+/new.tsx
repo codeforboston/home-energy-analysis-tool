@@ -119,6 +119,9 @@ export default function CreateCase({
 			showUsageData={!!usageData}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}
+			onClickBillingRow={(index: number) => {
+				console.log('Stub - new.tsx will not display checkbox', index)
+			}}
 		/>
 	)
 }
