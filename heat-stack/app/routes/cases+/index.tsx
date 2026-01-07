@@ -1,31 +1,22 @@
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
-import {
-	getCases,
-	getLoggedInUserFromRequest,
-} from '#app/utils/db/case.server.ts'
-import { hasAdminRole } from '#app/utils/user.ts'
-
+import { requireUserId } from '#app/utils/auth.server.ts'
+import { getCasesByUser } from '#app/utils/db/case.server.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
+	const userId = await requireUserId(request)
 	const search = new URL(request.url).searchParams.get('search')
-	const loggedInUser = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(loggedInUser)
-	let cases
-	if (isAdmin) {
-		cases = await getCases('all', search, true)
-	} else {
-		cases = await getCases(loggedInUser.id, search, false)
-	}
-	return data({ cases, search, isAdmin })
+	const cases = await getCasesByUser(userId, search)
+
+	return data({ cases, search })
 }
 
 export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases = [], search, isAdmin } = loaderData
+	const { cases, search } = loaderData
 	const submit = useSubmit()
 
 	return (
@@ -95,14 +86,6 @@ export default function Cases({
 								>
 									Homeowner
 								</th>
-								{isAdmin && (
-									<th
-										scope="col"
-										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-									>
-										Username
-									</th>
-								)}
 								<th
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -147,13 +130,6 @@ export default function Cases({
 												{caseItem.homeOwner.lastName1}
 											</div>
 										</td>
-										{isAdmin && (
-											<td className="whitespace-nowrap px-6 py-4">
-												<div className="text-sm text-gray-900">
-													{caseItem.users[0]?.username || 'N/A'}
-												</div>
-											</td>
-										)}
 										<td className="px-6 py-4">
 											<div className="text-sm text-gray-900">
 												{caseItem.location.address}, {caseItem.location.city},{' '}
