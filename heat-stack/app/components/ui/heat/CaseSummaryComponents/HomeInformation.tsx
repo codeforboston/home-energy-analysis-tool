@@ -192,52 +192,59 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 
-			{geoStateId && geoCountyId && <fieldset>
-				<legend className={subtitleClass}>Heating Design Temperature</legend>
-
-				<div className="mt-4 flex space-x-4">
-					<div className="basis-1/2">
-						<Label>
-							County-Level Design Temperature
-						</Label>
-
-						<div className="item font-bold mt-4">
-							{JSON.stringify(executeLookupDesignTempToDisplay(geoStateId, geoCountyId))} °F
-						</div>
-						<span className={descriptiveClass}>
-							This value is calculated from the address and will be used unless an override value is entered.
-						</span>
-
+			{geoStateId && geoCountyId && (
+				<fieldset>
+					<legend className={subtitleClass}>Heating Design Temperature</legend>
+					<div className={descriptiveClass}>
+						County-level design temperature is calculated from the address and will be used
+						unless an override value is entered.
 					</div>
+					<div className="mt-4 flex space-x-4">
+						<div className="basis-1/2">
+							<Label>County-Level Design Temperature</Label>
 
-					<div className="basis-1/2">
+							<div className="item font-bold">
+								{JSON.stringify(
+									executeLookupDesignTempToDisplay(geoStateId, geoCountyId),
+								)}{' '}
+								°F
+							</div>
 
-						<Label htmlFor="design_temperature_override">
-							Design Temperature Override
-						</Label>
+						</div>
 
-						<HelpButton keyName="design_temperature_override.help" className="ml-[1ch]" />
+						<div className="basis-1/2">
+							<Label htmlFor="design_temperature_override">
+								Design Temperature Override
+							</Label>
 
-						<div className="mt-4 flex space-x-4">
-							<div>
-								<Input {...getInputProps(props.fields.design_temperature_override, { type: 'number' })} />
-								<span className={`${descriptiveClass}`}>
-									Enter a value in the range -10 to 32
-								</span>
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.design_temperature_override.errorId}
-										errors={props.fields.design_temperature_override.errors}
+							<HelpButton
+								keyName="design_temperature_override.help"
+								className="ml-[1ch]"
+							/>
+
+							<div className="mt-4 flex space-x-4">
+								<div>
+									<Input
+										{...getInputProps(
+											props.fields.design_temperature_override,
+											{ type: 'number' },
+										)}
 									/>
+									<span className={`${descriptiveClass}`}>
+										Enter a value in the range -10 to 32
+									</span>
+									<div className="min-h-[32px] px-4 pb-3 pt-1">
+										<ErrorList
+											id={props.fields.design_temperature_override.errorId}
+											errors={props.fields.design_temperature_override.errors}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-
-
-				</div>
-			</fieldset>
-			}
+				</fieldset>
+			)}
 			<div className="mt-9">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
