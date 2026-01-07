@@ -8,7 +8,10 @@ export function createPassword(password: string = faker.internet.password()) {
 }
 
 import { getPasswordHash } from '#app/utils/auth.server.ts'
-import { createCase, type SchemaZodFromFormType } from '#app/utils/db/case.server'
+import {
+	createCase,
+	type SchemaZodFromFormType,
+} from '#app/utils/db/case.server'
 import { prisma } from '#app/utils/db.server.ts'
 
 // --- insertUser ---
@@ -31,14 +34,19 @@ type User = {
 	roles: Role[]
 }
 
-export async function insertSeedUser({ username, password, is_admin }: InsertOptions = {}, caseCount: number = 2): Promise<User> {
+export async function insertSeedUser(
+	{ username, password, is_admin }: InsertOptions = {},
+	caseCount: number = 2,
+): Promise<User> {
 	const random_number = Math.floor(Math.random() * 1000000)
 	const insertUsername = username || `tempuser${random_number}`
 	const name = `Joe Homeowner${random_number}`
 	const email = `fake_email${random_number}@fake.com`
 	const userPassword = password ?? 'password123'
 	const rolesConnect = is_admin ? { roles: { connect: { name: 'admin' } } } : {}
-	console.log(`Inserting user: ${insertUsername} (admin: ${is_admin ? 'yes' : 'no'})`	)
+	console.log(
+		`Inserting user: ${insertUsername} (admin: ${is_admin ? 'yes' : 'no'})`,
+	)
 	const user = await prisma.user.create({
 		data: {
 			username: insertUsername,
@@ -120,4 +128,3 @@ export async function createSampleCases(
 		}
 	}
 }
-

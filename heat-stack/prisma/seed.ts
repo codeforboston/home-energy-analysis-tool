@@ -1,6 +1,5 @@
-
 import { prisma } from '#app/utils/db.server.ts'
-import { insertSeedUser  } from './seed-utils.js'
+import { insertSeedUser } from './seed-utils.js'
 
 async function seed() {
 	console.log('🌱 Seeding...')
@@ -17,9 +16,14 @@ async function seed() {
 	console.time(`🐨 Created admin user "kody"`)
 
 	// Create kody user using insertUser (some info like connections will be lost)
-	await insertSeedUser({ username: "kody", password: 'kodylovesyou', is_admin: true }, 3)
-	await insertSeedUser({ username: "normaluser", password: 'normaluserpassword', is_admin: false }, 2)
-
+	await insertSeedUser(
+		{ username: 'kody', password: 'kodylovesyou', is_admin: true },
+		3,
+	)
+	await insertSeedUser(
+		{ username: 'normaluser', password: 'normaluserpassword', is_admin: false },
+		2,
+	)
 
 	console.timeEnd(`🐨 Created admin user "kody"`)
 

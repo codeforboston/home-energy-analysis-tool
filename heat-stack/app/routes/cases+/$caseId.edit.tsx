@@ -7,7 +7,10 @@ import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { replacer } from '#app/utils/data-parser.ts'
-import { getCaseForEditing, getLoggedInUserFromRequest } from '#app/utils/db/case.server.ts'
+import {
+	getCaseForEditing,
+	getLoggedInUserFromRequest,
+} from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
