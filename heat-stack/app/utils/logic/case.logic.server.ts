@@ -1,11 +1,9 @@
 import { invariant } from '@epic-web/invariant'
 // TODO: comment out unused code
 import getConvertedDatesTIWD, {
-	calculateResults,
 } from '#app/utils/date-temp-util.ts'
 import {
 	insertProcessedBills,
-	deleteBillsForAnalysis,
 } from '#app/utils/db/bill.db.server.ts'
 import {
 	createCaseRecord,
@@ -32,7 +30,22 @@ export async function processCaseSubmission(
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// pyodideProxy.destroy()
-
+	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
+		await processCaseSubmission2(parsedForm, gasBillingData,)
+	return await caseCreate(
+		{ parsedForm,
+		convertedDatesTIWD,
+		state_id,
+		county_id,
+		userId,
+		rulesEngineResult,
+		}
+	)
+}
+export async function processCaseSubmission2(
+	parsedForm: any, // form values as a parsed object - needed for pycall
+	gasBillingData: NaturalGasUsageDataSchema,
+) {
 	const { convertedDatesTIWD, state_id, county_id } =
 		await getConvertedDatesTIWD(
 			gasBillingData,
@@ -53,7 +66,17 @@ export async function processCaseSubmission(
 	)
 	const rulesEngineResult = rulesEngineResultProxy.toJs()
 	rulesEngineResultProxy.destroy()
-
+	return { rulesEngineResult, state_id, county_id, convertedDatesTIWD}
+}
+export async function caseCreate(
+	{ parsedForm,
+	convertedDatesTIWD,
+	state_id,
+	county_id,
+	userId,
+	rulesEngineResult,
+	}: any
+) {
 	const newCase = await createCaseRecord(
 		parsedForm,
 		{ convertedDatesTIWD, state_id, county_id },
@@ -69,7 +92,7 @@ export async function processCaseSubmission(
 
 	return {
 		newCase,
-		gasBillData: rulesEngineResult,
+		rulesEngineResult,
 		insertedCount,
 		state_id,
 		county_id,
@@ -82,43 +105,18 @@ export async function processCaseSubmission(
  */
 export async function processCaseUpdate(
 	caseId: number,
-	submission: any,
+	parsedForm: any,
 	userId: string,
-	formData: FormData,
 ) {
-	const parsedForm = submission.value
-	// const uploadedTextFile: string = await fileUploadHandler(formData)
 
-	// const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	// const pyodideResults = pyodideProxy.toJs()
-	// pyodideProxy.destroy()
+	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
+			await processCaseSubmission2(parsedForm, gasBillingData)
 
-	// const { convertedDatesTIWD, state_id, county_id } =
-	// 	await getConvertedDatesTIWD(
-	// 		pyodideResults,
-	// 		parsedForm.street_address,
-	// 		parsedForm.town,
-	// 		parsedForm.state,
-	// 	)
-	// invariant(state_id, 'Missing state_id')
-	// invariant(county_id, 'Missing county_id')
+	const updatedCase = await updateCaseRecord(
+		caseId,
+		parsedForm,
+		{ convertedDatesTIWD, state_id, county_id },
+		userId,
+	)
 
-	// const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
-	// 	parsedForm,
-	// 	convertedDatesTIWD,
-	// 	uploadedTextFile,
-	// 	state_id,
-	// 	county_id,
-	// )
-	// const gasBillData = gasBillDataProxy.toJs()
-	//gasBillDataProxy.destroy()
-
-	// const updatedCase = await updateCaseRecord(
-	// 	caseId,
-	// 	parsedForm,
-	// 	{ convertedDatesTIWD, state_id, county_id },
-	// 	userId,
-	// )
-
-	// Get the HeatingInput ID from the updated case
 }
