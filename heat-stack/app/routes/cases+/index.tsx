@@ -1,26 +1,48 @@
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { getCasesByUser } from '#app/utils/db/case.server.ts'
+import {
+	getCases, 
+	getLoggedInUserFromRequest,
+} from '#app/utils/db/case.server.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
+
+type CaseWithUsername = {
+	id: number
+	homeOwner: { firstName1: string; lastName1: string }
+	location: {
+		address: string
+		city: string
+		state: string
+		livingAreaSquareFeet: number
+	}
+	analysis: any[]
+	username?: string
+}
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const userId = await requireUserId(request)
 	const search = new URL(request.url).searchParams.get('search')
-	const cases = await getCasesByUser(userId, search)
-
-	return data({ cases, search })
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
+	let cases
+	if (isAdmin) {
+		cases = await getCases('all', search, true)
+	} else {
+		cases = await getCases(loggedInUser.id, search, false)
+	}
+	return data({ cases, search, isAdmin })
 }
 
 export default function Cases({
 	loaderData,
 	// actionData,
 }: Route.ComponentProps) {
-	const { cases, search } = loaderData
+	const { cases = [], isAdmin, search } = loaderData
 	const submit = useSubmit()
 
 	return (
-		<div className="container mx-auto p-6">
+		<div id="cases-page" className="container mx-auto p-6">
 			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
 				<h1 className="text-3xl font-bold">Cases</h1>
 				<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-end">
@@ -80,6 +102,14 @@ export default function Cases({
 								>
 									Case ID
 								</th>
+								{isAdmin && (
+									<th
+										scope="col"
+										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+									>
+										Username
+									</th>
+								)}
 								<th
 									scope="col"
 									className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -121,7 +151,12 @@ export default function Cases({
 									<tr key={caseItem.id} className="hover:bg-gray-50">
 										<td className="whitespace-nowrap px-6 py-4">
 											<div className="text-sm font-medium text-gray-900">
-												{caseItem.id}
+												<Link
+													to={`/cases/${firstAnalysis?.id}/edit?edit_mode=true`}
+													className="text-sm font-medium text-indigo-700 underline hover:underline"
+												>
+													{caseItem.id}
+												</Link>
 											</div>
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
