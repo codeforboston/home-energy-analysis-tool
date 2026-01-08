@@ -14,7 +14,6 @@ import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
-import { hasAdminRole } from '#app/utils/user.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	const percentToDecimal = (value: number, errorMessage: string) => {
@@ -35,8 +34,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	const isAdmin = hasAdminRole(user)
 	const caseId = parseInt(params.caseId)
-	const user = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(user)
 
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
