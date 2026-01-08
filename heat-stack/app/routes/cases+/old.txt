@@ -1,0 +1,112 @@
+old: import {
+  getCasesByUser,
+  getAllCasesWithUsernames,
+  getLoggedInUserFromRequest,
+} from "#app/utils/db/case.server.ts";
+import { hasAdminRole } from "#app/utils/user.ts";
+
+type CaseWithUsername = {
+  id: number;
+  homeOwner: { firstName1: string; lastName1: string };
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    livingAreaSquareFeet: number;
+  };
+  analysis: any[];
+  username?: string;
+};
+
+new:
+
+import {
+	getCasesByUser,
+	getAllCasesWithUsernames,
+	getLoggedInUserFromRequest,
+} from '#app/utils/db/case.server.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
+
+type CaseWithUsername = {
+	id: number
+	homeOwner: { firstName1: string; lastName1: string }
+	location: {
+		address: string
+		city: string
+		state: string
+		livingAreaSquareFeet: number
+	}
+	analysis: any[]
+	username?: string
+}
+
+old:
+	const userId = await requireUserId(request)
+	// Fetch all cases with their related data
+	const cases = await getCasesByUser(userId)
+
+	return data({ cases })
+
+    new:
+export async function loader({ request }: Route.LoaderArgs) {
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
+	let cases
+	if (isAdmin) {
+		cases = await getAllCasesWithUsernames()
+	} else {
+		cases = await getCasesByUser(loggedInUser.id)
+	}
+	return data({ cases, isAdmin })
+}
+
+old: 
+	const { cases } = loaderData
+new:
+	const { cases, isAdmin } = loaderData
+	const typedCases: CaseWithUsername[] = cases
+
+old: 
+		<div className="container mx-auto p-6">
+new:
+        <div id="cases-page" className="container mx-auto p-6">
+
+old:
+						to="/single?dev=true"
+						to="/cases/new"
+
+
+Add below Case ID:
+								{isAdmin && (
+									<th
+										scope="col"
+										className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+									>
+										Username
+									</th>
+								)}
+Change: 
+cases.map => typedCases.map
+
+Before: caseItem.id
+
+add:
+            {isAdmin && (
+                <td className="whitespace-nowrap px-6 py-4">
+                    <div className="text-sm text-gray-900">
+                        {caseItem.users[0].username}
+                    </div>
+                </td>
+            )}
+===
+below isAdmin definition:
+	let cases
+	if (isAdmin) {
+		cases = await getCases('all', search, true)
+	} else {
+		cases = await getCases(loggedInUser.id, search, false)
+	}
+
+	const { cases, search, isAdmin } = loaderData
+	const { cases = [], search, isAdmin } = loaderData
+        
