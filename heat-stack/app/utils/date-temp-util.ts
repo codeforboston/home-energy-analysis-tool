@@ -83,8 +83,6 @@ export default async function getConvertedDatesTIWD(
 		await geocodeUtil.getLL(combined_address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 
-	console.log('geocoded', x, y)
-
 	const startDateString = pyodideResultsFromTextFile.get(
 		'overall_start_date',
 	) as string

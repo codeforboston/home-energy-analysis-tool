@@ -1,4 +1,3 @@
-
 import { prisma } from '#app/utils/db.server.ts'
 import { insertSeedUser  } from './seed-utils.js'
 

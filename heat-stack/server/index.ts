@@ -277,14 +277,6 @@ const server = app.listen(portToUse, () => {
 	if (/^10[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(localIp)) {
 		lanUrl = `http://${localIp}:${portToUse}`
 	}
-
-	console.log(
-		`
-${styleText('bold', 'Local:')}            ${styleText('cyan', localUrl)}
-${lanUrl ? `${styleText('bold', 'On Your Network:')}  ${styleText('cyan', lanUrl)}` : ''}
-${styleText('bold', 'Press Ctrl+C to stop')}
-		`.trim(),
-	)
 })
 
 closeWithGrace(async ({ err }) => {

@@ -53,9 +53,9 @@ export default function Analysis({
 			<h1 className="mb-6 text-3xl font-bold">Case Analysis #{caseData.id}</h1>
 
 			<div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-				{/* Home Owner Information */}
+				{/* Homeowner Information */}
 				<div className="rounded-lg border p-4 shadow-sm">
-					<h2 className="mb-4 text-xl font-semibold">Home Owner</h2>
+					<h2 className="mb-4 text-xl font-semibold">Homeowner</h2>
 					<p className="mb-2">
 						<span className="font-medium">Name:</span>{' '}
 						{caseData.homeOwner.firstName1} {caseData.homeOwner.lastName1}
