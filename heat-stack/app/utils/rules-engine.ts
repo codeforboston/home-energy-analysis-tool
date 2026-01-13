@@ -102,7 +102,7 @@ export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
 
 type ExecuteCalculateWithCsvFunction = ((
 	csvDataJs: string,
-	parsedFormJs:any,
+	parsedFormJs: any,
 ) => PyProxy) & {
 	destroy(): void
 	toJs?(): any

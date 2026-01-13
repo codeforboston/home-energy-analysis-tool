@@ -1,10 +1,7 @@
 import { invariant } from '@epic-web/invariant'
 // TODO: comment out unused code
-import getConvertedDatesTIWD, {
-} from '#app/utils/date-temp-util.ts'
-import {
-	insertProcessedBills,
-} from '#app/utils/db/bill.db.server.ts'
+import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
+import { insertProcessedBills } from '#app/utils/db/bill.db.server.ts'
 import {
 	createCaseRecord,
 	updateCaseRecord,
@@ -31,16 +28,15 @@ export async function processCaseSubmission(
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await processCaseSubmission2(parsedForm, gasBillingData,)
-	return await caseCreate(
-		{ parsedForm,
+		await processCaseSubmission2(parsedForm, gasBillingData)
+	return await caseCreate({
+		parsedForm,
 		convertedDatesTIWD,
 		state_id,
 		county_id,
 		userId,
 		rulesEngineResult,
-		}
-	)
+	})
 }
 export async function processCaseSubmission2(
 	parsedForm: any, // form values as a parsed object - needed for pycall
@@ -66,17 +62,16 @@ export async function processCaseSubmission2(
 	)
 	const rulesEngineResult = rulesEngineResultProxy.toJs()
 	rulesEngineResultProxy.destroy()
-	return { rulesEngineResult, state_id, county_id, convertedDatesTIWD}
+	return { rulesEngineResult, state_id, county_id, convertedDatesTIWD }
 }
-export async function caseCreate(
-	{ parsedForm,
+export async function caseCreate({
+	parsedForm,
 	convertedDatesTIWD,
 	state_id,
 	county_id,
 	userId,
 	rulesEngineResult,
-	}: any
-) {
+}: any) {
 	const newCase = await createCaseRecord(
 		parsedForm,
 		{ convertedDatesTIWD, state_id, county_id },
@@ -88,7 +83,10 @@ export async function caseCreate(
 	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
 	invariant(heatingInputId, 'Failed to create HeatingInput record')
 
-	const insertedCount = await insertProcessedBills(heatingInputId, rulesEngineResult)
+	const insertedCount = await insertProcessedBills(
+		heatingInputId,
+		rulesEngineResult,
+	)
 
 	return {
 		newCase,
@@ -108,9 +106,8 @@ export async function processCaseUpdate(
 	parsedForm: any,
 	userId: string,
 ) {
-
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-			await processCaseSubmission2(parsedForm, gasBillingData)
+		await processCaseSubmission2(parsedForm, gasBillingData)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
@@ -118,5 +115,4 @@ export async function processCaseUpdate(
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 	)
-
 }

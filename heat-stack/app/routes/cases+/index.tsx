@@ -1,7 +1,7 @@
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
 import {
-	getCases, 
+	getCases,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
