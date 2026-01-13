@@ -16,11 +16,11 @@ import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
-import { hasAdminRole } from '#app/utils/user.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	const percentToDecimal = (value: number, errorMessage: string) => {
