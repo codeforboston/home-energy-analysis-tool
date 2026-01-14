@@ -118,8 +118,6 @@ export const useRulesEngine = (
 
 		setUsageData((prevUsageData) => {
 			console.log('🔄 Comparing usage data...')
-			console.log('Previous:', prevUsageData)
-			console.log('New:', newUsageData)
 
 			if (objectToString(prevUsageData) !== objectToString(newUsageData)) {
 				console.log('✅ Usage data changed, updating state')

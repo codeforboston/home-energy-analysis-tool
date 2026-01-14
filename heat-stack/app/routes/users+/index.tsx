@@ -1,77 +1,199 @@
-import { searchUsers } from '@prisma/client/sql'
-import { Img } from 'openimg/react'
-import { redirect, Link } from 'react-router'
+import { useState } from 'react'
+import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList } from '#app/components/forms.tsx'
-import { SearchBar } from '#app/components/search-bar.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
+import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
-import { type Route } from './+types/index.ts'
+import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
+export async function loader() {
+	// Only admins can access
+	// This should be enforced in the route config or loader
+	// For now, just fetch all users
+	const users = await prisma.user.findMany({
+		select: {
+			id: true,
+			email: true,
+			username: true,
+			name: true,
+			roles: { select: { name: true } },
+		},
+	})
+	// Debug log: print user count and IDs
 
-export async function loader({ request }: Route.LoaderArgs) {
-	const searchTerm = new URL(request.url).searchParams.get('search')
-	if (searchTerm === '') {
-		return redirect('/users')
-	}
-
-	const like = `%${searchTerm ?? ''}%`
-	const users = await prisma.$queryRawTyped(searchUsers(like))
-	return { status: 'idle', users } as const
+	return { users }
 }
 
-export default function UsersRoute({ loaderData }: Route.ComponentProps) {
-	const isPending = useDelayedIsPending({
-		formMethod: 'GET',
-		formAction: '/users',
+export async function action({ request }: { request: Request }) {
+	// Require admin role for all user modifications and deletions
+	const { requireUserWithRole } = await import(
+		'#app/utils/permissions.server.ts'
+	)
+	await requireUserWithRole(request, 'admin')
+
+	const formData = await (request as Request).formData()
+	const id = formData.get('id') as string
+	const email = formData.get('email') as string
+	const username = formData.get('username') as string
+	const name = formData.get('name') as string
+	const adminChecked = formData.get('admin') === 'on'
+
+	// Update admin role with a single update statement
+	await prisma.user.update({
+		where: { id },
+		data: {
+			roles: adminChecked
+				? { connect: { name: 'admin' } }
+				: { disconnect: { name: 'admin' } },
+		},
 	})
 
-	return (
-		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
-			<h1 className="text-h1">HEAT Users</h1>
-			<div className="w-full max-w-[700px]">
-				<SearchBar status={loaderData.status} autoFocus autoSubmit />
+	// Update other fields
+	await prisma.user.update({
+		where: { id },
+		data: { email, username, name },
+	})
+	return null
+}
+
+export default function AdminEditUsers() {
+	const { users } = useLoaderData() as {
+		users: Array<{
+			id: string
+			email: string
+			username: string
+			name: string | null
+			roles?: { name: string }[]
+		}>
+	}
+	const loggedInUser = useOptionalUser()
+
+	const [editingId, setEditingId] = useState<string | null>(null)
+	if (!loggedInUser || !hasAdminRole(loggedInUser)) {
+		return (
+			<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
+				<h1 className="text-h1">HEAT Users</h1>
+				<p className="text-error">{ACCESS_DENIED_MESSAGE}</p>
 			</div>
-			<main>
-				{loaderData.status === 'idle' ? (
-					loaderData.users.length ? (
-						<ul
-							className={cn(
-								'flex w-full flex-wrap items-center justify-center gap-4 delay-200',
-								{ 'opacity-50': isPending },
-							)}
-						>
-							{loaderData.users.map((user) => (
-								<li key={user.id}>
-									<Link
-										to={user.username}
-										className="flex h-36 w-44 flex-col items-center justify-center rounded-lg bg-muted px-5 py-3"
+		)
+	}
+	return (
+		<div className="container mt-10" id="users-page">
+			<h2 className="mb-6 text-h2">Edit Users (Admin Only)</h2>
+			<div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
+				<div className="flex min-w-[120px] items-center gap-2 px-2">Admin</div>
+				<div className="ml-2 px-2">Edit</div>
+			</div>
+			<ul className="divide-y divide-muted">
+				{users.map((u) => {
+					const isEditing = editingId === u.id
+					return (
+						<li key={u.id} className="flex items-center gap-6 py-4 text-base">
+							{!isEditing ? (
+								<div className="flex w-full items-center gap-4">
+									<div
+										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
+										id={`email_${u.username}_display`}
 									>
-										<Img
-											alt={user.name ?? user.username}
-											src={getUserImgSrc(user.imageObjectKey)}
-											className="h-16 w-16 rounded-full"
-											width={256}
-											height={256}
+										{u.email}
+									</div>
+									<div
+										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
+										id={`username_${u.username}_display`}
+									>
+										{u.username}
+									</div>
+									<div
+										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
+										id={`name_${u.username}_display`}
+									>
+										{u.name ?? ''}
+									</div>
+									<div className="flex min-w-[120px] items-center px-2">
+										<input
+											type="checkbox"
+											checked={hasAdminRole(u)}
+											readOnly
+											aria-label="Admin Role"
 										/>
-										{user.name ? (
-											<span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-body-md">
-												{user.name}
-											</span>
-										) : null}
-										<span className="w-full overflow-hidden text-ellipsis text-center text-body-sm text-muted-foreground">
-											{user.username}
-										</span>
-									</Link>
-								</li>
-							))}
-						</ul>
-					) : (
-						<p>No users found</p>
+									</div>
+
+									<button
+										type="button"
+										className="ml-2 rounded p-2 hover:bg-accent"
+										id={`edit_btn_${u.username}`}
+										onClick={() => setEditingId(u.id)}
+									>
+										<Icon name="pencil-2" size="md" />
+									</button>
+								</div>
+							) : (
+								<Form
+									method="post"
+									className="flex w-full items-center gap-4 text-lg"
+									onBlur={(e) => {
+										if (e.relatedTarget === null) setEditingId(null)
+									}}
+								>
+									<input type="hidden" name="id" value={u.id} />
+									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
+										Email
+										<input
+											name="email"
+											id={`email_${u.username}`}
+											defaultValue={u.email}
+											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
+											style={{ width: '100%' }}
+											onBlur={(e) => e.target.form?.requestSubmit()}
+										/>
+									</label>
+									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
+										Username
+										<input
+											name="username"
+											id={`username_${u.username}`}
+											defaultValue={u.username}
+											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
+											style={{ width: '100%' }}
+											onBlur={(e) => e.target.form?.requestSubmit()}
+										/>
+									</label>
+									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
+										Name
+										<input
+											name="name"
+											id={`name_${u.username}`}
+											defaultValue={u.name ?? ''}
+											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
+											style={{ width: '100%' }}
+											onBlur={(e) => e.target.form?.requestSubmit()}
+										/>
+									</label>
+									<div className="flex min-w-[120px] items-center px-2">
+										<input
+											type="checkbox"
+											name="admin"
+											defaultChecked={hasAdminRole(u)}
+											aria-label="Admin Role"
+											onChange={(e) => e.target.form?.requestSubmit()}
+										/>
+									</div>
+									<button
+										type="button"
+										className="ml-2 rounded p-2 hover:bg-accent"
+										id={`cancel_edit_btn_${u.username}`}
+										onClick={() => setEditingId(null)}
+									>
+										<Icon name="cross-1" size="md" />
+									</button>
+								</Form>
+							)}
+						</li>
 					)
-				) : loaderData.status === 'error' ? (
-					<ErrorList errors={['There was an error parsing the results']} />
-				) : null}
-			</main>
+				})}
+			</ul>
 		</div>
 	)
 }

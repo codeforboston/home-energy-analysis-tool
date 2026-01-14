@@ -26,8 +26,6 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
 			try {
 				const res = await fetch(`/help/${keyName}.md`)
 				const raw = await res.text()
-				console.log('debug markdown', raw)
-				console.log('key', keyName)
 
 				const lines = raw.split('\n')
 
@@ -70,7 +68,7 @@ export function ModalFromMarkDown({ keyName, open, onClose }: ModalProps) {
 		<Dialog.Root open={open} onOpenChange={onClose}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="fixed inset-0 z-50 bg-black/30" />
-				<Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg bg-white shadow-lg focus:outline-none">
+				<Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-[90vw] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg bg-white shadow-lg focus:outline-none">
 					{/* Blue Title Bar */}
 					<div className="bg-blue-600 px-6 py-3 text-lg font-semibold text-white">
 						{title}

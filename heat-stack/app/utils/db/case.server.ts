@@ -1,24 +1,40 @@
 import { invariant } from '@epic-web/invariant'
 import type z from 'zod'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { type GetConvertedDatesTIWDResponse } from '#app/utils/date-temp-util.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
 
-// export const getCaseByIdAndUser = async (caseId: number, userId: string) => {
-// 	const caseRecord = await prisma.case.findUnique({
-// 		where: {
-// 			id: caseId,
-// 			users: {
-// 				some: {
-// 					id: userId,
-// 				},
-// 			},
-// 		},
-// 	})
+export async function getLoggedInUserFromRequest(request: Request) {
+	// Use session-based user lookup
+	const userId = await requireUserId(request)
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: {
+			id: true,
+			username: true,
+			roles: {
+				select: {
+					name: true,
+					permissions: {
+						select: {
+							action: true,
+							entity: true,
+							access: true,
+						},
+					},
+				},
+			},
+		},
+	})
+	if (!user) throw new Error('User not found')
+	return user
+}
 
-// 	return caseRecord
-// }
+// Get all cases with usernames for admin
+
+export type { SchemaZodFromFormType }
 
 /**
  * Return a case assigned to user and all related data necessary for editing a case.
@@ -26,16 +42,25 @@ import { type SchemaZodFromFormType } from '#types/single-form.ts'
  * @param userId id of the user
  * @returns case and necessary related data required for editing a case.
  */
-export const getCaseForEditing = async (caseId: number, userId: string) => {
-	return await prisma.case.findUnique({
-		where: {
-			id: caseId,
+export const getCaseForEditing = async (
+	caseId: number,
+	userId: string,
+	isAdmin?: boolean,
+) => {
+	let userWhere
+	if (isAdmin) {
+		userWhere = {}
+	} else {
+		userWhere = {
 			users: {
 				some: {
 					id: userId,
 				},
 			},
-		},
+		}
+	}
+	return await prisma.case.findUnique({
+		where: { id: caseId, ...userWhere },
 		include: {
 			homeOwner: true,
 			location: true,
@@ -72,70 +97,37 @@ export const deleteCaseWithUser = async (caseId: number, userId: string) => {
 	})
 }
 
-export const getCasesByUser = async (
-	userId: string,
+export const getCases = async (
+	userId?: string,
 	search?: string | null,
+	isAdmin?: boolean,
 ) => {
-	const where =
-		search && search.trim().length > 0
-			? {
-					users: {
-						some: {
-							id: userId,
-						},
-					},
-					OR: [
-						{
-							homeOwner: {
-								OR: [
-									{
-										firstName1: {
-											contains: search,
-										},
-									},
-									{
-										lastName1: {
-											contains: search,
-										},
-									},
-								],
-							},
-						},
-						{
-							location: {
-								OR: [
-									{
-										address: {
-											contains: search,
-										},
-									},
-									{
-										city: {
-											contains: search,
-										},
-									},
-									{
-										state: {
-											contains: search,
-										},
-									},
-									{
-										zipcode: {
-											contains: search,
-										},
-									},
-								],
-							},
-						},
-					],
-				}
-			: {
-					users: {
-						some: {
-							id: userId,
-						},
-					},
-				}
+	let where1 = undefined
+	let where2 = undefined
+
+	if (userId !== 'all') {
+		where1 = { users: { some: { id: userId } } }
+	}
+
+	if (search && search.trim().length > 0) {
+		where2 = {
+			OR: [
+				// If userId is provided, search within the assigned user(s).
+				// case <=> users is a many-to-many relationship
+				userId === 'all'
+					? { users: { some: { username: { contains: search } } } }
+					: undefined,
+				{ homeOwner: { firstName1: { contains: search } } },
+				{ homeOwner: { lastName1: { contains: search } } },
+				{ location: { address: { contains: search } } },
+				{ location: { city: { contains: search } } },
+				{ location: { state: { contains: search } } },
+				{ location: { zipcode: { contains: search } } },
+			].filter(Boolean), // filter out undefineds
+		}
+	}
+
+	const where = { ...where1, ...where2 }
 
 	return await prisma.case.findMany({
 		where,
@@ -149,6 +141,7 @@ export const getCasesByUser = async (
 					},
 				},
 			},
+			...(isAdmin ? { users: { select: { username: true } } } : {}),
 		},
 		orderBy: {
 			id: 'desc',

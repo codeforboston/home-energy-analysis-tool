@@ -78,45 +78,6 @@ export default function SingleCaseForm({
 	billingRecords,
 }: SubmitAnalysisProps) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
-	// const [savedCase, setSavedCase] = useState<CaseInfo | undefined>()
-	// const {
-	// 	lazyLoadRulesEngine,
-	// 	recalculateFromBillingRecordsChange,
-	// 	usageData,
-	// 	toggleBillingPeriod,
-	// } = useRulesEngine(actionData)
-
-	// // ✅ Extract structured values from actionData
-	// const caseInfo = actionData?.caseInfo
-
-	// React.useEffect(() => {
-	// 	if (caseInfo) {
-	// 		setSavedCase(caseInfo)
-	// 	}
-	// }, [caseInfo])
-
-	// const showUsageData = actionData !== undefined
-
-	// type SchemaZodFromFormType = z.infer<typeof Schema>
-	// type MinimalFormData = { fuel_type: 'GAS' }
-
-	// const defaultValue: SchemaZodFromFormType | MinimalFormData | undefined =
-	// 	isDevMode
-	// 		? {
-	// 			living_area: 2155,
-	// 			street_address: '15 Dale Ave',
-	// 			town: 'Gloucester',
-	// 			state: 'MA',
-	// 			name: 'CIC',
-	// 			fuel_type: 'GAS',
-	// 			heating_system_efficiency: 0.97,
-	// 			thermostat_set_point: 68,
-	// 			setback_temperature: 65,
-	// 			setback_hours_per_day: 8,
-	// 		}
-	// 		: { fuel_type: 'GAS' }
-
-	// ✅ Pass `result` as `lastResult`
 
 	const [form, fields] = useForm({
 		lastResult: lastResult,
