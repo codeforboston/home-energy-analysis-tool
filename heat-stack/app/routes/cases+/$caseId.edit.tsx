@@ -155,17 +155,17 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
 		? {
-				estimated_balance_point: heatingOutput.estimatedBalancePoint,
-				other_fuel_usage: heatingOutput.otherFuelUsage,
-				average_indoor_temperature: heatingOutput.averageIndoorTemperature,
-				difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
-				design_temperature: heatingOutput.designTemperature,
-				whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
-				standard_deviation_of_heat_loss_rate:
-					heatingOutput.standardDeviationOfHeatLossRate,
-				average_heat_load: heatingOutput.averageHeatLoad,
-				maximum_heat_load: heatingOutput.maximumHeatLoad,
-			}
+			estimated_balance_point: heatingOutput.estimatedBalancePoint,
+			other_fuel_usage: heatingOutput.otherFuelUsage,
+			average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+			difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+			design_temperature: heatingOutput.designTemperature,
+			whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+			standard_deviation_of_heat_loss_rate:
+				heatingOutput.standardDeviationOfHeatLossRate,
+			average_heat_load: heatingOutput.averageHeatLoad,
+			maximum_heat_load: heatingOutput.maximumHeatLoad,
+		}
 		: undefined
 
 	return {
@@ -221,123 +221,82 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 	}
 
-	try {
-		if (intent === 'process-file') {
-			// Full update with new energy file - use the original processCaseUpdate
-			const result = await processCaseUpdate(
-				caseId,
-				submission,
-				userId,
-				formData,
-			)
 
-			return {
-				submitResult: submission.reply(),
-				data: JSON.stringify(result.gasBillData, replacer),
-				parsedAndValidatedFormSchema: submission.value,
-				convertedDatesTIWD: result.convertedDatesTIWD,
-				state_id: result.state_id,
-				county_id: result.county_id,
-				caseInfo: {
-					caseId: result.updatedCase?.id,
-					analysisId: result.updatedCase?.analysis?.[0]?.id,
-				},
-			}
-		} else {
-			// Simple form update (intent === 'save' or fallback) - just update the database fields
-			console.log('🔄 Processing save operation for case:', caseId)
+	// Simple form update (intent === 'save' or fallback) - just update the database fields
+	console.log('🔄 Processing save operation for case:', caseId)
 
-			// Parse billing records from form data if present
-			const billingRecordsJson = formData.get('billing_records') as
-				| string
-				| null
-			let billingRecords: any[] | undefined
-			if (billingRecordsJson) {
-				try {
-					const parsed = JSON.parse(billingRecordsJson)
-					billingRecords = Array.isArray(parsed) ? parsed : undefined
-					console.log('📊 Parsed billing records:', billingRecords)
-				} catch (error) {
-					console.error('❌ Failed to parse billing records:', error)
-				}
-			}
-
-			// Parse heat load output from form data if present
-			const heatLoadOutputJson = formData.get('heat_load_output') as
-				| string
-				| null
-			let heatLoadOutput: any | undefined
-			if (heatLoadOutputJson) {
-				try {
-					heatLoadOutput = JSON.parse(heatLoadOutputJson)
-					console.log('📊 Parsed heat load output:', heatLoadOutput)
-				} catch (error) {
-					console.error('❌ Failed to parse heat load output:', error)
-				}
-			}
-
-			const { updateCaseRecord } = await import(
-				'#app/utils/db/case.db.server.ts'
-			)
-			const updatedCase = await updateCaseRecord(
-				caseId,
-				submission.value,
-				{},
-				userId,
-				billingRecords,
-				heatLoadOutput,
-			)
-			console.log('✅ Case updated successfully:', {
-				caseId: updatedCase?.id,
-				analysisId: updatedCase?.analysis?.[0]?.id,
-			})
-
-			// For save operations, add a dummy energy_use_upload to match expected type
-			const formDataWithFile = {
-				...submission.value,
-				energy_use_upload: {
-					name: 'existing-data.csv',
-					size: 0,
-					type: 'text/csv',
-				},
-			}
-
-			const result = {
-				submitResult: submission.reply(),
-				data: undefined, // No new calculation data
-				parsedAndValidatedFormSchema: formDataWithFile,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: {
-					caseId: updatedCase?.id,
-					analysisId: updatedCase?.analysis?.[0]?.id,
-				},
-			}
-			console.log('📤 Returning save result:', result)
-			return result
+	// Parse billing records from form data if present
+	const billingRecordsJson = formData.get('billing_records') as
+		| string
+		| null
+	let billingRecords: any[] | undefined
+	if (billingRecordsJson) {
+		try {
+			const parsed = JSON.parse(billingRecordsJson)
+			billingRecords = Array.isArray(parsed) ? parsed : undefined
+			console.log('📊 Parsed billing records:', billingRecords)
+		} catch (error) {
+			console.error('❌ Failed to parse billing records:', error)
 		}
-	} catch (error: any) {
-		console.error('❌ Case update failed', error)
-		const message =
-			error instanceof Error
-				? error.message
-				: 'Unknown error during case update'
-		return data(
-			{
-				submitResult: submission.reply({ formErrors: [message] }),
-				parsedAndValidatedFormSchema: undefined,
-				data: undefined,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: undefined,
-				error: message, // Add error field for consistent error handling
-			},
-			{ status: 500 },
-		)
 	}
+
+	// Parse heat load output from form data if present
+	const heatLoadOutputJson = formData.get('heat_load_output') as
+		| string
+		| null
+	let heatLoadOutput: any | undefined
+	if (heatLoadOutputJson) {
+		try {
+			heatLoadOutput = JSON.parse(heatLoadOutputJson)
+			console.log('📊 Parsed heat load output:', heatLoadOutput)
+		} catch (error) {
+			console.error('❌ Failed to parse heat load output:', error)
+		}
+	}
+
+	const { updateCaseRecord } = await import(
+		'#app/utils/db/case.db.server.ts'
+	)
+	const updatedCase = await updateCaseRecord(
+		caseId,
+		submission.value,
+		{},
+		userId,
+		billingRecords,
+		heatLoadOutput,
+	)
+	console.log('✅ Case updated successfully:', {
+		caseId: updatedCase?.id,
+		analysisId: updatedCase?.analysis?.[0]?.id,
+	})
+
+	// For save operations, add a dummy energy_use_upload to match expected type
+	const formDataWithFile = {
+		...submission.value,
+		energy_use_upload: {
+			name: 'existing-data.csv',
+			size: 0,
+			type: 'text/csv',
+		},
+	}
+
+	const result = {
+		submitResult: submission.reply(),
+		data: undefined, // No new calculation data
+		parsedAndValidatedFormSchema: formDataWithFile,
+		convertedDatesTIWD: undefined,
+		state_id: undefined,
+		county_id: undefined,
+		caseInfo: {
+			caseId: updatedCase?.id,
+			analysisId: updatedCase?.analysis?.[0]?.id,
+		},
+	}
+	console.log('📤 Returning save result:', result)
+	return result
 }
+
+
 
 export default function EditCase({
 	loaderData,
@@ -408,25 +367,25 @@ export default function EditCase({
 	const usageData = !isInitialCalculationComplete
 		? undefined
 		: calculatedUsageData ||
-			(localBillingRecords && localBillingRecords.length > 0
-				? {
-						heat_load_output: loaderData.heatLoadOutput || {
-							estimated_balance_point: 1,
-							other_fuel_usage: 1,
-							average_indoor_temperature: 70,
-							difference_between_ti_and_tbp: 1,
-							design_temperature: 10, // Non-zero placeholder value
-							whole_home_heat_loss_rate: 1, // Non-zero placeholder value
-							standard_deviation_of_heat_loss_rate: 1,
-							average_heat_load: 1,
-							maximum_heat_load: 1,
-						},
-						balance_point_graph: {
-							records: [],
-						},
-						processed_energy_bills: localBillingRecords,
-					}
-				: undefined)
+		(localBillingRecords && localBillingRecords.length > 0
+			? {
+				heat_load_output: loaderData.heatLoadOutput || {
+					estimated_balance_point: 1,
+					other_fuel_usage: 1,
+					average_indoor_temperature: 70,
+					difference_between_ti_and_tbp: 1,
+					design_temperature: 10, // Non-zero placeholder value
+					whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+					standard_deviation_of_heat_loss_rate: 1,
+					average_heat_load: 1,
+					maximum_heat_load: 1,
+				},
+				balance_point_graph: {
+					records: [],
+				},
+				processed_energy_bills: localBillingRecords,
+			}
+			: undefined)
 
 	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
 	const editModeToggleBillingPeriod = (index: number) => {
@@ -560,7 +519,7 @@ export default function EditCase({
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => {}}
+				beforeSubmit={() => { }}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}

@@ -105,6 +105,7 @@ export async function processCaseUpdate(
 	caseId: number,
 	parsedForm: any,
 	userId: string,
+	gasBillingData: NaturalGasUsageDataSchema,
 ) {
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await processCaseSubmission2(parsedForm, gasBillingData)
@@ -115,4 +116,11 @@ export async function processCaseUpdate(
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 	)
+	return {
+		updatedCase,
+		gasBillData: rulesEngineResult,
+		state_id,
+		county_id,
+		convertedDatesTIWD,
+	}
 }
