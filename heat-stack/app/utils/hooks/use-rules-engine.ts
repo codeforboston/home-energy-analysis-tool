@@ -17,10 +17,6 @@ import { type TemperatureInputDataConverted } from '../WeatherUtil'
 const importRulesEngine = () => import('#app/utils/rules-engine.ts')
 
 type RulesEngineType = Awaited<ReturnType<typeof importRulesEngine>>
-type UseRulesEngineReturnType = ReturnType<typeof useRulesEngine>
-export type RecalculateFunction = NonNullable<
-	UseRulesEngineReturnType['recalculateFromBillingRecordsChange']
->
 
 /**
  * Custom React hook for interacting with a Pyodide-backed rules engine and keeps track of usage data.
@@ -199,11 +195,6 @@ export const useRulesEngine = (
 
 	return {
 		lazyLoadRulesEngine,
-		toggleBillingPeriod,
 		usageData,
-		recalculateFromBillingRecordsChange:
-			isInitialized && rulesEngineRef.current
-				? recalculateFromBillingRecordsChange
-				: null,
 	}
 }
