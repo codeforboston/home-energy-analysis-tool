@@ -1,4 +1,18 @@
 Check use-rules-engine
 Rename login to insertAndLoginTemporaryUser
 Separate package.json
-Check ou
+Check out use-rules-engine.ts
+       modified:   heat-stack/app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx
+        modified:   heat-stack/app/pycode/get_analytics.py
+        modified:   heat-stack/app/utils/date-temp-util.ts
+        modified:   heat-stack/app/utils/logic/case.logic.server.ts
+        modified:   heat-stack/app/utils/rules-engine.ts
+        modified:   heat-stack/package.json
+        new file:   heat-stack/todo.txt
+        new file:   python/src/rules_engine/alternate.csv
+        new file:   python/src/rules_engine/calculate.py
+        new file:   python/src/rules_engine/models/location.py
+        new file:   python/src/rules_engine/run_calculate_with_csv.py
+        new file:   python/src/rules_engine/web_geocode_utils.py
+        new file:   python/src/rules_engine/web_temperature_utils.py
+        new file:   python/src/rules_engine/web_weather_utils.py
