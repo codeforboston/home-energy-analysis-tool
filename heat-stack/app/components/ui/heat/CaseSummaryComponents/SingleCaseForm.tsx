@@ -98,6 +98,7 @@ export default function SingleCaseForm({
 	return (
 		<>
 			<Form
+				ref={formRef}
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}

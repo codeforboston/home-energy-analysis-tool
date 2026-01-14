@@ -8,6 +8,7 @@ import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
+import { NaturalGasUsageDataSchema } from '#types/index.ts'
 
 // Import Python code as raw string assets
 
@@ -99,11 +100,19 @@ export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
 	toJs?(): any
 }
 
+// type ExecuteCalculateWithCsvFunction = ((
+// 	csvDataJs: string,
+// 	parsedFormJs: any,
+// ) => PyProxy) & {
+// 	destroy(): void
+// 	toJs?(): any
+// }
+
 // Type for the execute analytics function - notice we're using Maps now
 type ExecuteGetAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
-	csvDataJs: string,
+	gasBillingData: NaturalGasUsageDataSchema,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {
