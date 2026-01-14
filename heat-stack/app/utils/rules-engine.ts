@@ -2,6 +2,7 @@ import * as pyodideModule from 'pyodide'
 import { type PyodideInterface } from 'pyodide'
 import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
@@ -103,7 +104,7 @@ export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
 type ExecuteGetAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
-	csvDataJs: string,
+	gasBillingData: NaturalGasUsageDataSchema,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {

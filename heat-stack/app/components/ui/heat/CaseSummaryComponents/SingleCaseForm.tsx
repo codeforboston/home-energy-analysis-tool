@@ -1,6 +1,6 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -95,9 +95,22 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
+	// Track last focused field and its value
+	const lastFocusedFieldRef = useRef<{ name: string; value: any } | null>(null)
+	const formRef = useRef<HTMLFormElement>(null)
+
+	// Toast state for autosave feedback
+	const [showToast, setShowToast] = useState(false)
+	// Show toast for 2 seconds when autosave triggers
+	const handleAutosaveToast = () => {
+		setShowToast(true)
+		setTimeout(() => setShowToast(false), 2000)
+	}
+
 	return (
 		<>
 			<Form
+				ref={formRef}
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
@@ -105,7 +118,46 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
+				onFocus={(e) => {
+					if (e.target && e.target.name) {
+						lastFocusedFieldRef.current = {
+							name: e.target.name,
+							value: e.target.value,
+						}
+					}
+				}}
+				onBlur={(e) => {
+					const target = e.target
+					if (
+						target &&
+						(target instanceof HTMLInputElement ||
+							target instanceof HTMLSelectElement ||
+							target instanceof HTMLTextAreaElement) &&
+						target.name
+					) {
+						console.log(
+							'[Form] onBlur triggered for:',
+							target.name,
+							'value:',
+							target.value,
+						)
+						const original = lastFocusedFieldRef.current
+						const valueChanged =
+							original?.name === target.name && original.value !== target.value
+						console.log(
+							`[Form] Field blurred: ${target.name}, original value: ${original?.name === target.name ? original.value : 'unknown'}, new value: ${target.value}`,
+						)
+						if (isEditMode && valueChanged && formRef.current) {
+							console.log('[Form] Value changed on blur, submitting form...')
+							formRef.current.requestSubmit()
+							handleAutosaveToast()
+						}
+						lastFocusedFieldRef.current = null
+					}
+				}}
 			>
+				{/* Ensure intent is always sent for autosave */}
+				{isEditMode && <input type="hidden" name="intent" value="save" />}
 				<div>Case {caseInfo?.caseId}</div>
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
@@ -125,11 +177,12 @@ export default function SingleCaseForm({
 				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload
-					setScrollAfterSubmit={setScrollAfterSubmit}
-					fields={fields}
-					isEditMode={isEditMode}
-				/>
+				{!isEditMode && (
+					<EnergyUseUpload
+						setScrollAfterSubmit={setScrollAfterSubmit}
+						fields={fields}
+					/>
+				)}
 				<ErrorList id={form.errorId} errors={form.errors} />
 
 				{showUsageData && usageData && (
@@ -164,6 +217,15 @@ export default function SingleCaseForm({
 					</>
 				)}
 			</Form>
+			{/* Autosave Toast */}
+			{showToast && (
+				<div
+					style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
+					className="rounded bg-green-600 px-4 py-2 text-white shadow"
+				>
+					Changes saved!
+				</div>
+			)}
 			{/* Show case saved message */}
 			{showSavedCaseIdMsg &&
 				caseInfo &&
