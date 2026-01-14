@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { type UsageDataSchema } from '#/types/types.ts'
-import { HelpButton } from '../../HelpButton'
 
 interface AnalysisHeaderProps {
 	usageData: UsageDataSchema
