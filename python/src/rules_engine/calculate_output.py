@@ -52,7 +52,7 @@ def calculate_from_bills(bills: str, form_data: dict) -> dict:
     return calculate_with_bills_and_temperatures(
         form_data=form_data,
         temperatures=temperatures,
-        state=geo_result.state_id,
+        state=geo_result.state,
         county_id=geo_result.county_id,
         bills=bills,
     )

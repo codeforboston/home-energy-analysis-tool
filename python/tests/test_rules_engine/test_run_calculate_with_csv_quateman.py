@@ -1,0 +1,69 @@
+import json
+import os
+import pathlib
+
+import pytest
+
+from rules_engine.calculate_output import calculate_from_csv
+
+# Paths to test data
+TEST_DIR = pathlib.Path(__file__).parent
+EXAMPLES_DIR = TEST_DIR / "cases" / "examples" / "natural_gas" / "quateman"
+CSV_PATH = EXAMPLES_DIR / "natural-gas-national-grid.csv"
+SUMMARY_PATH = EXAMPLES_DIR / "summary.json"
+
+
+@pytest.mark.skipif(
+    not CSV_PATH.exists() or not SUMMARY_PATH.exists(),
+    reason="Required test files not found.",
+)
+def test_run_calculate_with_csv_quateman():
+    # Load form data from summary.json
+    with open(SUMMARY_PATH) as f:
+        summary = json.load(f)
+    # Map summary fields to form_data expected by calculate_from_csv
+    form_data = {
+        "street_address": "100 Sohier Rd",
+        "city": "Beverly",
+        "state": "MA",
+        "living_area": summary["living_area"],
+        "fuel_type": summary["fuel_type"],
+        "heating_system_efficiency": summary["heating_system_efficiency"],
+        "thermostat_set_point": summary["thermostat_set_point"],
+        "setback_temperature": summary.get("setback_temperature"),
+        "setback_hours_per_day": summary.get("setback_hours_per_day"),
+        "design_temperature": summary["design_temperature"],
+    }
+    with open(CSV_PATH) as f:
+        csv_data = f.read()
+    # Run calculation
+    result = calculate_from_csv(csv_data, form_data)
+    rules_engine_result = result["analysisResults"]
+    # Assert all key outputs (except average_indoor_temperature)
+    assert summary["estimated_balance_point"] == pytest.approx(
+        rules_engine_result.heat_load_output.estimated_balance_point, abs=0.1
+    )
+    assert summary["whole_home_heat_loss_rate"] == pytest.approx(
+        rules_engine_result.heat_load_output.whole_home_heat_loss_rate, abs=1
+    )
+    assert summary["standard_deviation_of_heat_loss_rate"] == pytest.approx(
+        rules_engine_result.heat_load_output.standard_deviation_of_heat_loss_rate,
+        abs=0.01,
+    )
+    assert summary["difference_between_ti_and_tbp"] == pytest.approx(
+        rules_engine_result.heat_load_output.difference_between_ti_and_tbp, abs=0.1
+    )
+    assert summary["average_heat_load"] == pytest.approx(
+        rules_engine_result.heat_load_output.average_heat_load, abs=1
+    )
+    assert summary["design_temperature"] == pytest.approx(
+        rules_engine_result.heat_load_output.design_temperature, abs=0.1
+    )
+    assert summary["maximum_heat_load"] == pytest.approx(
+        rules_engine_result.heat_load_output.maximum_heat_load, abs=1
+    )
+    # Check processed_energy_bills whole_home_heat_loss_rate
+    data_iter = iter(rules_engine_result.processed_energy_bills)
+    for result_bill in rules_engine_result.processed_energy_bills:
+        if hasattr(result_bill, "whole_home_heat_loss_rate"):
+            assert result_bill.whole_home_heat_loss_rate is not None
