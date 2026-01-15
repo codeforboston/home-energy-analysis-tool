@@ -68,27 +68,23 @@ def main():
             pprint.pprint(processed_energy_bills, sort_dicts=False)
             print("\n--- balance_point_graph ---\n", flush=True)
             pprint.pprint(balance_point_graph_records, sort_dicts=False)
+        elif key == "convertedDatesTIWD":
+            dates = value.dates
+            temperatures = value.temperatures
+            print("convertedDatesTIWD (date, temperature):", flush=True)
+            for date, temp in zip(dates, temperatures):
+                print(f"{date}: {temp}", flush=True)
+        elif key in ("state_id", "county_id"):
+            print(value, flush=True)
         else:
-            if key == "convertedDatesTIWD" and isinstance(value, dict):
-                dates = value.get("dates", [])
-                temperatures = value.get("temperatures", [])
-                print("convertedDatesTIWD (date, temperature):", flush=True)
-                for date, temp in zip(dates, temperatures):
-                    print(f"{date}: {temp}", flush=True)
-            else:
-                print("debug generic value:", flush=True)
-                pprint.pprint(value, sort_dicts=False)
+            print("Invald key:", key, flush=True)
 
-    try:
-        result = calculate_from_csv(csv_data=csv_data, form_data=form_data)
-        print("Calculation result:", flush=True)
-        doit("convertedDatesTIWD", result.get("convertedDatesTIWD"))
-        doit("state_id", result.get("state_id"))
-        doit("county_id", result.get("county_id"))
-        doit("analysisResults", result.get("analysisResults"))
-        doit("processed_energy_bills", result.get("processed_energy_bills"))
-    except Exception as e:
-        print(f"Error during calculation: {e}", flush=True)
+    result = calculate_from_csv(csv_data=csv_data, form_data=form_data)
+    print("Calculation result:", flush=True)
+    doit("convertedDatesTIWD", result.get("convertedDatesTIWD"))
+    doit("state_id", result.get("state_id"))
+    doit("county_id", result.get("county_id"))
+    doit("analysisResults", result.get("analysisResults"))
 
 
 if __name__ == "__main__":
