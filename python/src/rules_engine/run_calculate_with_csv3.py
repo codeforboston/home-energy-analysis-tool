@@ -65,9 +65,18 @@ def main():
             print("\n--- heat_load_output ---\n", flush=True)
             pprint.pprint(heat_load_output, sort_dicts=False)
             print("\n--- processed_energy_bills ---\n", flush=True)
-            pprint.pprint(processed_energy_bills, sort_dicts=False)
+            for bill in processed_energy_bills:
+                if hasattr(bill, "__dict__"):
+                    pprint.pprint(vars(bill), sort_dicts=False)
+                else:
+                    pprint.pprint(bill, sort_dicts=False)
             print("\n--- balance_point_graph ---\n", flush=True)
-            pprint.pprint(balance_point_graph_records, sort_dicts=False)
+            # Print each record as a dict, omitting the class name
+            for rec in balance_point_graph_records:
+                if hasattr(rec, "__dict__"):
+                    pprint.pprint(vars(rec), sort_dicts=False)
+                else:
+                    pprint.pprint(rec, sort_dicts=False)
         elif key == "convertedDatesTIWD":
             dates = value.dates
             temperatures = value.temperatures
