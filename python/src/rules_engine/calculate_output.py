@@ -17,20 +17,19 @@ from .web_weather_utils import WebWeatherUtil
 
 def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
     try:
-        parsed_gas_data = parser.parse_gas_bill(csv_data)
+        bills = parser.parse_gas_bill(csv_data)
     except Exception as e:
         return {"errors": {"parsing": str(e)}}
-    return calculate_from_parsed_bills(parsed_gas_data, form_data)
+    return calculate_from_bills(bills, form_data)
 
 
-def calculate_from_parsed_bills(parsed_gas_data: str, form_data: dict) -> dict:
+def calculate_from_bills(bills: str, form_data: dict) -> dict:
     # --- Validate and fix start/end dates ---
     # Derive start and end dates from billing records
     from .pydantic_models import NaturalGasBillingInput
 
     # Convert dict/JSON to Pydantic model
-    print("Debug - parsed_gas_data:", parsed_gas_data)
-    gas_data_model = NaturalGasBillingInput.parse_obj(parsed_gas_data)
+    gas_data_model = NaturalGasBillingInput.parse_obj(bills)
     billing_records = gas_data_model.records
     start_date = min(r.period_start_date for r in billing_records)
     end_date = max(r.period_end_date for r in billing_records)
@@ -44,11 +43,18 @@ def calculate_from_parsed_bills(parsed_gas_data: str, form_data: dict) -> dict:
     full_address = street_address + ", " + city + ", " + state
     geo_result = WebGeocodeUtil.get_ll(full_address)
     # print removed
-    weather_result = WebWeatherUtil.get_that_weatha_data(
+    temperatures = WebWeatherUtil.get_that_weatha_data(
         longitude=geo_result.coordinates["x"],
         latitude=geo_result.coordinates["y"],
         start_date=start_date_str,
         end_date=end_date_str,
+    )
+    return calculate_with_bills_and_temperatures(
+        form_data=form_data,
+        temperatures=temperatures,
+        state=geo_result.state_id,
+        county_id=geo_result.county_id,
+        bills=bills,
     )
     # print removed
 
@@ -57,6 +63,22 @@ def calculate_from_parsed_bills(parsed_gas_data: str, form_data: dict) -> dict:
 
     # design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     # summaryInput = HeatLoadInput(**summaryInputFromJs, design_temperature=design_temp_looked_up)
+
+
+def calculate_with_bills_and_temperatures(
+    form_data, temperatures, state, county_id, bills
+):
+    """
+    Calculate analysis results uzsing billing and temperature data.
+    Args:
+        form_data (dict): Form input data.
+        weather_result: Weather data for analysis.
+        geo_result: Geographical result object.
+        bills: Parsed natural gas billing data.
+        engine: Calculation engine instance.
+    Returns:
+        dict: Analysis results and metadata.
+    """
     heat_load_input = HeatLoadInput(
         living_area=form_data["living_area"],
         fuel_type=form_data["fuel_type"],
@@ -66,25 +88,24 @@ def calculate_from_parsed_bills(parsed_gas_data: str, form_data: dict) -> dict:
         setback_hours_per_day=form_data.get("setback_hours_per_day"),
         design_temperature=form_data["design_temperature"],
     )
-    # print removed
 
     result = engine.get_outputs_natural_gas(
         heat_load_input=heat_load_input,
-        temperature_input=weather_result,
-        natural_gas_billing_input=parsed_gas_data,
+        temperature_input=temperatures,
+        natural_gas_billing_input=bills,
     )
 
     return {
-        "convertedDatesTIWD": weather_result,
-        "state_id": geo_result.state,
-        "county_id": geo_result.county_id,
+        "convertedDatesTIWD": temperatures,
+        "state_id": state,
+        "county_id": county_id,
         "analysisResults": result,
     }
 
 
 def main():
     # Provide your input file path here
-    csv_file_path = "alternate.csv"
+    csv_file_path = "example.csv"
 
     # Load CSV text
     with open(csv_file_path, "r", encoding="utf-8") as f:

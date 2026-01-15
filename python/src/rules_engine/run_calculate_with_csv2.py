@@ -32,7 +32,7 @@ def print_pretty_results(results):
 import os
 import sys
 
-from rules_engine.calculate import calculate_from_csv
+from python.src.rules_engine.calculate_output import calculate_from_csv
 
 # Path to the CSV file (relative to this script or absolute)
 csv_path = os.path.join(os.path.dirname(__file__), "alternate.csv")

@@ -4,7 +4,7 @@ import os
 import pprint
 import sys
 
-from rules_engine.calculate import calculate_from_csv
+from python.src.rules_engine.calculate_output import calculate_from_csv
 
 # Path to the CSV file (relative to this script or absolute)
 csv_path = os.path.join(os.path.dirname(__file__), "alternate.csv")
@@ -51,13 +51,7 @@ def main():
 
     def doit(key, value):
         print(f"\n=== {key} ===\n", flush=True)
-        if key == "processed_energy_bills":
-            print("debug processed_energy_bills:", flush=True)
-            for i, row in enumerate(value, start=1):
-                print(f"{i}:", flush=True)
-                pprint.pprint(row, sort_dicts=False)
-        elif key == "analysisResults":
-            print("debug analysisResults:", flush=True)
+        if key == "analysisResults":
             # Hard-coded keys to print in fixed order
             heat_load_output = value.heat_load_output
             processed_energy_bills = value.processed_energy_bills
@@ -67,16 +61,17 @@ def main():
             print("\n--- processed_energy_bills ---\n", flush=True)
             for bill in processed_energy_bills:
                 if hasattr(bill, "__dict__"):
-                    pprint.pprint(vars(bill), sort_dicts=False)
+                    bill_dict = vars(bill)
                 else:
-                    pprint.pprint(bill, sort_dicts=False)
+                    bill_dict = bill
+                print(", ".join(f"{k}: {v}" for k, v in bill_dict.items()), flush=True)
             print("\n--- balance_point_graph ---\n", flush=True)
-            # Print each record as a dict, omitting the class name
             for rec in balance_point_graph_records:
                 if hasattr(rec, "__dict__"):
-                    pprint.pprint(vars(rec), sort_dicts=False)
+                    rec_dict = vars(rec)
                 else:
-                    pprint.pprint(rec, sort_dicts=False)
+                    rec_dict = rec
+                print(", ".join(f"{k}: {v}" for k, v in rec_dict.items()), flush=True)
         elif key == "convertedDatesTIWD":
             dates = value.dates
             temperatures = value.temperatures
