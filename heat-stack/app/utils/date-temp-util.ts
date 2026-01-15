@@ -1,7 +1,6 @@
 // Extracted from case.logic.server.ts
 import {
 	executeParseGasBillPy,
-	executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 
@@ -23,20 +22,11 @@ export async function calculateResults(
 			parsedForm.town,
 			parsedForm.state,
 		)
+	const { gasBillData } = pyodideResults.records
 
 	// Use invariant from '@epic-web/invariant' if needed in util
 	if (!state_id) throw new Error('Missing state_id')
 	if (!county_id) throw new Error('Missing county_id')
-
-	const gasBillDataProxy: PyProxy = executeGetAnalyticsFromFormJs(
-		parsedForm,
-		convertedDatesTIWD,
-		uploadedTextFile,
-		state_id,
-		county_id,
-	)
-	const gasBillData = gasBillDataProxy.toJs()
-	// gasBillDataProxy.destroy()
 
 	return { convertedDatesTIWD, state_id, county_id, gasBillData, parsedForm }
 }

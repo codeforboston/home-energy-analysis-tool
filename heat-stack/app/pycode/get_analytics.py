@@ -1,5 +1,5 @@
-from rules_engine import engine, helpers, parser
-from rules_engine.pydantic_models import (
+from rules_engine import engine, helpers, parser  # type: ignore
+from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
     NaturalGasBillingInput,
     TemperatureInput,
