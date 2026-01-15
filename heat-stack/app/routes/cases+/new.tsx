@@ -20,6 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { isDevMode }
 }
 
+
 export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await parseMultipartFormData(request, uploadHandler)
@@ -38,7 +39,7 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processCaseSubmission(submission, userId, formData)
+		const result = await processCaseSubmission(formData, submission.value, userId)
 
 		// Redirect to the edit page for the newly created case
 		return redirect(`/cases/${result.newCase.id}/edit`)
@@ -63,6 +64,8 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 }
 
+
+
 export default function CreateCase({
 	loaderData,
 	actionData,
@@ -70,7 +73,7 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { lazyLoadRulesEngine, usageData, toggleBillingPeriod } =
+	const { lazyLoadRulesEngine, usageData } =
 		useRulesEngine(actionData as RulesEngineActionData)
 
 	// ✅ Extract structured values from actionData
@@ -119,7 +122,10 @@ export default function CreateCase({
 			caseInfo={actionData?.caseInfo}
 			usageData={usageData}
 			showUsageData={!!usageData}
-			onClickBillingRow={toggleBillingPeriod}
+			onClickBillingRow={(index: number) => {
+				// not possible to adjust billing rows on new case creation page				
+				throw new Error(`Adjusting billing row ${index} not implemented for new cases`)
+			}}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}
 		/>

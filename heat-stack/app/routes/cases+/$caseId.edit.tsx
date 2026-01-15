@@ -1,12 +1,11 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
-import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { replacer } from '#app/utils/data-parser.ts'
+import { updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import {
 	getCaseForEditing,
 	getLoggedInUserFromRequest,
@@ -14,14 +13,12 @@ import {
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
-import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
-
 export async function loader({ params, request }: Route.LoaderArgs) {
 	const percentToDecimal = (value: number, errorMessage: string) => {
 		const decimal = parseFloat((value / 100).toFixed(2))
@@ -254,9 +251,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 	}
 
-	const { updateCaseRecord } = await import(
-		'#app/utils/db/case.db.server.ts'
-	)
 	const updatedCase = await updateCaseRecord(
 		caseId,
 		submission.value,
