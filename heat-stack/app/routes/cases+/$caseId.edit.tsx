@@ -19,6 +19,7 @@ import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
+
 export async function loader({ params, request }: Route.LoaderArgs) {
 	const percentToDecimal = (value: number, errorMessage: string) => {
 		const decimal = parseFloat((value / 100).toFixed(2))
@@ -291,7 +292,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 
-
 export default function EditCase({
 	loaderData,
 	actionData,
@@ -428,35 +428,6 @@ export default function EditCase({
 				const userAdjustedData = {
 					processed_energy_bills: updatedRecords,
 				}
-
-				console.log(
-					'🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records',
-				)
-				console.log(
-					'🔍 Arg 1 (form):',
-					typeof parsedAndValidatedFormSchemaForEffects,
-					parsedAndValidatedFormSchemaForEffects,
-				)
-				console.log(
-					'🔍 Arg 2 (temp):',
-					typeof loaderData.convertedDatesTIWD,
-					loaderData.convertedDatesTIWD,
-				)
-				console.log(
-					'🔍 Arg 3 (adjusted):',
-					typeof userAdjustedData,
-					userAdjustedData,
-				)
-				console.log(
-					'🔍 Arg 4 (state):',
-					typeof loaderData.state_id,
-					loaderData.state_id,
-				)
-				console.log(
-					'🔍 Arg 5 (county):',
-					typeof loaderData.county_id,
-					loaderData.county_id,
-				)
 
 				// Call the function and immediately handle the result
 				let calcResult: any

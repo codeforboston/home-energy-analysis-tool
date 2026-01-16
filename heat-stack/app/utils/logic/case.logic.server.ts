@@ -18,7 +18,7 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  **/
 
-export async function processCaseSubmission(
+export async function calculateWithCsv(
 	formData: FormData, // form as a dictionary and a file - needed for file
 	parsedForm: any, // form values as a parsed object - needed for pycall
 	userId: string,
@@ -28,7 +28,7 @@ export async function processCaseSubmission(
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await processCaseSubmission2(parsedForm, gasBillingData)
+		await calculateWithBills(parsedForm, gasBillingData)
 	return await caseCreate({
 		parsedForm,
 		convertedDatesTIWD,
@@ -38,7 +38,7 @@ export async function processCaseSubmission(
 		rulesEngineResult,
 	})
 }
-export async function processCaseSubmission2(
+export async function calculateWithBills(
 	parsedForm: any, // form values as a parsed object - needed for pycall
 	gasBillingData: NaturalGasUsageDataSchema,
 ) {
@@ -108,7 +108,7 @@ export async function processCaseUpdate(
 	gasBillingData: NaturalGasUsageDataSchema,
 ) {
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await processCaseSubmission2(parsedForm, gasBillingData)
+		await calculateWithBills(parsedForm, gasBillingData)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,

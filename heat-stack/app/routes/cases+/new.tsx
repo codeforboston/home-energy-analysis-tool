@@ -10,7 +10,7 @@ import {
 	type RulesEngineActionData,
 	useRulesEngine,
 } from '#app/utils/hooks/use-rules-engine.ts'
-import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
+import { calculateWithCsv } from '#app/utils/logic/case.logic.server.ts'
 import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
 
@@ -39,7 +39,7 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processCaseSubmission(formData, submission.value, userId)
+		const result = await calculateWithCsv(formData, submission.value, userId)
 
 		// Redirect to the edit page for the newly created case
 		return redirect(`/cases/${result.newCase.id}/edit`)

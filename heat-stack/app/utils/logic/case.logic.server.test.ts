@@ -66,7 +66,7 @@ vi.mock('#app/utils/db/bill.db.server.ts', () => ({
 
 // Import after mocking
 import {
-	processCaseSubmission,
+	calculateWithCsv,
 	processCaseUpdate,
 } from '#app/utils/logic/case.logic.server.ts'
 import {
@@ -111,7 +111,7 @@ describe('case.logic.server', () => {
 		testUser = await createTestUser()
 	})
 
-	describe('processCaseSubmission', () => {
+	describe('calculateWithCsv', () => {
 		it('should process a complete case submission', async () => {
 			const formValues = createFormData()
 			const submission = {
@@ -120,7 +120,7 @@ describe('case.logic.server', () => {
 			}
 			const formData = createMockFormData(formValues)
 
-			const result = await processCaseSubmission(
+			const result = await calculateWithCsv(
 				submission,
 				testUser.id,
 				formData,
@@ -157,7 +157,7 @@ describe('case.logic.server', () => {
 			const formData = createMockFormData(formValues)
 
 			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
+				calculateWithCsv(submission, testUser.id, formData),
 			).rejects.toThrow('Missing state_id')
 		})
 
@@ -182,7 +182,7 @@ describe('case.logic.server', () => {
 			const formData = createMockFormData(formValues)
 
 			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
+				calculateWithCsv(submission, testUser.id, formData),
 			).rejects.toThrow('Missing county_id')
 		})
 
@@ -194,7 +194,7 @@ describe('case.logic.server', () => {
 			}
 			const formData = createMockFormData(formValues)
 
-			await processCaseSubmission(submission, testUser.id, formData)
+			await calculateWithCsv(submission, testUser.id, formData)
 
 			// Verify external functions were called
 			const { fileUploadHandler } = await import(
