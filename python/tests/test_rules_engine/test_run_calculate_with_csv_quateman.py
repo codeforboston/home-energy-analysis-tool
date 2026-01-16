@@ -38,7 +38,6 @@ def test_run_calculate_with_csv_quateman():
     # Run calculation
     result = calculate_from_csv(csv_data, form_data)
     rules_engine_result = result["analysisResults"]
-    print("rules_engine_result:", rules_engine_result)
     # Assert all key outputs (except average_indoor_temperature)
     assert (
         rules_engine_result.heat_load_output.estimated_balance_point
