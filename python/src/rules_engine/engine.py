@@ -149,10 +149,7 @@ def get_outputs_normalized(
     balance_point_graph = home.balance_point_graph
 
     processed_energy_bills = []
-    for idx, intermediate_energy_bill in enumerate(intermediate_processed_energy_bills):
-        print(
-            f"Bill {idx}: period_start={intermediate_energy_bill.input.period_start_date}, period_end={intermediate_energy_bill.input.period_end_date}, usage={intermediate_energy_bill.input.usage}, ua={intermediate_energy_bill.ua}, eliminated_as_outlier={intermediate_energy_bill.eliminated_as_outlier}"
-        )
+    for intermediate_energy_bill in intermediate_processed_energy_bills:
         processed_energy_bill = ProcessedEnergyBill(
             period_start_date=intermediate_energy_bill.input.period_start_date,
             period_end_date=intermediate_energy_bill.input.period_end_date,
@@ -163,8 +160,6 @@ def get_outputs_normalized(
             eliminated_as_outlier=intermediate_energy_bill.eliminated_as_outlier,
             whole_home_heat_loss_rate=intermediate_energy_bill.ua,
         )
-        if intermediate_energy_bill.ua is None:
-            print(f"  UA (whole_home_heat_loss_rate) is None for bill {idx}")
         processed_energy_bills.append(processed_energy_bill)
 
     result = RulesEngineResult(
