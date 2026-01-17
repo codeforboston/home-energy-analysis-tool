@@ -14,7 +14,7 @@ class WebWeatherUtil:
     @staticmethod
     def get_that_weatha_data(
         longitude: float, latitude: float, start_date: str, end_date: str
-    ) -> Optional[Dict[str, List[Any]]]:
+    ) -> Optional[TemperatureInput]:
         """
         :param longitude: Longitude of the location
         :param latitude: Latitude of the location
@@ -46,33 +46,22 @@ class WebWeatherUtil:
                     data = json.loads(body)
 
                     dates = data["daily"]["time"]
-                    # print removed
-                    # for t in data["daily"]["temperature_2m_mean"]:
-                    #         # print removed
-                    #     if isinstance(t, (str, int, float)):
-                    #             # print removed
-                    #     else:
-                    # print removed
                     temperatures = [
                         float(t)
                         for t in data["daily"]["temperature_2m_mean"]
                         if type(t) in (str, int, float)
                     ]
-                    # print removed
 
                     result = TemperatureInput(dates=dates, temperatures=temperatures)
-                    # print removed
                     return result
 
             except Exception as e:
                 retry_count += 1
                 if retry_count <= max_retries:
                     delay = 2**retry_count
-                    # print removed
                     time.sleep(delay)
                 else:
-                    # print removed
-                    raise
+                    return None
 
 
 # Example usage

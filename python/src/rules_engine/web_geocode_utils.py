@@ -27,7 +27,7 @@ class Location:
 
 class WebGeocodeUtil:
     @staticmethod
-    def parse_geo_result(data: dict, address: str) -> "Location":
+    def parse_geo_result(data: dict, address: str) -> Optional[Location]:
         address_matches = data.get("result", {}).get("addressMatches", [])
         if not address_matches:
             return None

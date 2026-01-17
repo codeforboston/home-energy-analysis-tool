@@ -26,6 +26,8 @@ def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
 def calculate_from_bills(bills: str, form_data: dict) -> dict:
     # --- Validate and fix start/end dates ---
     # Derive start and end dates from billing records
+    from typing import Any, Dict
+
     from .pydantic_models import NaturalGasBillingInput
 
     # Convert dict/JSON to Pydantic model
@@ -42,21 +44,23 @@ def calculate_from_bills(bills: str, form_data: dict) -> dict:
     state = form_data["state"]
     full_address = street_address + ", " + city + ", " + state
     geo_result = WebGeocodeUtil.get_ll(full_address)
-    # print removed
+    if geo_result is None:
+        return {"errors": {"geocode": "Could not geocode address."}}
+    if geo_result.coordinates is None:
+        return {"errors": {"geocode": "Missing coordinates in geocode result."}}
     temperatures = WebWeatherUtil.get_that_weatha_data(
-        longitude=geo_result.coordinates["x"],
-        latitude=geo_result.coordinates["y"],
+        longitude=geo_result.coordinates.get("x", 0.0),
+        latitude=geo_result.coordinates.get("y", 0.0),
         start_date=start_date_str,
         end_date=end_date_str,
     )
     return calculate_with_bills_and_temperatures(
         form_data=form_data,
         temperatures=temperatures,
-        state=geo_result.state,
-        county_id=geo_result.county_id,
+        state=geo_result.state if geo_result.state is not None else "",
+        county_id=geo_result.county_id if geo_result.county_id is not None else "",
         bills=bills,
     )
-    # print removed
 
     # We will just pass in this data
     # print removed
