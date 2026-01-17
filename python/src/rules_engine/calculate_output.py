@@ -5,6 +5,7 @@ TODO: Add module description
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import Any, Dict
 
 from rules_engine import engine, parser
 
@@ -15,7 +16,7 @@ from .web_geocode_utils import WebGeocodeUtil
 from .web_weather_utils import WebWeatherUtil
 
 
-def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
+def calculate_from_csv(csv_data: str, form_data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         bills = parser.parse_gas_bill(csv_data)
     except Exception as e:
@@ -23,7 +24,7 @@ def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
     return calculate_from_bills(bills, form_data)
 
 
-def calculate_from_bills(bills, form_data):
+def calculate_from_bills(bills: Any, form_data: Dict[str, Any]) -> Dict[str, Any]:
     # --- Validate and fix start/end dates ---
     from .pydantic_models import NaturalGasBillingInput
 

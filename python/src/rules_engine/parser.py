@@ -142,12 +142,15 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
+from typing import Dict, Optional, Tuple
+
+
 def are_column_names_in_string(
     data: str,
     read_date_names: list[str],
     number_of_days_names: list[str],
     usage_names: list[str],
-) -> bool:
+) -> Tuple[Dict[str, bool], Dict[str, Optional[str]]]:
     """Return whether every column name is in the data"""
     data_lower = data.lower()
     matches: dict[str, bool] = {
