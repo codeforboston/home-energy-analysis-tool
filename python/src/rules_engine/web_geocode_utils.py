@@ -19,7 +19,7 @@ class AddressComponent:
 
 @dataclass
 class Location:
-    coordinates: Dict[str, float]
+    coordinates: dict[str, float]
     state: Optional[str]
     county_id: Optional[str]
     addressComponents: AddressComponent
