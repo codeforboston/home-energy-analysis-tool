@@ -27,16 +27,16 @@ class Location:
 
 class WebGeocodeUtil:
     @staticmethod
-    def parse_geo_result(data: dict, address: str) -> "Location":
+    def parse_geo_result(data: Dict[str, Any], address: str) -> Optional[Location]:
         address_matches = data.get("result", {}).get("addressMatches", [])
         if not address_matches:
             return None
 
         address_match = address_matches[0]
-        coordinates = address_match.get("coordinates", {})
-        geographies = address_match.get("geographies", {})
-        counties = geographies.get("Counties", [{}])
-        address_components = address_match.get("addressComponents", {})
+        coordinates: Dict[str, float] = address_match.get("coordinates", {})
+        geographies: Dict[str, Any] = address_match.get("geographies", {})
+        counties: Any = geographies.get("Counties", [{}])
+        address_components: Dict[str, Any] = address_match.get("addressComponents", {})
 
         # Combine parts to form a street
         street = " ".join(
@@ -68,7 +68,7 @@ class WebGeocodeUtil:
         """
         Returns latitude/longitude and related geocoding information from the U.S. Census Geocoder.
         """
-        params = {
+        params: Dict[str, str] = {
             "address": address,
             "format": "json",
             "benchmark": "2020",

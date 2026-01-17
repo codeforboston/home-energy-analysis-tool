@@ -142,16 +142,27 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
+from typing import Dict, Optional, Tuple
+
+
 def are_column_names_in_string(
     data: str,
     read_date_names: list[str],
     number_of_days_names: list[str],
     usage_names: list[str],
-) -> bool:
+) -> Tuple[Dict[str, bool], Dict[str, Optional[str]]]:
     """Return whether every column name is in the data"""
     data_lower = data.lower()
-    matches = {"read date": False, "number of days": False, "usage": False}
-    found = {"read date": None, "number of days": None, "usage": None}
+    matches: dict[str, bool] = {
+        "read date": False,
+        "number of days": False,
+        "usage": False,
+    }
+    found: dict[str, str | None] = {
+        "read date": None,
+        "number of days": None,
+        "usage": None,
+    }
     for read_date_name in read_date_names:
         if read_date_name.lower() in data_lower:
             matches["read date"] = True
@@ -182,6 +193,8 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
             print("CSV columns:", row)
             break
 
+    matches: dict[str, bool]
+    found: dict[str, str | None]
     matches, found = are_column_names_in_string(
         data,
         constants.READ_DATE_NAMES_EVERSOURCE,
@@ -209,6 +222,8 @@ def _detect_gas_company(data: str) -> NaturalGasCompany:
                 )
         print("  found:", found)
 
+    matches_ng: dict[str, bool]
+    found_ng: dict[str, str | None]
     matches_ng, found_ng = are_column_names_in_string(
         data,
         [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[0]],
@@ -373,7 +388,6 @@ def parse_gas_bill(
     Tries to automatically detect the company that sent the bill.
     Otherwise, requires the company be passed as an argument.
     """
-    print("Parsing gas bill...", data[:100])
     data = _newline_line_ending(data)
     data = _remove_double_quotes(data)
     data = _replace_tabs_with_commas(data)
