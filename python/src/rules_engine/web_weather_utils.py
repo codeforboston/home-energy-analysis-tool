@@ -62,6 +62,7 @@ class WebWeatherUtil:
                     time.sleep(delay)
                 else:
                     return None
+        return None
 
 
 # Example usage

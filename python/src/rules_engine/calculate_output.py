@@ -23,11 +23,8 @@ def calculate_from_csv(csv_data: str, form_data: dict) -> dict:
     return calculate_from_bills(bills, form_data)
 
 
-def calculate_from_bills(bills: str, form_data: dict) -> dict:
+def calculate_from_bills(bills, form_data):
     # --- Validate and fix start/end dates ---
-    # Derive start and end dates from billing records
-    from typing import Any, Dict
-
     from .pydantic_models import NaturalGasBillingInput
 
     # Convert dict/JSON to Pydantic model
