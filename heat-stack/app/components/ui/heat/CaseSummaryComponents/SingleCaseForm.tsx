@@ -95,8 +95,8 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
-	// Track last focused field and its value
-	const lastFocusedFieldRef = useRef<{ name: string; value: any } | null>(null)
+	// Track last focused value for autosave-on-blur
+	const lastFocusedValueRef = useRef<string | null>(null)
 	const formRef = useRef<HTMLFormElement>(null)
 
 	// Toast state for autosave feedback
@@ -105,6 +105,34 @@ export default function SingleCaseForm({
 	const handleAutosaveToast = () => {
 		setShowToast(true)
 		setTimeout(() => setShowToast(false), 2000)
+	}
+
+	// Generic onChange handler for all fields
+	const handleFieldFocus = (e: React.ChangeEvent<any>) => {
+		if (!isEditMode) return
+		lastFocusedValueRef.current = e.target.value
+	}
+
+	// Generic onBlur handler for all fields
+	const handleFieldBlur = (e: React.FocusEvent<any>) => {
+		console.log('[DEBUG handleFieldBlur]', {
+			isEditMode,
+			lastFocusedValue: lastFocusedValueRef.current,
+			currentValue: e.target.value,
+			formRefCurrent: formRef.current
+		});
+		if (lastFocusedValueRef.current === null) {
+			console.log('DEBUG: lastFocusedValueRef.current is null, event:', e);
+			throw new Error('lastFocusedValueRef.current is null in handleFieldBlur');
+		}
+		if (!isEditMode) return
+		const original = lastFocusedValueRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && formRef.current) {
+			formRef.current.requestSubmit()
+			handleAutosaveToast()
+		}
+		lastFocusedValueRef.current = null
 	}
 
 	return (
@@ -118,43 +146,9 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
-				onFocus={(e) => {
-					if (e.target && e.target.name) {
-						lastFocusedFieldRef.current = {
-							name: e.target.name,
-							value: e.target.value,
-						}
-					}
-				}}
-				onBlur={(e) => {
-					const target = e.target
-					if (
-						target &&
-						(target instanceof HTMLInputElement ||
-							target instanceof HTMLSelectElement ||
-							target instanceof HTMLTextAreaElement) &&
-						target.name
-					) {
-						console.log(
-							'[Form] onBlur triggered for:',
-							target.name,
-							'value:',
-							target.value,
-						)
-						const original = lastFocusedFieldRef.current
-						const valueChanged =
-							original?.name === target.name && original.value !== target.value
-						console.log(
-							`[Form] Field blurred: ${target.name}, original value: ${original?.name === target.name ? original.value : 'unknown'}, new value: ${target.value}`,
-						)
-						if (isEditMode && valueChanged && formRef.current) {
-							console.log('[Form] Value changed on blur, submitting form...')
-							formRef.current.requestSubmit()
-							handleAutosaveToast()
-						}
-						lastFocusedFieldRef.current = null
-					}
-				}}
+				onFocus={(e) => handleFieldFocus(e)}
+				onBlur={(e) => handleFieldBlur(e)}
+
 			>
 				{/* Ensure intent is always sent for autosave */}
 				{isEditMode && <input type="hidden" name="intent" value="save" />}

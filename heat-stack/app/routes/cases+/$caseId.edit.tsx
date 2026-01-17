@@ -347,15 +347,6 @@ export default function EditCase({
 		}
 	}, [actionData])
 
-	// Use calculated data when available, fallback to local billing records with database heat load output
-	console.log('📊 Usage data selection:', {
-		hasCalculatedData: !!calculatedUsageData,
-		hasLocalBillingRecords: !!(
-			localBillingRecords && localBillingRecords.length > 0
-		),
-		isInitialCalculationComplete,
-	})
-
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
 	const usageData = !isInitialCalculationComplete
