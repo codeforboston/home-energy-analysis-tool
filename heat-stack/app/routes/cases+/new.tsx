@@ -20,7 +20,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { isDevMode }
 }
 
-
 export async function action({ request }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await parseMultipartFormData(request, uploadHandler)
@@ -64,8 +63,6 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 }
 
-
-
 export default function CreateCase({
 	loaderData,
 	actionData,
@@ -73,8 +70,9 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { lazyLoadRulesEngine, usageData } =
-		useRulesEngine(actionData as RulesEngineActionData)
+	const { lazyLoadRulesEngine, usageData } = useRulesEngine(
+		actionData as RulesEngineActionData,
+	)
 
 	// ✅ Extract structured values from actionData
 
@@ -123,8 +121,10 @@ export default function CreateCase({
 			usageData={usageData}
 			showUsageData={!!usageData}
 			onClickBillingRow={(index: number) => {
-				// not possible to adjust billing rows on new case creation page				
-				throw new Error(`Adjusting billing row ${index} not implemented for new cases`)
+				// not possible to adjust billing rows on new case creation page
+				throw new Error(
+					`Adjusting billing row ${index} not implemented for new cases`,
+				)
 			}}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}

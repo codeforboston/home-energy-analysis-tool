@@ -153,17 +153,17 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
 		? {
-			estimated_balance_point: heatingOutput.estimatedBalancePoint,
-			other_fuel_usage: heatingOutput.otherFuelUsage,
-			average_indoor_temperature: heatingOutput.averageIndoorTemperature,
-			difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
-			design_temperature: heatingOutput.designTemperature,
-			whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
-			standard_deviation_of_heat_loss_rate:
-				heatingOutput.standardDeviationOfHeatLossRate,
-			average_heat_load: heatingOutput.averageHeatLoad,
-			maximum_heat_load: heatingOutput.maximumHeatLoad,
-		}
+				estimated_balance_point: heatingOutput.estimatedBalancePoint,
+				other_fuel_usage: heatingOutput.otherFuelUsage,
+				average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+				difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+				design_temperature: heatingOutput.designTemperature,
+				whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+				standard_deviation_of_heat_loss_rate:
+					heatingOutput.standardDeviationOfHeatLossRate,
+				average_heat_load: heatingOutput.averageHeatLoad,
+				maximum_heat_load: heatingOutput.maximumHeatLoad,
+			}
 		: undefined
 
 	return {
@@ -219,14 +219,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 	}
 
-
 	// Simple form update (intent === 'save' or fallback) - just update the database fields
 	console.log('🔄 Processing save operation for case:', caseId)
 
 	// Parse billing records from form data if present
-	const billingRecordsJson = formData.get('billing_records') as
-		| string
-		| null
+	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
 	if (billingRecordsJson) {
 		try {
@@ -239,9 +236,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	// Parse heat load output from form data if present
-	const heatLoadOutputJson = formData.get('heat_load_output') as
-		| string
-		| null
+	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
 	let heatLoadOutput: any | undefined
 	if (heatLoadOutputJson) {
 		try {
@@ -290,7 +285,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	console.log('📤 Returning save result:', result)
 	return result
 }
-
 
 export default function EditCase({
 	loaderData,
@@ -352,25 +346,25 @@ export default function EditCase({
 	const usageData = !isInitialCalculationComplete
 		? undefined
 		: calculatedUsageData ||
-		(localBillingRecords && localBillingRecords.length > 0
-			? {
-				heat_load_output: loaderData.heatLoadOutput || {
-					estimated_balance_point: 1,
-					other_fuel_usage: 1,
-					average_indoor_temperature: 70,
-					difference_between_ti_and_tbp: 1,
-					design_temperature: 10, // Non-zero placeholder value
-					whole_home_heat_loss_rate: 1, // Non-zero placeholder value
-					standard_deviation_of_heat_loss_rate: 1,
-					average_heat_load: 1,
-					maximum_heat_load: 1,
-				},
-				balance_point_graph: {
-					records: [],
-				},
-				processed_energy_bills: localBillingRecords,
-			}
-			: undefined)
+			(localBillingRecords && localBillingRecords.length > 0
+				? {
+						heat_load_output: loaderData.heatLoadOutput || {
+							estimated_balance_point: 1,
+							other_fuel_usage: 1,
+							average_indoor_temperature: 70,
+							difference_between_ti_and_tbp: 1,
+							design_temperature: 10, // Non-zero placeholder value
+							whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+							standard_deviation_of_heat_loss_rate: 1,
+							average_heat_load: 1,
+							maximum_heat_load: 1,
+						},
+						balance_point_graph: {
+							records: [],
+						},
+						processed_energy_bills: localBillingRecords,
+					}
+				: undefined)
 
 	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
 	const editModeToggleBillingPeriod = (index: number) => {
@@ -475,7 +469,7 @@ export default function EditCase({
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => { }}
+				beforeSubmit={() => {}}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}

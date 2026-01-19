@@ -120,11 +120,7 @@ describe('case.logic.server', () => {
 			}
 			const formData = createMockFormData(formValues)
 
-			const result = await calculateWithCsv(
-				submission,
-				testUser.id,
-				formData,
-			)
+			const result = await calculateWithCsv(submission, testUser.id, formData)
 
 			expect(result).toBeDefined()
 			expect(result.newCase).toBeDefined()

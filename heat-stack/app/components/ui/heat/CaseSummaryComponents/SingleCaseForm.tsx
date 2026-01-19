@@ -119,11 +119,11 @@ export default function SingleCaseForm({
 			isEditMode,
 			lastFocusedValue: lastFocusedValueRef.current,
 			currentValue: e.target.value,
-			formRefCurrent: formRef.current
-		});
+			formRefCurrent: formRef.current,
+		})
 		if (lastFocusedValueRef.current === null) {
-			console.log('DEBUG: lastFocusedValueRef.current is null, event:', e);
-			throw new Error('lastFocusedValueRef.current is null in handleFieldBlur');
+			console.log('DEBUG: lastFocusedValueRef.current is null, event:', e)
+			throw new Error('lastFocusedValueRef.current is null in handleFieldBlur')
 		}
 		if (!isEditMode) return
 		const original = lastFocusedValueRef.current
@@ -148,7 +148,6 @@ export default function SingleCaseForm({
 				aria-describedby={form.errors ? form.errorId : undefined}
 				onFocus={(e) => handleFieldFocus(e)}
 				onBlur={(e) => handleFieldBlur(e)}
-
 			>
 				{/* Ensure intent is always sent for autosave */}
 				{isEditMode && <input type="hidden" name="intent" value="save" />}

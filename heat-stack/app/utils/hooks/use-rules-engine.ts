@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-	buildCurrentUsageData,
-	hasDataProperty,
-} from '#app/utils/index.ts'
+import { buildCurrentUsageData, hasDataProperty } from '#app/utils/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
-import {
-	type UsageDataSchema,
-} from '#types/types.ts'
+import { type UsageDataSchema } from '#types/types.ts'
 import { reviver } from '../data-parser'
 import { type TemperatureInputDataConverted } from '../WeatherUtil'
 
