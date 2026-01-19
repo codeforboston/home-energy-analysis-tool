@@ -52,7 +52,7 @@ def calculate_from_bills(bills: Any, form_data: Dict[str, Any]) -> Dict[str, Any
         start_date=start_date_str,
         end_date=end_date_str,
     )
-    return calculate_with_bills_and_temperatures(
+    return calculate_from_bills_and_temperatures(
         form_data=form_data,
         temperatures=temperatures,
         state=geo_result.state if geo_result.state is not None else "",
@@ -67,7 +67,7 @@ def calculate_from_bills(bills: Any, form_data: Dict[str, Any]) -> Dict[str, Any
     # summaryInput = HeatLoadInput(**summaryInputFromJs, design_temperature=design_temp_looked_up)
 
 
-def calculate_with_bills_and_temperatures(
+def calculate_from_bills_and_temperatures(
     form_data, temperatures, state, county_id, bills
 ):
     """

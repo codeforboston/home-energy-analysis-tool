@@ -21,7 +21,7 @@
         git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/example.csv
         git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/calculate.py
         git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/models/location.py
-        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/run_calculate_with_csv.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/run_calculate_from_csv.py
         git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/web_geocode_utils.py
         git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/web_weather_utils.py
         git checkout fix/616/autosave-case-info-while-editing-v2 python/tests

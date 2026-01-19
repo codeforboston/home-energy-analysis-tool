@@ -16,7 +16,7 @@ SUMMARY_PATH = EXAMPLES_DIR / "summary.json"
     not CSV_PATH.exists() or not SUMMARY_PATH.exists(),
     reason="Required test files not found.",
 )
-def test_run_calculate_with_csv_quateman():
+def test_run_calculate_from_csv_quateman():
     # Load form data from summary.json
     with open(SUMMARY_PATH) as f:
         summary = json.load(f)

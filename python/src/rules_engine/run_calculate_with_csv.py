@@ -8,7 +8,7 @@ Instructions to run this script:
     cd python/src
 
 3. Run the script using:
-    python3 -m rules_engine.run_calculate_with_csv src/example.csv
+    python3 -m rules_engine.run_calculate_from_csv src/example.csv
 """
 
 import argparse
