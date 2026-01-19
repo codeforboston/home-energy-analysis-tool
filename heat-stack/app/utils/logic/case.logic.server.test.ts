@@ -125,7 +125,7 @@ describe('case.logic.server', () => {
 			expect(result).toBeDefined()
 			expect(result.newCase).toBeDefined()
 			expect(result.newCase.id).toBeDefined()
-			expect(result.gasBillData).toBeDefined()
+			expect(result.rulesEngineResult).toBeDefined()
 			expect(result.insertedCount).toBe(1)
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
