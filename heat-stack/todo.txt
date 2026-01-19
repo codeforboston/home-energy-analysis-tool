@@ -8,6 +8,7 @@
   - test_natural_gas.py => combine into one test
   - rename execute methods and pycode files
   - avoid recalculating weather if not necessary
+  - get rid of .eslint
 
 - Files that have changed
        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx

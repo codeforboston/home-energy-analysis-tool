@@ -132,15 +132,12 @@ describe('useRulesEngine', () => {
 			const { result } = renderHook(() => useRulesEngine(undefined))
 
 			expect(result.current.usageData).toBeUndefined()
-			expect(result.current.recalculateFromBillingRecordsChange).toBeNull()
 			expect(typeof result.current.lazyLoadRulesEngine).toBe('function')
-			expect(typeof result.current.toggleBillingPeriod).toBe('function')
 		})
 
 		it('should lazy load rules engine when lazyLoadRulesEngine is called', async () => {
 			const { result } = renderHook(() => useRulesEngine(undefined))
 
-			expect(result.current.recalculateFromBillingRecordsChange).toBeNull()
 
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
@@ -148,7 +145,6 @@ describe('useRulesEngine', () => {
 				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
-			expect(result.current.recalculateFromBillingRecordsChange).not.toBeNull()
 		})
 
 		it('should not reinitialize if already initialized', async () => {
@@ -159,17 +155,11 @@ describe('useRulesEngine', () => {
 				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
-			const firstRecalculate =
-				result.current.recalculateFromBillingRecordsChange
-
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
 				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
 
-			expect(result.current.recalculateFromBillingRecordsChange).toBe(
-				firstRecalculate,
-			)
 		})
 	})
 
@@ -210,190 +200,6 @@ describe('useRulesEngine', () => {
 			rerender({ actionData: mockActionData })
 
 			expect(result.current.usageData).toEqual(mockUsageData)
-		})
-	})
-
-	describe('toggleBillingPeriod', () => {
-		it('should throw error when usageData is not available', async () => {
-			const { result } = renderHook(() => useRulesEngine(undefined))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			expect(() => {
-				result.current.toggleBillingPeriod(0)
-			}).toThrow('usageData was not found')
-		})
-
-		it('should throw error when actionData is not available', () => {
-			const { result } = renderHook(() => useRulesEngine(undefined))
-
-			// Set up usageData but no actionData by mocking buildCurrentUsageData
-			vi.mocked(buildCurrentUsageData).mockReturnValue(mockUsageData)
-
-			expect(() => {
-				result.current.toggleBillingPeriod(0)
-			}).toThrow('actionData was not found')
-		})
-
-		it('should throw error when rules engine is not initialized', () => {
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			expect(() => {
-				result.current.toggleBillingPeriod(0)
-			}).toThrow('rulesEngine was not found')
-		})
-
-		it('should throw error when billing period index is invalid', async () => {
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			expect(() => {
-				result.current.toggleBillingPeriod(999)
-			}).toThrow('No period with row index 999 was found')
-		})
-
-		it('should toggle billing period inclusion_override and recalculate', async () => {
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			await act(async () => {
-				result.current.toggleBillingPeriod(0)
-			})
-
-			expect(buildCurrentMapOfUsageData).toHaveBeenCalled()
-			expect(
-				mockRulesEngine.executeRoundtripAnalyticsFromFormJs,
-			).toHaveBeenCalledWith(
-				mockActionData.parsedAndValidatedFormSchema,
-				mockActionData.convertedDatesTIWD,
-				expect.any(Map),
-				mockActionData.state_id,
-				mockActionData.county_id,
-			)
-		})
-	})
-
-	describe('recalculateFromBillingRecordsChange', () => {
-		it('should return early when prerequisites are not met', async () => {
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			const recalculate = result.current.recalculateFromBillingRecordsChange!
-
-			// Should return early when parsedLastResult is undefined
-			recalculate(
-				undefined,
-				mockUsageData.processed_energy_bills,
-				mockActionData.parsedAndValidatedFormSchema,
-				mockActionData.convertedDatesTIWD,
-				mockActionData.state_id,
-				mockActionData.county_id,
-			)
-
-			expect(buildCurrentMapOfUsageData).not.toHaveBeenCalled()
-		})
-
-		it('should execute full recalculation when all prerequisites are met', async () => {
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			const recalculate = result.current.recalculateFromBillingRecordsChange!
-			const mockParsedLastResult = new Map([['test', 'data']])
-
-			act(() => {
-				recalculate(
-					mockParsedLastResult,
-					mockUsageData.processed_energy_bills,
-					mockActionData.parsedAndValidatedFormSchema,
-					mockActionData.convertedDatesTIWD,
-					mockActionData.state_id,
-					mockActionData.county_id,
-				)
-			})
-
-			expect(buildCurrentMapOfUsageData).toHaveBeenCalledWith(
-				mockParsedLastResult,
-				mockUsageData.processed_energy_bills,
-			)
-			expect(
-				mockRulesEngine.executeRoundtripAnalyticsFromFormJs,
-			).toHaveBeenCalled()
-		})
-
-		it('should update usageData only when it changes', async () => {
-			vi.mocked(objectToString)
-				.mockReturnValueOnce('old')
-				.mockReturnValueOnce('new')
-
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			const recalculate = result.current.recalculateFromBillingRecordsChange!
-			const mockParsedLastResult = new Map([['test', 'data']])
-
-			act(() => {
-				recalculate(
-					mockParsedLastResult,
-					mockUsageData.processed_energy_bills,
-					mockActionData.parsedAndValidatedFormSchema,
-					mockActionData.convertedDatesTIWD,
-					mockActionData.state_id,
-					mockActionData.county_id,
-				)
-			})
-
-			expect(objectToString).toHaveBeenCalledTimes(2)
-		})
-
-		it('should not update usageData when values are the same', async () => {
-			vi.mocked(objectToString).mockReturnValue('same')
-
-			const { result } = renderHook(() => useRulesEngine(mockActionData))
-
-			await act(async () => {
-				result.current.lazyLoadRulesEngine()
-				await new Promise((resolve) => setTimeout(resolve, 0))
-			})
-
-			const recalculate = result.current.recalculateFromBillingRecordsChange!
-			const mockParsedLastResult = new Map([['test', 'data']])
-			const originalUsageData = result.current.usageData
-
-			act(() => {
-				recalculate(
-					mockParsedLastResult,
-					mockUsageData.processed_energy_bills,
-					mockActionData.parsedAndValidatedFormSchema,
-					mockActionData.convertedDatesTIWD,
-					mockActionData.state_id,
-					mockActionData.county_id,
-				)
-			})
-
-			expect(result.current.usageData).toBe(originalUsageData)
 		})
 	})
 
