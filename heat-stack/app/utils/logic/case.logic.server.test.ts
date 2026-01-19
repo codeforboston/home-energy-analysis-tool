@@ -114,10 +114,6 @@ describe('case.logic.server', () => {
 	describe('calculateWithCsv', () => {
 		it('should process a complete case submission', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			const result = await calculateWithCsv(formData, formValues, testUser.id)
@@ -146,10 +142,6 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			await expect(
@@ -171,10 +163,6 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			await expect(
@@ -184,10 +172,6 @@ describe('case.logic.server', () => {
 
 		it('should call all external dependencies correctly', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			await calculateWithCsv(formData, formValues, testUser.id)
@@ -227,25 +211,28 @@ describe('case.logic.server', () => {
 		it('should process a case update', async () => {
 			const { caseRecord } = await createTestCase(testUser.id)
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
-						const gasBillMap = new Map<
-							'overall_start_date' | 'overall_end_date' | 'records',
-							string | { periodStartDate: Date; periodEndDate: Date; usageQuantity: number; inclusionOverride: number; }[]
-						>([
-							['overall_start_date', '2024-01-01'],
-							['overall_end_date', '2024-01-31'],
-							['records', createGasBillData().processed_energy_bills.map(bill => ({
-								periodStartDate: new Date(bill.period_start_date),
-								periodEndDate: new Date(bill.period_end_date),
-								usageQuantity: bill.usage,
-								inclusionOverride: bill.inclusion_override ? 1 : 0,
-							}))],
-						])
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			const result = await processCaseUpdate(
 				caseRecord.id,
 				formValues,
@@ -278,25 +265,28 @@ describe('case.logic.server', () => {
 			} as any)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
-						const gasBillMap = new Map<
-							'overall_start_date' | 'overall_end_date' | 'records',
-							string | { periodStartDate: Date; periodEndDate: Date; usageQuantity: number; inclusionOverride: number; }[]
-						>([
-							['overall_start_date', '2024-01-01'],
-							['overall_end_date', '2024-01-31'],
-							['records', createGasBillData().processed_energy_bills.map(bill => ({
-								periodStartDate: new Date(bill.period_start_date),
-								periodEndDate: new Date(bill.period_end_date),
-								usageQuantity: bill.usage,
-								inclusionOverride: bill.inclusion_override ? 1 : 0,
-							}))],
-						])
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			await expect(
 				processCaseUpdate(caseRecord.id, formValues, testUser.id, gasBillMap),
 			).rejects.toThrow('Failed to find HeatingInput record for update')
@@ -353,25 +343,29 @@ describe('case.logic.server', () => {
 			)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
 
-						const gasBillMap = new Map<
-							'overall_start_date' | 'overall_end_date' | 'records',
-							string | { periodStartDate: Date; periodEndDate: Date; usageQuantity: number; inclusionOverride: number; }[]
-						>([
-							['overall_start_date', '2024-01-01'],
-							['overall_end_date', '2024-01-31'],
-							['records', createGasBillData().processed_energy_bills.map(bill => ({
-								periodStartDate: new Date(bill.period_start_date),
-								periodEndDate: new Date(bill.period_end_date),
-								usageQuantity: bill.usage,
-								inclusionOverride: bill.inclusion_override ? 1 : 0,
-							}))],
-						])
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			const result = await processCaseUpdate(
 				caseRecord.id,
 				formValues,

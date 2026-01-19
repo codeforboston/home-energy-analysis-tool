@@ -138,13 +138,11 @@ describe('useRulesEngine', () => {
 		it('should lazy load rules engine when lazyLoadRulesEngine is called', async () => {
 			const { result } = renderHook(() => useRulesEngine(undefined))
 
-
 			await act(async () => {
 				result.current.lazyLoadRulesEngine()
 				// Wait for the promise to resolve
 				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
-
 		})
 
 		it('should not reinitialize if already initialized', async () => {
@@ -159,7 +157,6 @@ describe('useRulesEngine', () => {
 				result.current.lazyLoadRulesEngine()
 				await new Promise((resolve) => setTimeout(resolve, 0))
 			})
-
 		})
 	})
 

@@ -3,7 +3,7 @@ import pathlib
 
 import pytest
 
-from rules_engine.calculate_output import calculate_from_csv
+from rules_engine.calculate_output import calculate_from_csv  # type: ignore
 
 # Paths to test data
 TEST_DIR = pathlib.Path(__file__).parent
