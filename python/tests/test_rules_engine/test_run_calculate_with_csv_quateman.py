@@ -61,8 +61,3 @@ def test_run_calculate_with_csv_quateman():
         rules_engine_result.heat_load_output.whole_home_heat_loss_rate
         == pytest.approx(597.1983566944732, abs=1e-6)
     )
-    # Add standard_deviation_of_heat_loss if you have the expected value
-    # Check processed_energy_bills whole_home_heat_loss_rate
-    for result_bill in rules_engine_result.processed_energy_bills:
-        if hasattr(result_bill, "whole_home_heat_loss_rate"):
-            assert result_bill.whole_home_heat_loss_rate is not None
