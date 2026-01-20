@@ -1,4 +1,4 @@
-const BASE_URL = 'https://geocoding.geo.census.gov'
+const BASE_URL = 'https://thadk-cors.herokuapp.com/https://geocoding.geo.census.gov'
 const ADDRESS_ENDPOINT = '/geocoder/geographies/onelineaddress'
 
 // example: https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20broadway%2C%20cambridge%2C%20ma%2002142&benchmark=4&vintage=4&format=json
@@ -94,7 +94,12 @@ class GeocodeUtil {
 		/**  TODO: note that for this Census API you can specify particular parts of this that
      we want (x, y, state_id, and county_id for now), read the docs */
 		let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
-		let rezzy = await fetch(url)
+		let rezzy = await fetch(url, {
+			headers: {
+				'Origin': 'https://thadk.static.observableusercontent.com',
+				'X-Requested-With': 'XMLHttpRequest'
+			}
+			})
 		let jrez = (await rezzy.json()) as CensusGeocoderResponse
 		// TODO: Return all addresses and let the user choose the right one
 		// const fs = await import('node:fs')
