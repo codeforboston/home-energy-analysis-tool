@@ -1,7 +1,7 @@
 export default function PrivacyRoute() {
 	return (
 		<section id="privacy" className="bg-white px-4 py-16">
-			<div className="mx-auto max-w-5xl">
+			<div className="prose list-disc mx-auto max-w-5xl">
 				<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
 					Privacy Policy
 				</h2>
@@ -15,7 +15,7 @@ export default function PrivacyRoute() {
 					intent of the provider (i.e., the individual whose information we
 					possess). As such, the Alliance:
 				</p>
-				<ul>
+				<ul className="marker:text-gray-900">
 					<li>
 						Collects personal information for the purposes of a) providing and
 						communicating about the services the individual is requesting, and
