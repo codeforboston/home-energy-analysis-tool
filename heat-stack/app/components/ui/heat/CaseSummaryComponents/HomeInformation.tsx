@@ -32,7 +32,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const [streetAddress, setStreetAddress] = useState(
 		props.fields.street_address.value ||
-		props.fields.street_address.defaultValue,
+			props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town,
@@ -43,8 +43,6 @@ export function HomeInformation(props: HomeInformationProps) {
 	const [geoError, setGeoError] = useState<string | null>(null)
 	const [geoStateId, setGeoStateId] = useState<string | null>(null)
 	const [geoCountyId, setGeoCountyId] = useState<string | null>(null)
-
-
 
 	const handleStreetAddressBlur = async () => {
 		await validateGeocode()
@@ -70,11 +68,10 @@ export function HomeInformation(props: HomeInformationProps) {
 			if (!data.coordinates && !data.state_id && !data.county_id) {
 				setGeoError(data.message)
 			} else {
-				console.log("geo", data)
+				console.log('geo', data)
 				setGeoError(null)
 				setGeoStateId(data.state_id)
 				setGeoCountyId(data.county_id)
-
 			}
 		} catch (error) {
 			setGeoError('Error connecting to geocoding service' + error)
@@ -195,21 +192,21 @@ export function HomeInformation(props: HomeInformationProps) {
 			{geoStateId && geoCountyId && (
 				<fieldset>
 					<legend className={subtitleClass}>Heating Design Temperature</legend>
-					<div className={descriptiveClass}>
-						County-level design temperature is calculated from the address and will be used
-						unless an override value is entered.
-					</div>
+
 					<div className="mt-4 flex space-x-4">
 						<div className="basis-1/2">
 							<Label>County-Level Design Temperature</Label>
 
-							<div className="item font-bold">
+							<div className="item mt-4 flex h-10 items-center font-bold">
 								{JSON.stringify(
 									executeLookupDesignTempToDisplay(geoStateId, geoCountyId),
 								)}{' '}
 								°F
 							</div>
-
+							<div className={`mt-4 ${descriptiveClass}`}>
+								This value is calculated from the address and will be used
+								unless an override value is entered.
+							</div>
 						</div>
 
 						<div className="basis-1/2">
@@ -230,9 +227,9 @@ export function HomeInformation(props: HomeInformationProps) {
 											{ type: 'number' },
 										)}
 									/>
-									<span className={`${descriptiveClass}`}>
+									<div className={`${descriptiveClass}`}>
 										Enter a value in the range -10 to 32
-									</span>
+									</div>
 									<div className="min-h-[32px] px-4 pb-3 pt-1">
 										<ErrorList
 											id={props.fields.design_temperature_override.errorId}

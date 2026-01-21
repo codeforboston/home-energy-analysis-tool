@@ -4,9 +4,9 @@ import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
+import executeLookupDesignTempToDisplayPyCode from '../pycode/lookup_design_temp_to_display.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
-import executeLookupDesignTempToDisplayPyCode from '../pycode/lookup_design_temp_to_display.py?raw'
 import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
 
@@ -167,5 +167,6 @@ type ExecuteLookupDesignTempToDisplayFunction = ((
  */
 export const executeLookupDesignTempToDisplay: ExecuteLookupDesignTempToDisplayFunction =
 	await pyodide.runPythonAsync(
-		executeLookupDesignTempToDisplayPyCode + '\nexecuteLookupDesignTempToDisplay',
+		executeLookupDesignTempToDisplayPyCode +
+			'\nexecuteLookupDesignTempToDisplay',
 	)

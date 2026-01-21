@@ -173,7 +173,8 @@ If using GitHub Codespaces, follow these steps:
    nvm install 22
    nvm use 22
    ```
-4. Install dependencies and build (some errors due to headless mode at the end of `npm run setup` are okay):
+4. Install dependencies and build (some errors due to headless mode at the end
+   of `npm run setup` are okay):
    ```bash
    pip install uv
    npm install

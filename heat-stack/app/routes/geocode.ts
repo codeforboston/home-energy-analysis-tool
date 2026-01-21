@@ -18,7 +18,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 	try {
 		const geocodeUtil = new Geocode()
-		const { coordinates, state_id, county_id } = await geocodeUtil.getLL(address)
+		const { coordinates, state_id, county_id } =
+			await geocodeUtil.getLL(address)
 
 		if (!coordinates) {
 			return new Response(
@@ -30,7 +31,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 		} else if (!state_id && !county_id) {
 			return new Response(
 				JSON.stringify({
-					message: "State ID and county ID not found for this address",
+					message: 'State ID and county ID not found for this address',
 					status: 400,
 				}),
 			)
@@ -40,7 +41,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 	} catch (error) {
 		console.error('Geocoding error:', error)
 		return new Response(
-			JSON.stringify({ message: 'Error with Census location service', status: 500 }),
+			JSON.stringify({
+				message: 'Error with Census location service',
+				status: 500,
+			}),
 		)
 	}
 }
