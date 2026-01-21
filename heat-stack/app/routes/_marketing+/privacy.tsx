@@ -1,7 +1,7 @@
 export default function PrivacyRoute() {
 	return (
 		<section id="privacy" className="bg-white px-4 py-16">
-			<div className="prose list-disc mx-auto max-w-5xl">
+			<div className="prose mx-auto max-w-5xl list-disc">
 				<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
 					Privacy Policy
 				</h2>
