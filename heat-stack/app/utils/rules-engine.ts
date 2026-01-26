@@ -6,6 +6,7 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
+import getNormalizedOutputPyCode from '../pycode/get_normalized_output.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
@@ -77,7 +78,7 @@ export const executeParseGasBillPy: ExecuteParseFunction =
 	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse')
 
 export const executeGetNormalizedOutput: ExecuteGetNormalizedOutputFunction =
-	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse2x')
+	await pyodide.runPythonAsync(getNormalizedOutputPyCode + '\nexecuteGetNormalizedOutput')
 
 /**
  * Full call with csv data

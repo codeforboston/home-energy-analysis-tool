@@ -1,0 +1,45 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-7.3.2, pluggy-1.0.0
+rootdir: /Users/ethanadmin/projects/home-energy-analysis-tool/python
+collected 125 items / 3 errors
+
+==================================== ERRORS ====================================
+____ ERROR collecting tests/test_rules_engine/test_quateman_natural_gas.py _____
+ImportError while importing test module '/Users/ethanadmin/projects/home-energy-analysis-tool/python/tests/test_rules_engine/test_quateman_natural_gas.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_rules_engine/test_quateman_natural_gas.py:5: in <module>
+    from rules_engine.calculate_output import calculate_from_csv
+src/rules_engine/calculate_output.py:7: in <module>
+    import parser
+E   ModuleNotFoundError: No module named 'parser'
+____ ERROR collecting tests/test_rules_engine/test_quateman_natural_gas2.py ____
+ImportError while importing test module '/Users/ethanadmin/projects/home-energy-analysis-tool/python/tests/test_rules_engine/test_quateman_natural_gas2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_rules_engine/test_quateman_natural_gas2.py:5: in <module>
+    from rules_engine.calculate_output2 import calculate_from_csv
+src/rules_engine/calculate_output2.py:7: in <module>
+    import parser
+E   ModuleNotFoundError: No module named 'parser'
+_ ERROR collecting tests/test_rules_engine/test_run_calculate_with_csv_quateman.py _
+ImportError while importing test module '/Users/ethanadmin/projects/home-energy-analysis-tool/python/tests/test_rules_engine/test_run_calculate_with_csv_quateman.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_rules_engine/test_run_calculate_with_csv_quateman.py:6: in <module>
+    from rules_engine.calculate_output import calculate_from_csv  # type: ignore
+src/rules_engine/calculate_output.py:7: in <module>
+    import parser
+E   ModuleNotFoundError: No module named 'parser'
+=========================== short test summary info ============================
+ERROR tests/test_rules_engine/test_quateman_natural_gas.py
+ERROR tests/test_rules_engine/test_quateman_natural_gas2.py
+ERROR tests/test_rules_engine/test_run_calculate_with_csv_quateman.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 3 errors in 0.30s ===============================

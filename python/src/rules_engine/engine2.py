@@ -9,7 +9,7 @@ import statistics as sts
 import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import List, Optional, Sequence
+from typing import Any, List, Optional
 
 from rules_engine.pydantic_models import (
     AnalysisType,
@@ -63,7 +63,7 @@ def get_outputs_oil_propane(
 def get_outputs_natural_gas(
     heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
-    natural_gas_bills: Sequence[NaturalGasBillingRecordInput],
+    natural_gas_billing_input: NaturalGasBillingRecordInput,
 ) -> RulesEngineResult:
     """
     Returns the heat load for a home that is using natural gas as its
@@ -71,7 +71,7 @@ def get_outputs_natural_gas(
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
-    for input_val in natural_gas_bills:
+    for input_val in natural_gas_billing_input:
         processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,

@@ -1,6 +1,4 @@
-from rules_engine import engine, parser
-from rules_engine.pydantic_models import (FuelType, HeatLoadInput,
-                                          TemperatureInput)
+from rules_engine import parser
 
 
 def executeParse(csvDataJs):
