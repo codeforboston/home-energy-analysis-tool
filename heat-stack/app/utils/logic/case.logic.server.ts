@@ -9,7 +9,7 @@ import {
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
 	executeParseGasBillPy,
-	executeGetAnalyticsFromFormJs,
+	executeGetNormalizedOutput,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
@@ -54,7 +54,7 @@ export async function calculateWithBills(
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
-	const rulesEngineResultProxy: PyProxy = executeGetAnalyticsFromFormJs(
+	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
 		gasBillingData,

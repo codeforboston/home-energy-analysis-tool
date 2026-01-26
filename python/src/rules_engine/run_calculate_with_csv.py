@@ -34,10 +34,9 @@ form_data = {
 }
 
 
-def doit(key, value):
+def print_key(key, value):
     print(f"\n=== {key} ===\n", flush=True)
     if key == "processed_energy_bills":
-        print("debug processed_energy_bills:", flush=True)
         for i, row in enumerate(value, start=1):
             print(f"{i}:", flush=True)
             pprint.pprint(row, sort_dicts=False)
@@ -58,10 +57,8 @@ def doit(key, value):
         print("\n--- balance_point_graph ---\n", flush=True)
         for rec in balance_point_graph_records:
             if hasattr(rec, "__dict__"):
-                print("debug a", flush=True)
                 rec_dict = vars(rec)
             else:
-                print("debug b", flush=True)
                 rec_dict = rec
             print(", ".join(f"{k}: {v}" for k, v in rec_dict.items()), flush=True)
     elif key == "convertedDatesTIWD":
@@ -92,10 +89,10 @@ def main():
 
     result = calculate_from_csv(csv_data=csv_data, form_data=form_data)
     print("Calculation result:", flush=True)
-    doit("convertedDatesTIWD", result.get("convertedDatesTIWD"))
-    doit("state_id", result.get("state_id"))
-    doit("county_id", result.get("county_id"))
-    doit("analysisResults", result.get("analysisResults"))
+    print_key("convertedDatesTIWD", result.get("convertedDatesTIWD"))
+    print_key("state_id", result.get("state_id"))
+    print_key("county_id", result.get("county_id"))
+    print_key("analysisResults", result.get("analysisResults"))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from rules_engine import engine2, helpers  # type: ignore
+from rules_engine import engine, helpers  # type: ignore
 from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
     NaturalGasBillingInput,
@@ -32,7 +32,7 @@ def executeGetNormalizedOutput(
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
     gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
 
-    outputs = engine2.get_outputs_natural_gas(
+    outputs = engine.get_outputs_natural_gas(
         summaryInput, temperatureInput, gasBillingDataFromJs
     )
     return outputs.model_dump(mode="json")

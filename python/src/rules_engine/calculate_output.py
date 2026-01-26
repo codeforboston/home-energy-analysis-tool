@@ -6,8 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from rules_engine import engine2 as engine
-from rules_engine import parser
+from rules_engine import engine, parser
 
 from .pydantic_models import HeatLoadInput
 
@@ -127,7 +126,6 @@ def main():
     # Call the analysis function
     result = calculate_from_csv(csv_text, form_data)
 
-    # Print removed
     print("Analysis Result:", result)
 
 

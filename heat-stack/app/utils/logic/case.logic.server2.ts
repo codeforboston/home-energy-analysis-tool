@@ -13,7 +13,7 @@ import {
 	// executeGetAnalyticsFromFormJs,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type NaturalGasUsageDataSchemax2 } from '#types/index.ts'
+import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  **/
@@ -25,7 +25,7 @@ export async function calculateWithCsv(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-    const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchemax2
+    const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	console.log("Debug: Gas Billing Data from Pyodide", gasBillingData.get("records"));
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
@@ -41,7 +41,7 @@ export async function calculateWithCsv(
 }
 export async function calculateWithBills(
 	parsedForm: any, // form values as a parsed object - needed for pycall
-	gasBillingData: NaturalGasUsageDataSchemax2,
+	gasBillingData: NaturalGasUsageDataSchema,
 ) {
 	const { convertedDatesTIWD, state_id, county_id } =
 		await getConvertedDatesTIWD(
@@ -106,7 +106,7 @@ export async function processCaseUpdate(
 	caseId: number,
 	parsedForm: any,
 	userId: string,
-	gasBillingData: NaturalGasUsageDataSchemax2,
+	gasBillingData: NaturalGasUsageDataSchema,
 ) {
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await calculateWithBills(parsedForm, gasBillingData)
