@@ -7,9 +7,11 @@ import {
 	type allProcessedEnergyBillsSchema,
 	type usageDataSchema,
 	type naturalGasUsageSchema,
+	type naturalGasBillsSchema
 } from './index.ts'
 
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
+export type NaturalGasBillsSchema = z.infer<typeof naturalGasBillsSchema>
 export type BalancePoointGraphRecordSchema = z.infer<
 	typeof balancePointGraphRecordSchema
 >

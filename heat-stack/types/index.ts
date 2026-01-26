@@ -1,5 +1,6 @@
 import { z } from 'zod'
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
+export type NaturalGasBillsSchema = z.infer<typeof naturalGasBillsSchema>
 
 // JS team wants to discuss this name
 export const CaseSchema = z.object({
@@ -134,6 +135,8 @@ export const naturalGasUsageSchema = z.map(
 	z.enum(['overall_start_date', 'overall_end_date', 'records']),
 	z.union([dateStringSchema(), z.array(NaturalGasBillRecord)]),
 )
+
+export const naturalGasBillsSchema = z.array(NaturalGasBillRecord)
 
 // Define the schema for one billing record
 export const oneProcessedEnergyBillSchema = z.object({

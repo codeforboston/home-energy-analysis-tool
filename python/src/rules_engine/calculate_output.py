@@ -4,10 +4,11 @@ TODO: Add module description
 
 from __future__ import annotations
 
+import parser
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from rules_engine import engine, parser
+import engine
 
 from .pydantic_models import HeatLoadInput
 

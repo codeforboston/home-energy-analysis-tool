@@ -3,10 +3,10 @@ Data models for input and output data in the rules engine.
 """
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from enum import Enum
 from functools import cached_property
-from typing import Annotated, Any, Literal, Optional, Sequence
+from typing import Annotated, Any, Optional, Sequence
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, computed_field
 

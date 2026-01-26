@@ -76,6 +76,9 @@ await pyodide.loadPackage(`${basePath}rules_engine-0.0.1-py3-none-any.whl`)
 export const executeParseGasBillPy: ExecuteParseFunction =
 	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse')
 
+export const executeGetNormalizedOutput: ExecuteGetNormalizedOutputFunction =
+	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse2x')
+
 /**
  * Full call with csv data
  * call to get_outputs_natural_gas
@@ -96,6 +99,18 @@ export const executeRoundtripAnalyticsFromFormJs: ExecuteRoundtripAnalyticsFunct
 
 // Type for the execute parse function
 export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
+	destroy(): void
+	toJs?(): any
+}
+
+// Type for the execute normalized output function
+export type ExecuteGetNormalizedOutputFunction = ((
+	summaryInputJs: z.infer<typeof Schema>,
+	temperatureInputJs: TemperatureInputDataConverted,
+	gasBillingDataJs: NaturalGasUsageDataSchema,
+	state_id: string | undefined,
+	county_id: string | number | undefined /* check number */,
+) => PyProxy) & {
 	destroy(): void
 	toJs?(): any
 }

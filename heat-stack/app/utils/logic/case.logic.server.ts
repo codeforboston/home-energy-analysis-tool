@@ -26,6 +26,7 @@ export async function calculateWithCsv(
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
+	console.log("Debug: Gas Billing Data from Pyodide", gasBillingData.get("records"));
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await calculateWithBills(parsedForm, gasBillingData)
@@ -109,6 +110,7 @@ export async function processCaseUpdate(
 ) {
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await calculateWithBills(parsedForm, gasBillingData)
+	console.log('🔄 Updating case record in database...', rulesEngineResult)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,

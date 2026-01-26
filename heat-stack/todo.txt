@@ -1,14 +1,11 @@
-- Branches
-  - Rename login to insertAndLoginTemporaryUser
-  - package.json
-  - py files independent
-  - rest of code?
 
 - Bugs
   - test_natural_gas.py => combine into one test
   - rename execute methods and pycode files
   - avoid recalculating weather if not necessary
   - get rid of .eslint
+  - there are some playwright tests in directories outside of tests, next to
+  the component they are testing
 
 - Files that have changed
        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx

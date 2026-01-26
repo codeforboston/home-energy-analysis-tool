@@ -1,4 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
+import { parseFormData } from '@mjackson/form-data-parser';
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 
@@ -13,6 +14,7 @@ import {
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 import { buildCurrentUsageData } from '#app/utils/index.ts'
+import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
@@ -229,7 +231,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		try {
 			const parsed = JSON.parse(billingRecordsJson)
 			billingRecords = Array.isArray(parsed) ? parsed : undefined
-			console.log('📊 Parsed billing records:', billingRecords)
+			console.log('📊 Parsed billing records')
 		} catch (error) {
 			console.error('❌ Failed to parse billing records:', error)
 		}
@@ -241,11 +243,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 	if (heatLoadOutputJson) {
 		try {
 			heatLoadOutput = JSON.parse(heatLoadOutputJson)
-			console.log('📊 Parsed heat load output:', heatLoadOutput)
+			console.log('📊 Parsed heat load output:')
+			console.log('Average Indoor Temperature:', heatLoadOutput["average_indoor_temperature"])
 		} catch (error) {
 			console.error('❌ Failed to parse heat load output:', error)
 		}
 	}
+	console.log('🔄 Updating case record in database...')
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
@@ -394,12 +398,6 @@ export default function EditCase({
 			loaderData.county_id
 		) {
 			console.log('🚀 Triggering client-side recalculation...')
-			console.log('📋 Current usageData:', usageData)
-			console.log(
-				'🔍 Function check:',
-				typeof executeRoundtripAnalyticsFromFormJs,
-				executeRoundtripAnalyticsFromFormJs,
-			)
 
 			try {
 				// Check if the function is still valid (not destroyed)
@@ -434,12 +432,6 @@ export default function EditCase({
 					console.error('❌ PyProxy error:', pyError)
 					throw pyError
 				}
-
-				console.log(
-					'📊 Recalculation result type:',
-					calcResult instanceof Map,
-					calcResult,
-				)
 
 				const newUsageData = buildCurrentUsageData(calcResult)
 				setCalculatedUsageData(newUsageData)
