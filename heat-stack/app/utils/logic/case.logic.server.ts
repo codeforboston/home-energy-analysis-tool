@@ -12,7 +12,7 @@ import {
 	executeGetNormalizedOutput,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type NaturalGasUsageDataSchema } from '#types/index.ts'
+import { type NaturalGasBillRecord, type NaturalGasUsageDataSchema } from '#types/index.ts'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -27,9 +27,18 @@ export async function calculateWithCsv(
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	console.log("Debug: Gas Billing Data from Pyodide", gasBillingData.get("records"));
+
+	// Create bills array of type NaturalGasBillRecord from parsed records
+	const parsedRecords = gasBillingData.get("records") as any[];
+	const bills = parsedRecords.map(record => ({
+		periodStartDate: new Date(record["period_start_date"]),
+		periodEndDate: new Date(record["period_end_date"]),
+		usageQuantity: Number(record["usage"]),
+		inclusionOverride: Number(record["inclusion_override"]),
+	}));
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedForm, gasBillingData)
+		await calculateWithBills(parsedForm, bills)
 	return await caseCreate({
 		parsedForm,
 		convertedDatesTIWD,
@@ -40,12 +49,23 @@ export async function calculateWithCsv(
 	})
 }
 export async function calculateWithBills(
-	parsedForm: any, // form values as a parsed object - needed for pycall
-	gasBillingData: NaturalGasUsageDataSchema,
+	parsedForm: any,
+	// TODO: Use a type from index.ts
+	bills: Array<{
+		periodStartDate: Date,
+		periodEndDate: Date,
+		usageQuantity: number,
+		inclusionOverride: number,
+	}>
 ) {
+	// Calculate overall_start_date and overall_end_date from bills
+	const overall_start_date = new Date(Math.min(...bills.map(b => new Date(b.periodStartDate).getTime())));
+	const overall_end_date = new Date(Math.max(...bills.map(b => new Date(b.periodEndDate).getTime())));
+
 	const { convertedDatesTIWD, state_id, county_id } =
 		await getConvertedDatesTIWD(
-			gasBillingData,
+			overall_start_date,
+			overall_end_date,
 			parsedForm.street_address,
 			parsedForm.town,
 			parsedForm.state,
@@ -57,7 +77,7 @@ export async function calculateWithBills(
 	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
-		gasBillingData,
+		bills,
 		state_id,
 		county_id,
 	)

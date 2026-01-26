@@ -1,7 +1,7 @@
 from rules_engine import engine, helpers, parser  # type: ignore
 from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
-    NaturalGasBillingInput,
+    NaturalGasBills2x,
     TemperatureInput,
 )
 
@@ -30,7 +30,7 @@ def executeGetAnalyticsFromForm(
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
-    gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
+    gasBillingDataInput = NaturalGasBills2x(**gasBillingDataFromJs)
 
     outputs = engine.get_outputs_natural_gas(
         summaryInput, temperatureInput, gasBillingDataInput

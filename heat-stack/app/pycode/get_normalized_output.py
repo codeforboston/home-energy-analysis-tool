@@ -1,13 +1,13 @@
 from rules_engine import engine, helpers  # type: ignore
 from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
-    NaturalGasBillingInput,
+    NaturalGasBills2x,
     TemperatureInput,
 )
 
 
 def executeGetNormalizedOutput(
-    summaryInputJs, temperatureInputJs, gasBillingDataJs, state_id, county_id
+    summaryInputJs, temperatureInputJs, gasBillsJs, state_id, county_id
 ):
     """
     second step: this will be the first time to draw the table
@@ -19,7 +19,7 @@ def executeGetNormalizedOutput(
 
     summaryInputFromJs = summaryInputJs.to_py()
     temperatureInputFromJs = temperatureInputJs.to_py()
-    gasBillingDataFromJs = gasBillingDataJs.to_py()
+    gasBillsFromJs = gasBillsJs.to_py()
 
     # We will just pass in this data
     # naturalGasInputRecords = parser.parse_gas_bill(gasBillingDataJs)
@@ -30,10 +30,10 @@ def executeGetNormalizedOutput(
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
-    gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
+    gasBillsInput = NaturalGasBills2x(**gasBillsFromJs)
 
     outputs = engine.get_outputs_natural_gas(
-        summaryInput, temperatureInput, gasBillingDataFromJs
+        summaryInput, temperatureInput, gasBillsInput
     )
     return outputs.model_dump(mode="json")
     # result = outputs.model_dump(mode="json")

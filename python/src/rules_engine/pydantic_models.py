@@ -141,6 +141,12 @@ class NaturalGasBillingInput(BaseModel):
         return max_date
 
 
+class NaturalGasBills2x(BaseModel):
+    """From Natural Gas tab. Container for holding all rows of the billing input table."""
+
+    records: Sequence[NaturalGasBillingRecordInput]
+
+
 class ProcessedEnergyBillInput(BaseModel):
     """
     Base class for a normalized billing period record.

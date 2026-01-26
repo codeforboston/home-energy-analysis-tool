@@ -230,12 +230,26 @@ export async function action({ request, params }: Route.ActionArgs) {
 	if (billingRecordsJson) {
 		try {
 			const parsed = JSON.parse(billingRecordsJson)
-			billingRecords = Array.isArray(parsed) ? parsed : undefined
+			if (!Array.isArray(parsed)) {
+				throw new Error('Billing records is not an array')
+			}
+			billingRecords = 
+			    parsed.map((bill: any) => ({
+					period_start_date: bill["period_start_date"],
+					period_end_date: bill["period_end_date"],
+					usage: bill["usage"],
+					inclusion_override: bill["inclusion_override"],
+					analysis_type: bill["analysis_type"],
+					default_inclusion: bill["default_inclusion"],
+					eliminated_as_outlier: bill["eliminated_as_outlier"],
+					whole_home_heat_loss_rate: bill["whole_home_heat_loss_rate"],
+				}))
 			console.log('📊 Parsed billing records')
 		} catch (error) {
 			console.error('❌ Failed to parse billing records:', error)
 		}
 	}
+
 
 	// Parse heat load output from form data if present
 	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
@@ -249,6 +263,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			console.error('❌ Failed to parse heat load output:', error)
 		}
 	}
+	console.log('')
 	console.log('🔄 Updating case record in database...')
 
 	const updatedCase = await updateCaseRecord(

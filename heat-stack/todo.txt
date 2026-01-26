@@ -6,6 +6,7 @@
   - get rid of .eslint
   - there are some playwright tests in directories outside of tests, next to
   the component they are testing
+  - get rid of records in NaturalGasBillsInput
 
 - Files that have changed
        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx

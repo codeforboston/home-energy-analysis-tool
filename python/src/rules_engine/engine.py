@@ -22,6 +22,7 @@ from rules_engine.pydantic_models import (
     HeatLoadOutput,
     NaturalGasBillingInput,
     NaturalGasBillingRecordInput,
+    NaturalGasBills2x,
     OilPropaneBillingInput,
     ProcessedEnergyBill,
     ProcessedEnergyBillInput,
@@ -63,7 +64,7 @@ def get_outputs_oil_propane(
 def get_outputs_natural_gas(
     heat_load_input: HeatLoadInput,
     temperature_input: TemperatureInput,
-    natural_gas_billing_input: NaturalGasBillingRecordInput,
+    natural_gas_bills_input: NaturalGasBills2x,
 ) -> RulesEngineResult:
     """
     Returns the heat load for a home that is using natural gas as its
@@ -71,7 +72,7 @@ def get_outputs_natural_gas(
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
-    for input_val in natural_gas_billing_input:
+    for input_val in natural_gas_bills_input:
         processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,

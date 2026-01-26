@@ -88,7 +88,7 @@ def calculate_from_bills_and_temperatures(
     result = engine.get_outputs_natural_gas(
         heat_load_input=heat_load_input,
         temperature_input=temperatures,
-        natural_gas_billing_input=bills,
+        natural_gas_bills_input=bills,
     )
 
     return {
