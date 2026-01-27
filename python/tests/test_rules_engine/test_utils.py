@@ -1,7 +1,13 @@
 import csv
+
+# Ensure rules_engine is importable for tests
+import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from pathlib import Path as _Path
 from typing import Any, Sequence
+
+sys.path.append(str(_Path(__file__).resolve().parents[2] / "python" / "src"))
 
 from rules_engine.pydantic_models import (
     FuelType,
