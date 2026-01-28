@@ -4,6 +4,7 @@ import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type Schema } from '#types/single-form.ts'
 import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
+import executeLookupDesignTempToDisplayPyCode from '../pycode/lookup_design_temp_to_display.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { safeDestroy } from './pyodide'
@@ -152,3 +153,20 @@ export function cleanupPyodideProxies() {
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// pyodide.destroy(); // If supported by your pyodide version
 }
+
+type ExecuteLookupDesignTempToDisplayFunction = ((
+	state_id: string | undefined,
+	county_id: string | number | undefined /* check number */,
+) => PyProxy) & {
+	destroy(): void
+	toJs?(): any
+}
+
+/**
+ * Take state_id and county_id and return the looked up temperature for typescript usage
+ */
+export const executeLookupDesignTempToDisplay: ExecuteLookupDesignTempToDisplayFunction =
+	await pyodide.runPythonAsync(
+		executeLookupDesignTempToDisplayPyCode +
+			'\nexecuteLookupDesignTempToDisplay',
+	)
