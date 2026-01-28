@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import bisect
 import statistics as sts
+import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any, List, Optional
@@ -98,6 +99,7 @@ def get_outputs_normalized(
     fuel-type-agnostic billing records, the heat load based on them,
     and a balance-point graph.
     """
+    sys.stdout.flush()
     initial_balance_point = 60
     intermediate_processed_energy_bills = (
         convert_to_intermediate_processed_energy_bills(
