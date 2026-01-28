@@ -66,7 +66,7 @@ vi.mock('#app/utils/db/bill.db.server.ts', () => ({
 
 // Import after mocking
 import {
-	processCaseSubmission,
+	calculateWithCsv,
 	processCaseUpdate,
 } from '#app/utils/logic/case.logic.server.ts'
 import {
@@ -111,25 +111,17 @@ describe('case.logic.server', () => {
 		testUser = await createTestUser()
 	})
 
-	describe('processCaseSubmission', () => {
+	describe('calculateWithCsv', () => {
 		it('should process a complete case submission', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			const result = await processCaseSubmission(
-				submission,
-				testUser.id,
-				formData,
-			)
+			const result = await calculateWithCsv(formData, formValues, testUser.id)
 
 			expect(result).toBeDefined()
 			expect(result.newCase).toBeDefined()
 			expect(result.newCase.id).toBeDefined()
-			expect(result.gasBillData).toBeDefined()
+			expect(result.rulesEngineResult).toBeDefined()
 			expect(result.insertedCount).toBe(1)
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
@@ -150,14 +142,10 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
+				calculateWithCsv(formData, formValues, testUser.id),
 			).rejects.toThrow('Missing state_id')
 		})
 
@@ -175,26 +163,18 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
 			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
+				calculateWithCsv(formData, formValues, testUser.id),
 			).rejects.toThrow('Missing county_id')
 		})
 
 		it('should call all external dependencies correctly', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			await processCaseSubmission(submission, testUser.id, formData)
+			await calculateWithCsv(formData, formValues, testUser.id)
 
 			// Verify external functions were called
 			const { fileUploadHandler } = await import(
@@ -231,24 +211,40 @@ describe('case.logic.server', () => {
 		it('should process a case update', async () => {
 			const { caseRecord } = await createTestCase(testUser.id)
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			const result = await processCaseUpdate(
 				caseRecord.id,
-				submission,
+				formValues,
 				testUser.id,
-				formData,
+				gasBillMap,
 			)
 
 			expect(result).toBeDefined()
 			expect(result.updatedCase).toBeDefined()
 			expect(result.updatedCase?.id).toBe(caseRecord.id)
 			expect(result.gasBillData).toBeDefined()
-			expect(result.insertedCount).toBe(1)
+			// insertedCount is not returned by processCaseUpdate
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
 			expect(result.convertedDatesTIWD).toBeDefined()
@@ -269,14 +265,30 @@ describe('case.logic.server', () => {
 			} as any)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			await expect(
-				processCaseUpdate(caseRecord.id, submission, testUser.id, formData),
+				processCaseUpdate(caseRecord.id, formValues, testUser.id, gasBillMap),
 			).rejects.toThrow('Failed to find HeatingInput record for update')
 		})
 
@@ -331,23 +343,40 @@ describe('case.logic.server', () => {
 			)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
 
+			const gasBillMap = new Map<
+				'overall_start_date' | 'overall_end_date' | 'records',
+				| string
+				| {
+						periodStartDate: Date
+						periodEndDate: Date
+						usageQuantity: number
+						inclusionOverride: number
+				  }[]
+			>([
+				['overall_start_date', '2024-01-01'],
+				['overall_end_date', '2024-01-31'],
+				[
+					'records',
+					createGasBillData().processed_energy_bills.map((bill) => ({
+						periodStartDate: new Date(bill.period_start_date),
+						periodEndDate: new Date(bill.period_end_date),
+						usageQuantity: bill.usage,
+						inclusionOverride: bill.inclusion_override ? 1 : 0,
+					})),
+				],
+			])
 			const result = await processCaseUpdate(
 				caseRecord.id,
-				submission,
+				formValues,
 				testUser.id,
-				formData,
+				gasBillMap,
 			)
 			console.log(`Update result:`, JSON.stringify(result, null, 2))
 
 			// For now, just check that the function completed without error
 			expect(result).toBeDefined()
-			expect(result.insertedCount).toBeGreaterThanOrEqual(0)
+			// insertedCount is not returned by processCaseUpdate
 		})
 	})
 })

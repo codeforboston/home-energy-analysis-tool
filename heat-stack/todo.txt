@@ -1,0 +1,26 @@
+
+- Bugs
+  - test_natural_gas.py => combine into one test
+  - rename execute methods and pycode files
+  - avoid recalculating weather if not necessary
+  - get rid of .eslint
+  - there are some playwright tests in directories outside of tests, next to
+  the component they are testing
+  - get rid of records in NaturalGasBillsInput
+
+- Files that have changed
+       git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx
+        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/pycode/get_analytics.py
+        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/utils/date-temp-util.ts
+        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/utils/logic/case.logic.server.ts
+        git checkout fix/616/autosave-case-info-while-editing   heat-stack/app/utils/rules-engine.ts
+        git checkout fix/616/autosave-case-info-while-editing   heat-stack/package.json
+        git checkout fix/616/autosave-case-info-while-editing-v2 heat-stack/todo.txt
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/example.csv
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/calculate.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/models/location.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/run_calculate_from_csv.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/web_geocode_utils.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/src/rules_engine/web_weather_utils.py
+        git checkout fix/616/autosave-case-info-while-editing-v2 python/tests
+

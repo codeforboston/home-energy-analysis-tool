@@ -1,5 +1,5 @@
 import { getInputProps } from '@conform-to/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
@@ -31,6 +31,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			return value ? Math.round(parseFloat(value) * 100).toString() : ''
 		},
 	)
+	const percentageLastFocusedRef = useRef<string | null>(null)
+	// Removed formRef, will use e.target.form in blur handler
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
@@ -56,6 +58,20 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	// Handle the percentage input change
 	const handlePercentageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setPercentageValueDisplayed(e.target.value)
+	}
+
+	const handlePercentageFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		percentageLastFocusedRef.current = e.target.value
+	}
+
+	const handlePercentageBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		const original = percentageLastFocusedRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && e.target.form) {
+			// Only autosave if value changed
+			e.target.form.requestSubmit()
+		}
+		percentageLastFocusedRef.current = null
 	}
 
 	const [fuelType, setFuelType] = useState('GAS')
@@ -114,6 +130,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						type="number"
 						value={percentageValueDisplayed}
 						onChange={handlePercentageChange}
+						onFocus={handlePercentageFocus}
+						onBlur={handlePercentageBlur}
 					/>
 
 					{/* Use the actual field from Conform but with our calculated decimal value */}

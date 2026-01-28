@@ -5,7 +5,7 @@ trap 'echo "An error occurred"; set +x' ERR
 
 # Create a virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
-    python3 -m venv .venv || { echo "Failed to create virtual environment"; exit 1; }
+    python3.13 -m venv .venv || { echo "Failed to create virtual environment"; exit 1; }
 fi
 
 # Activate the virtual environment

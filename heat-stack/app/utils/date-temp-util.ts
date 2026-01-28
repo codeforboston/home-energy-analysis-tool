@@ -20,7 +20,8 @@ export interface AddressComponents {
 }
 
 export default async function getConvertedDatesTIWD(
-	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
+	start_date: Date,
+	end_date: Date,
 	street_address: string,
 	town: string,
 	state: string,
@@ -41,17 +42,6 @@ export default async function getConvertedDatesTIWD(
 		await geocodeUtil.getLL(combined_address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 
-	const startDateString = pyodideResultsFromTextFile.get(
-		'overall_start_date',
-	) as string
-	const endDateString = pyodideResultsFromTextFile.get(
-		'overall_end_date',
-	) as string
-
-	const { start_date, end_date } = parseOrDefaultDates(
-		startDateString,
-		endDateString,
-	)
 
 	// Utility function to parse start and end dates, with defaults if invalid
 
