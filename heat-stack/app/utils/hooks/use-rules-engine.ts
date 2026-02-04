@@ -175,15 +175,15 @@ export const useRulesEngine = (
 	}
 
 	// shutdown pyodide when component unmounts
-	useEffect(() => {
-		return () => {
-			// Memory cleanup of pyodide fn's when component unmounts
-			if (rulesEngineRef.current?.cleanupPyodideProxies) {
-				rulesEngineRef.current.cleanupPyodideProxies()
-				rulesEngineRef.current = null
-			}
-		}
-	}, [])
+	// useEffect(() => {
+	// 	return () => {
+	// 		// Memory cleanup of pyodide fn's when component unmounts
+	// 		if (rulesEngineRef.current?.cleanupPyodideProxies) {
+	// 			rulesEngineRef.current.cleanupPyodideProxies()
+	// 			rulesEngineRef.current = null
+	// 		}
+	// 	}
+	// }, [])
 
 	// reset usage data as a result of user submitting a new bill
 	useEffect(() => {
