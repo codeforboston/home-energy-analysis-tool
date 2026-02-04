@@ -139,7 +139,7 @@ export default function Cases({
 										<td className="whitespace-nowrap px-6 py-4">
 											<div className="text-sm font-medium text-gray-900">
 												<Link
-													to={`/cases/${firstAnalysis?.id}/edit?edit_mode=true`}
+													to={`/cases/${caseItem.id}/edit?edit_mode=true`}
 													className="text-sm font-medium text-indigo-700 underline hover:underline"
 												>
 													{caseItem.id}
@@ -170,19 +170,19 @@ export default function Cases({
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
 											<Link
-												to={`/cases/${firstAnalysis?.id}`}
+												to={`/cases/${caseItem.id}`}
 												className="mx-1 text-indigo-600 hover:text-indigo-900"
 											>
 												View
 											</Link>
 											<Link
-												to={`/cases/${firstAnalysis?.id}/edit`}
+												to={`/cases/${caseItem.id}/edit`}
 												className="mx-1 text-indigo-600 hover:text-indigo-900"
 											>
 												Edit
 											</Link>
 											<Link
-												to={`/cases/${firstAnalysis?.id}/delete`}
+												to={`/cases/${caseItem.id}/delete`}
 												className="hover:text-indigo-9001 mx-1 text-indigo-600"
 											>
 												Delete
