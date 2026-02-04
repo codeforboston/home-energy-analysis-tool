@@ -217,6 +217,10 @@ jobs:
       name: 🎭 Playwright
       runs-on: ubuntu-22.04
       timeout-minutes: 60
+      # CORS proxy settings for geocoding API calls
+      env:
+        VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL }}
+        VITE_CORS_ORIGIN: ${{ secrets.VITE_CORS_ORIGIN }}
       steps:
         - name: ⬇️ Checkout repo
           uses: actions/checkout@v4
