@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
+import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
@@ -40,6 +41,8 @@ export function HomeInformation(props: HomeInformationProps) {
 		props.fields.state.value || props.fields.state.defaultValue?.state,
 	)
 	const [geoError, setGeoError] = useState<string | null>(null)
+	const [geoStateId, setGeoStateId] = useState<string | null>(null)
+	const [geoCountyId, setGeoCountyId] = useState<string | null>(null)
 
 	const handleStreetAddressBlur = async () => {
 		await validateGeocode()
@@ -62,10 +65,13 @@ export function HomeInformation(props: HomeInformationProps) {
 		try {
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json()
-			if (!data.coordinates) {
+			if (!data.coordinates && !data.state_id && !data.county_id) {
 				setGeoError(data.message)
 			} else {
+				console.log('geo', data)
 				setGeoError(null)
+				setGeoStateId(data.state_id)
+				setGeoCountyId(data.county_id)
 			}
 		} catch (error) {
 			setGeoError('Error connecting to geocoding service' + error)
@@ -183,6 +189,59 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 
+			{geoStateId && geoCountyId && (
+				<fieldset>
+					<legend className={subtitleClass}>Heating Design Temperature</legend>
+
+					<div className="mt-4 flex space-x-4">
+						<div className="basis-1/2">
+							<Label>County-Level Design Temperature</Label>
+
+							<div className="item mt-4 flex h-10 items-center font-bold">
+								{JSON.stringify(
+									executeLookupDesignTempToDisplay(geoStateId, geoCountyId),
+								)}{' '}
+								°F
+							</div>
+							<div className={`mt-4 ${descriptiveClass}`}>
+								This value is calculated from the address and will be used
+								unless an override value is entered.
+							</div>
+						</div>
+
+						<div className="basis-1/2">
+							<Label htmlFor="design_temperature_override">
+								Design Temperature Override
+							</Label>
+
+							<HelpButton
+								keyName="design_temperature_override.help"
+								className="ml-[1ch]"
+							/>
+
+							<div className="mt-4 flex space-x-4">
+								<div>
+									<Input
+										{...getInputProps(
+											props.fields.design_temperature_override,
+											{ type: 'number' },
+										)}
+									/>
+									<div className={`${descriptiveClass}`}>
+										Enter a value in the range -10 to 32
+									</div>
+									<div className="min-h-[32px] px-4 pb-3 pt-1">
+										<ErrorList
+											id={props.fields.design_temperature_override.errorId}
+											errors={props.fields.design_temperature_override.errors}
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+			)}
 			<div className="mt-9">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
