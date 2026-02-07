@@ -10,7 +10,7 @@ import {
 	type RulesEngineActionData,
 	useRulesEngine,
 } from '#app/utils/hooks/use-rules-engine.ts'
-import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
+import { calculateWithCsv } from '#app/utils/logic/case.logic.server.ts'
 import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
 
@@ -38,7 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processCaseSubmission(submission, userId, formData)
+		const result = await calculateWithCsv(formData, submission.value, userId)
 
 		// Redirect to the edit page for the newly created case
 		return redirect(`/cases/${result.newCase.id}/edit`)
@@ -70,8 +70,9 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { lazyLoadRulesEngine, usageData, toggleBillingPeriod } =
-		useRulesEngine(actionData as RulesEngineActionData)
+	const { lazyLoadRulesEngine, usageData } = useRulesEngine(
+		actionData as RulesEngineActionData,
+	)
 
 	// ✅ Extract structured values from actionData
 
@@ -119,7 +120,12 @@ export default function CreateCase({
 			caseInfo={actionData?.caseInfo}
 			usageData={usageData}
 			showUsageData={!!usageData}
-			onClickBillingRow={toggleBillingPeriod}
+			onClickBillingRow={(index: number) => {
+				// not possible to adjust billing rows on new case creation page
+				throw new Error(
+					`Adjusting billing row ${index} not implemented for new cases`,
+				)
+			}}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}
 		/>

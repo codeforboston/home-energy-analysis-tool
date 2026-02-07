@@ -1,12 +1,12 @@
 import { parseWithZod } from '@conform-to/zod'
+import { parseFormData } from '@mjackson/form-data-parser';
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
-import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { replacer } from '#app/utils/data-parser.ts'
+import { updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import {
 	getCaseForEditing,
 	getLoggedInUserFromRequest,
@@ -221,122 +221,88 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 	}
 
-	try {
-		if (intent === 'process-file') {
-			// Full update with new energy file - use the original processCaseUpdate
-			const result = await processCaseUpdate(
-				caseId,
-				submission,
-				userId,
-				formData,
-			)
+	// Simple form update (intent === 'save' or fallback) - just update the database fields
+	console.log('🔄 Processing save operation for case:', caseId)
 
-			return {
-				submitResult: submission.reply(),
-				data: JSON.stringify(result.gasBillData, replacer),
-				parsedAndValidatedFormSchema: submission.value,
-				convertedDatesTIWD: result.convertedDatesTIWD,
-				state_id: result.state_id,
-				county_id: result.county_id,
-				caseInfo: {
-					caseId: result.updatedCase?.id,
-					analysisId: result.updatedCase?.analysis?.[0]?.id,
-				},
+	// Parse billing records from form data if present
+	const billingRecordsJson = formData.get('billing_records') as string | null
+	let billingRecords: any[] | undefined
+	if (billingRecordsJson) {
+		try {
+			const parsed = JSON.parse(billingRecordsJson)
+			if (!Array.isArray(parsed)) {
+				throw new Error('Billing records is not an array')
 			}
-		} else {
-			// Simple form update (intent === 'save' or fallback) - just update the database fields
-			console.log('🔄 Processing save operation for case:', caseId)
-
-			// Parse billing records from form data if present
-			const billingRecordsJson = formData.get('billing_records') as
-				| string
-				| null
-			let billingRecords: any[] | undefined
-			if (billingRecordsJson) {
-				try {
-					const parsed = JSON.parse(billingRecordsJson)
-					billingRecords = Array.isArray(parsed) ? parsed : undefined
-					console.log('📊 Parsed billing records:', billingRecords)
-				} catch (error) {
-					console.error('❌ Failed to parse billing records:', error)
-				}
-			}
-
-			// Parse heat load output from form data if present
-			const heatLoadOutputJson = formData.get('heat_load_output') as
-				| string
-				| null
-			let heatLoadOutput: any | undefined
-			if (heatLoadOutputJson) {
-				try {
-					heatLoadOutput = JSON.parse(heatLoadOutputJson)
-					console.log('📊 Parsed heat load output:', heatLoadOutput)
-				} catch (error) {
-					console.error('❌ Failed to parse heat load output:', error)
-				}
-			}
-
-			const { updateCaseRecord } = await import(
-				'#app/utils/db/case.db.server.ts'
-			)
-			const updatedCase = await updateCaseRecord(
-				caseId,
-				submission.value,
-				{},
-				userId,
-				billingRecords,
-				heatLoadOutput,
-			)
-			console.log('✅ Case updated successfully:', {
-				caseId: updatedCase?.id,
-				analysisId: updatedCase?.analysis?.[0]?.id,
-			})
-
-			// For save operations, add a dummy energy_use_upload to match expected type
-			const formDataWithFile = {
-				...submission.value,
-				energy_use_upload: {
-					name: 'existing-data.csv',
-					size: 0,
-					type: 'text/csv',
-				},
-			}
-
-			const result = {
-				submitResult: submission.reply(),
-				data: undefined, // No new calculation data
-				parsedAndValidatedFormSchema: formDataWithFile,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: {
-					caseId: updatedCase?.id,
-					analysisId: updatedCase?.analysis?.[0]?.id,
-				},
-			}
-			console.log('📤 Returning save result:', result)
-			return result
+			billingRecords = 
+			    parsed.map((bill: any) => ({
+					period_start_date: bill["period_start_date"],
+					period_end_date: bill["period_end_date"],
+					usage: bill["usage"],
+					inclusion_override: bill["inclusion_override"],
+					analysis_type: bill["analysis_type"],
+					default_inclusion: bill["default_inclusion"],
+					eliminated_as_outlier: bill["eliminated_as_outlier"],
+					whole_home_heat_loss_rate: bill["whole_home_heat_loss_rate"],
+				}))
+			console.log('📊 Parsed billing records')
+		} catch (error) {
+			console.error('❌ Failed to parse billing records:', error)
 		}
-	} catch (error: any) {
-		console.error('❌ Case update failed', error)
-		const message =
-			error instanceof Error
-				? error.message
-				: 'Unknown error during case update'
-		return data(
-			{
-				submitResult: submission.reply({ formErrors: [message] }),
-				parsedAndValidatedFormSchema: undefined,
-				data: undefined,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: undefined,
-				error: message, // Add error field for consistent error handling
-			},
-			{ status: 500 },
-		)
 	}
+
+
+	// Parse heat load output from form data if present
+	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
+	let heatLoadOutput: any | undefined
+	if (heatLoadOutputJson) {
+		try {
+			heatLoadOutput = JSON.parse(heatLoadOutputJson)
+			console.log('📊 Parsed heat load output:')
+			console.log('Average Indoor Temperature:', heatLoadOutput["average_indoor_temperature"])
+		} catch (error) {
+			console.error('❌ Failed to parse heat load output:', error)
+		}
+	}
+	console.log('')
+	console.log('🔄 Updating case record in database...')
+
+	const updatedCase = await updateCaseRecord(
+		caseId,
+		submission.value,
+		{},
+		userId,
+		billingRecords,
+		heatLoadOutput,
+	)
+	console.log('✅ Case updated successfully:', {
+		caseId: updatedCase?.id,
+		analysisId: updatedCase?.analysis?.[0]?.id,
+	})
+
+	// For save operations, add a dummy energy_use_upload to match expected type
+	const formDataWithFile = {
+		...submission.value,
+		energy_use_upload: {
+			name: 'existing-data.csv',
+			size: 0,
+			type: 'text/csv',
+		},
+	}
+
+	const result = {
+		submitResult: submission.reply(),
+		data: undefined, // No new calculation data
+		parsedAndValidatedFormSchema: formDataWithFile,
+		convertedDatesTIWD: undefined,
+		state_id: undefined,
+		county_id: undefined,
+		caseInfo: {
+			caseId: updatedCase?.id,
+			analysisId: updatedCase?.analysis?.[0]?.id,
+		},
+	}
+	console.log('📤 Returning save result:', result)
+	return result
 }
 
 export default function EditCase({
@@ -394,15 +360,6 @@ export default function EditCase({
 		}
 	}, [actionData])
 
-	// Use calculated data when available, fallback to local billing records with database heat load output
-	console.log('📊 Usage data selection:', {
-		hasCalculatedData: !!calculatedUsageData,
-		hasLocalBillingRecords: !!(
-			localBillingRecords && localBillingRecords.length > 0
-		),
-		isInitialCalculationComplete,
-	})
-
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
 	const usageData = !isInitialCalculationComplete
@@ -456,12 +413,6 @@ export default function EditCase({
 			loaderData.county_id
 		) {
 			console.log('🚀 Triggering client-side recalculation...')
-			console.log('📋 Current usageData:', usageData)
-			console.log(
-				'🔍 Function check:',
-				typeof executeRoundtripAnalyticsFromFormJs,
-				executeRoundtripAnalyticsFromFormJs,
-			)
 
 			try {
 				// Check if the function is still valid (not destroyed)
@@ -475,35 +426,6 @@ export default function EditCase({
 				const userAdjustedData = {
 					processed_energy_bills: updatedRecords,
 				}
-
-				console.log(
-					'🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records',
-				)
-				console.log(
-					'🔍 Arg 1 (form):',
-					typeof parsedAndValidatedFormSchemaForEffects,
-					parsedAndValidatedFormSchemaForEffects,
-				)
-				console.log(
-					'🔍 Arg 2 (temp):',
-					typeof loaderData.convertedDatesTIWD,
-					loaderData.convertedDatesTIWD,
-				)
-				console.log(
-					'🔍 Arg 3 (adjusted):',
-					typeof userAdjustedData,
-					userAdjustedData,
-				)
-				console.log(
-					'🔍 Arg 4 (state):',
-					typeof loaderData.state_id,
-					loaderData.state_id,
-				)
-				console.log(
-					'🔍 Arg 5 (county):',
-					typeof loaderData.county_id,
-					loaderData.county_id,
-				)
 
 				// Call the function and immediately handle the result
 				let calcResult: any
@@ -525,12 +447,6 @@ export default function EditCase({
 					console.error('❌ PyProxy error:', pyError)
 					throw pyError
 				}
-
-				console.log(
-					'📊 Recalculation result type:',
-					calcResult instanceof Map,
-					calcResult,
-				)
 
 				const newUsageData = buildCurrentUsageData(calcResult)
 				setCalculatedUsageData(newUsageData)

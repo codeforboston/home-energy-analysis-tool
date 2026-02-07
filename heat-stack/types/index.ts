@@ -1,6 +1,6 @@
 import { z } from 'zod'
+// export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
-
 // JS team wants to discuss this name
 export const CaseSchema = z.object({
 	name: z.string(),
@@ -118,6 +118,7 @@ export const summaryOutputSchema = z.object({
 	maximum_heat_load: z.number(),
 })
 
+
 export const NaturalGasBillRecord = z.object({
 	periodStartDate: z.date(),
 	periodEndDate: z.date(),
@@ -126,14 +127,25 @@ export const NaturalGasBillRecord = z.object({
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
 })
 
+export const NaturalGasBillingRecords= z.map(
+	z.enum(['records']),
+    z.array(NaturalGasBillRecord)
+)
+
 // Helper function to create a date string schema
 const dateStringSchema = () =>
 	z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD')
 
+// export const naturalGasUsageSchema = z.map(
+// 	z.enum(['overall_start_date', 'overall_end_date', 'records']),
+// 	z.union([dateStringSchema(), z.array(NaturalGasBillRecord)]),
+// )
+
 export const naturalGasUsageSchema = z.map(
-	z.enum(['overall_start_date', 'overall_end_date', 'records']),
-	z.union([dateStringSchema(), z.array(NaturalGasBillRecord)]),
+	z.enum([ 'records']),
+	z.array(NaturalGasBillRecord),
 )
+
 
 // Define the schema for one billing record
 export const oneProcessedEnergyBillSchema = z.object({
