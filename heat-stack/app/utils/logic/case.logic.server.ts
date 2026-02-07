@@ -13,6 +13,7 @@ import {
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasBillRecord, type NaturalGasUsageDataSchema } from '#types/index.ts'
+import { fa } from '#node_modules/@faker-js/faker/dist'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -25,17 +26,19 @@ export async function calculateWithCsv(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	const gasBillingData = pyodideProxy.toJs() as NaturalGasUsageDataSchema
-	console.log("Debug: Gas Billing Data from Pyodide", gasBillingData.get("records"));
+	const billsFromPy = pyodideProxy.toJs() as NaturalGasUsageDataSchema
+	console.log("Debug: Gas Billing Data from Pyodide", billsFromPy.get("records"));
 
 	// Create bills array of type NaturalGasBillRecord from parsed records
-	const parsedRecords = gasBillingData.get("records") as any[];
+	const parsedRecords = billsFromPy.get("records") as any[];
+	console.log("Debug: Parsed Records", parsedRecords[0], parsedRecords[1], parsedRecords[2]);
 	const bills = parsedRecords.map(record => ({
 		periodStartDate: new Date(record["period_start_date"]),
 		periodEndDate: new Date(record["period_end_date"]),
-		usageQuantity: Number(record["usage"]),
-		inclusionOverride: Number(record["inclusion_override"]),
-	}));
+		usageTherms : Number(record["usage_therms"]),
+		inclusionOverride: false
+	}))
+	console.log("Debug: Parsed Bills 2", parsedRecords[0], parsedRecords[1], parsedRecords[2])
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await calculateWithBills(parsedForm, bills)
@@ -54,13 +57,21 @@ export async function calculateWithBills(
 	bills: Array<{
 		periodStartDate: Date,
 		periodEndDate: Date,
-		usageQuantity: number,
+		usageTherms: number,
 		inclusionOverride: number,
 	}>
 ) {
 	// Calculate overall_start_date and overall_end_date from bills
 	const overall_start_date = new Date(Math.min(...bills.map(b => new Date(b.periodStartDate).getTime())));
 	const overall_end_date = new Date(Math.max(...bills.map(b => new Date(b.periodEndDate).getTime())));
+
+	// Create billsIso: copy of bills with ISO date strings
+	const billsPyReady = bills.map(bill => ({
+		periodStartDate: bill.periodStartDate instanceof Date ? bill.periodStartDate.toISOString() : String(bill.periodStartDate),
+		periodEndDate: bill.periodEndDate instanceof Date ? bill.periodEndDate.toISOString() : String(bill.periodEndDate),
+		usageTherms: bill.usageTherms || 0,
+		inclusionOverride: bill.inclusionOverride || false,
+	}));
 
 	const { convertedDatesTIWD, state_id, county_id } =
 		await getConvertedDatesTIWD(
@@ -74,10 +85,12 @@ export async function calculateWithBills(
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
+	// Use billsIso for Python interop if needed
+	console.log("Debug here")
 	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
-		bills,
+		billsPyReady,
 		state_id,
 		county_id,
 	)

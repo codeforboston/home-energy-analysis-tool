@@ -71,8 +71,16 @@ def get_outputs_natural_gas(
     current heating system fuel.
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
+    print("Debug about to loop natural gas bills input", flush=True)
+    import sys
 
+    print("Debug: your message", flush=True)
+    import js
+
+    js.console.log("Debug: your message from JS")
+    sys.stdout.flush()
     for input_val in natural_gas_bills_input:
+        print("Debug: Processing natural gas bill input", input_val, flush=True)
         processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
