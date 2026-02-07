@@ -170,7 +170,7 @@ export default function Cases({
 										</td>
 										<td className="whitespace-nowrap px-6 py-4">
 											<Link
-												to={`/cases/${caseItem.id}`}
+												to={`/cases/${firstAnalysis?.id}`}
 												className="mx-1 text-indigo-600 hover:text-indigo-900"
 											>
 												View
