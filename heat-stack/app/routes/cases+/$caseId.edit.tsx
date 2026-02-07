@@ -146,8 +146,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			'Invalid heating system efficiency value detected',
 		),
 		thermostat_set_point: heatingInput.thermostatSetPoint,
-		setback_temperature: heatingInput.setbackTemperature,
-		setback_hours_per_day: heatingInput.setbackHoursPerDay,
+		setback_temperature: heatingInput.setbackTemperature ?? undefined,
+		setback_hours_per_day: heatingInput.setbackHoursPerDay ?? undefined,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	})

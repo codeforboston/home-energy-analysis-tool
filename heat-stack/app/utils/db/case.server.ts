@@ -201,8 +201,8 @@ export const updateCase = async (
 				validHI.heating_system_efficiency * 100,
 			),
 			thermostatSetPoint: validHI.thermostat_set_point,
-			setbackTemperature: validHI.setback_temperature || 65,
-			setbackHoursPerDay: validHI.setback_hours_per_day || 0,
+			setbackTemperature: validHI.setback_temperature ?? null,
+			setbackHoursPerDay: validHI.setback_hours_per_day ?? null,
 			numberOfOccupants: 2, // Default value until we add to form
 			estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
 			standByLosses: 5, // Default value until we add to form
@@ -287,8 +287,8 @@ export const createCase = async (
 					formInputs.heating_system_efficiency * 100,
 				),
 				thermostatSetPoint: formInputs.thermostat_set_point,
-				setbackTemperature: formInputs.setback_temperature || 65,
-				setbackHoursPerDay: formInputs.setback_hours_per_day || 0,
+				setbackTemperature: formInputs.setback_temperature ?? null,
+				setbackHoursPerDay: formInputs.setback_hours_per_day ?? null,
 				numberOfOccupants: 2, // Default value until we add to form
 				estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
 				standByLosses: 5, // Default value until we add to form
