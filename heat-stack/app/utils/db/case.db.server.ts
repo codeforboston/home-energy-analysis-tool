@@ -82,8 +82,8 @@ export async function createCaseRecord(
 						formValues.heating_system_efficiency * 100,
 					),
 					thermostatSetPoint: formValues.thermostat_set_point,
-					setbackTemperature: formValues.setback_temperature,
-					setbackHoursPerDay: formValues.setback_hours_per_day,
+					setbackTemperature: formValues.setback_temperature ?? null,
+					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
 					numberOfOccupants: 2, // Default value
 					estimatedWaterHeatingEfficiency: 80, // Default value
 					standByLosses: 10, // Default value
@@ -175,8 +175,8 @@ export async function updateCaseRecord(
 						formValues.heating_system_efficiency * 100,
 					),
 					thermostatSetPoint: formValues.thermostat_set_point,
-					setbackTemperature: formValues.setback_temperature,
-					setbackHoursPerDay: formValues.setback_hours_per_day,
+					setbackTemperature: formValues.setback_temperature ?? null,
+					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
 					livingArea: formValues.living_area,
 				},
 			})
