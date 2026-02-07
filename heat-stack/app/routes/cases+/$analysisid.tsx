@@ -107,11 +107,11 @@ export default function Analysis({
 					</p>
 					{(caseData.location.latitude !== 0 ||
 						caseData.location.longitude !== 0) && (
-							<p className="mb-2">
-								<span className="font-medium">Coordinates:</span>{' '}
-								{caseData.location.latitude}, {caseData.location.longitude}
-							</p>
-						)}
+						<p className="mb-2">
+							<span className="font-medium">Coordinates:</span>{' '}
+							{caseData.location.latitude}, {caseData.location.longitude}
+						</p>
+					)}
 				</div>
 			</div>
 			{/* Heating Input */}
@@ -209,12 +209,11 @@ export default function Analysis({
 				</a>
 				<a
 					href={`/cases/${caseData.id}/edit`}
-					className="inline-block rounded bg-emerald-600 px-4 py-2 mx-4 text-white hover:bg-emerald-700"
+					className="mx-4 inline-block rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
 				>
 					Edit This Case
 				</a>
 			</div>
-
 		</div>
 	)
 }
