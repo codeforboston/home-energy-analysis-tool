@@ -55,8 +55,16 @@ export const HomeSchema = z.object({
 		.min(0.6, { message: 'Efficiency must be at least 60%' })
 		.max(1, { message: 'Efficiency cannot exceed 100%' }),
 	thermostat_set_point: z.number(),
-	setback_temperature: z.number().optional(),
-	setback_hours_per_day: z.number().optional(),
+	setback_temperature: z.preprocess(
+		(val) =>
+			val === '' || val === undefined || val === null ? undefined : Number(val),
+		z.number().optional(),
+	),
+	setback_hours_per_day: z.preprocess(
+		(val) =>
+			val === '' || val === undefined || val === null ? undefined : Number(val),
+		z.number().optional(),
+	),
 	numberOfOccupants: z.number(),
 	estimatedWaterHeatingEfficiency: z.number(),
 	standByLosses: z.number(),

@@ -125,11 +125,15 @@ export default function Analysis({
 						</p>
 						<p>
 							<span className="font-medium">Setback Temperature:</span>{' '}
-							{heatingInput.setbackTemperature}°F
+							{heatingInput.setbackTemperature != null
+								? `${heatingInput.setbackTemperature}°F`
+								: 'N/A'}
 						</p>
 						<p>
 							<span className="font-medium">Setback Hours:</span>{' '}
-							{heatingInput.setbackHoursPerDay} hours/day
+							{heatingInput.setbackHoursPerDay != null
+								? `${heatingInput.setbackHoursPerDay} hours/day`
+								: 'N/A'}
 						</p>
 						<p>
 							<span className="font-medium">Number of Occupants:</span>{' '}
