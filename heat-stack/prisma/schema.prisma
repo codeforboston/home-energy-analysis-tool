@@ -204,8 +204,8 @@ model HeatingInput {
   designTemperatureOverride       Boolean
   heatingSystemEfficiency         Int
   thermostatSetPoint              Int
-  setbackTemperature              Int
-  setbackHoursPerDay              Int
+  setbackTemperature              Int?
+  setbackHoursPerDay              Int?
   numberOfOccupants               Int
   estimatedWaterHeatingEfficiency Int
   standByLosses                   Int
