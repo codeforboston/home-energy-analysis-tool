@@ -29,8 +29,9 @@ class NaturalGasCompany(StrEnum):
 
 
 def find_column(column_names: list[str], header: str) -> str:
+    header_lower = header.lower()
     for column_name in column_names:
-        if column_name in header:
+        if column_name.lower() in header_lower:
             return column_name
     raise ValueError("Column not found in header.  Column names tried:", column_names)
 
@@ -141,45 +142,115 @@ def _remove_non_ascii_or_newline_characters(data: str) -> str:
     )
 
 
+from typing import Dict, Optional, Tuple
+
+
 def are_column_names_in_string(
     data: str,
     read_date_names: list[str],
     number_of_days_names: list[str],
     usage_names: list[str],
-) -> bool:
+) -> Tuple[Dict[str, bool], Dict[str, Optional[str]]]:
     """Return whether every column name is in the data"""
-    matches = {"read date": False, "number of days": False, "usage": False}
+    data_lower = data.lower()
+    matches: dict[str, bool] = {
+        "read date": False,
+        "number of days": False,
+        "usage": False,
+    }
+    found: dict[str, str | None] = {
+        "read date": None,
+        "number of days": None,
+        "usage": None,
+    }
     for read_date_name in read_date_names:
-        if read_date_name in data:
+        if read_date_name.lower() in data_lower:
             matches["read date"] = True
+            found["read date"] = read_date_name
             break
     for number_of_days_name in number_of_days_names:
-        if number_of_days_name in data:
+        if number_of_days_name.lower() in data_lower:
             matches["number of days"] = True
+            found["number of days"] = number_of_days_name
             break
     for usage_name in usage_names:
-        if usage_name in data:
+        if usage_name.lower() in data_lower:
             matches["usage"] = True
+            found["usage"] = usage_name
             break
-    return matches["read date"] and matches["number of days"] and matches["usage"]
+    return matches, found
 
 
 def _detect_gas_company(data: str) -> NaturalGasCompany:
     """Return which natural gas company issued this bill."""
-    if are_column_names_in_string(
+    # Print CSV columns for debugging
+    import csv
+    from io import StringIO
+
+    reader = csv.reader(StringIO(data))
+    for row in reader:
+        if any(cell.strip() for cell in row):
+            print("CSV columns:", row)
+            break
+
+    matches: dict[str, bool]
+    found: dict[str, str | None]
+    matches, found = are_column_names_in_string(
         data,
         constants.READ_DATE_NAMES_EVERSOURCE,
         constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE,
         constants.USAGE_NAMES_EVERSOURCE,
-    ):
+    )
+    if all(matches.values()):
+        print("Successfully detected Eversource columns. Parsing as Eversource.")
         return NaturalGasCompany.EVERSOURCE
-    elif are_column_names_in_string(
+    elif not all(matches.values()):
+        missing = [k for k, v in matches.items() if not v]
+        print("Eversource: column check:")
+        for m in missing:
+            if m == "read date":
+                print(
+                    f"  missing one of {constants.READ_DATE_NAMES_EVERSOURCE} (expected: {', '.join(constants.READ_DATE_NAMES_EVERSOURCE)})"
+                )
+            elif m == "number of days":
+                print(
+                    f"  missing one of {constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE} (expected: {', '.join(constants.NUMBER_OF_DAYS_NAMES_EVERSOURCE)})"
+                )
+            elif m == "usage":
+                print(
+                    f"  missing one of {constants.USAGE_NAMES_EVERSOURCE} (expected: {', '.join(constants.USAGE_NAMES_EVERSOURCE)})"
+                )
+        print("  found:", found)
+
+    matches_ng: dict[str, bool]
+    found_ng: dict[str, str | None]
+    matches_ng, found_ng = are_column_names_in_string(
         data,
         [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[0]],
         [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[1]],
         [constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[2]],
-    ):
+    )
+    if all(matches_ng.values()):
+        print("Successfully detected National Grid columns. Parsing as National Grid.")
         return NaturalGasCompany.NATIONAL_GRID
+    elif not all(matches_ng.values()):
+        missing_ng = [k for k, v in matches_ng.items() if not v]
+        print("National Grid: column check:")
+        for m in missing_ng:
+            if m == "read date":
+                print(
+                    f"  missing one of {[constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[0]]} (expected: {constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[0]})"
+                )
+            elif m == "number of days":
+                print(
+                    f"  missing one of {[constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[1]]} (expected: {constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[1]})"
+                )
+            elif m == "usage":
+                print(
+                    f"  missing one of {[constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[2]]} (expected: {constants.COLUMN_NAMES_TO_SEEK.NATIONAL_GRID[2]})"
+                )
+        print("  found:", found_ng)
+
     raise ValueError("Could not determine natural gas company.")
 
 
