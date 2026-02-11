@@ -173,11 +173,14 @@ If using GitHub Codespaces, follow these steps:
    nvm install 22
    nvm use 22
    ```
-4. Install dependencies and build:
+4. Install dependencies and build (some errors due to headless mode at the end
+   of `npm run setup` are okay):
    ```bash
+   pip install uv
    npm install
    npm run buildpy
    npm run setup
+   npx prisma db seed # create kody user
    npm run dev
    ```
 5. Disable auto-save in VSCode (this is to avoid auto recompiling and page
