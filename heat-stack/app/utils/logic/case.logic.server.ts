@@ -1,24 +1,16 @@
 import { invariant } from '@epic-web/invariant'
-// TODO: comment out unused code
+import { convertPyBills } from '#app/utils/convert.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { insertProcessedBills } from '#app/utils/db/bill.db.server.ts'
-import {
-	createCaseRecord,
-	updateCaseRecord,
-} from '#app/utils/db/case.db.server.ts'
+import { createCaseRecord, updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
-import {
-	executeParseGasBillPy,
-	executeGetNormalizedOutput,
-} from '#app/utils/rules-engine.ts'
+import { executeParseGasBillPy, executeGetNormalizedOutput } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { type NaturalGasBillRecord, type NaturalGasUsageDataSchema } from '#types/index.ts'
-import { fa } from '#node_modules/@faker-js/faker/dist'
+import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
- **/
-
+ */
 export async function calculateWithCsv(
 	formData: FormData, // form as a dictionary and a file - needed for file
 	parsedForm: any, // form values as a parsed object - needed for pycall
@@ -26,22 +18,16 @@ export async function calculateWithCsv(
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	const billsFromPy = pyodideProxy.toJs() as NaturalGasUsageDataSchema
-	console.log("Debug: Gas Billing Data from Pyodide", billsFromPy.get("records"));
-
-	// Create bills array of type NaturalGasBillRecord from parsed records
-	const parsedRecords = billsFromPy.get("records") as any[];
-	console.log("Debug: Parsed Records", parsedRecords[0], parsedRecords[1], parsedRecords[2]);
-	const bills = parsedRecords.map(record => ({
-		periodStartDate: new Date(record["period_start_date"]),
-		periodEndDate: new Date(record["period_end_date"]),
-		usageTherms : Number(record["usage_therms"]),
-		inclusionOverride: false
-	}))
-	console.log("Debug: Parsed Bills 2", parsedRecords[0], parsedRecords[1], parsedRecords[2])
+	console.log('Debug: pyodideProxy from executeParseGasBillPy', pyodideProxy)
+	const records = pyodideProxy.toJs().get('records') as any
+	// const billsFromPy = pyodideProxy.toJs() as NaturalGasUsageDataSchema
+	// const parsedRecords = billsFromPy.get("records") as any[];
+	console.log('Debug: Parsed Records', records[0], records[1], records[2])
+	const parsedBills = convertPyBills(records)
+	console.log('Debug: bills', parsedBills[0], parsedBills[1], parsedBills[2])
 	// pyodideProxy.destroy()
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedForm, bills)
+		await calculateWithBills(parsedForm, parsedBills)
 	return await caseCreate({
 		parsedForm,
 		convertedDatesTIWD,
@@ -55,38 +41,54 @@ export async function calculateWithBills(
 	parsedForm: any,
 	// TODO: Use a type from index.ts
 	bills: Array<{
-		periodStartDate: Date,
-		periodEndDate: Date,
+		periodStartDate: Date | string,
+		periodEndDate: Date | string,
 		usageTherms: number,
-		inclusionOverride: number,
+		inclusionOverride: number | boolean,
 	}>
 ) {
 	// Calculate overall_start_date and overall_end_date from bills
-	const overall_start_date = new Date(Math.min(...bills.map(b => new Date(b.periodStartDate).getTime())));
-	const overall_end_date = new Date(Math.max(...bills.map(b => new Date(b.periodEndDate).getTime())));
+	const overall_start_date = new Date(Math.min(...bills.map(b => new Date(b.periodStartDate).getTime())))
+	const overall_end_date = new Date(Math.max(...bills.map(b => new Date(b.periodEndDate).getTime())))
 
-	// Create billsIso: copy of bills with ISO date strings
-	const billsPyReady = bills.map(bill => ({
-		periodStartDate: bill.periodStartDate instanceof Date ? bill.periodStartDate.toISOString() : String(bill.periodStartDate),
-		periodEndDate: bill.periodEndDate instanceof Date ? bill.periodEndDate.toISOString() : String(bill.periodEndDate),
-		usageTherms: bill.usageTherms || 0,
-		inclusionOverride: bill.inclusionOverride || false,
-	}));
+	// Convert bills to Map<'records', ...> format expected by executeGetNormalizedOutput
+	const billsPyReady: Map<'records', Array<{
+		periodStartDate: Date
+		periodEndDate: Date
+		usageQuantity: number
+		inclusionOverride: number
+	}>> = new Map([
+		[
+			'records',
+			bills.map(bill => ({
+				periodStartDate:
+					bill.periodStartDate instanceof Date
+						? bill.periodStartDate
+						: new Date(bill.periodStartDate),
+				periodEndDate:
+					bill.periodEndDate instanceof Date
+						? bill.periodEndDate
+						: new Date(bill.periodEndDate),
+				usageQuantity: bill.usageTherms || 0,
+				inclusionOverride: typeof bill.inclusionOverride === 'boolean' ? (bill.inclusionOverride ? 1 : 0) : bill.inclusionOverride || 0,
+			})),
+		],
+	])
 
-	const { convertedDatesTIWD, state_id, county_id } =
-		await getConvertedDatesTIWD(
-			overall_start_date,
-			overall_end_date,
-			parsedForm.street_address,
-			parsedForm.town,
-			parsedForm.state,
-		)
+	const { convertedDatesTIWD, state_id, county_id } = await getConvertedDatesTIWD(
+		overall_start_date,
+		overall_end_date,
+		parsedForm.street_address,
+		parsedForm.town,
+		parsedForm.state,
+	)
 
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
 	// Use billsIso for Python interop if needed
-	console.log("Debug here")
+	const debugBills = billsPyReady.get('records') || []
+	console.log('Debug here', debugBills[0], debugBills[1], debugBills[2])
 	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
@@ -95,41 +97,41 @@ export async function calculateWithBills(
 		county_id,
 	)
 	const rulesEngineResult = rulesEngineResultProxy.toJs()
-	rulesEngineResultProxy.destroy()
+	// rulesEngineResultProxy.destroy()
 	return { rulesEngineResult, state_id, county_id, convertedDatesTIWD }
 }
 export async function caseCreate({
-	parsedForm,
-	convertedDatesTIWD,
-	state_id,
-	county_id,
-	userId,
-	rulesEngineResult,
+  parsedForm,
+  convertedDatesTIWD,
+  state_id,
+  county_id,
+  userId,
+  rulesEngineResult,
 }: any) {
-	const newCase = await createCaseRecord(
-		parsedForm,
-		{ convertedDatesTIWD, state_id, county_id },
-		userId,
-		rulesEngineResult,
-	)
+  const newCase = await createCaseRecord(
+    parsedForm,
+    { convertedDatesTIWD, state_id, county_id },
+    userId,
+    rulesEngineResult,
+  )
 
-	// Get the HeatingInput ID from the created analysis
-	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
-	invariant(heatingInputId, 'Failed to create HeatingInput record')
+  // Get the HeatingInput ID from the created analysis
+  const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
+  invariant(heatingInputId, 'Failed to create HeatingInput record')
 
-	const insertedCount = await insertProcessedBills(
-		heatingInputId,
-		rulesEngineResult,
-	)
+  const insertedCount = await insertProcessedBills(
+    heatingInputId,
+    rulesEngineResult,
+  )
 
-	return {
-		newCase,
-		rulesEngineResult,
-		insertedCount,
-		state_id,
-		county_id,
-		convertedDatesTIWD,
-	}
+  return {
+    newCase,
+    rulesEngineResult,
+    insertedCount,
+    state_id,
+    county_id,
+    convertedDatesTIWD,
+  }
 }
 
 /**
@@ -141,8 +143,33 @@ export async function processCaseUpdate(
 	userId: string,
 	gasBillingData: NaturalGasUsageDataSchema,
 ) {
+	// Convert Map to array if needed
+	let billsArray: Array<{
+		periodStartDate: Date | string,
+		periodEndDate: Date | string,
+		usageTherms: number,
+		inclusionOverride: number | boolean,
+	}> = []
+	let billsMap: Map<string, any> | null = null
+	if (gasBillingData instanceof Map && gasBillingData.has('records')) {
+		billsMap = gasBillingData
+	} else if (Array.isArray(gasBillingData) && !(gasBillingData instanceof Map)) {
+		billsArray = gasBillingData as Array<{
+			periodStartDate: Date | string,
+			periodEndDate: Date | string,
+			usageTherms: number,
+			inclusionOverride: number | boolean,
+		}>
+	}
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedForm, gasBillingData)
+		billsMap
+			? await calculateWithBills(parsedForm, billsMap.get('records').map((rec: any) => ({
+					periodStartDate: rec.periodStartDate,
+					periodEndDate: rec.periodEndDate,
+					usageTherms: rec.usageQuantity,
+					inclusionOverride: rec.inclusionOverride,
+				})))
+			: await calculateWithBills(parsedForm, billsArray)
 	console.log('🔄 Updating case record in database...', rulesEngineResult)
 
 	const updatedCase = await updateCaseRecord(

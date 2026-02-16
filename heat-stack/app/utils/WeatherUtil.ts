@@ -57,7 +57,7 @@ class WeatherUtil {
 		params.append('latitude', `${latitude}`)
 		params.append('longitude', `${longitude}`)
 		params.append('daily', 'temperature_2m_mean')
-		params.append('timezone', 'America/New_York')
+		params.append('timezone', 'UTC')
 		params.append('start_date', startDate)
 		params.append('end_date', endDate)
 		params.append('temperature_unit', 'fahrenheit')

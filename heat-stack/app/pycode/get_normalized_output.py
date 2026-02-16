@@ -79,7 +79,6 @@ def executeGetNormalizedOutput(
             inclusion_override=rec.get("inclusionOverride"),
         )
         records.append(record)
-    gasBillsInput = NaturalGasBills2x(records=records)
 
     design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(
@@ -88,9 +87,7 @@ def executeGetNormalizedOutput(
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
-    outputs = engine.get_outputs_natural_gas(
-        summaryInput, temperatureInput, gasBillsInput
-    )
+    outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, records)
     return outputs.model_dump(mode="json")
     # result = outputs.model_dump(mode="json")
     # result["design_temp_lookup"] = design_temp_looked_up

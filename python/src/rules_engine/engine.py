@@ -185,6 +185,14 @@ def convert_to_intermediate_processed_energy_bills(
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
     fuel_type: FuelType,
 ) -> list[IntermediateEnergyBill]:
+    print("DEBUG: temperature_input.dates types and tzinfo:")
+    for d in temperature_input.dates:
+        print(f'  {d!r} type={type(d)} tzinfo={getattr(d, "tzinfo", None)}')
+    print("DEBUG: processed_energy_bill_inputs period_start_date types and tzinfo:")
+    for bill in processed_energy_bill_inputs:
+        print(
+            f'  {bill.period_start_date!r} type={type(bill.period_start_date)} tzinfo={getattr(bill.period_start_date, "tzinfo", None)}'
+        )
     """
     Converts temperature data and billing period inputs into internal
     classes used for heat loss calculations.
@@ -196,17 +204,37 @@ def convert_to_intermediate_processed_energy_bills(
     intermediate_processed_energy_bill_inputs = []
     default_inclusion = False
 
-    for processed_energy_bill_input in processed_energy_bill_inputs:
-        # the HEAT Excel sheet is inclusive of the temperatures that fall on both the start and end dates
-        start_idx = bisect.bisect_left(
-            temperature_input.dates, processed_energy_bill_input.period_start_date
-        )
-        end_idx = (
-            bisect.bisect_left(
-                temperature_input.dates, processed_energy_bill_input.period_end_date
+    from datetime import datetime, timezone
+
+    # Ensure all temperature_input.dates are UTC-aware datetimes
+    temp_dates = []
+    for d in temperature_input.dates:
+        if isinstance(d, str):
+            # Parse string to datetime, force UTC
+            dt = datetime.fromisoformat(d.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            temp_dates.append(dt)
+        elif hasattr(d, "tzinfo"):
+            temp_dates.append(
+                d if d.tzinfo is not None else d.replace(tzinfo=timezone.utc)
             )
-            + 1
-        )
+        else:
+            raise ValueError(f"Unrecognized date type in temperature_input.dates: {d}")
+    for processed_energy_bill_input in processed_energy_bill_inputs:
+        # Normalize all bill dates to UTC-aware
+        bill_start = processed_energy_bill_input.period_start_date
+        bill_end = processed_energy_bill_input.period_end_date
+        if isinstance(bill_start, str):
+            bill_start = datetime.fromisoformat(bill_start.replace("Z", "+00:00"))
+        if isinstance(bill_end, str):
+            bill_end = datetime.fromisoformat(bill_end.replace("Z", "+00:00"))
+        if bill_start.tzinfo is None:
+            bill_start = bill_start.replace(tzinfo=timezone.utc)
+        if bill_end.tzinfo is None:
+            bill_end = bill_end.replace(tzinfo=timezone.utc)
+        start_idx = bisect.bisect_left(temp_dates, bill_start)
+        end_idx = bisect.bisect_left(temp_dates, bill_end) + 1
 
         if fuel_type == FuelType.GAS:
             analysis_type, default_inclusion = _date_to_analysis_type_natural_gas(
