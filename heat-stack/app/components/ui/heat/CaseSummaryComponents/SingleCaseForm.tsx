@@ -1,6 +1,6 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -72,11 +72,11 @@ export default function SingleCaseForm({
 	usageData,
 	showUsageData,
 	action,
-	onClickBillingRow,
+	onBillingRecordsChange,
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
-}: SubmitAnalysisProps) {
+}: SubmitAnalysisProps & { onBillingRecordsChange: (records: BillingRecordsSchema) => void }) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	const [form, fields] = useForm({
@@ -97,7 +97,6 @@ export default function SingleCaseForm({
 
 	// Track last focused value for autosave-on-blur
 	const lastFocusedValueRef = useRef<string | null>(null)
-	const formRef = useRef<HTMLFormElement>(null)
 
 	// Toast state for autosave feedback
 	const [showToast, setShowToast] = useState(false)
@@ -115,16 +114,7 @@ export default function SingleCaseForm({
 
 	// Generic onBlur handler for all fields
 	const handleFieldBlur = (e: React.FocusEvent<any>) => {
-		console.log('[DEBUG handleFieldBlur]', {
-			isEditMode,
-			lastFocusedValue: lastFocusedValueRef.current,
-			currentValue: e.target.value,
-			formRefCurrent: formRef.current,
-		})
-		if (lastFocusedValueRef.current === null) {
-			console.log('DEBUG: lastFocusedValueRef.current is null, event:', e)
-			throw new Error('lastFocusedValueRef.current is null in handleFieldBlur')
-		}
+		if (lastFocusedValueRef.current === null) return
 		if (!isEditMode) return
 		const original = lastFocusedValueRef.current
 		const current = e.target.value
@@ -134,6 +124,20 @@ export default function SingleCaseForm({
 		}
 		lastFocusedValueRef.current = null
 	}
+
+	const formRef = useRef<HTMLFormElement>(null)
+
+	// Autosave after billingRecords change (must be at top level, not inside JSX)
+	const [triggerAutosave, setTriggerAutosave] = useState(false)
+	useEffect(() => {
+		if (triggerAutosave) {
+			if (formRef.current) {
+				formRef.current.requestSubmit()
+				handleAutosaveToast()
+			}
+			setTriggerAutosave(false)
+		}
+	}, [billingRecords, triggerAutosave])
 
 	return (
 		<>
@@ -146,8 +150,8 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
-				onFocus={(e) => handleFieldFocus(e)}
-				onBlur={(e) => handleFieldBlur(e)}
+				onFocus={handleFieldFocus}
+				onBlur={handleFieldBlur}
 			>
 				{/* Ensure intent is always sent for autosave */}
 				{isEditMode && <input type="hidden" name="intent" value="save" />}
@@ -177,7 +181,6 @@ export default function SingleCaseForm({
 					/>
 				)}
 				<ErrorList id={form.errorId} errors={form.errors} />
-
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
@@ -187,26 +190,38 @@ export default function SingleCaseForm({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							onClick={onClickBillingRow}
+							onClick={(index) => {
+								if (!isEditMode || !billingRecords) return
+								const updatedRecords = billingRecords.map((record, i) => {
+									if (i === index) {
+										return {
+											...record,
+											inclusion_override: !record.inclusion_override,
+										}
+									}
+									return record
+								})
+								onBillingRecordsChange(updatedRecords)
+								setTriggerAutosave(true)
+							}}
 						/>
-
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						!!parsedAndValidatedFormSchema ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							!!parsedAndValidatedFormSchema ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={parsedAndValidatedFormSchema.living_area}
 							/>
-						) : (
+							) : (
 							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
 								<h2 className="mb-4 text-xl font-bold text-red-600">
 									Not rendering Heat Load
 								</h2>
 								<p>usageData is undefined or missing key values</p>
 							</div>
-						)}
+							)}
 					</>
 				)}
 			</Form>
@@ -220,26 +235,24 @@ export default function SingleCaseForm({
 				</div>
 			)}
 			{/* Show case saved message */}
-			{showSavedCaseIdMsg &&
-				caseInfo &&
-				typeof caseInfo.caseId === 'number' && (
-					<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-						<h2 className="mb-2 text-xl font-bold text-green-700">
-							Case Saved Successfully!
-						</h2>
-						<p className="mb-4">
-							Your case data has been saved to the database.
-						</p>
-						<p>
-							<a
-								href={`/cases/${caseInfo.caseId}`}
-								className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-							>
-								View Case Details
-							</a>
-						</p>
-					</div>
-				)}
+			{showSavedCaseIdMsg && typeof caseInfo?.caseId === 'number' && (
+				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
+					<p className="mb-4">
+						Your case data has been saved to the database.
+					</p>
+					<p>
+						<a
+							href={`/cases/${caseInfo?.caseId}`}
+							className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+						>
+							View Case Details
+						</a>
+					</p>
+				</div>
+			)}
 		</>
 	)
 }

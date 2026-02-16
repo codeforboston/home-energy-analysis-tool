@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { parseFormData } from '@mjackson/form-data-parser';
+// import { parseFormData } from '@mjackson/form-data-parser';
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 
@@ -13,9 +13,9 @@ import {
 } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
-import { buildCurrentUsageData } from '#app/utils/index.ts'
-import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
-import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+// import { buildCurrentUsageData } from '#app/utils/index.ts'
+// import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
+// import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
@@ -227,6 +227,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
+	console.log('🟢 [ACTION] Received billing_records from formData:', billingRecordsJson)
 	if (billingRecordsJson) {
 		try {
 			const parsed = JSON.parse(billingRecordsJson)
@@ -243,8 +244,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 					default_inclusion: bill["default_inclusion"],
 					eliminated_as_outlier: bill["eliminated_as_outlier"],
 					whole_home_heat_loss_rate: bill["whole_home_heat_loss_rate"],
-				}))
-			console.log('📊 Parsed billing records')
+			    }))
+			const checkedRows = billingRecords
+				.map((bill, idx) => bill.inclusion_override ? idx : null)
+				.filter(idx => idx !== null)
+			console.log('✅ [ACTION] Checked rows:', checkedRows.length > 0 ? checkedRows.join(', ') : 'none')
 		} catch (error) {
 			console.error('❌ Failed to parse billing records:', error)
 		}
@@ -319,7 +323,7 @@ export default function EditCase({
 	)
 
 	// Local state for calculated usage data
-	const [calculatedUsageData, setCalculatedUsageData] = useState<any>(undefined)
+	const [calculatedUsageData] = useState<any>(undefined)
 
 	// Track if initial calculation is complete
 	const [isInitialCalculationComplete, setIsInitialCalculationComplete] =
@@ -336,10 +340,31 @@ export default function EditCase({
 		message: '',
 	})
 
-	// Update local state when loader data changes
+	// Update local state when loader or action data changes
 	useEffect(() => {
-		setLocalBillingRecords(loaderData.billingRecords)
-	}, [loaderData.billingRecords])
+		const logCheckedRows = (records) => {
+			const checkedRows = records
+				.map((bill, idx) => bill.inclusion_override ? idx : null)
+				.filter(idx => idx !== null)
+			console.log('✅ [FRONTEND] Checked rows:', checkedRows.length > 0 ? checkedRows.join(', ') : 'none')
+		}
+		if (actionData && actionData.parsedAndValidatedFormSchema && actionData.parsedAndValidatedFormSchema.billing_records) {
+			try {
+				const parsed = typeof actionData.parsedAndValidatedFormSchema.billing_records === 'string'
+					? JSON.parse(actionData.parsedAndValidatedFormSchema.billing_records)
+					: actionData.parsedAndValidatedFormSchema.billing_records
+				logCheckedRows(parsed)
+				setLocalBillingRecords(parsed)
+			} catch {
+				console.log('🟡 [FRONTEND] Failed to parse actionData.billing_records, using loaderData')
+				logCheckedRows(loaderData.billingRecords)
+				setLocalBillingRecords(loaderData.billingRecords)
+			}
+		} else {
+			logCheckedRows(loaderData.billingRecords)
+			setLocalBillingRecords(loaderData.billingRecords)
+		}
+	}, [loaderData.billingRecords, actionData])
 
 	// Mark initial load as complete immediately - we'll use database data
 	useEffect(() => {
@@ -386,26 +411,6 @@ export default function EditCase({
 				: undefined)
 
 	// Custom toggle function for edit mode that updates billing record state and triggers autosave (no recalculation)
-	const editModeToggleBillingPeriod = (index: number) => {
-		console.log('🔄 Toggle billing period called for index:', index)
-		const updatedRecords = localBillingRecords.map((record, i) => {
-			if (i === index) {
-				const newRecord = {
-					...record,
-					inclusion_override: !record.inclusion_override,
-				}
-				console.log('📝 Updated record:', {
-					index: i,
-					old: record.inclusion_override,
-					new: newRecord.inclusion_override,
-				})
-				return newRecord
-			}
-			return record
-		})
-		setLocalBillingRecords(updatedRecords)
-
-	}
 
 	return (
 		<>
@@ -417,12 +422,13 @@ export default function EditCase({
 				caseInfo={actionData?.caseInfo || loaderData.caseInfo}
 				usageData={usageData}
 				showUsageData={!!usageData}
-				onClickBillingRow={editModeToggleBillingPeriod}
+				onBillingRecordsChange={setLocalBillingRecords}
 				parsedAndValidatedFormSchema={
 					parsedAndValidatedFormSchemaForEffects as any
 				}
 				isEditMode={true}
 				billingRecords={localBillingRecords}
+				onClickBillingRow={() => {}}
 			/>
 
 			<ErrorModal
