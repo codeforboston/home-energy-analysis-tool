@@ -385,7 +385,7 @@ export default function EditCase({
 					}
 				: undefined)
 
-	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
+	// Custom toggle function for edit mode that updates billing record state and triggers autosave (no recalculation)
 	const editModeToggleBillingPeriod = (index: number) => {
 		console.log('🔄 Toggle billing period called for index:', index)
 		const updatedRecords = localBillingRecords.map((record, i) => {
@@ -403,74 +403,8 @@ export default function EditCase({
 			}
 			return record
 		})
-
 		setLocalBillingRecords(updatedRecords)
 
-		// Trigger client-side recalculation with updated billing records
-		if (
-			parsedAndValidatedFormSchemaForEffects &&
-			loaderData.state_id &&
-			loaderData.county_id
-		) {
-			console.log('🚀 Triggering client-side recalculation...')
-
-			try {
-				// Check if the function is still valid (not destroyed)
-				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
-					throw new Error(
-						'executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded',
-					)
-				}
-
-				// Create userAdjustedData structure with updated records
-				const userAdjustedData = {
-					processed_energy_bills: updatedRecords,
-				}
-
-				// Call the function and immediately handle the result
-				let calcResult: any
-				try {
-					const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
-						parsedAndValidatedFormSchemaForEffects as any,
-						loaderData.convertedDatesTIWD as any,
-						userAdjustedData as any,
-						loaderData.state_id,
-						loaderData.county_id,
-					)
-
-					// toJs() converts Python objects to JS - dicts become Maps by default
-					calcResult = calcResultPyProxy.toJs()
-
-					// Destroy immediately after conversion
-					calcResultPyProxy.destroy()
-				} catch (pyError) {
-					console.error('❌ PyProxy error:', pyError)
-					throw pyError
-				}
-
-				const newUsageData = buildCurrentUsageData(calcResult)
-				setCalculatedUsageData(newUsageData)
-				console.log('✅ Recalculation completed successfully', newUsageData)
-			} catch (error) {
-				console.error('❌ Recalculation failed:', error)
-				setErrorModal({
-					isOpen: true,
-					title: 'Recalculation Failed',
-					message: `An error occurred during recalculation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				})
-			}
-		} else {
-			console.error('❌ Cannot recalculate - missing required data:', {
-				hasSchema: !!parsedAndValidatedFormSchemaForEffects,
-				hasStateId: !!loaderData.state_id,
-				hasCountyId: !!loaderData.county_id,
-			})
-			setErrorModal({
-				isOpen: true,
-				title: 'Recalculation Failed',
-				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`,
-			})
-		}
 	}
 
 	return (
