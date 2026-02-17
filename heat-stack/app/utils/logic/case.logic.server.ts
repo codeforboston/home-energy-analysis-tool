@@ -17,12 +17,13 @@ export async function calculateWithCsv(
 	userId: string,
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
+	console.log('Debug-1: Uploaded text file content')
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	console.log('Debug: pyodideProxy from executeParseGasBillPy', pyodideProxy)
 	const records = pyodideProxy.toJs().get('records') as any
 	// const billsFromPy = pyodideProxy.toJs() as NaturalGasUsageDataSchema
 	// const parsedRecords = billsFromPy.get("records") as any[];
-	console.log('Debug: Parsed Records', records[0], records[1], records[2])
+	console.log('Debug-2: Parsed Records', records[0], records[1], records[2])
 	const parsedBills = convertPyBills(records)
 	console.log('Debug: bills', parsedBills[0], parsedBills[1], parsedBills[2])
 	// pyodideProxy.destroy()
@@ -72,7 +73,7 @@ export async function calculateWithBills(
 				usageQuantity: bill.usageTherms || 0,
 				inclusionOverride: typeof bill.inclusionOverride === 'boolean' ? (bill.inclusionOverride ? 1 : 0) : bill.inclusionOverride || 0,
 			})),
-		],
+		]
 	])
 
 	const { convertedDatesTIWD, state_id, county_id } = await getConvertedDatesTIWD(

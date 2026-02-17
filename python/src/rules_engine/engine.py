@@ -71,16 +71,8 @@ def get_outputs_natural_gas(
     current heating system fuel.
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
-    print("Debug about to loop natural gas bills input", flush=True)
-    import sys
 
-    print("Debug: your message", flush=True)
-    import js
-
-    js.console.log("Debug: your message from JS")
-    sys.stdout.flush()
     for input_val in natural_gas_bills_input:
-        print("Debug: Processing natural gas bill input", input_val, flush=True)
         processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
@@ -185,14 +177,6 @@ def convert_to_intermediate_processed_energy_bills(
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput],
     fuel_type: FuelType,
 ) -> list[IntermediateEnergyBill]:
-    print("DEBUG: temperature_input.dates types and tzinfo:")
-    for d in temperature_input.dates:
-        print(f'  {d!r} type={type(d)} tzinfo={getattr(d, "tzinfo", None)}')
-    print("DEBUG: processed_energy_bill_inputs period_start_date types and tzinfo:")
-    for bill in processed_energy_bill_inputs:
-        print(
-            f'  {bill.period_start_date!r} type={type(bill.period_start_date)} tzinfo={getattr(bill.period_start_date, "tzinfo", None)}'
-        )
     """
     Converts temperature data and billing period inputs into internal
     classes used for heat loss calculations.
@@ -834,7 +818,7 @@ class IntermediateEnergyBill:
         self.total_hdd = period_hdd(self.avg_temps, self.balance_point)
 
     def __str__(self) -> str:
-        return f"{self.input}, {self.ua}, {self.eliminated_as_outlier}, {self.days}, {self.avg_temps}, {self.usage}, {self.analysis_type}, {self.default_inclusion}"
+        return f"input: {self.input}, ua: {self.ua}, eliminated_as_outlier: {self.eliminated_as_outlier}, days: {self.days}, avg_temps: {self.avg_temps}, usage: {self.usage}, analysis_type: {self.analysis_type}, default_inclusion: {self.default_inclusion}, inclusion_override: {self.inclusion_override}"
 
     def __repr__(self) -> str:
         return self.__str__()

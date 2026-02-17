@@ -25,6 +25,7 @@ def calculate_from_csv(csv_data: str, form_data: Dict[str, Any]) -> Dict[str, An
 
 def calculate_from_bills(bills: Any, form_data: Dict[str, Any]) -> Dict[str, Any]:
     # Convert dict/JSON to Pydantic model
+    print("Debug: converting bills to NaturalGasBillingRecordInput models")
     start_date = min(r.period_start_date for r in bills)
     end_date = max(r.period_end_date for r in bills)
     start_date_str = start_date.strftime("%Y-%m-%d")

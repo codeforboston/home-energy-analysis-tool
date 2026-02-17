@@ -22,6 +22,7 @@ def executeGetNormalizedOutput(
     temperatureInputFromJs = temperatureInputJs.to_py()
 
     gasBillsFromJs = gasBillsJs.to_py()
+    gasBills = gasBillsFromJs.get("records")
     # Ensure records is a list of dicts for NaturalGasBills2x
     # bills = gas.map(record => ({
     # 	periodStartDate: new Date(record["period_start_date"]),
@@ -41,13 +42,11 @@ def executeGetNormalizedOutput(
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
     records = []
-    for rec in gasBillsFromJs:
-        print("Processing gas bill record:", rec)
+    for rec in gasBills:
         import re
         from datetime import datetime
 
         def to_iso(dt):
-            print("Debug: to_iso input raw", dt)
             if dt is None:
                 return None
             s = str(dt)
@@ -70,12 +69,10 @@ def executeGetNormalizedOutput(
 
         start_date_iso = to_iso(rec.get("periodStartDate"))
         end_date_iso = to_iso(rec.get("periodEndDate"))
-        print("Debug: start_date_iso", start_date_iso)
-        print("Debug: end_date_iso", end_date_iso)
         record = NaturalGasBillingRecordInput(
             period_start_date=start_date_iso,
             period_end_date=end_date_iso,
-            usage_therms=float(rec.get("usageTherms", 0) or 0),
+            usage_therms=float(rec.get("usageQuantity", 0) or 0),
             inclusion_override=rec.get("inclusionOverride"),
         )
         records.append(record)
