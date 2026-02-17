@@ -12,30 +12,61 @@ import { type NaturalGasUsageDataSchema } from '#types/index.ts'
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
  */
 export async function calculateWithCsv(
-	formData: FormData, // form as a dictionary and a file - needed for file
-	parsedForm: any, // form values as a parsed object - needed for pycall
-	userId: string,
+	formData: FormData,
+	parsedForm: any,
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
 	console.log('Debug-1: Uploaded text file content')
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	console.log('Debug: pyodideProxy from executeParseGasBillPy', pyodideProxy)
 	const records = pyodideProxy.toJs().get('records') as any
-	// const billsFromPy = pyodideProxy.toJs() as NaturalGasUsageDataSchema
-	// const parsedRecords = billsFromPy.get("records") as any[];
 	console.log('Debug-2: Parsed Records', records[0], records[1], records[2])
 	const parsedBills = convertPyBills(records)
 	console.log('Debug: bills', parsedBills[0], parsedBills[1], parsedBills[2])
 	// pyodideProxy.destroy()
-	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedForm, parsedBills)
-	return await caseCreate({
+	return await calculateWithBills(parsedForm, parsedBills)
+}
+
+export async function createNewCase({
+	parsedForm,
+	convertedDatesTIWD,
+	state_id,
+	county_id,
+	userId,
+	rulesEngineResult,
+}: any) {
+	const newCase = await createCaseRecord(
 		parsedForm,
-		convertedDatesTIWD,
-		state_id,
-		county_id,
+		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 		rulesEngineResult,
+	)
+
+	// Get the HeatingInput ID from the created analysis
+	const heatingInputId = newCase.analysis?.heatingInput?.[0]?.id
+	invariant(heatingInputId, 'Failed to create HeatingInput record')
+
+	const insertedCount = await insertProcessedBills(
+		heatingInputId,
+		rulesEngineResult,
+	)
+
+	return {
+		newCase,
+		rulesEngineResult,
+		insertedCount,
+		state_id,
+		county_id,
+		convertedDatesTIWD,
+	}
+}
+
+export async function processNewCase({ formData, parsedForm, userId }: { formData: FormData, parsedForm: any, userId: string }) {
+	const calcResult = await calculateWithCsv(formData, parsedForm)
+	return await createNewCase({
+		...calcResult,
+		parsedForm,
+		userId,
 	})
 }
 export async function calculateWithBills(
@@ -88,8 +119,6 @@ export async function calculateWithBills(
 	invariant(county_id, 'Missing county_id')
 
 	// Use billsIso for Python interop if needed
-	const debugBills = billsPyReady.get('records') || []
-	console.log('Debug here', debugBills[0], debugBills[1], debugBills[2])
 	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
