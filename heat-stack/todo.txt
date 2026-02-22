@@ -1,3 +1,4 @@
+package.json are openimg/node (in app/routes/resources+/images.tsx) and remix-flat-routes (in app/routes.ts
 
 - Bugs
   - test_natural_gas.py => combine into one test
