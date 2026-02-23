@@ -210,9 +210,7 @@ export const updateCase = async (
 			fuelType: changes.heatingInput.fuel_type,
 			designTemperatureOverride: Boolean(validHI.design_temperature_override),
 			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
-			heatingSystemEfficiency: Math.round(
-				validHI.heating_system_efficiency * 100,
-			),
+			heatingSystemEfficiency: validHI.heating_system_efficiency,
 			thermostatSetPoint: validHI.thermostat_set_point,
 			setbackTemperature: validHI.setback_temperature || 65,
 			setbackHoursPerDay: validHI.setback_hours_per_day || 0,
@@ -296,9 +294,7 @@ export const createCase = async (
 				designTemperatureOverride: Boolean(
 					formInputs.design_temperature_override,
 				),
-				heatingSystemEfficiency: Math.round(
-					formInputs.heating_system_efficiency * 100,
-				),
+				heatingSystemEfficiency: formInputs.heating_system_efficiency,
 				thermostatSetPoint: formInputs.thermostat_set_point,
 				setbackTemperature: formInputs.setback_temperature || 65,
 				setbackHoursPerDay: formInputs.setback_hours_per_day || 0,

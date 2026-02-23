@@ -78,9 +78,7 @@ export async function createCaseRecord(
 				create: {
 					fuelType: formValues.fuel_type,
 					designTemperatureOverride: false,
-					heatingSystemEfficiency: Math.round(
-						formValues.heating_system_efficiency * 100,
-					),
+					heatingSystemEfficiency: formValues.heating_system_efficiency,
 					thermostatSetPoint: formValues.thermostat_set_point,
 					setbackTemperature: formValues.setback_temperature,
 					setbackHoursPerDay: formValues.setback_hours_per_day,
@@ -167,13 +165,20 @@ export async function updateCaseRecord(
 	) {
 		const firstHeatingInput = firstAnalysis.heatingInput[0]
 		if (firstHeatingInput) {
+			console.log('Updating heating input with values:', {
+				fuelType: formValues.fuel_type,
+				heatingSystemEfficiency: formValues.heating_system_efficiency,
+				thermostatSetPoint: formValues.thermostat_set_point,
+				setbackTemperature: formValues.setback_temperature,
+				setbackHoursPerDay: formValues.setback_hours_per_day,
+				livingArea: formValues.living_area,
+				billingRecords: billingRecords,
+			})
 			await prisma.heatingInput.update({
 				where: { id: firstHeatingInput.id },
 				data: {
 					fuelType: formValues.fuel_type,
-					heatingSystemEfficiency: Math.round(
-						formValues.heating_system_efficiency * 100,
-					),
+						heatingSystemEfficiency: formValues.heating_system_efficiency,
 					thermostatSetPoint: formValues.thermostat_set_point,
 					setbackTemperature: formValues.setback_temperature,
 					setbackHoursPerDay: formValues.setback_hours_per_day,

@@ -37,29 +37,33 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	const analysis = caseRecord.analysis?.[0]
 	invariantResponse(analysis, 'Invalid analysis detected', { status: 500 })
 
-	const heatingInput = analysis.heatingInput?.[0]
-	invariantResponse(heatingInput, 'Invalid heating input detected', {
-		status: 500,
-	})
 
-	const heatingOutput = analysis.heatingOutput?.[0]
+	       const heatingInput = analysis.heatingInput?.[0]
+	       invariantResponse(heatingInput, 'Invalid heating input detected', {
+		       status: 500,
+	       })
+	       // Log efficiency from database after definition
+	       console.log('[LOADER] efficiency from DB after definition:', heatingInput.heatingSystemEfficiency)
 
-	// Transform billing records from database format to BillingRecordsSchema format
-	const billingRecords: BillingRecordsSchema = (
-		heatingInput.processedEnergyBill || []
-	).map((bill) => ({
-		period_start_date: bill.periodStartDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
-		period_end_date: bill.periodEndDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
-		usage: bill.usageQuantity,
-		inclusion_override: bill.invertDefaultInclusion,
-		analysis_type: bill.analysisType,
-		default_inclusion: bill.defaultInclusion,
-		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
-		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
-	}))
+// (Normalization logic removed)
 
-    // Log heatingInput.heatingSystemEfficiency before validation
-    console.log('heatingInput.heatingSystemEfficiency before validation:', heatingInput.heatingSystemEfficiency);
+
+const heatingOutput = analysis.heatingOutput?.[0]
+
+// Transform billing records from database format to BillingRecordsSchema format
+const billingRecords: BillingRecordsSchema = (
+	heatingInput.processedEnergyBill || []
+).map((bill) => ({
+	period_start_date: bill.periodStartDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+	period_end_date: bill.periodEndDate?.toISOString().split('T')[0] || '', // Convert to YYYY-MM-DD format
+	usage: bill.usageQuantity,
+	inclusion_override: bill.invertDefaultInclusion,
+	analysis_type: bill.analysisType,
+	default_inclusion: bill.defaultInclusion,
+	eliminated_as_outlier: false, // Default value as it's not stored in DB yet
+	whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
+}))
+
 
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
@@ -125,30 +129,32 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	}
 
 
-	const schemaValues = {
-		energy_use_upload: {
-			name: 'existing-energy-data.csv',
-			size: 0,
-			type: 'text/csv',
-		},
-		name: `${caseRecord.homeOwner.firstName1} ${caseRecord.homeOwner.lastName1}`,
-		living_area: caseRecord.location.livingAreaSquareFeet,
-		street_address: caseRecord.location.address,
-		town: caseRecord.location.city,
-		state: caseRecord.location.state,
-		fuel_type: heatingInput.fuelType,
-		heating_system_efficiency: heatingInput.heatingSystemEfficiency,
-		thermostat_set_point: heatingInput.thermostatSetPoint,
-		setback_temperature: heatingInput.setbackTemperature,
-		setback_hours_per_day: heatingInput.setbackHoursPerDay,
-		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
-		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	};
-	console.log('About to validate schema values:', schemaValues);
-	const parsedAndValidatedFormData = Schema.parse(schemaValues);
 
-	// Log the validated value and any errors
-	console.log('Validated heating_system_efficiency:', parsedAndValidatedFormData.heating_system_efficiency);
+	       const schemaValues = {
+		       energy_use_upload: {
+			       name: 'existing-energy-data.csv',
+			       size: 0,
+			       type: 'text/csv',
+		       },
+		       name: `${caseRecord.homeOwner.firstName1} ${caseRecord.homeOwner.lastName1}`,
+		       living_area: caseRecord.location.livingAreaSquareFeet,
+		       street_address: caseRecord.location.address,
+		       town: caseRecord.location.city,
+		       state: caseRecord.location.state,
+		       fuel_type: heatingInput.fuelType,
+			   heating_system_efficiency: heatingInput.heatingSystemEfficiency,
+		       thermostat_set_point: heatingInput.thermostatSetPoint,
+		       setback_temperature: heatingInput.setbackTemperature,
+		       setback_hours_per_day: heatingInput.setbackHoursPerDay,
+		       design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
+		       // design_temperature: 12 /* TODO:  see #162 and esp. #123*/
+	       };
+	       // Log efficiency in schemaValues before validation
+	       console.log('[LOADER] efficiency in schemaValues before validation:', schemaValues.heating_system_efficiency)
+	       const parsedAndValidatedFormData = Schema.parse(schemaValues);
+	       // Log efficiency after validation
+	       console.log('[LOADER] efficiency after validation:', parsedAndValidatedFormData.heating_system_efficiency)
+
 
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
@@ -183,30 +189,76 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-	const userId = await requireUserId(request)
-	const caseId = parseInt(params.caseId)
 
-	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
+	       const userId = await requireUserId(request)
+	       const caseId = parseInt(params.caseId)
 
-	// Parse form data based on content type
-	// useFetcher sends regular form data, file uploads send multipart
-	const contentType = request.headers.get('content-type') || ''
-	const formData = contentType.includes('multipart/form-data')
-		? await parseMultipartFormData(request, uploadHandler)
-		: await request.formData()
+	       invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
-	// Check the intent to determine validation approach
-	const intent = formData.get('intent') as string
+	       // Parse form data based on content type
+	       // useFetcher sends regular form data, file uploads send multipart
+	       const contentType = request.headers.get('content-type') || ''
+	       const formData = contentType.includes('multipart/form-data')
+		       ? await parseMultipartFormData(request, uploadHandler)
+		       : await request.formData()
 
-	let submission
+	       // Log efficiency in form at beginning of action
+	       let efficiencyInForm = formData.get('heating_system_efficiency')
+	       console.log('[ACTION] efficiency in form at start:', efficiencyInForm)
 
-	if (intent === 'save') {
-		// For save intent, use schema without file validation
-		submission = parseWithZod(formData, { schema: SaveOnlySchema })
-	} else {
-		// Use full validation for process-file intent
-		submission = parseWithZod(formData, { schema: Schema })
-	}
+	       // Fetch from DB for comparison
+	       let dbEfficiency: number | undefined = undefined
+	       try {
+		       const user = await getLoggedInUserFromRequest(request)
+		       const isAdmin = hasAdminRole(user)
+		       const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
+		       const analysis = caseRecord.analysis?.[0]
+		       const heatingInput = analysis?.heatingInput?.[0]
+		       dbEfficiency = heatingInput?.heatingSystemEfficiency
+	       } catch (e) {
+		       dbEfficiency = undefined
+	       }
+	       console.log('[ACTION] efficiency from DB at start:', dbEfficiency)
+
+	       // Check the intent to determine validation approach
+	       const intent = formData.get('intent') as string
+
+	       // Log efficiency before any modification
+	       efficiencyInForm = formData.get('heating_system_efficiency')
+	       console.log('[ACTION] efficiency in form before modification:', efficiencyInForm)
+
+	       // Convert heating_system_efficiency from percent to decimal if needed
+	       let efficiency = formData.get('heating_system_efficiency')
+	       if (efficiency != null && !isNaN(Number(efficiency))) {
+		       let effNum = Number(efficiency)
+		       // Log before possible modification
+		       console.log('[ACTION] efficiency before possible percent->decimal modification:', effNum)
+		       if (effNum > 1) {
+			       formData.set('heating_system_efficiency', effNum.toString())
+			       // Log after modification
+			       console.log('[ACTION] efficiency after modification (should be decimal):', formData.get('heating_system_efficiency'))
+		       }
+	       }
+
+	       // Log efficiency after all possible modification
+	       efficiencyInForm = formData.get('heating_system_efficiency')
+	       console.log('[ACTION] efficiency in form after all modification:', efficiencyInForm)
+
+
+		       let submission
+
+		       if (intent === 'save') {
+			       // For save intent, use schema without file validation
+			       submission = parseWithZod(formData, { schema: SaveOnlySchema })
+		       } else {
+			       // Use full validation for process-file intent
+			       submission = parseWithZod(formData, { schema: Schema })
+		       }
+
+		       // Log efficiency after validation
+		       if (submission.status === 'success') {
+			       console.log('[ACTION] efficiency after validation:', submission.value?.heating_system_efficiency)
+		       }
 
 	if (submission.status !== 'success') {
 		return {
@@ -221,12 +273,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 
 	// Simple form update (intent === 'save' or fallback) - just update the database fields
-	console.log('🔄 Processing save operation for case:', caseId)
 
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
-	console.log('🟢 [ACTION] Received billing_records from formData:', billingRecordsJson)
 	if (billingRecordsJson) {
 		try {
 			const parsed = JSON.parse(billingRecordsJson)
@@ -247,9 +297,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			const checkedRows = billingRecords
 				.map((bill, idx) => bill.inclusion_override ? idx : null)
 				.filter(idx => idx !== null)
-			console.log('✅ [ACTION] Checked rows:', checkedRows.length > 0 ? checkedRows.join(', ') : 'none')
 		} catch (error) {
-			console.error('❌ Failed to parse billing records:', error)
 		}
 	}
 
@@ -260,14 +308,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 	if (heatLoadOutputJson) {
 		try {
 			heatLoadOutput = JSON.parse(heatLoadOutputJson)
-			console.log('📊 Parsed heat load output:')
-			console.log('Average Indoor Temperature:', heatLoadOutput["average_indoor_temperature"])
 		} catch (error) {
-			console.error('❌ Failed to parse heat load output:', error)
 		}
 	}
 	console.log('')
-	console.log('🔄 Updating case record in database...')
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
@@ -277,12 +321,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		billingRecords,
 		heatLoadOutput,
 	)
-	console.log('✅ Case updated successfully:', {
-		caseId: updatedCase?.id,
-		analysisId: updatedCase?.analysis?.[0]?.id,
-	})
 
-	// For save operations, add a dummy energy_use_upload to match expected type
 	const formDataWithFile = {
 		...submission.value,
 		energy_use_upload: {
@@ -304,7 +343,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 			analysisId: updatedCase?.analysis?.[0]?.id,
 		},
 	}
-	console.log('📤 Returning save result:', result)
 	return result
 }
 
