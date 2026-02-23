@@ -47,6 +47,7 @@ export const getCaseForEditing = async (
 	userId: string,
 	isAdmin?: boolean,
 ) => {
+	console.log('getCaseForEditing called with caseId:', caseId)
 	let userWhere
 	if (isAdmin) {
 		userWhere = {}
@@ -59,7 +60,7 @@ export const getCaseForEditing = async (
 			},
 		}
 	}
-	return await prisma.case.findUnique({
+	const caseRecord = await prisma.case.findUnique({
 		where: { id: caseId, ...userWhere },
 		include: {
 			homeOwner: true,
@@ -78,6 +79,18 @@ export const getCaseForEditing = async (
 			},
 		},
 	})
+
+	// Log heatingSystemEfficiency after querying case and heatingInput
+	if (caseRecord?.analysis?.[0]?.heatingInput?.[0]) {
+		const efficiency =
+			caseRecord.analysis[0].heatingInput[0].heatingSystemEfficiency
+		console.log(
+			'heatingSystemEfficiency after case and heatingInput query:',
+			efficiency,
+		)
+	}
+
+	return caseRecord
 }
 
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
@@ -306,3 +319,9 @@ export const createCase = async (
 
 	return records
 }
+
+/**
+ * Fetches only the heating system efficiency for a given caseId.
+ * Returns null if not found.
+ */
+

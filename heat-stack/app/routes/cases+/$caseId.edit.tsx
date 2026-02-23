@@ -23,13 +23,7 @@ import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-	const percentToDecimal = (value: number, errorMessage: string) => {
-		const decimal = parseFloat((value / 100).toFixed(2))
-		if (isNaN(decimal) || decimal > 1) {
-			throw new Error(errorMessage)
-		}
-		return decimal
-	}
+	// percentToDecimal no longer needed for loader validation
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 	const user = await getLoggedInUserFromRequest(request)
@@ -63,6 +57,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
 		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
 	}))
+
+    // Log heatingInput.heatingSystemEfficiency before validation
+    console.log('heatingInput.heatingSystemEfficiency before validation:', heatingInput.heatingSystemEfficiency);
 
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
@@ -127,8 +124,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		}
 	}
 
-	const parsedAndValidatedFormData = Schema.parse({
-		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
+
+	const schemaValues = {
 		energy_use_upload: {
 			name: 'existing-energy-data.csv',
 			size: 0,
@@ -140,17 +137,18 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-
-		heating_system_efficiency: percentToDecimal(
-			heatingInput.heatingSystemEfficiency,
-			'Invalid heating system efficiency value detected',
-		),
+		heating_system_efficiency: heatingInput.heatingSystemEfficiency,
 		thermostat_set_point: heatingInput.thermostatSetPoint,
 		setback_temperature: heatingInput.setbackTemperature,
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	})
+	};
+	console.log('About to validate schema values:', schemaValues);
+	const parsedAndValidatedFormData = Schema.parse(schemaValues);
+
+	// Log the validated value and any errors
+	console.log('Validated heating_system_efficiency:', parsedAndValidatedFormData.heating_system_efficiency);
 
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
@@ -170,6 +168,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	return {
 		defaultFormValues: parsedAndValidatedFormData,
+		efficiency_display: heatingInput.heatingSystemEfficiency != null ? Math.round(heatingInput.heatingSystemEfficiency * 100) : undefined,
 		caseInfo: {
 			caseId: caseRecord.id,
 			analysisId: analysis.id,
@@ -342,26 +341,17 @@ export default function EditCase({
 
 	// Update local state when loader or action data changes
 	useEffect(() => {
-		const logCheckedRows = (records) => {
-			const checkedRows = records
-				.map((bill, idx) => bill.inclusion_override ? idx : null)
-				.filter(idx => idx !== null)
-			console.log('✅ [FRONTEND] Checked rows:', checkedRows.length > 0 ? checkedRows.join(', ') : 'none')
-		}
-		if (actionData && actionData.parsedAndValidatedFormSchema && actionData.parsedAndValidatedFormSchema.billing_records) {
+			if (actionData && actionData.parsedAndValidatedFormSchema && actionData.parsedAndValidatedFormSchema.billing_records) {
 			try {
 				const parsed = typeof actionData.parsedAndValidatedFormSchema.billing_records === 'string'
 					? JSON.parse(actionData.parsedAndValidatedFormSchema.billing_records)
 					: actionData.parsedAndValidatedFormSchema.billing_records
-				logCheckedRows(parsed)
 				setLocalBillingRecords(parsed)
 			} catch {
 				console.log('🟡 [FRONTEND] Failed to parse actionData.billing_records, using loaderData')
-				logCheckedRows(loaderData.billingRecords)
 				setLocalBillingRecords(loaderData.billingRecords)
 			}
 		} else {
-			logCheckedRows(loaderData.billingRecords)
 			setLocalBillingRecords(loaderData.billingRecords)
 		}
 	}, [loaderData.billingRecords, actionData])

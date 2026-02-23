@@ -85,6 +85,9 @@ export default function SingleCaseForm({
 			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
 			const intent = formData.get('intent') as string
 			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+            // Log heating_system_efficiency value and type before validation
+            const hse = formData.get('heating_system_efficiency');
+            console.log('heating_system_efficiency before Zod:', hse, typeof hse);
 			return parseWithZod(formData, { schema })
 		},
 		onSubmit() {

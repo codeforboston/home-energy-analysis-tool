@@ -52,8 +52,26 @@ export const HomeSchema = z.object({
 	 */
 	heating_system_efficiency: z
 		.number()
-		.min(0.6, { message: 'Efficiency must be at least 60%' })
-		.max(1, { message: 'Efficiency cannot exceed 100%' }),
+		.superRefine((val, ctx) => {
+			if (val < 0.6) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.too_small,
+					minimum: 0.6,
+					inclusive: true,
+					type: 'number',
+					message: `Efficiency must be at least 60%, but got ${val}`,
+				});
+			}
+			if (val > 1) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.too_big,
+					maximum: 1,
+					inclusive: true,
+					type: 'number',
+					message: `Efficiency cannot exceed 100%, but got ${val}`,
+				});
+			}
+		}),
 	thermostat_set_point: z.number(),
 	setback_temperature: z.number().optional(),
 	setback_hours_per_day: z.number().optional(),
