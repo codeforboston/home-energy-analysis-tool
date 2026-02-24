@@ -44,7 +44,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		status: 500,
 	})
 	// Log efficiency from database after definition
-	console.log('[LOADER] efficiency from DB after definition:', heatingInput.heatingSystemEfficiency)
 
 	// (Normalization logic removed)
 
@@ -98,7 +97,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			if (x !== 0 && y !== 0) {
 				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
 				const weatherUtil = new WeatherUtil()
-				console.log("Debug x,y", x, y, startDate, endDate)
 
 				const weatherData = await weatherUtil.getThatWeathaData(
 					x,
@@ -146,10 +144,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	};
 	// Log efficiency in schemaValues before validation
-	console.log('[LOADER] efficiency in schemaValues before validation:', schemaValues.heating_system_efficiency)
 	const parsedAndValidatedFormData = Schema.parse(schemaValues);
 	// Log efficiency after validation
-	console.log('[LOADER] efficiency after validation:', parsedAndValidatedFormData.heating_system_efficiency)
 
 
 	// Convert heating output from database format to UI format if available
@@ -200,7 +196,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Log efficiency in form at beginning of action
 	let efficiencyInForm = formData.get('heating_system_efficiency')
-	console.log('[ACTION] efficiency in form at start:', efficiencyInForm)
 
 	// Fetch from DB for comparison
 	let dbEfficiency: number | undefined = undefined
@@ -214,31 +209,26 @@ export async function action({ request, params }: Route.ActionArgs) {
 	} catch (e) {
 		dbEfficiency = undefined
 	}
-	console.log('[ACTION] efficiency from DB at start:', dbEfficiency)
 
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
 
 	// Log efficiency before any modification
 	efficiencyInForm = formData.get('heating_system_efficiency')
-	console.log('[ACTION] efficiency in form before modification:', efficiencyInForm)
 
 	// Convert heating_system_efficiency from percent to decimal if needed
 	let efficiency = formData.get('heating_system_efficiency')
 	if (efficiency != null && !isNaN(Number(efficiency))) {
 		let effNum = Number(efficiency)
 		// Log before possible modification
-		console.log('[ACTION] efficiency before possible percent->decimal modification:', effNum)
 		if (effNum > 1) {
 			formData.set('heating_system_efficiency', effNum.toString())
 			// Log after modification
-			console.log('[ACTION] efficiency after modification (should be decimal):', formData.get('heating_system_efficiency'))
 		}
 	}
 
 	// Log efficiency after all possible modification
 	efficiencyInForm = formData.get('heating_system_efficiency')
-	console.log('[ACTION] efficiency in form after all modification:', efficiencyInForm)
 
 
 	let submission
@@ -253,7 +243,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Log efficiency after validation
 	if (submission.status === 'success') {
-		console.log('[ACTION] efficiency after validation:', submission.value?.heating_system_efficiency)
 	}
 
 	if (submission.status !== 'success') {
@@ -292,7 +281,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 		} catch (error) {
 		}
 	}
-	console.log('')
 
 	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
 	const updatedCase = await processCaseUpdate(
@@ -371,7 +359,6 @@ export default function EditCase({
 					: billingRecordsValue
 				setLocalBillingRecords(parsed)
 			} catch {
-				console.log('🟡 [FRONTEND] Failed to parse actionData.billing_records, using loaderData')
 				setLocalBillingRecords(loaderData.billingRecords)
 			}
 		} else {
@@ -381,7 +368,6 @@ export default function EditCase({
 
 	// Mark initial load as complete immediately - we'll use database data
 	useEffect(() => {
-		console.log('� Marking initial load complete - using database data')
 		setIsInitialCalculationComplete(true)
 	}, [])
 

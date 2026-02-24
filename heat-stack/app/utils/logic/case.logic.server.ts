@@ -17,13 +17,9 @@ export async function calculateWithCsv(
 	parsedForm: any,
 ) {
 	const uploadedTextFile: string = await fileUploadHandler(formData)
-	console.log('Debug-1: Uploaded text file content')
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
-	console.log('Debug: pyodideProxy from executeParseGasBillPy', pyodideProxy)
 	const records = pyodideProxy.toJs().get('records') as any
-	console.log('Debug-2: Parsed Records', records[0], records[1], records[2])
 	const parsedBills = convertPyBills(records)
-	console.log('Debug: bills', parsedBills[0], parsedBills[1], parsedBills[2])
 	// pyodideProxy.destroy()
 	return await calculateWithBills(parsedForm, parsedBills)
 }
@@ -179,7 +175,6 @@ export async function processCaseUpdate(
 		inclusion_override: number | boolean,
 	}>
 ) {
-	console.log('Debug: processCaseUpdate bills[0]', bills[0])
 
 	// Convert bills to the format required by calculateWithBills
 	const billsForCalc = bills.map(bill => ({
@@ -194,12 +189,8 @@ export async function processCaseUpdate(
 	}	catch (error) {
 		console.error('Error parsing form data:', error)
 	}
-	console.log('Parsed form2 in update', parsedForm2)
-	console.log('Parsed form keys in update:', Object.keys(parsedForm2))
-	console.log('Debug: billsForCalc[0]', billsForCalc[0])
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		 await calculateWithBills(parsedForm2, billsForCalc)
-	console.log('🔄 Updating case record in database...', rulesEngineResult)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
