@@ -77,10 +77,6 @@ export default function SingleCaseForm({
 	isEditMode = false,
 	billingRecords,
 }: SubmitAnalysisProps & { onBillingRecordsChange: (records: BillingRecordsSchema) => void }) {
-	// Log usageData if it is undefined or missing key values
-	if (!usageData || !usageData.heat_load_output || !usageData.heat_load_output.design_temperature || !usageData.heat_load_output.whole_home_heat_loss_rate) {
-		console.log('[SingleCaseForm] usageData is undefined or missing key values:', usageData)
-	}
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	const [form, fields] = useForm({
