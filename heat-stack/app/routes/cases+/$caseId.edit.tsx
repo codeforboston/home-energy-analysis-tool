@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
+import { coerceUsageDataTypes } from '#app/utils/coerceUsageDataTypes.ts'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import {
@@ -25,6 +26,11 @@ import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	// percentToDecimal no longer needed for loader validation
+
+	// DEBUG: Log the last action result if available
+	if (typeof global !== 'undefined' && global.lastActionResult) {
+		console.log('[LOADER] Last action result:', global.lastActionResult)
+	}
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 	const user = await getLoggedInUserFromRequest(request)
@@ -303,6 +309,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		submitResult: submission.reply(),
 		data: undefined, // No new calculation data
 		parsedAndValidatedFormSchema: formDataWithFile,
+		gasBillData: updatedCase ? updatedCase.gasBillData : undefined,
 		convertedDatesTIWD: undefined,
 		state_id: undefined,
 		county_id: undefined,
@@ -350,7 +357,6 @@ export default function EditCase({
 		if (actionData && actionData.parsedAndValidatedFormSchema) {
 			// Use invariant to ensure billing_records exists
 			const formSchema = actionData.parsedAndValidatedFormSchema
-			console.log('formSchema in useEffect', formSchema) // temporary
 			setLocalBillingRecords(loaderData.billingRecords)
 		} else {
 			setLocalBillingRecords(loaderData.billingRecords)
@@ -377,28 +383,48 @@ export default function EditCase({
 
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
-	const usageData = !isInitialCalculationComplete
-		? undefined
-		: calculatedUsageData ||
-		(localBillingRecords && localBillingRecords.length > 0
-			? {
-				heat_load_output: loaderData.heatLoadOutput || {
-					estimated_balance_point: 1,
-					other_fuel_usage: 1,
-					average_indoor_temperature: 70,
-					difference_between_ti_and_tbp: 1,
-					design_temperature: 10, // Non-zero placeholder value
-					whole_home_heat_loss_rate: 1, // Non-zero placeholder value
-					standard_deviation_of_heat_loss_rate: 1,
-					average_heat_load: 1,
-					maximum_heat_load: 1,
-				},
-				balance_point_graph: {
-					records: [],
-				},
-				processed_energy_bills: localBillingRecords,
-			}
-			: undefined)
+
+	// Prefer actionData.gasBillData if present, else loaderData.gasBillData (or fallback)
+
+	   let gasBillData = actionData?.gasBillData || loaderData.gasBillData;
+	   // Deeply convert any Maps in gasBillData to plain objects
+	   if (gasBillData instanceof Map || (gasBillData && typeof gasBillData === 'object' && Object.values(gasBillData).some(v => v instanceof Map))) {
+		   console.log('[EditCase] Deep converting gasBillData Maps to objects');
+		   gasBillData = coerceUsageDataTypes(gasBillData);
+	   }
+
+	   // Coerce actionData if present
+	   console.log('Action data before coercion:', actionData)
+	   let coercedActionData = actionData ? coerceUsageDataTypes(actionData) : undefined;
+	   console.log('Coerced action data:', coercedActionData)
+
+	   const usageData = !isInitialCalculationComplete
+		   ? undefined
+		   : calculatedUsageData ||
+		   (coercedActionData?.gasBillData
+			   ? coercedActionData.gasBillData
+			   : gasBillData
+				   ? gasBillData
+				   : (localBillingRecords && localBillingRecords.length > 0
+					   ? {
+						   heat_load_output: loaderData.heatLoadOutput || {
+							   estimated_balance_point: 1,
+							   other_fuel_usage: 1,
+							   average_indoor_temperature: 70,
+							   difference_between_ti_and_tbp: 1,
+							   design_temperature: 10, // Non-zero placeholder value
+							   whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+							   standard_deviation_of_heat_loss_rate: 1,
+							   average_heat_load: 1,
+							   maximum_heat_load: 1,
+						   },
+						   balance_point_graph: {
+							   records: [],
+						   },
+						   processed_energy_bills: localBillingRecords,
+					   }
+					   : undefined)
+		   );
 
 	// Custom toggle function for edit mode that updates billing record state and triggers autosave (no recalculation)
 

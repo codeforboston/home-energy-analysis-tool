@@ -3,6 +3,7 @@ import { convertPyBills } from '#app/utils/convert.ts'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { insertProcessedBills } from '#app/utils/db/bill.db.server.ts'
 import { createCaseRecord, updateCaseRecord } from '#app/utils/db/case.db.server.ts'
+import { coerceParsedFormFields } from './coerceParsedFormFields'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import { executeParseGasBillPy, executeGetNormalizedOutput } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
@@ -47,6 +48,7 @@ export async function createNewCase({
 		heatingInputId,
 		rulesEngineResult,
 	)
+	  parsedForm2 = coerceParsedFormFields(parsedForm2)
 
 	return {
 		newCase,
@@ -186,15 +188,18 @@ export async function processCaseUpdate(
 	let parsedForm2: any = null
 	try {
 	  parsedForm2 = Object.fromEntries(parsedForm.entries())
-	}	catch (error) {
+	} catch (error) {
 		console.error('Error parsing form data:', error)
 	}
+	// Coerce fields after parsedForm2 is created
+	parsedForm2 = coerceParsedFormFields(parsedForm2)
+	console.log('Parsed and coerced form data:', parsedForm2)
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		 await calculateWithBills(parsedForm2, billsForCalc)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
-		parsedForm,
+		parsedForm2,
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 	)
