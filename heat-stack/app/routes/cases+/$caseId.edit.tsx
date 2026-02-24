@@ -98,18 +98,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			if (x !== 0 && y !== 0) {
 				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
 				const weatherUtil = new WeatherUtil()
-
-				const formatDateString = (date: Date): string => {
-					return (
-						date.toISOString().split('T')[0] || date.toISOString().slice(0, 10)
-					)
-				}
+				console.log("Debug x,y", x, y, startDate, endDate)
 
 				const weatherData = await weatherUtil.getThatWeathaData(
 					x,
 					y,
-					formatDateString(startDate),
-					formatDateString(endDate),
+					startDate,
+					endDate,
 				)
 
 				if (weatherData) {
@@ -278,7 +273,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
-	const bills = billingRecordsJson ? JSON.parse(billingRecordsJson) : []
+	// Create bills array with start_date and end_date replaced by dates
+	const billsWithStringDates = billingRecordsJson ? JSON.parse(billingRecordsJson) : [];
+	const bills = billsWithStringDates.map(bill => ({
+		...bill,
+		period_start_date: bill.period_start_date ? new Date(bill.period_start_date) : undefined,
+		period_end_date: bill.period_end_date ? new Date(bill.period_end_date) : undefined,
+	}));
 
 
 

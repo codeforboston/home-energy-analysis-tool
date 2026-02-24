@@ -84,22 +84,24 @@ class GeocodeUtil {
 	 *  This is the happiest of paths, with hardcoded values also...
 	 */
 	async getLL(address: string) {
-		const params = new URLSearchParams()
+		  const params = new URLSearchParams()
+		  console.log('[GeocodeUtil.getLL] called with address:', address)
+		  params.append('address', address)
+		  params.append('format', 'json')
+		  params.append('benchmark', '2020')
+		  params.append('vintage', 'Census2020_Census2020')
 
-		params.append('address', address)
-		params.append('format', 'json')
-		params.append('benchmark', '2020')
-		params.append('vintage', 'Census2020_Census2020')
-
-		/**  TODO: note that for this Census API you can specify particular parts of this that
-     we want (x, y, state_id, and county_id for now), read the docs */
-		let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
-		let rezzy = await fetch(url)
-		let jrez = (await rezzy.json()) as CensusGeocoderResponse
+		  let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
+		  console.log('[GeocodeUtil.getLL] fetch URL:', url.toString())
+		  let rezzy = await fetch(url)
+		  console.log('[GeocodeUtil.getLL] fetch status:', rezzy.status, rezzy.statusText)
+		  let jrez = (await rezzy.json()) as CensusGeocoderResponse
+		  console.log('[GeocodeUtil.getLL] response:', JSON.stringify(jrez, null, 2))
 		// TODO: Return all addresses and let the user choose the right one
 		// const fs = await import('node:fs')
 		// fs.writeFileSync('geocoder.json', JSON.stringify(jrez, null, 2), {encoding: "utf-8"})
 		const addressMatch = jrez?.result?.addressMatches?.[0]
+		console.log('[GeocodeUtil.getLL] addressMatch:', JSON.stringify(addressMatch, null, 2))
 		let coordz = addressMatch?.coordinates
 		const addressComponents = addressMatch?.addressComponents
 

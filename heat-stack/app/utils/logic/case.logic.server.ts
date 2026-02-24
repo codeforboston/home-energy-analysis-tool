@@ -7,6 +7,7 @@ import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import { executeParseGasBillPy, executeGetNormalizedOutput } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
+import { parse } from 'node-html-parser';
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -178,9 +179,26 @@ export async function processCaseUpdate(
 		inclusion_override: number | boolean,
 	}>
 ) {
+	console.log('Debug: processCaseUpdate bills[0]', bills[0])
 
+	// Convert bills to the format required by calculateWithBills
+	const billsForCalc = bills.map(bill => ({
+		periodStartDate: bill.period_start_date ? new Date(bill.period_start_date) : undefined,
+		periodEndDate: bill.period_end_date ? new Date(bill.period_end_date) : undefined,
+		usageTherms: bill.usage,
+		inclusionOverride: typeof bill.inclusion_override === 'boolean' ? (bill.inclusion_override ? 1 : 0) : bill.inclusion_override || 0,
+	}));
+	let parsedForm2: any = null
+	try {
+	  parsedForm2 = Object.fromEntries(parsedForm.entries())
+	}	catch (error) {
+		console.error('Error parsing form data:', error)
+	}
+	console.log('Parsed form2 in update', parsedForm2)
+	console.log('Parsed form keys in update:', Object.keys(parsedForm2))
+	console.log('Debug: billsForCalc[0]', billsForCalc[0])
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		 await calculateWithBills(parsedForm, bills)
+		 await calculateWithBills(parsedForm2, billsForCalc)
 	console.log('🔄 Updating case record in database...', rulesEngineResult)
 
 	const updatedCase = await updateCaseRecord(

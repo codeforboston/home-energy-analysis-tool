@@ -1,3 +1,5 @@
+import { invariant } from "#node_modules/@epic-web/invariant/dist"
+
 const BASE_URL = 'https://archive-api.open-meteo.com'
 const WHATEVER_PATH = '/v1/archive'
 
@@ -49,17 +51,27 @@ class WeatherUtil {
 	async getThatWeathaData(
 		longitude: number,
 		latitude: number,
-		startDate: string,
-		endDate: string,
+		startDate: Date,
+		endDate: Date,
 	): Promise<TemperatureInputDataInitial | undefined> {
 		const params = new URLSearchParams()
-
+		console.log("Debug getThatWeathaData", longitude, latitude, startDate, endDate)	
+		invariant(startDate, 'startDate is required')
+		invariant(endDate, 'endDate is required')
+		invariant(longitude, 'longitude is required')
+		invariant(latitude, 'latitude is required')
+		invariant(!isNaN(startDate.getTime()), 'startDate must be a valid Date')
+		invariant(!isNaN(endDate.getTime()), 'endDate must be a valid Date')
+		const startDateString = startDate.toISOString().split('T')[0]
+		const endDateString = endDate.toISOString().split('T')[0]
+				invariant(startDateString, 'startDate is required')
+				invariant(endDateString, 'endDate is required')
 		params.append('latitude', `${latitude}`)
 		params.append('longitude', `${longitude}`)
 		params.append('daily', 'temperature_2m_mean')
 		params.append('timezone', 'UTC')
-		params.append('start_date', startDate)
-		params.append('end_date', endDate)
+		params.append('start_date', startDateString)
+		params.append('end_date', endDateString)
 		params.append('temperature_unit', 'fahrenheit')
 
 		let url = new URL(BASE_URL + WHATEVER_PATH + '?' + params.toString())
