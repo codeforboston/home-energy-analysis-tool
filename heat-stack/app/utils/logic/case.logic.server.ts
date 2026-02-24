@@ -171,35 +171,17 @@ export async function processCaseUpdate(
 	caseId: number,
 	parsedForm: any,
 	userId: string,
-	gasBillingData: NaturalGasUsageDataSchema,
+	bills: Array<{
+		period_start_date: Date | string,
+		period_end_date: Date | string,
+		usage: number,
+		inclusion_override: number | boolean,
+	}>,
+	,
 ) {
-	// Convert Map to array if needed
-	let billsArray: Array<{
-		periodStartDate: Date | string,
-		periodEndDate: Date | string,
-		usageTherms: number,
-		inclusionOverride: number | boolean,
-	}> = []
-	let billsMap: Map<string, any> | null = null
-	if (gasBillingData instanceof Map && gasBillingData.has('records')) {
-		billsMap = gasBillingData
-	} else if (Array.isArray(gasBillingData) && !(gasBillingData instanceof Map)) {
-		billsArray = gasBillingData as Array<{
-			periodStartDate: Date | string,
-			periodEndDate: Date | string,
-			usageTherms: number,
-			inclusionOverride: number | boolean,
-		}>
-	}
+
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		billsMap
-			? await calculateWithBills(parsedForm, billsMap.get('records').map((rec: any) => ({
-					periodStartDate: rec.periodStartDate,
-					periodEndDate: rec.periodEndDate,
-					usageTherms: rec.usageQuantity,
-					inclusionOverride: rec.inclusionOverride,
-				})))
-			: await calculateWithBills(parsedForm, billsArray)
+		 await calculateWithBills(parsedForm, bills)
 	console.log('🔄 Updating case record in database...', rulesEngineResult)
 
 	const updatedCase = await updateCaseRecord(

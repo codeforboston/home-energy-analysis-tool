@@ -211,33 +211,12 @@ describe('case.logic.server', () => {
 		it('should process a case update', async () => {
 			const { caseRecord } = await createTestCase(testUser.id)
 			const formValues = createFormData()
-			const gasBillMap = new Map<
-				'overall_start_date' | 'overall_end_date' | 'records',
-				| string
-				| {
-						periodStartDate: Date
-						periodEndDate: Date
-						usageQuantity: number
-						inclusionOverride: number
-				  }[]
-			>([
-				['overall_start_date', '2024-01-01'],
-				['overall_end_date', '2024-01-31'],
-				[
-					'records',
-					createGasBillData().processed_energy_bills.map((bill) => ({
-						periodStartDate: new Date(bill.period_start_date),
-						periodEndDate: new Date(bill.period_end_date),
-						usageQuantity: bill.usage,
-						inclusionOverride: bill.inclusion_override ? 1 : 0,
-					})),
-				],
-			])
+			const bills = createGasBillData().processed_energy_bills
 			const result = await processCaseUpdate(
 				caseRecord.id,
 				formValues,
 				testUser.id,
-				gasBillMap,
+				bills,
 			)
 
 			expect(result).toBeDefined()
