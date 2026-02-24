@@ -17,10 +17,11 @@ import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 // import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 // import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
-import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
+import { invariantResponse, invariant } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
+import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	// percentToDecimal no longer needed for loader validation
@@ -277,29 +278,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
-	if (billingRecordsJson) {
-		try {
-			const parsed = JSON.parse(billingRecordsJson)
-			if (!Array.isArray(parsed)) {
-				throw new Error('Billing records is not an array')
-			}
-			billingRecords =
-				parsed.map((bill: any) => ({
-					period_start_date: bill["period_start_date"],
-					period_end_date: bill["period_end_date"],
-					usage: bill["usage"],
-					inclusion_override: bill["inclusion_override"],
-					analysis_type: bill["analysis_type"],
-					default_inclusion: bill["default_inclusion"],
-					eliminated_as_outlier: bill["eliminated_as_outlier"],
-					whole_home_heat_loss_rate: bill["whole_home_heat_loss_rate"],
-				}))
-			const checkedRows = billingRecords
-				.map((bill, idx) => bill.inclusion_override ? idx : null)
-				.filter(idx => idx !== null)
-		} catch (error) {
-		}
-	}
+	const bills = billingRecordsJson ? JSON.parse(billingRecordsJson) : []
+
 
 
 	// Parse heat load output from form data if present
@@ -313,13 +293,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 	}
 	console.log('')
 
-	const updatedCase = await updateCaseRecord(
+	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
+	const updatedCase = await processCaseUpdate(
 		caseId,
-		submission.value,
-		{},
+		formData,
 		userId,
-		billingRecords,
-		heatLoadOutput,
+		bills
 	)
 
 	const formDataWithFile = {
@@ -339,8 +318,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 		state_id: undefined,
 		county_id: undefined,
 		caseInfo: {
-			caseId: updatedCase?.id,
-			analysisId: updatedCase?.analysis?.[0]?.id,
+			caseId: updatedCase && 'id' in updatedCase ? updatedCase.id : undefined,
+			analysisId: updatedCase && 'analysis' in updatedCase && Array.isArray(updatedCase.analysis) ? updatedCase.analysis[0]?.id : undefined,
 		},
 	}
 	return result
@@ -379,11 +358,16 @@ export default function EditCase({
 
 	// Update local state when loader or action data changes
 	useEffect(() => {
-		if (actionData && actionData.parsedAndValidatedFormSchema && actionData.parsedAndValidatedFormSchema.billing_records) {
+		if (actionData && actionData.parsedAndValidatedFormSchema) {
+			// Use invariant to ensure billing_records exists
+			const formSchema = actionData.parsedAndValidatedFormSchema
+			invariant('billing_records' in formSchema, 'billing_records missing from parsedAndValidatedFormSchema')
 			try {
-				const parsed = typeof actionData.parsedAndValidatedFormSchema.billing_records === 'string'
-					? JSON.parse(actionData.parsedAndValidatedFormSchema.billing_records)
-					: actionData.parsedAndValidatedFormSchema.billing_records
+				const billingRecordsValue = formSchema.billing_records
+				// TODO: change parsed to bills or something more descriptive
+				const parsed = typeof billingRecordsValue === 'string'
+					? JSON.parse(billingRecordsValue)
+					: billingRecordsValue
 				setLocalBillingRecords(parsed)
 			} catch {
 				console.log('🟡 [FRONTEND] Failed to parse actionData.billing_records, using loaderData')

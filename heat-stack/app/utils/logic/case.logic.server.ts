@@ -176,8 +176,7 @@ export async function processCaseUpdate(
 		period_end_date: Date | string,
 		usage: number,
 		inclusion_override: number | boolean,
-	}>,
-	,
+	}>
 ) {
 
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =

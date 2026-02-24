@@ -309,7 +309,7 @@ describe('case.logic.server', () => {
 
 			// For now, just check that the function completed without error
 			expect(result).toBeDefined()
-			// insertedCount is not returned by processCaseUpdate
+
 		})
 	})
 })
