@@ -85,27 +85,21 @@ class GeocodeUtil {
 	 */
 	async getLL(address: string) {
 		  const params = new URLSearchParams()
-		  console.log('[GeocodeUtil.getLL] called with address:', address)
 		  params.append('address', address)
 		  params.append('format', 'json')
 		  params.append('benchmark', '2020')
 		  params.append('vintage', 'Census2020_Census2020')
 
 		  let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
-		  console.log('[GeocodeUtil.getLL] fetch URL:', url.toString())
 		  let rezzy = await fetch(url)
-		  console.log('[GeocodeUtil.getLL] fetch status:', rezzy.status, rezzy.statusText)
 		  let jrez = (await rezzy.json()) as CensusGeocoderResponse
-		  console.log('[GeocodeUtil.getLL] response:', JSON.stringify(jrez, null, 2))
 		// TODO: Return all addresses and let the user choose the right one
 		// const fs = await import('node:fs')
 		// fs.writeFileSync('geocoder.json', JSON.stringify(jrez, null, 2), {encoding: "utf-8"})
 		const addressMatch = jrez?.result?.addressMatches?.[0]
-		console.log('[GeocodeUtil.getLL] addressMatch:', JSON.stringify(addressMatch, null, 2))
 		let coordz = addressMatch?.coordinates
 		const addressComponents = addressMatch?.addressComponents
 
-		// console.log(JSON.stringify(jrez, null, 2));
 		return {
 			coordinates: coordz,
 			state_id: addressMatch?.geographies.Counties?.[0]?.['STATE'],

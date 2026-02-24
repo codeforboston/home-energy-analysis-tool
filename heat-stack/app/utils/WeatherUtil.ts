@@ -55,7 +55,7 @@ class WeatherUtil {
 		endDate: Date,
 	): Promise<TemperatureInputDataInitial | undefined> {
 		const params = new URLSearchParams()
-		console.log("Debug getThatWeathaData", longitude, latitude, startDate, endDate)	
+		// ...existing code...
 		invariant(startDate, 'startDate is required')
 		invariant(endDate, 'endDate is required')
 		invariant(longitude, 'longitude is required')
@@ -95,7 +95,7 @@ class WeatherUtil {
 				})
 
 				let temperatures: (number | null)[] = jrez.daily.temperature_2m_mean
-				// console.log({dates,temperatures});
+				// ...existing code...
 
 				return { dates, temperatures }
 			} catch (error) {
@@ -104,7 +104,7 @@ class WeatherUtil {
 				if (retryCount <= maxRetries) {
 					// Exponential backoff
 					const delay = Math.pow(2, retryCount) * 1000 // 2s, 4s, 8s
-					console.log(`Attempt ${retryCount} failed. Retrying in ${delay}ms...`)
+					// ...existing code...
 					await new Promise((resolve) => setTimeout(resolve, delay))
 				} else {
 					console.error(

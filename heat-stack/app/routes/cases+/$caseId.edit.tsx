@@ -350,17 +350,8 @@ export default function EditCase({
 		if (actionData && actionData.parsedAndValidatedFormSchema) {
 			// Use invariant to ensure billing_records exists
 			const formSchema = actionData.parsedAndValidatedFormSchema
-			invariant('billing_records' in formSchema, 'billing_records missing from parsedAndValidatedFormSchema')
-			try {
-				const billingRecordsValue = formSchema.billing_records
-				// TODO: change parsed to bills or something more descriptive
-				const parsed = typeof billingRecordsValue === 'string'
-					? JSON.parse(billingRecordsValue)
-					: billingRecordsValue
-				setLocalBillingRecords(parsed)
-			} catch {
-				setLocalBillingRecords(loaderData.billingRecords)
-			}
+			console.log('formSchema in useEffect', formSchema) // temporary
+			setLocalBillingRecords(loaderData.billingRecords)
 		} else {
 			setLocalBillingRecords(loaderData.billingRecords)
 		}
