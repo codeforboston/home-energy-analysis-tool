@@ -48,7 +48,6 @@ export async function createNewCase({
 		heatingInputId,
 		rulesEngineResult,
 	)
-	  parsedForm2 = coerceParsedFormFields(parsedForm2)
 
 	return {
 		newCase,

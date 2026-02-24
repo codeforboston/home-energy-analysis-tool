@@ -117,6 +117,7 @@ def get_outputs_normalized(
         dhw_input=dhw_input,
         initial_balance_point=initial_balance_point,
     )
+    print("Home", home.stdev_pct)
 
     average_indoor_temperature = get_average_indoor_temperature(
         thermostat_set_point=heat_load_input.thermostat_set_point,
@@ -169,6 +170,7 @@ def get_outputs_normalized(
         balance_point_graph=balance_point_graph,
         processed_energy_bills=processed_energy_bills,
     )
+    print("RulesEngineResult", result)
     return result
 
 
