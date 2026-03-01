@@ -69,7 +69,7 @@ def get_outputs_natural_gas(
     """
     processed_energy_bill_inputs: list[ProcessedEnergyBillInput] = []
 
-    for input_val in natural_gas_billing_input.records:
+    for input_val in natural_gas_billing_input:
         processed_energy_bill_inputs.append(
             ProcessedEnergyBillInput(
                 period_start_date=input_val.period_start_date,
