@@ -1,0 +1,13 @@
+﻿Name,FIRST LAST,,,,,
+Address,"100 STREET AVE, BOSTON MA 02130",,,,,
+Account Number,1111111111,,,,,
+Service,Service 1,,,,,
+,,,,,,
+TYPE,START DATE,END DATE,USAGE,UNITS,COST,NOTES
+Natural gas billing,10/2/2020,11/4/2020,29,therms,$42.08 ,
+Natural gas billing,11/5/2020,12/3/2020,36,therms,$65.60 ,
+Natural gas billing,12/4/2020,1/7/2021,97,therms,$159.49 ,
+Natural gas billing,1/8/2021,2/5/2021,105,therms,$169.09 ,
+Natural gas billing,2/6/2021,3/5/2021,98,therms,$158.19 ,
+Natural gas billing,3/6/2021,4/6/2021,66,therms,$111.79 ,
+Natural gas billing,4/7/2021,5/5/2021,22,therms,$43.16 ,
