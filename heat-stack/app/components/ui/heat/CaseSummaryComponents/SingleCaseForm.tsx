@@ -105,6 +105,12 @@ export default function SingleCaseForm({
 	// subsequent focus on this element are both ignored.
 	const refocusTargetRef = useRef<HTMLElement | null>(null)
 
+	// Address fields should not trap focus on validation failure since they
+	// are validated together via geocoding and may be filled in any order.
+	const ADDRESS_FIELD_NAMES = new Set(['street_address', 'town', 'state'])
+	const isAddressField = (el: HTMLElement) =>
+		ADDRESS_FIELD_NAMES.has((el as HTMLInputElement).name ?? '')
+
 	// Toast state for autosave feedback
 	const [showToast, setShowToast] = useState(false)
 	// Show toast for 2 seconds when autosave triggers
@@ -139,13 +145,22 @@ export default function SingleCaseForm({
 			const formData = new FormData(formRef.current)
 			const result = parseWithZod(formData, { schema: SaveOnlySchema })
 			if (result.status !== 'success') {
-				// Refocus the invalid field; preserve lastFocusedValueRef so
-				// subsequent blur attempts keep triggering validation.
-				refocusTargetRef.current = e.target
-				setTimeout(() => {
-					e.target.focus()
-					refocusTargetRef.current = null
-				}, 0)
+				// Skip refocus for address fields — let the user Tab freely.
+				if (!isAddressField(e.target)) {
+					// Set the guard BEFORE calling focus() so the synchronous
+					// blur/focus events it triggers see refocusTargetRef as set.
+					refocusTargetRef.current = e.target
+					setTimeout(() => {
+						e.target.focus()
+						// Clear the guard after a microtask so it persists through
+						// all synchronous focus/blur events fired by .focus().
+						queueMicrotask(() => {
+							refocusTargetRef.current = null
+						})
+					}, 0)
+					return
+				}
+				lastFocusedValueRef.current = null
 				return
 			}
 			formRef.current.requestSubmit()
@@ -201,7 +216,7 @@ export default function SingleCaseForm({
 						value={JSON.stringify(usageData.heat_load_output)}
 					/>
 				)}
-				<HomeInformation fields={fields} />
+				<HomeInformation fields={fields} formValidate={(payload: any) => form.validate(payload)} />
 				<CurrentHeatingSystem fields={fields} />
 				{!isEditMode && (
 					<EnergyUseUpload
