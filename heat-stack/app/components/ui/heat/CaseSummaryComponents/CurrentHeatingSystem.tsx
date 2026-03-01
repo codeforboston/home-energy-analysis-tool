@@ -42,9 +42,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
-		const value =
-			props.fields.heating_system_efficiency.value ||
-			props.fields.heating_system_efficiency.defaultValue
+		const value = props.fields.heating_system_efficiency.value 
 		if (value) {
 			setPercentageValueDisplayed(
 				Math.round(parseFloat(value) * 100).toString(),

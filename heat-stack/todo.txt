@@ -1,5 +1,34 @@
 package.json are openimg/node (in app/routes/resources+/images.tsx) and remix-flat-routes (in app/routes.ts
 
+  - If you change efficiency, the whole home UA and UA of individual items will check
+  - If you change setback temperature, setback hours, or , changes the average indoor temperature 
+Set back temp and hours - average indoor temperature
+
+- How to test update
+
+  - Finish print screens and marking up in preview, check in
+  - Set up
+    - create CSV of temperatures for Gloucester and Montpelier
+      - find max and min dates for CSV
+      - find coordinates of Gloucester and Montpelier 
+      - create CSV using API call to weather
+      - compare Gloucester to mock
+    - Create dirs that are copy of quateman 
+      - modify input to vary efficiency, set back, and location
+    - Modify and run tests
+      - modify tests to use the right CSV depending on the location
+      - run tests
+      - modify output so tests pass
+    - Create a new dir update-tests
+      - move dirs to this dir
+      - get rid of json and csv from original
+      - modify json of others to only include thing to update and the output
+      - make output a separate file
+    - write test
+      - URL to edit data
+      - simulate changing the fields
+      - check database matches output
+
 
 - Bugs
   - test_natural_gas.py => combine into one test
