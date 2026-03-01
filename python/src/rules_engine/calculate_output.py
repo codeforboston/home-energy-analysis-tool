@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from rules_engine import engine, parser
 
-from .pydantic_models import HeatLoadInput
+from .pydantic_models import HeatLoadInput, NaturalGasBillingInput
 
 # Replace this with your real geocode + weather module
 from .web_geocode_utils import WebGeocodeUtil
@@ -85,8 +85,8 @@ def calculate_from_bills_and_temperatures(
         setback_hours_per_day=form_data.get("setback_hours_per_day"),
         design_temperature=form_data["design_temperature"],
     )
-    bill_records = {}
-    bill_records["record"] = bills
+
+    bill_records = NaturalGasBillingInput(records=bills)
 
     result = engine.get_outputs_natural_gas(
         heat_load_input=heat_load_input,
