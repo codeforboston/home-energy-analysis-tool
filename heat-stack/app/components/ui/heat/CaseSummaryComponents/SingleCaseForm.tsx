@@ -122,6 +122,13 @@ export default function SingleCaseForm({
 		const original = lastFocusedValueRef.current
 		const current = e.target.value
 		if (original !== null && original !== current && formRef.current) {
+			// Validate form data before autosaving to prevent saving invalid values
+			const formData = new FormData(formRef.current)
+			const result = parseWithZod(formData, { schema: SaveOnlySchema })
+			if (result.status !== 'success') {
+				lastFocusedValueRef.current = null
+				return
+			}
 			formRef.current.requestSubmit()
 			handleAutosaveToast()
 		}
