@@ -100,6 +100,10 @@ export default function SingleCaseForm({
 
 	// Track last focused value for autosave-on-blur
 	const lastFocusedValueRef = useRef<string | null>(null)
+	// Tracks the element we are about to refocus after validation failure.
+	// While set, blur on OTHER fields (caused by our refocus) and the
+	// subsequent focus on this element are both ignored.
+	const refocusTargetRef = useRef<HTMLElement | null>(null)
 
 	// Toast state for autosave feedback
 	const [showToast, setShowToast] = useState(false)
@@ -112,6 +116,9 @@ export default function SingleCaseForm({
 	// Generic onChange handler for all fields
 	const handleFieldFocus = (e: React.ChangeEvent<any>) => {
 		if (!isEditMode) return
+		// If this focus is from our validation-triggered refocus, don't
+		// overwrite the original value — we need it for the next blur check.
+		if (refocusTargetRef.current === e.target) return
 		lastFocusedValueRef.current = e.target.value
 	}
 
@@ -119,6 +126,12 @@ export default function SingleCaseForm({
 	const handleFieldBlur = (e: React.FocusEvent<any>) => {
 		if (lastFocusedValueRef.current === null) return
 		if (!isEditMode) return
+		// If we're in the middle of refocusing a different field, this blur
+		// is a side effect (e.g. Tab moved focus to field B, then we refocus
+		// field A which blurs B). Ignore it.
+		if (refocusTargetRef.current !== null && e.target !== refocusTargetRef.current) {
+			return
+		}
 		const original = lastFocusedValueRef.current
 		const current = e.target.value
 		if (original !== null && original !== current && formRef.current) {
@@ -126,7 +139,13 @@ export default function SingleCaseForm({
 			const formData = new FormData(formRef.current)
 			const result = parseWithZod(formData, { schema: SaveOnlySchema })
 			if (result.status !== 'success') {
-				lastFocusedValueRef.current = null
+				// Refocus the invalid field; preserve lastFocusedValueRef so
+				// subsequent blur attempts keep triggering validation.
+				refocusTargetRef.current = e.target
+				setTimeout(() => {
+					e.target.focus()
+					refocusTargetRef.current = null
+				}, 0)
 				return
 			}
 			formRef.current.requestSubmit()
