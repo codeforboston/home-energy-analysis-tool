@@ -1,34 +1,35 @@
 import { parseWithZod } from '@conform-to/zod'
+// import { parseFormData } from '@mjackson/form-data-parser';
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
-import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
+import { coerceUsageDataTypes } from '#app/utils/coerceUsageDataTypes.ts'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { replacer } from '#app/utils/data-parser.ts'
+import { updateCaseRecord } from '#app/utils/db/case.db.server.ts'
 import {
 	getCaseForEditing,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
-import { buildCurrentUsageData } from '#app/utils/index.ts'
-import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
-import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+// import { buildCurrentUsageData } from '#app/utils/index.ts'
+// import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
+// import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
-import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
+import { invariantResponse, invariant } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
+import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-	const percentToDecimal = (value: number, errorMessage: string) => {
-		const decimal = parseFloat((value / 100).toFixed(2))
-		if (isNaN(decimal) || decimal > 1) {
-			throw new Error(errorMessage)
-		}
-		return decimal
+	// percentToDecimal no longer needed for loader validation
+
+	// DEBUG: Log the last action result if available
+	if (typeof global !== 'undefined' && global.lastActionResult) {
+		console.log('[LOADER] Last action result:', global.lastActionResult)
 	}
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
@@ -43,10 +44,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	const analysis = caseRecord.analysis?.[0]
 	invariantResponse(analysis, 'Invalid analysis detected', { status: 500 })
 
+
 	const heatingInput = analysis.heatingInput?.[0]
 	invariantResponse(heatingInput, 'Invalid heating input detected', {
 		status: 500,
 	})
+	// Log efficiency from database after definition
+
+	// (Normalization logic removed)
+
 
 	const heatingOutput = analysis.heatingOutput?.[0]
 
@@ -63,6 +69,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
 		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
 	}))
+
 
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
@@ -97,17 +104,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
 				const weatherUtil = new WeatherUtil()
 
-				const formatDateString = (date: Date): string => {
-					return (
-						date.toISOString().split('T')[0] || date.toISOString().slice(0, 10)
-					)
-				}
-
 				const weatherData = await weatherUtil.getThatWeathaData(
 					x,
 					y,
-					formatDateString(startDate),
-					formatDateString(endDate),
+					startDate,
+					endDate,
 				)
 
 				if (weatherData) {
@@ -127,8 +128,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		}
 	}
 
-	const parsedAndValidatedFormData = Schema.parse({
-		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
+
+
+	const schemaValues = {
 		energy_use_upload: {
 			name: 'existing-energy-data.csv',
 			size: 0,
@@ -140,36 +142,37 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-
-		heating_system_efficiency: percentToDecimal(
-			heatingInput.heatingSystemEfficiency,
-			'Invalid heating system efficiency value detected',
-		),
+		heating_system_efficiency: heatingInput.heatingSystemEfficiency,
 		thermostat_set_point: heatingInput.thermostatSetPoint,
-		setback_temperature: heatingInput.setbackTemperature ?? undefined,
-		setback_hours_per_day: heatingInput.setbackHoursPerDay ?? undefined,
+		setback_temperature: heatingInput.setbackTemperature,
+		setback_hours_per_day: heatingInput.setbackHoursPerDay,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	})
+	};
+	// Log efficiency in schemaValues before validation
+	const parsedAndValidatedFormData = Schema.parse(schemaValues);
+	// Log efficiency after validation
+
 
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
 		? {
-				estimated_balance_point: heatingOutput.estimatedBalancePoint,
-				other_fuel_usage: heatingOutput.otherFuelUsage,
-				average_indoor_temperature: heatingOutput.averageIndoorTemperature,
-				difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
-				design_temperature: heatingOutput.designTemperature,
-				whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
-				standard_deviation_of_heat_loss_rate:
-					heatingOutput.standardDeviationOfHeatLossRate,
-				average_heat_load: heatingOutput.averageHeatLoad,
-				maximum_heat_load: heatingOutput.maximumHeatLoad,
-			}
+			estimated_balance_point: heatingOutput.estimatedBalancePoint,
+			other_fuel_usage: heatingOutput.otherFuelUsage,
+			average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+			difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+			design_temperature: heatingOutput.designTemperature,
+			whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+			standard_deviation_of_heat_loss_rate:
+				heatingOutput.standardDeviationOfHeatLossRate,
+			average_heat_load: heatingOutput.averageHeatLoad,
+			maximum_heat_load: heatingOutput.maximumHeatLoad,
+		}
 		: undefined
 
 	return {
 		defaultFormValues: parsedAndValidatedFormData,
+		efficiency_display: heatingInput.heatingSystemEfficiency != null ? Math.round(heatingInput.heatingSystemEfficiency * 100) : undefined,
 		caseInfo: {
 			caseId: caseRecord.id,
 			analysisId: analysis.id,
@@ -184,6 +187,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -196,8 +200,42 @@ export async function action({ request, params }: Route.ActionArgs) {
 		? await parseMultipartFormData(request, uploadHandler)
 		: await request.formData()
 
+	// Log efficiency in form at beginning of action
+	let efficiencyInForm = formData.get('heating_system_efficiency')
+
+	// Fetch from DB for comparison
+	let dbEfficiency: number | undefined = undefined
+	try {
+		const user = await getLoggedInUserFromRequest(request)
+		const isAdmin = hasAdminRole(user)
+		const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
+		const analysis = caseRecord.analysis?.[0]
+		const heatingInput = analysis?.heatingInput?.[0]
+		dbEfficiency = heatingInput?.heatingSystemEfficiency
+	} catch (e) {
+		dbEfficiency = undefined
+	}
+
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
+
+	// Log efficiency before any modification
+	efficiencyInForm = formData.get('heating_system_efficiency')
+
+	// Convert heating_system_efficiency from percent to decimal if needed
+	let efficiency = formData.get('heating_system_efficiency')
+	if (efficiency != null && !isNaN(Number(efficiency))) {
+		let effNum = Number(efficiency)
+		// Log before possible modification
+		if (effNum > 1) {
+			formData.set('heating_system_efficiency', effNum.toString())
+			// Log after modification
+		}
+	}
+
+	// Log efficiency after all possible modification
+	efficiencyInForm = formData.get('heating_system_efficiency')
+
 
 	let submission
 
@@ -207,6 +245,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 	} else {
 		// Use full validation for process-file intent
 		submission = parseWithZod(formData, { schema: Schema })
+	}
+
+	// Log efficiency after validation
+	if (submission.status === 'success') {
 	}
 
 	if (submission.status !== 'success') {
@@ -221,122 +263,62 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 	}
 
-	try {
-		if (intent === 'process-file') {
-			// Full update with new energy file - use the original processCaseUpdate
-			const result = await processCaseUpdate(
-				caseId,
-				submission,
-				userId,
-				formData,
-			)
+	// Simple form update (intent === 'save' or fallback) - just update the database fields
 
-			return {
-				submitResult: submission.reply(),
-				data: JSON.stringify(result.gasBillData, replacer),
-				parsedAndValidatedFormSchema: submission.value,
-				convertedDatesTIWD: result.convertedDatesTIWD,
-				state_id: result.state_id,
-				county_id: result.county_id,
-				caseInfo: {
-					caseId: result.updatedCase?.id,
-					analysisId: result.updatedCase?.analysis?.[0]?.id,
-				},
-			}
-		} else {
-			// Simple form update (intent === 'save' or fallback) - just update the database fields
-			console.log('🔄 Processing save operation for case:', caseId)
+	// Parse billing records from form data if present
+	const billingRecordsJson = formData.get('billing_records') as string | null
+	let billingRecords: any[] | undefined
+	// Create bills array with start_date and end_date replaced by dates
+	const billsWithStringDates = billingRecordsJson ? JSON.parse(billingRecordsJson) : [];
+	const bills = billsWithStringDates.map(bill => ({
+		...bill,
+		period_start_date: bill.period_start_date ? new Date(bill.period_start_date) : undefined,
+		period_end_date: bill.period_end_date ? new Date(bill.period_end_date) : undefined,
+	}));
 
-			// Parse billing records from form data if present
-			const billingRecordsJson = formData.get('billing_records') as
-				| string
-				| null
-			let billingRecords: any[] | undefined
-			if (billingRecordsJson) {
-				try {
-					const parsed = JSON.parse(billingRecordsJson)
-					billingRecords = Array.isArray(parsed) ? parsed : undefined
-					console.log('📊 Parsed billing records:', billingRecords)
-				} catch (error) {
-					console.error('❌ Failed to parse billing records:', error)
-				}
-			}
 
-			// Parse heat load output from form data if present
-			const heatLoadOutputJson = formData.get('heat_load_output') as
-				| string
-				| null
-			let heatLoadOutput: any | undefined
-			if (heatLoadOutputJson) {
-				try {
-					heatLoadOutput = JSON.parse(heatLoadOutputJson)
-					console.log('📊 Parsed heat load output:', heatLoadOutput)
-				} catch (error) {
-					console.error('❌ Failed to parse heat load output:', error)
-				}
-			}
 
-			const { updateCaseRecord } = await import(
-				'#app/utils/db/case.db.server.ts'
-			)
-			const updatedCase = await updateCaseRecord(
-				caseId,
-				submission.value,
-				{},
-				userId,
-				billingRecords,
-				heatLoadOutput,
-			)
-			console.log('✅ Case updated successfully:', {
-				caseId: updatedCase?.id,
-				analysisId: updatedCase?.analysis?.[0]?.id,
-			})
-
-			// For save operations, add a dummy energy_use_upload to match expected type
-			const formDataWithFile = {
-				...submission.value,
-				energy_use_upload: {
-					name: 'existing-data.csv',
-					size: 0,
-					type: 'text/csv',
-				},
-			}
-
-			const result = {
-				submitResult: submission.reply(),
-				data: undefined, // No new calculation data
-				parsedAndValidatedFormSchema: formDataWithFile,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: {
-					caseId: updatedCase?.id,
-					analysisId: updatedCase?.analysis?.[0]?.id,
-				},
-			}
-			console.log('📤 Returning save result:', result)
-			return result
+	// Parse heat load output from form data if present
+	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
+	let heatLoadOutput: any | undefined
+	if (heatLoadOutputJson) {
+		try {
+			heatLoadOutput = JSON.parse(heatLoadOutputJson)
+		} catch (error) {
 		}
-	} catch (error: any) {
-		console.error('❌ Case update failed', error)
-		const message =
-			error instanceof Error
-				? error.message
-				: 'Unknown error during case update'
-		return data(
-			{
-				submitResult: submission.reply({ formErrors: [message] }),
-				parsedAndValidatedFormSchema: undefined,
-				data: undefined,
-				convertedDatesTIWD: undefined,
-				state_id: undefined,
-				county_id: undefined,
-				caseInfo: undefined,
-				error: message, // Add error field for consistent error handling
-			},
-			{ status: 500 },
-		)
 	}
+
+	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
+	const updatedCase = await processCaseUpdate(
+		caseId,
+		formData,
+		userId,
+		bills
+	)
+
+	const formDataWithFile = {
+		...submission.value,
+		energy_use_upload: {
+			name: 'existing-data.csv',
+			size: 0,
+			type: 'text/csv',
+		},
+	}
+
+	const result = {
+		submitResult: submission.reply(),
+		data: undefined, // No new calculation data
+		parsedAndValidatedFormSchema: formDataWithFile,
+		gasBillData: updatedCase ? updatedCase.gasBillData : undefined,
+		convertedDatesTIWD: undefined,
+		state_id: undefined,
+		county_id: undefined,
+		caseInfo: {
+			caseId: updatedCase && 'id' in updatedCase ? updatedCase.id : undefined,
+			analysisId: updatedCase && 'analysis' in updatedCase && Array.isArray(updatedCase.analysis) ? updatedCase.analysis[0]?.id : undefined,
+		},
+	}
+	return result
 }
 
 export default function EditCase({
@@ -353,7 +335,7 @@ export default function EditCase({
 	)
 
 	// Local state for calculated usage data
-	const [calculatedUsageData, setCalculatedUsageData] = useState<any>(undefined)
+	const [calculatedUsageData] = useState<any>(undefined)
 
 	// Track if initial calculation is complete
 	const [isInitialCalculationComplete, setIsInitialCalculationComplete] =
@@ -370,14 +352,19 @@ export default function EditCase({
 		message: '',
 	})
 
-	// Update local state when loader data changes
+	// Update local state when loader or action data changes
 	useEffect(() => {
-		setLocalBillingRecords(loaderData.billingRecords)
-	}, [loaderData.billingRecords])
+		if (actionData && actionData.parsedAndValidatedFormSchema) {
+			// Use invariant to ensure billing_records exists
+			const formSchema = actionData.parsedAndValidatedFormSchema
+			setLocalBillingRecords(loaderData.billingRecords)
+		} else {
+			setLocalBillingRecords(loaderData.billingRecords)
+		}
+	}, [loaderData.billingRecords, actionData])
 
 	// Mark initial load as complete immediately - we'll use database data
 	useEffect(() => {
-		console.log('� Marking initial load complete - using database data')
 		setIsInitialCalculationComplete(true)
 	}, [])
 
@@ -394,185 +381,70 @@ export default function EditCase({
 		}
 	}, [actionData])
 
-	// Use calculated data when available, fallback to local billing records with database heat load output
-	console.log('📊 Usage data selection:', {
-		hasCalculatedData: !!calculatedUsageData,
-		hasLocalBillingRecords: !!(
-			localBillingRecords && localBillingRecords.length > 0
-		),
-		isInitialCalculationComplete,
-	})
-
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
-	const usageData = !isInitialCalculationComplete
-		? undefined
-		: calculatedUsageData ||
-			(localBillingRecords && localBillingRecords.length > 0
-				? {
-						heat_load_output: loaderData.heatLoadOutput || {
-							estimated_balance_point: 1,
-							other_fuel_usage: 1,
-							average_indoor_temperature: 70,
-							difference_between_ti_and_tbp: 1,
-							design_temperature: 10, // Non-zero placeholder value
-							whole_home_heat_loss_rate: 1, // Non-zero placeholder value
-							standard_deviation_of_heat_loss_rate: 1,
-							average_heat_load: 1,
-							maximum_heat_load: 1,
-						},
-						balance_point_graph: {
-							records: [],
-						},
-						processed_energy_bills: localBillingRecords,
-					}
-				: undefined)
 
-	// Custom toggle function for edit mode that calls client-side rules engine for recalculation
-	const editModeToggleBillingPeriod = (index: number) => {
-		console.log('🔄 Toggle billing period called for index:', index)
-		const updatedRecords = localBillingRecords.map((record, i) => {
-			if (i === index) {
-				const newRecord = {
-					...record,
-					inclusion_override: !record.inclusion_override,
-				}
-				console.log('📝 Updated record:', {
-					index: i,
-					old: record.inclusion_override,
-					new: newRecord.inclusion_override,
-				})
-				return newRecord
-			}
-			return record
-		})
+	// Prefer actionData.gasBillData if present, else loaderData.gasBillData (or fallback)
 
-		setLocalBillingRecords(updatedRecords)
+	   let gasBillData = actionData?.gasBillData || loaderData.gasBillData;
+	   // Deeply convert any Maps in gasBillData to plain objects
+	   if (gasBillData instanceof Map || (gasBillData && typeof gasBillData === 'object' && Object.values(gasBillData).some(v => v instanceof Map))) {
+		   console.log('[EditCase] Deep converting gasBillData Maps to objects');
+		   gasBillData = coerceUsageDataTypes(gasBillData);
+	   }
 
-		// Trigger client-side recalculation with updated billing records
-		if (
-			parsedAndValidatedFormSchemaForEffects &&
-			loaderData.state_id &&
-			loaderData.county_id
-		) {
-			console.log('🚀 Triggering client-side recalculation...')
-			console.log('📋 Current usageData:', usageData)
-			console.log(
-				'🔍 Function check:',
-				typeof executeRoundtripAnalyticsFromFormJs,
-				executeRoundtripAnalyticsFromFormJs,
-			)
+	   // Coerce actionData if present
+	   console.log('Action data before coercion:', actionData)
+	   let coercedActionData = actionData ? coerceUsageDataTypes(actionData) : undefined;
+	   console.log('Coerced action data:', coercedActionData)
 
-			try {
-				// Check if the function is still valid (not destroyed)
-				if (typeof executeRoundtripAnalyticsFromFormJs !== 'function') {
-					throw new Error(
-						'executeRoundtripAnalyticsFromFormJs is not available - rules engine may need to be reloaded',
-					)
-				}
+	   const usageData = !isInitialCalculationComplete
+		   ? undefined
+		   : calculatedUsageData ||
+		   (coercedActionData?.gasBillData
+			   ? coercedActionData.gasBillData
+			   : gasBillData
+				   ? gasBillData
+				   : (localBillingRecords && localBillingRecords.length > 0
+					   ? {
+						   heat_load_output: loaderData.heatLoadOutput || {
+							   estimated_balance_point: 1,
+							   other_fuel_usage: 1,
+							   average_indoor_temperature: 70,
+							   difference_between_ti_and_tbp: 1,
+							   design_temperature: 10, // Non-zero placeholder value
+							   whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+							   standard_deviation_of_heat_loss_rate: 1,
+							   average_heat_load: 1,
+							   maximum_heat_load: 1,
+						   },
+						   balance_point_graph: {
+							   records: [],
+						   },
+						   processed_energy_bills: localBillingRecords,
+					   }
+					   : undefined)
+		   );
 
-				// Create userAdjustedData structure with updated records
-				const userAdjustedData = {
-					processed_energy_bills: updatedRecords,
-				}
-
-				console.log(
-					'🧮 Calling executeRoundtripAnalyticsFromFormJs with updated records',
-				)
-				console.log(
-					'🔍 Arg 1 (form):',
-					typeof parsedAndValidatedFormSchemaForEffects,
-					parsedAndValidatedFormSchemaForEffects,
-				)
-				console.log(
-					'🔍 Arg 2 (temp):',
-					typeof loaderData.convertedDatesTIWD,
-					loaderData.convertedDatesTIWD,
-				)
-				console.log(
-					'🔍 Arg 3 (adjusted):',
-					typeof userAdjustedData,
-					userAdjustedData,
-				)
-				console.log(
-					'🔍 Arg 4 (state):',
-					typeof loaderData.state_id,
-					loaderData.state_id,
-				)
-				console.log(
-					'🔍 Arg 5 (county):',
-					typeof loaderData.county_id,
-					loaderData.county_id,
-				)
-
-				// Call the function and immediately handle the result
-				let calcResult: any
-				try {
-					const calcResultPyProxy = executeRoundtripAnalyticsFromFormJs(
-						parsedAndValidatedFormSchemaForEffects as any,
-						loaderData.convertedDatesTIWD as any,
-						userAdjustedData as any,
-						loaderData.state_id,
-						loaderData.county_id,
-					)
-
-					// toJs() converts Python objects to JS - dicts become Maps by default
-					calcResult = calcResultPyProxy.toJs()
-
-					// Destroy immediately after conversion
-					calcResultPyProxy.destroy()
-				} catch (pyError) {
-					console.error('❌ PyProxy error:', pyError)
-					throw pyError
-				}
-
-				console.log(
-					'📊 Recalculation result type:',
-					calcResult instanceof Map,
-					calcResult,
-				)
-
-				const newUsageData = buildCurrentUsageData(calcResult)
-				setCalculatedUsageData(newUsageData)
-				console.log('✅ Recalculation completed successfully', newUsageData)
-			} catch (error) {
-				console.error('❌ Recalculation failed:', error)
-				setErrorModal({
-					isOpen: true,
-					title: 'Recalculation Failed',
-					message: `An error occurred during recalculation: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				})
-			}
-		} else {
-			console.error('❌ Cannot recalculate - missing required data:', {
-				hasSchema: !!parsedAndValidatedFormSchemaForEffects,
-				hasStateId: !!loaderData.state_id,
-				hasCountyId: !!loaderData.county_id,
-			})
-			setErrorModal({
-				isOpen: true,
-				title: 'Recalculation Failed',
-				message: `Unable to recalculate results because required data is missing.\n\nPlease refresh the page and try again.`,
-			})
-		}
-	}
+	// Custom toggle function for edit mode that updates billing record state and triggers autosave (no recalculation)
 
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => {}}
+				beforeSubmit={() => { }}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}
 				caseInfo={actionData?.caseInfo || loaderData.caseInfo}
 				usageData={usageData}
 				showUsageData={!!usageData}
-				onClickBillingRow={editModeToggleBillingPeriod}
+				onBillingRecordsChange={setLocalBillingRecords}
 				parsedAndValidatedFormSchema={
 					parsedAndValidatedFormSchemaForEffects as any
 				}
 				isEditMode={true}
 				billingRecords={localBillingRecords}
+				onClickBillingRow={() => { }}
 			/>
 
 			<ErrorModal

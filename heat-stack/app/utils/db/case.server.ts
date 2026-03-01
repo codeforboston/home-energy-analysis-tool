@@ -47,6 +47,7 @@ export const getCaseForEditing = async (
 	userId: string,
 	isAdmin?: boolean,
 ) => {
+	console.log('getCaseForEditing called with caseId:', caseId)
 	let userWhere
 	if (isAdmin) {
 		userWhere = {}
@@ -59,7 +60,7 @@ export const getCaseForEditing = async (
 			},
 		}
 	}
-	return await prisma.case.findUnique({
+	const caseRecord = await prisma.case.findUnique({
 		where: { id: caseId, ...userWhere },
 		include: {
 			homeOwner: true,
@@ -78,6 +79,18 @@ export const getCaseForEditing = async (
 			},
 		},
 	})
+
+	// Log heatingSystemEfficiency after querying case and heatingInput
+	if (caseRecord?.analysis?.[0]?.heatingInput?.[0]) {
+		const efficiency =
+			caseRecord.analysis[0].heatingInput[0].heatingSystemEfficiency
+		console.log(
+			'heatingSystemEfficiency after case and heatingInput query:',
+			efficiency,
+		)
+	}
+
+	return caseRecord
 }
 
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
@@ -197,12 +210,10 @@ export const updateCase = async (
 			fuelType: changes.heatingInput.fuel_type,
 			designTemperatureOverride: Boolean(validHI.design_temperature_override),
 			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
-			heatingSystemEfficiency: Math.round(
-				validHI.heating_system_efficiency * 100,
-			),
+			heatingSystemEfficiency: validHI.heating_system_efficiency,
 			thermostatSetPoint: validHI.thermostat_set_point,
-			setbackTemperature: validHI.setback_temperature ?? null,
-			setbackHoursPerDay: validHI.setback_hours_per_day ?? null,
+			setbackTemperature: validHI.setback_temperature || 65,
+			setbackHoursPerDay: validHI.setback_hours_per_day || 0,
 			numberOfOccupants: 2, // Default value until we add to form
 			estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
 			standByLosses: 5, // Default value until we add to form
@@ -283,12 +294,10 @@ export const createCase = async (
 				designTemperatureOverride: Boolean(
 					formInputs.design_temperature_override,
 				),
-				heatingSystemEfficiency: Math.round(
-					formInputs.heating_system_efficiency * 100,
-				),
+				heatingSystemEfficiency: formInputs.heating_system_efficiency,
 				thermostatSetPoint: formInputs.thermostat_set_point,
-				setbackTemperature: formInputs.setback_temperature ?? null,
-				setbackHoursPerDay: formInputs.setback_hours_per_day ?? null,
+				setbackTemperature: formInputs.setback_temperature || 65,
+				setbackHoursPerDay: formInputs.setback_hours_per_day || 0,
 				numberOfOccupants: 2, // Default value until we add to form
 				estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
 				standByLosses: 5, // Default value until we add to form
@@ -306,3 +315,9 @@ export const createCase = async (
 
 	return records
 }
+
+/**
+ * Fetches only the heating system efficiency for a given caseId.
+ * Returns null if not found.
+ */
+

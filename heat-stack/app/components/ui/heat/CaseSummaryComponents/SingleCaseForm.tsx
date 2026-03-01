@@ -1,6 +1,6 @@
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -72,11 +72,11 @@ export default function SingleCaseForm({
 	usageData,
 	showUsageData,
 	action,
-	onClickBillingRow,
+	onBillingRecordsChange,
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
-}: SubmitAnalysisProps) {
+}: SubmitAnalysisProps & { onBillingRecordsChange: (records: BillingRecordsSchema) => void }) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	const [form, fields] = useForm({
@@ -85,6 +85,9 @@ export default function SingleCaseForm({
 			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
 			const intent = formData.get('intent') as string
 			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+            // Log heating_system_efficiency value and type before validation
+            const hse = formData.get('heating_system_efficiency');
+            console.log('heating_system_efficiency before Zod:', hse, typeof hse);
 			return parseWithZod(formData, { schema })
 		},
 		onSubmit() {
@@ -95,9 +98,95 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
+	// Track last focused value for autosave-on-blur
+	const lastFocusedValueRef = useRef<string | null>(null)
+	// Tracks the element we are about to refocus after validation failure.
+	// While set, blur on OTHER fields (caused by our refocus) and the
+	// subsequent focus on this element are both ignored.
+	const refocusTargetRef = useRef<HTMLElement | null>(null)
+
+	// Address fields should not trap focus on validation failure since they
+	// are validated together via geocoding and may be filled in any order.
+	const ADDRESS_FIELD_NAMES = new Set(['street_address', 'town', 'state'])
+	const isAddressField = (el: HTMLElement) =>
+		ADDRESS_FIELD_NAMES.has((el as HTMLInputElement).name ?? '')
+
+	// Toast state for autosave feedback
+	const [showToast, setShowToast] = useState(false)
+	// Show toast for 2 seconds when autosave triggers
+	const handleAutosaveToast = () => {
+		setShowToast(true)
+		setTimeout(() => setShowToast(false), 2000)
+	}
+
+	// Generic onChange handler for all fields
+	const handleFieldFocus = (e: React.ChangeEvent<any>) => {
+		if (!isEditMode) return
+		// If this focus is from our validation-triggered refocus, don't
+		// overwrite the original value — we need it for the next blur check.
+		if (refocusTargetRef.current === e.target) return
+		lastFocusedValueRef.current = e.target.value
+	}
+
+	// Generic onBlur handler for all fields
+	const handleFieldBlur = (e: React.FocusEvent<any>) => {
+		if (lastFocusedValueRef.current === null) return
+		if (!isEditMode) return
+		// If we're in the middle of refocusing a different field, this blur
+		// is a side effect (e.g. Tab moved focus to field B, then we refocus
+		// field A which blurs B). Ignore it.
+		if (refocusTargetRef.current !== null && e.target !== refocusTargetRef.current) {
+			return
+		}
+		const original = lastFocusedValueRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && formRef.current) {
+			// Validate form data before autosaving to prevent saving invalid values
+			const formData = new FormData(formRef.current)
+			const result = parseWithZod(formData, { schema: SaveOnlySchema })
+			if (result.status !== 'success') {
+				// Skip refocus for address fields — let the user Tab freely.
+				if (!isAddressField(e.target)) {
+					// Set the guard BEFORE calling focus() so the synchronous
+					// blur/focus events it triggers see refocusTargetRef as set.
+					refocusTargetRef.current = e.target
+					setTimeout(() => {
+						e.target.focus()
+						// Clear the guard after a microtask so it persists through
+						// all synchronous focus/blur events fired by .focus().
+						queueMicrotask(() => {
+							refocusTargetRef.current = null
+						})
+					}, 0)
+					return
+				}
+				lastFocusedValueRef.current = null
+				return
+			}
+			formRef.current.requestSubmit()
+			handleAutosaveToast()
+		}
+		lastFocusedValueRef.current = null
+	}
+
+	const formRef = useRef<HTMLFormElement>(null)
+
+	// Autosave after billingRecords change (must be at top level, not inside JSX)
+	const [triggerAutosave, setTriggerAutosave] = useState(false)
+	useEffect(() => {
+		if (triggerAutosave) {
+			if (formRef.current) {
+				formRef.current.requestSubmit()
+				handleAutosaveToast()
+			}
+			setTriggerAutosave(false)
+		}
+	}, [billingRecords, triggerAutosave])
+
 	return (
 		<>
 			<Form
+				ref={formRef}
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
@@ -105,7 +194,11 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
+				onFocus={handleFieldFocus}
+				onBlur={handleFieldBlur}
 			>
+				{/* Ensure intent is always sent for autosave */}
+				{isEditMode && <input type="hidden" name="intent" value="save" />}
 				<div>Case {caseInfo?.caseId}</div>
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
@@ -123,15 +216,15 @@ export default function SingleCaseForm({
 						value={JSON.stringify(usageData.heat_load_output)}
 					/>
 				)}
-				<HomeInformation fields={fields} />
+				<HomeInformation fields={fields} formValidate={(payload: any) => form.validate(payload)} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload
-					setScrollAfterSubmit={setScrollAfterSubmit}
-					fields={fields}
-					isEditMode={isEditMode}
-				/>
+				{!isEditMode && (
+					<EnergyUseUpload
+						setScrollAfterSubmit={setScrollAfterSubmit}
+						fields={fields}
+					/>
+				)}
 				<ErrorList id={form.errorId} errors={form.errors} />
-
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
@@ -141,50 +234,69 @@ export default function SingleCaseForm({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							onClick={onClickBillingRow}
+							onClick={(index) => {
+								if (!isEditMode || !billingRecords) return
+								const updatedRecords = billingRecords.map((record, i) => {
+									if (i === index) {
+										return {
+											...record,
+											inclusion_override: !record.inclusion_override,
+										}
+									}
+									return record
+								})
+								onBillingRecordsChange(updatedRecords)
+								setTriggerAutosave(true)
+							}}
 						/>
-
 						{usageData &&
-						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
-						!!parsedAndValidatedFormSchema ? (
+							usageData.heat_load_output &&
+							usageData.heat_load_output.design_temperature &&
+							usageData.heat_load_output.whole_home_heat_loss_rate &&
+							!!parsedAndValidatedFormSchema ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={parsedAndValidatedFormSchema.living_area}
 							/>
-						) : (
+							) : (
 							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
 								<h2 className="mb-4 text-xl font-bold text-red-600">
 									Not rendering Heat Load
 								</h2>
 								<p>usageData is undefined or missing key values</p>
 							</div>
-						)}
+							)}
 					</>
 				)}
 			</Form>
+			{/* Autosave Toast */}
+			{showToast && (
+				<div
+					style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
+					className="rounded bg-green-600 px-4 py-2 text-white shadow"
+				>
+					Changes saved!
+				</div>
+			)}
 			{/* Show case saved message */}
-			{showSavedCaseIdMsg &&
-				caseInfo &&
-				typeof caseInfo.caseId === 'number' && (
-					<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-						<h2 className="mb-2 text-xl font-bold text-green-700">
-							Case Saved Successfully!
-						</h2>
-						<p className="mb-4">
-							Your case data has been saved to the database.
-						</p>
-						<p>
-							<a
-								href={`/cases/${caseInfo.caseId}`}
-								className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-							>
-								View Case Details
-							</a>
-						</p>
-					</div>
-				)}
+			{showSavedCaseIdMsg && typeof caseInfo?.caseId === 'number' && (
+				<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+					<h2 className="mb-2 text-xl font-bold text-green-700">
+						Case Saved Successfully!
+					</h2>
+					<p className="mb-4">
+						Your case data has been saved to the database.
+					</p>
+					<p>
+						<a
+							href={`/cases/${caseInfo?.caseId}`}
+							className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+						>
+							View Case Details
+						</a>
+					</p>
+				</div>
+			)}
 		</>
 	)
 }

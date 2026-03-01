@@ -1,21 +1,13 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { data } from 'react-router'
-import { requireUserId } from '#app/utils/auth.server.ts'
-import { getLoggedInUserFromRequest } from '#app/utils/db/case.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { hasAdminRole } from '#app/utils/user.ts'
 import { type Route } from './+types/$analysisid.ts'
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
 	const analysisId = Number(params.analysisid)
 
 	// Make sure analysisId is a valid number
 	invariantResponse(!isNaN(analysisId), 'Invalid analysis ID', { status: 400 })
-
-	// Security: require authenticated user and check ownership
-	const userId = await requireUserId(request)
-	const user = await getLoggedInUserFromRequest(request)
-	const isAdmin = hasAdminRole(user)
 
 	// Fetch the case and all related information
 	const caseData = await prisma.case.findFirst({
@@ -25,8 +17,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 					id: analysisId,
 				},
 			},
-			// Ownership check: non-admin users can only view their own cases
-			...(!isAdmin ? { users: { some: { id: userId } } } : {}),
 		},
 		include: {
 			homeOwner: true,
@@ -61,6 +51,7 @@ export default function Analysis({
 	return (
 		<div className="container mx-auto p-6">
 			<h1 className="mb-6 text-3xl font-bold">Case Analysis #{caseData.id}</h1>
+
 			<div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
 				{/* Homeowner Information */}
 				<div className="rounded-lg border p-4 shadow-sm">
@@ -114,17 +105,18 @@ export default function Analysis({
 					)}
 				</div>
 			</div>
-			{/* Heating Input */}
+
+			{/* Heating System Information */}
 			{heatingInput && (
 				<div className="mb-8 rounded-lg border p-4 shadow-sm">
 					<h2 className="mb-4 text-xl font-semibold">Heating System</h2>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 						<p>
 							<span className="font-medium">Fuel Type:</span>{' '}
 							{heatingInput.fuelType}
 						</p>
 						<p>
-							<span className="font-medium">Heating System Efficiency:</span>{' '}
+							<span className="font-medium">System Efficiency:</span>{' '}
 							{heatingInput.heatingSystemEfficiency}%
 						</p>
 						<p>
@@ -133,15 +125,11 @@ export default function Analysis({
 						</p>
 						<p>
 							<span className="font-medium">Setback Temperature:</span>{' '}
-							{heatingInput.setbackTemperature != null
-								? `${heatingInput.setbackTemperature}°F`
-								: 'N/A'}
+							{heatingInput.setbackTemperature}°F
 						</p>
 						<p>
 							<span className="font-medium">Setback Hours:</span>{' '}
-							{heatingInput.setbackHoursPerDay != null
-								? `${heatingInput.setbackHoursPerDay} hours/day`
-								: 'N/A'}
+							{heatingInput.setbackHoursPerDay} hours/day
 						</p>
 						<p>
 							<span className="font-medium">Number of Occupants:</span>{' '}
@@ -162,13 +150,14 @@ export default function Analysis({
 					</div>
 				</div>
 			)}
-			{/* Heating Output */}
+
+			{/* Heat Load Analysis Results */}
 			{heatingOutput && (
-				<div className="mb-8 rounded-lg border p-4 shadow-sm">
+				<div className="rounded-lg border p-4 shadow-sm">
 					<h2 className="mb-4 text-xl font-semibold">
 						Heat Load Analysis Results
 					</h2>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 						<p>
 							<span className="font-medium">Estimated Balance Point:</span>{' '}
 							{heatingOutput.estimatedBalancePoint}°F
@@ -193,30 +182,16 @@ export default function Analysis({
 							<span className="font-medium">Average Indoor Temperature:</span>{' '}
 							{heatingOutput.averageIndoorTemperature}°F
 						</p>
-						<p>
-							<span className="font-medium">Other Fuel Usage:</span>{' '}
-							{heatingOutput.otherFuelUsage}
-						</p>
-						<p>
-							<span className="font-medium">Std Dev of Heat Loss Rate:</span>{' '}
-							{heatingOutput.standardDeviationOfHeatLossRate}
-						</p>
 					</div>
 				</div>
 			)}
 
 			<div className="mt-6">
 				<a
-					href={`/cases/new`}
-					className="inline-block rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+					href={`/new?dev=true`}
+					className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
 				>
 					Create Another Analysis
-				</a>
-				<a
-					href={`/cases/${caseData.id}/edit`}
-					className="mx-4 inline-block rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
-				>
-					Edit This Case
 				</a>
 			</div>
 		</div>

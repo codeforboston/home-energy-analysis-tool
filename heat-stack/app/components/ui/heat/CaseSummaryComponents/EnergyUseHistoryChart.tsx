@@ -58,6 +58,9 @@ export function EnergyUseHistoryChart({
 	usageData,
 	onClick,
 }: EnergyUseHistoryChartProps) {
+	console.log('[EnergyUseHistoryChart] usageData:', usageData);
+	const processedBills = usageData?.processed_energy_bills || [];
+	console.log('[EnergyUseHistoryChart] processed_energy_bills:', processedBills);
 	return (
 		<Table
 			id="EnergyUseHistoryChart"
@@ -92,7 +95,7 @@ export function EnergyUseHistoryChart({
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{usageData.processed_energy_bills.map((period, index) => {
+				{processedBills.map((period, index) => {
 					const startDate = new Date(period.period_start_date)
 					const endDate = new Date(period.period_end_date)
 
