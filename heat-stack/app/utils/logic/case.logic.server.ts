@@ -201,6 +201,7 @@ export async function processCaseUpdate(
 		parsedForm2,
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
+		bills,
 	)
 	return {
 		updatedCase,

@@ -147,7 +147,7 @@ export function EnergyUseHistoryChart({
 							</TableCell>
 							<TableCell>
 								<Checkbox
-									checked={period.inclusion_override}
+									checked={!!period.inclusion_override}
 									disabled={overrideCheckboxDisabled}
 									onClick={() => onClick(index)}
 								/>

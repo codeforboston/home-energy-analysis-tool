@@ -1,7 +1,7 @@
 from rules_engine import engine, helpers, parser  # type: ignore
 from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
-    NaturalGasBills2x,
+    NaturalGasBillingInput,
     TemperatureInput,
 )
 
@@ -16,6 +16,9 @@ def executeGetAnalyticsFromForm(
     # in addition to latitude and longitude from GeocodeUtil.ts object .
     # pack the get_design_temp output into heat_load_input
     """
+    raise NotImplementedError(
+        "This function is not implemented yet. It will be implemented in a future update."
+    )
 
     summaryInputFromJs = summaryInputJs.to_py()
     temperatureInputFromJs = temperatureInputJs.to_py()
@@ -30,7 +33,7 @@ def executeGetAnalyticsFromForm(
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
-    gasBillingDataInput = NaturalGasBills2x(**gasBillingDataFromJs)
+    gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
 
     outputs = engine.get_outputs_natural_gas(
         summaryInput, temperatureInput, gasBillingDataInput

@@ -2,7 +2,6 @@ from rules_engine import engine, helpers  # type: ignore
 from rules_engine.pydantic_models import (  # type: ignore
     HeatLoadInput,
     NaturalGasBillingRecordInput,
-    NaturalGasBills2x,
     TemperatureInput,
 )
 
@@ -84,7 +83,12 @@ def executeGetNormalizedOutput(
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
-    outputs = engine.get_outputs_natural_gas(summaryInput, temperatureInput, records)
+    from rules_engine.pydantic_models import NaturalGasBillingInput
+
+    natural_gas_billing_input = NaturalGasBillingInput(records=records)
+    outputs = engine.get_outputs_natural_gas(
+        summaryInput, temperatureInput, natural_gas_billing_input
+    )
     return outputs.model_dump(mode="json")
     # result = outputs.model_dump(mode="json")
     # result["design_temp_lookup"] = design_temp_looked_up

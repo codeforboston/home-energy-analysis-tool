@@ -213,6 +213,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		const heatingInput = analysis?.heatingInput?.[0]
 		dbEfficiency = heatingInput?.heatingSystemEfficiency
 	} catch (e) {
+		// TODO: handle error properly - for now we just log and continue with dbEfficiency as undefined
 		dbEfficiency = undefined
 	}
 
@@ -245,10 +246,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	} else {
 		// Use full validation for process-file intent
 		submission = parseWithZod(formData, { schema: Schema })
-	}
-
-	// Log efficiency after validation
-	if (submission.status === 'success') {
 	}
 
 	if (submission.status !== 'success') {
