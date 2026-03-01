@@ -32,7 +32,6 @@ export default async function getConvertedDatesTIWD(
 	coordinates: { x: number; y: number } | null | undefined
 	addressComponents: AddressComponents | null
 }> {
-
 	const geocodeUtil = new GeocodeUtil()
 	const weatherUtil = new WeatherUtil()
 
@@ -40,7 +39,6 @@ export default async function getConvertedDatesTIWD(
 	const { coordinates, state_id, county_id, addressComponents } =
 		await geocodeUtil.getLL(combined_address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
-
 
 	// Utility function to parse start and end dates, with defaults if invalid
 
@@ -50,7 +48,7 @@ export default async function getConvertedDatesTIWD(
 		x,
 		y,
 		start_date,
-		end_date
+		end_date,
 	)
 
 	if (weatherData === undefined) {

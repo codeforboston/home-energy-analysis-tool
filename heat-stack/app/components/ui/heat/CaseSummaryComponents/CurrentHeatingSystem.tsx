@@ -32,7 +32,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 		},
 	)
 	const percentageLastFocusedRef = useRef<string | null>(null)
-	// Removed formRef, will use e.target.form in blur handler
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
@@ -42,7 +41,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
-		const value = props.fields.heating_system_efficiency.value 
+		const value =
+			props.fields.heating_system_efficiency.value ||
+			props.fields.heating_system_efficiency.defaultValue
 		if (value) {
 			setPercentageValueDisplayed(
 				Math.round(parseFloat(value) * 100).toString(),
@@ -58,6 +59,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 		setPercentageValueDisplayed(e.target.value)
 	}
 
+	// Store the last focused field on focus, and on blur,
+	// if the value changed, save the data
 	const handlePercentageFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 		percentageLastFocusedRef.current = e.target.value
 	}

@@ -90,6 +90,3 @@ def executeGetNormalizedOutput(
         summaryInput, temperatureInput, natural_gas_billing_input
     )
     return outputs.model_dump(mode="json")
-    # result = outputs.model_dump(mode="json")
-    # result["design_temp_lookup"] = design_temp_looked_up
-    # return result

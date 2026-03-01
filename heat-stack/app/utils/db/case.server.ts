@@ -47,7 +47,6 @@ export const getCaseForEditing = async (
 	userId: string,
 	isAdmin?: boolean,
 ) => {
-	console.log('getCaseForEditing called with caseId:', caseId)
 	let userWhere
 	if (isAdmin) {
 		userWhere = {}
@@ -60,7 +59,7 @@ export const getCaseForEditing = async (
 			},
 		}
 	}
-	const caseRecord = await prisma.case.findUnique({
+	return await prisma.case.findUnique({
 		where: { id: caseId, ...userWhere },
 		include: {
 			homeOwner: true,
@@ -79,18 +78,6 @@ export const getCaseForEditing = async (
 			},
 		},
 	})
-
-	// Log heatingSystemEfficiency after querying case and heatingInput
-	if (caseRecord?.analysis?.[0]?.heatingInput?.[0]) {
-		const efficiency =
-			caseRecord.analysis[0].heatingInput[0].heatingSystemEfficiency
-		console.log(
-			'heatingSystemEfficiency after case and heatingInput query:',
-			efficiency,
-		)
-	}
-
-	return caseRecord
 }
 
 export const deleteCaseWithUser = async (caseId: number, userId: string) => {
@@ -212,8 +199,8 @@ export const updateCase = async (
 			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
 			heatingSystemEfficiency: validHI.heating_system_efficiency,
 			thermostatSetPoint: validHI.thermostat_set_point,
-			setbackTemperature: validHI.setback_temperature || 65,
-			setbackHoursPerDay: validHI.setback_hours_per_day || 0,
+			setbackTemperature: validHI.setback_temperature ?? null,
+			setbackHoursPerDay: validHI.setback_hours_per_day ?? null,
 			numberOfOccupants: 2, // Default value until we add to form
 			estimatedWaterHeatingEfficiency: 80, // Default value until we add to form
 			standByLosses: 5, // Default value until we add to form
@@ -315,9 +302,4 @@ export const createCase = async (
 
 	return records
 }
-
-/**
- * Fetches only the heating system efficiency for a given caseId.
- * Returns null if not found.
- */
 

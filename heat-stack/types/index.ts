@@ -1,6 +1,6 @@
 import { z } from 'zod'
-// export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
 export type NaturalGasUsageDataSchema = z.infer<typeof naturalGasUsageSchema>
+
 // JS team wants to discuss this name
 export const CaseSchema = z.object({
 	name: z.string(),
@@ -52,29 +52,25 @@ export const HomeSchema = z.object({
 	 */
 	heating_system_efficiency: z
 		.number()
-		.superRefine((val, ctx) => {
-			if (val < 0.6) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.too_small,
-					minimum: 0.6,
-					inclusive: true,
-					type: 'number',
-					message: `Efficiency must be at least 60%, but got ${val}`,
-				});
-			}
-			if (val > 1) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.too_big,
-					maximum: 1,
-					inclusive: true,
-					type: 'number',
-					message: `Efficiency cannot exceed 100%, but got ${val}`,
-				});
-			}
-		}),
+		.min(0.6, { message: 'Efficiency must be at least 60%' })
+		.max(1, { message: 'Efficiency cannot exceed 100%' }),
 	thermostat_set_point: z.number(),
-	setback_temperature: z.number().optional(),
-	setback_hours_per_day: z.number().optional(),
+	setback_temperature: z
+		.union([z.number(), z.string()])
+		.optional()
+		.transform((val) => {
+			if (val === '' || val === undefined || val === null) return undefined
+			const num = Number(val)
+			return isNaN(num) ? undefined : num
+		}),
+	setback_hours_per_day: z
+		.union([z.number(), z.string()])
+		.optional()
+		.transform((val) => {
+			if (val === '' || val === undefined || val === null) return undefined
+			const num = Number(val)
+			return isNaN(num) ? undefined : num
+		}),
 	numberOfOccupants: z.number(),
 	estimatedWaterHeatingEfficiency: z.number(),
 	standByLosses: z.number(),
@@ -136,7 +132,6 @@ export const summaryOutputSchema = z.object({
 	maximum_heat_load: z.number(),
 })
 
-
 export const NaturalGasBillRecord = z.object({
 	periodStartDate: z.date(),
 	periodEndDate: z.date(),
@@ -145,25 +140,11 @@ export const NaturalGasBillRecord = z.object({
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
 })
 
-export const NaturalGasBillingRecords= z.map(
-	z.enum(['records']),
-    z.array(NaturalGasBillRecord)
-)
-
-// Helper function to create a date string schema
-const dateStringSchema = () =>
-	z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD')
-
-// export const naturalGasUsageSchema = z.map(
-// 	z.enum(['overall_start_date', 'overall_end_date', 'records']),
-// 	z.union([dateStringSchema(), z.array(NaturalGasBillRecord)]),
-// )
 
 export const naturalGasUsageSchema = z.map(
-	z.enum([ 'records']),
+	z.enum(['records']),
 	z.array(NaturalGasBillRecord),
 )
-
 
 // Define the schema for one billing record
 export const oneProcessedEnergyBillSchema = z.object({

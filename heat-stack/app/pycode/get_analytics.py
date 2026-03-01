@@ -1,13 +1,9 @@
-from rules_engine import engine, helpers, parser  # type: ignore
-from rules_engine.pydantic_models import (  # type: ignore
-    HeatLoadInput,
-    NaturalGasBillingInput,
-    TemperatureInput,
-)
+from rules_engine import engine, helpers, parser
+from rules_engine.pydantic_models import FuelType, HeatLoadInput, TemperatureInput
 
 
 def executeGetAnalyticsFromForm(
-    summaryInputJs, temperatureInputJs, gasBillingDataJs, state_id, county_id
+    summaryInputJs, temperatureInputJs, csvDataJs, state_id, county_id
 ):
     """
     second step: this will be the first time to draw the table
@@ -16,16 +12,12 @@ def executeGetAnalyticsFromForm(
     # in addition to latitude and longitude from GeocodeUtil.ts object .
     # pack the get_design_temp output into heat_load_input
     """
-    raise NotImplementedError(
-        "This function is not implemented yet. It will be implemented in a future update."
-    )
 
-    summaryInputFromJs = summaryInputJs.to_py()
-    temperatureInputFromJs = temperatureInputJs.to_py()
-    gasBillingDataFromJs = gasBillingDataJs.to_py()
+    summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
+    temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
 
     # We will just pass in this data
-    # naturalGasInputRecords = parser.parse_gas_bill(gasBillingDataJs)
+    naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
 
     design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(
@@ -33,12 +25,8 @@ def executeGetAnalyticsFromForm(
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
-    gasBillingDataInput = NaturalGasBillingInput(**gasBillingDataFromJs)
 
     outputs = engine.get_outputs_natural_gas(
-        summaryInput, temperatureInput, gasBillingDataInput
+        summaryInput, temperatureInput, naturalGasInputRecords
     )
     return outputs.model_dump(mode="json")
-    # result = outputs.model_dump(mode="json")
-    # result["design_temp_lookup"] = design_temp_looked_up
-    # return result

@@ -1,4 +1,4 @@
-import { invariant } from "#node_modules/@epic-web/invariant/dist"
+import { invariant } from '#node_modules/@epic-web/invariant/dist'
 
 const BASE_URL = 'https://archive-api.open-meteo.com'
 const WHATEVER_PATH = '/v1/archive'
@@ -64,8 +64,8 @@ class WeatherUtil {
 		invariant(!isNaN(endDate.getTime()), 'endDate must be a valid Date')
 		const startDateString = startDate.toISOString().split('T')[0]
 		const endDateString = endDate.toISOString().split('T')[0]
-				invariant(startDateString, 'startDate is required')
-				invariant(endDateString, 'endDate is required')
+		invariant(startDateString, 'startDate is required')
+		invariant(endDateString, 'endDate is required')
 		params.append('latitude', `${latitude}`)
 		params.append('longitude', `${longitude}`)
 		params.append('daily', 'temperature_2m_mean')

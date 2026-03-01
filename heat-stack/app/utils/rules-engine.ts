@@ -78,7 +78,9 @@ export const executeParseGasBillPy: ExecuteParseFunction =
 	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse')
 
 export const executeGetNormalizedOutput: ExecuteGetNormalizedOutputFunction =
-	await pyodide.runPythonAsync(getNormalizedOutputPyCode + '\nexecuteGetNormalizedOutput')
+	await pyodide.runPythonAsync(
+		getNormalizedOutputPyCode + '\nexecuteGetNormalizedOutput',
+	)
 
 /**
  * Full call with csv data
@@ -120,7 +122,7 @@ export type ExecuteGetNormalizedOutputFunction = ((
 type ExecuteGetAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
-	gasBillingData: NaturalGasUsageDataSchema,
+	csvDataJs: string,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {

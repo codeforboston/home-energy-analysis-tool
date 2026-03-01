@@ -51,8 +51,7 @@ export const useRulesEngine = (
 			})
 	}
 
-
-    // TODO: put useEffect for cleaning up Pyodide instance here if we add that functionality to rules-engine.ts
+	// TODO: put useEffect for cleaning up Pyodide instance here if we add that functionality to rules-engine.ts
 	// reset usage data as a result of user submitting a new bill
 	useEffect(() => {
 		if (actionData !== undefined && hasDataProperty(actionData)) {

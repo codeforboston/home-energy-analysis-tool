@@ -38,7 +38,11 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processNewCase({ formData, parsedForm: submission.value, userId })
+		const result = await processNewCase({
+			formData,
+			parsedForm: submission.value,
+			userId,
+		})
 
 		// Redirect to the edit page for the newly created case
 		// result is the return value of createNewCase, which has newCase property
@@ -112,25 +116,25 @@ export default function CreateCase({
 			: { fuel_type: 'GAS' }
 
 	// ✅ Pass `result` as `lastResult`
-	       return (
-		       <SingleCaseForm
-			       // TODO: comment out this line?
-			       beforeSubmit={() => lazyLoadRulesEngine()}
-			       lastResult={actionData?.submitResult}
-			       defaultFormValues={defaultValue}
-			       showSavedCaseIdMsg={!!actionData}
-			       caseInfo={actionData?.caseInfo}
-			       usageData={usageData}
-			       showUsageData={!!usageData}
-			       onClickBillingRow={(index: number) => {
-				       // not possible to adjust billing rows on new case creation page
-				       throw new Error(
-					       `Adjusting billing row ${index} not implemented for new cases`,
-				       )
-			       }}
-			       parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
-			       isEditMode={false}
-			       onBillingRecordsChange={() => {}}
-		       />
-	       )
+	return (
+		<SingleCaseForm
+			// TODO: comment out this line?
+			beforeSubmit={() => lazyLoadRulesEngine()}
+			lastResult={actionData?.submitResult}
+			defaultFormValues={defaultValue}
+			showSavedCaseIdMsg={!!actionData}
+			caseInfo={actionData?.caseInfo}
+			usageData={usageData}
+			showUsageData={!!usageData}
+			onClickBillingRow={(index: number) => {
+				// not possible to adjust billing rows on new case creation page
+				throw new Error(
+					`Adjusting billing row ${index} not implemented for new cases`,
+				)
+			}}
+			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
+			isEditMode={false}
+			onBillingRecordsChange={() => {}}
+		/>
+	)
 }

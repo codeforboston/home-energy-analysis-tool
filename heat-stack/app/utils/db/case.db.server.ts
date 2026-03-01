@@ -78,10 +78,12 @@ export async function createCaseRecord(
 				create: {
 					fuelType: formValues.fuel_type,
 					designTemperatureOverride: false,
+					// heatingSystemEfficiency is what is stored in db and is not displayed 
+					// Percent is a separate field and is displayed
 					heatingSystemEfficiency: formValues.heating_system_efficiency,
 					thermostatSetPoint: formValues.thermostat_set_point,
-					setbackTemperature: formValues.setback_temperature,
-					setbackHoursPerDay: formValues.setback_hours_per_day,
+					setbackTemperature: formValues.setback_temperature ?? null,
+					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
 					numberOfOccupants: 2, // Default value
 					estimatedWaterHeatingEfficiency: 80, // Default value
 					standByLosses: 10, // Default value
@@ -165,23 +167,14 @@ export async function updateCaseRecord(
 	) {
 		const firstHeatingInput = firstAnalysis.heatingInput[0]
 		if (firstHeatingInput) {
-			console.log('Updating heating input with values:', {
-				fuelType: formValues.fuel_type,
-				heatingSystemEfficiency: formValues.heating_system_efficiency,
-				thermostatSetPoint: formValues.thermostat_set_point,
-				setbackTemperature: formValues.setback_temperature,
-				setbackHoursPerDay: formValues.setback_hours_per_day,
-				livingArea: formValues.living_area,
-				billingRecords: billingRecords,
-			})
 			   await prisma.heatingInput.update({
 				   where: { id: firstHeatingInput.id },
 				   data: {
 					   fuelType: formValues.fuel_type,
 					   heatingSystemEfficiency: formValues.heating_system_efficiency,
 					   thermostatSetPoint: formValues.thermostat_set_point,
-					   setbackTemperature: formValues.setback_temperature,
-					   setbackHoursPerDay: formValues.setback_hours_per_day,
+					   setbackTemperature: formValues.setback_temperature ?? null,
+					   setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
 					   livingArea: formValues.living_area,
 				   },
 			   })

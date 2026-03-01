@@ -1,5 +1,15 @@
-const BASE_URL = 'https://geocoding.geo.census.gov'
+const BASE_URL =
+	import.meta.env.VITE_CORS_PROXY_URL ?? 'https://geocoding.geo.census.gov'
+const CORS_ORIGIN = import.meta.env.VITE_CORS_ORIGIN
 const ADDRESS_ENDPOINT = '/geocoder/geographies/onelineaddress'
+
+// Build headers only if origin is defined
+const headers = CORS_ORIGIN
+	? {
+			Origin: CORS_ORIGIN,
+			'X-Requested-With': 'XMLHttpRequest',
+		}
+	: undefined
 
 // example: https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=1%20broadway%2C%20cambridge%2C%20ma%2002142&benchmark=4&vintage=4&format=json
 interface CensusGeocoderResponse {
@@ -84,15 +94,18 @@ class GeocodeUtil {
 	 *  This is the happiest of paths, with hardcoded values also...
 	 */
 	async getLL(address: string) {
-		  const params = new URLSearchParams()
-		  params.append('address', address)
-		  params.append('format', 'json')
-		  params.append('benchmark', '2020')
-		  params.append('vintage', 'Census2020_Census2020')
+		const params = new URLSearchParams()
 
-		  let url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
-		  let rezzy = await fetch(url)
-		  let jrez = (await rezzy.json()) as CensusGeocoderResponse
+		params.append('address', address)
+		params.append('format', 'json')
+		params.append('benchmark', '2020')
+		params.append('vintage', 'Census2020_Census2020')
+
+		/**  TODO: note that for this Census API you can specify particular parts of this that
+     we want (x, y, state_id, and county_id for now), read the docs */
+		const url = new URL(BASE_URL + ADDRESS_ENDPOINT + '?' + params.toString())
+		let rezzy = await fetch(url, headers ? { headers } : undefined)
+		let jrez = (await rezzy.json()) as CensusGeocoderResponse
 		// TODO: Return all addresses and let the user choose the right one
 		// const fs = await import('node:fs')
 		// fs.writeFileSync('geocoder.json', JSON.stringify(jrez, null, 2), {encoding: "utf-8"})
@@ -100,6 +113,7 @@ class GeocodeUtil {
 		let coordz = addressMatch?.coordinates
 		const addressComponents = addressMatch?.addressComponents
 
+		// console.log(JSON.stringify(jrez, null, 2));
 		return {
 			coordinates: coordz,
 			state_id: addressMatch?.geographies.Counties?.[0]?.['STATE'],

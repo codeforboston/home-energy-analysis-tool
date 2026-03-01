@@ -1,4 +1,5 @@
 import { type UsageDataSchema } from '#/types/types.ts'
+import { invariant } from '@epic-web/invariant'
 import { Checkbox } from '../../../../components/ui/checkbox.tsx'
 import {
 	Table,
@@ -58,9 +59,12 @@ export function EnergyUseHistoryChart({
 	usageData,
 	onClick,
 }: EnergyUseHistoryChartProps) {
-	console.log('[EnergyUseHistoryChart] usageData:', usageData);
-	const processedBills = usageData?.processed_energy_bills || [];
-	console.log('[EnergyUseHistoryChart] processed_energy_bills:', processedBills);
+	invariant(
+		usageData?.processed_energy_bills,
+		'usageData.processed_energy_bills is required',
+	)
+
+	const processedBills = usageData?.processed_energy_bills
 	return (
 		<Table
 			id="EnergyUseHistoryChart"

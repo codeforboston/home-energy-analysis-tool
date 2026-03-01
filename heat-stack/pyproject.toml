@@ -26,7 +26,7 @@ disallow_incomplete_defs = true
 
 [tool.black]
 line-length = 88
-target-version = ['py312']
+target-version = ['py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(

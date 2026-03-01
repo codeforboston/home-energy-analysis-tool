@@ -18,7 +18,10 @@ import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 // import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 // import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
-import { invariantResponse, invariant } from '#node_modules/@epic-web/invariant/dist'
+import {
+	invariantResponse,
+	invariant,
+} from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
@@ -44,7 +47,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	const analysis = caseRecord.analysis?.[0]
 	invariantResponse(analysis, 'Invalid analysis detected', { status: 500 })
 
-
 	const heatingInput = analysis.heatingInput?.[0]
 	invariantResponse(heatingInput, 'Invalid heating input detected', {
 		status: 500,
@@ -52,7 +54,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// Log efficiency from database after definition
 
 	// (Normalization logic removed)
-
 
 	const heatingOutput = analysis.heatingOutput?.[0]
 
@@ -69,7 +70,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		eliminated_as_outlier: false, // Default value as it's not stored in DB yet
 		whole_home_heat_loss_rate: bill.wholeHomeHeatLossRate || 0, // Handle null values
 	}))
-
 
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
@@ -128,8 +128,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		}
 	}
 
-
-
 	const schemaValues = {
 		energy_use_upload: {
 			name: 'existing-energy-data.csv',
@@ -148,31 +146,33 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
-	};
+	}
 	// Log efficiency in schemaValues before validation
-	const parsedAndValidatedFormData = Schema.parse(schemaValues);
+	const parsedAndValidatedFormData = Schema.parse(schemaValues)
 	// Log efficiency after validation
-
 
 	// Convert heating output from database format to UI format if available
 	const heatLoadOutput = heatingOutput
 		? {
-			estimated_balance_point: heatingOutput.estimatedBalancePoint,
-			other_fuel_usage: heatingOutput.otherFuelUsage,
-			average_indoor_temperature: heatingOutput.averageIndoorTemperature,
-			difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
-			design_temperature: heatingOutput.designTemperature,
-			whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
-			standard_deviation_of_heat_loss_rate:
-				heatingOutput.standardDeviationOfHeatLossRate,
-			average_heat_load: heatingOutput.averageHeatLoad,
-			maximum_heat_load: heatingOutput.maximumHeatLoad,
-		}
+				estimated_balance_point: heatingOutput.estimatedBalancePoint,
+				other_fuel_usage: heatingOutput.otherFuelUsage,
+				average_indoor_temperature: heatingOutput.averageIndoorTemperature,
+				difference_between_ti_and_tbp: heatingOutput.differenceBetweenTiAndTbp,
+				design_temperature: heatingOutput.designTemperature,
+				whole_home_heat_loss_rate: heatingOutput.wholeHomeHeatLossRate,
+				standard_deviation_of_heat_loss_rate:
+					heatingOutput.standardDeviationOfHeatLossRate,
+				average_heat_load: heatingOutput.averageHeatLoad,
+				maximum_heat_load: heatingOutput.maximumHeatLoad,
+			}
 		: undefined
 
 	return {
 		defaultFormValues: parsedAndValidatedFormData,
-		efficiency_display: heatingInput.heatingSystemEfficiency != null ? Math.round(heatingInput.heatingSystemEfficiency * 100) : undefined,
+		efficiency_display:
+			heatingInput.heatingSystemEfficiency != null
+				? Math.round(heatingInput.heatingSystemEfficiency * 100)
+				: undefined,
 		caseInfo: {
 			caseId: caseRecord.id,
 			analysisId: analysis.id,
@@ -187,7 +187,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 
@@ -237,7 +236,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Log efficiency after all possible modification
 	efficiencyInForm = formData.get('heating_system_efficiency')
 
-
 	let submission
 
 	if (intent === 'save') {
@@ -266,14 +264,18 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	let billingRecords: any[] | undefined
 	// Create bills array with start_date and end_date replaced by dates
-	const billsWithStringDates = billingRecordsJson ? JSON.parse(billingRecordsJson) : [];
-	const bills = billsWithStringDates.map(bill => ({
+	const billsWithStringDates = billingRecordsJson
+		? JSON.parse(billingRecordsJson)
+		: []
+	const bills = billsWithStringDates.map((bill) => ({
 		...bill,
-		period_start_date: bill.period_start_date ? new Date(bill.period_start_date) : undefined,
-		period_end_date: bill.period_end_date ? new Date(bill.period_end_date) : undefined,
-	}));
-
-
+		period_start_date: bill.period_start_date
+			? new Date(bill.period_start_date)
+			: undefined,
+		period_end_date: bill.period_end_date
+			? new Date(bill.period_end_date)
+			: undefined,
+	}))
 
 	// Parse heat load output from form data if present
 	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
@@ -281,17 +283,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 	if (heatLoadOutputJson) {
 		try {
 			heatLoadOutput = JSON.parse(heatLoadOutputJson)
-		} catch (error) {
-		}
+		} catch (error) {}
 	}
 
 	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
-	const updatedCase = await processCaseUpdate(
-		caseId,
-		formData,
-		userId,
-		bills
-	)
+	const updatedCase = await processCaseUpdate(caseId, formData, userId, bills)
 
 	const formDataWithFile = {
 		...submission.value,
@@ -312,7 +308,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 		county_id: undefined,
 		caseInfo: {
 			caseId: updatedCase && 'id' in updatedCase ? updatedCase.id : undefined,
-			analysisId: updatedCase && 'analysis' in updatedCase && Array.isArray(updatedCase.analysis) ? updatedCase.analysis[0]?.id : undefined,
+			analysisId:
+				updatedCase &&
+				'analysis' in updatedCase &&
+				Array.isArray(updatedCase.analysis)
+					? updatedCase.analysis[0]?.id
+					: undefined,
 		},
 	}
 	return result
@@ -383,52 +384,58 @@ export default function EditCase({
 
 	// Prefer actionData.gasBillData if present, else loaderData.gasBillData (or fallback)
 
-	   let gasBillData = actionData?.gasBillData || loaderData.gasBillData;
-	   // Deeply convert any Maps in gasBillData to plain objects
-	   if (gasBillData instanceof Map || (gasBillData && typeof gasBillData === 'object' && Object.values(gasBillData).some(v => v instanceof Map))) {
-		   console.log('[EditCase] Deep converting gasBillData Maps to objects');
-		   gasBillData = coerceUsageDataTypes(gasBillData);
-	   }
+	let gasBillData = actionData?.gasBillData || loaderData.gasBillData
+	// Deeply convert any Maps in gasBillData to plain objects
+	if (
+		gasBillData instanceof Map ||
+		(gasBillData &&
+			typeof gasBillData === 'object' &&
+			Object.values(gasBillData).some((v) => v instanceof Map))
+	) {
+		console.log('[EditCase] Deep converting gasBillData Maps to objects')
+		gasBillData = coerceUsageDataTypes(gasBillData)
+	}
 
-	   // Coerce actionData if present
-	   console.log('Action data before coercion:', actionData)
-	   let coercedActionData = actionData ? coerceUsageDataTypes(actionData) : undefined;
-	   console.log('Coerced action data:', coercedActionData)
+	// Coerce actionData if present
+	console.log('Action data before coercion:', actionData)
+	let coercedActionData = actionData
+		? coerceUsageDataTypes(actionData)
+		: undefined
+	console.log('Coerced action data:', coercedActionData)
 
-	   const usageData = !isInitialCalculationComplete
-		   ? undefined
-		   : calculatedUsageData ||
-		   (coercedActionData?.gasBillData
-			   ? coercedActionData.gasBillData
-			   : gasBillData
-				   ? gasBillData
-				   : (localBillingRecords && localBillingRecords.length > 0
-					   ? {
-						   heat_load_output: loaderData.heatLoadOutput || {
-							   estimated_balance_point: 1,
-							   other_fuel_usage: 1,
-							   average_indoor_temperature: 70,
-							   difference_between_ti_and_tbp: 1,
-							   design_temperature: 10, // Non-zero placeholder value
-							   whole_home_heat_loss_rate: 1, // Non-zero placeholder value
-							   standard_deviation_of_heat_loss_rate: 1,
-							   average_heat_load: 1,
-							   maximum_heat_load: 1,
-						   },
-						   balance_point_graph: {
-							   records: [],
-						   },
-						   processed_energy_bills: localBillingRecords,
-					   }
-					   : undefined)
-		   );
+	const usageData = !isInitialCalculationComplete
+		? undefined
+		: calculatedUsageData ||
+			(coercedActionData?.gasBillData
+				? coercedActionData.gasBillData
+				: gasBillData
+					? gasBillData
+					: localBillingRecords && localBillingRecords.length > 0
+						? {
+								heat_load_output: loaderData.heatLoadOutput || {
+									estimated_balance_point: 1,
+									other_fuel_usage: 1,
+									average_indoor_temperature: 70,
+									difference_between_ti_and_tbp: 1,
+									design_temperature: 10, // Non-zero placeholder value
+									whole_home_heat_loss_rate: 1, // Non-zero placeholder value
+									standard_deviation_of_heat_loss_rate: 1,
+									average_heat_load: 1,
+									maximum_heat_load: 1,
+								},
+								balance_point_graph: {
+									records: [],
+								},
+								processed_energy_bills: localBillingRecords,
+							}
+						: undefined)
 
 	// Custom toggle function for edit mode that updates billing record state and triggers autosave (no recalculation)
 
 	return (
 		<>
 			<SingleCaseForm
-				beforeSubmit={() => { }}
+				beforeSubmit={() => {}}
 				lastResult={actionData?.submitResult}
 				defaultFormValues={loaderData.defaultFormValues}
 				showSavedCaseIdMsg={!!actionData}
@@ -441,7 +448,7 @@ export default function EditCase({
 				}
 				isEditMode={true}
 				billingRecords={localBillingRecords}
-				onClickBillingRow={() => { }}
+				onClickBillingRow={() => {}}
 			/>
 
 			<ErrorModal

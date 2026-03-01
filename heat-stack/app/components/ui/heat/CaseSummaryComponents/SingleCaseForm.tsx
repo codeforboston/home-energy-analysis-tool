@@ -76,7 +76,9 @@ export default function SingleCaseForm({
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
-}: SubmitAnalysisProps & { onBillingRecordsChange: (records: BillingRecordsSchema) => void }) {
+}: SubmitAnalysisProps & {
+	onBillingRecordsChange: (records: BillingRecordsSchema) => void
+}) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	const [form, fields] = useForm({
@@ -85,9 +87,6 @@ export default function SingleCaseForm({
 			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
 			const intent = formData.get('intent') as string
 			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
-            // Log heating_system_efficiency value and type before validation
-            const hse = formData.get('heating_system_efficiency');
-            console.log('heating_system_efficiency before Zod:', hse, typeof hse);
 			return parseWithZod(formData, { schema })
 		},
 		onSubmit() {
@@ -135,7 +134,10 @@ export default function SingleCaseForm({
 		// If we're in the middle of refocusing a different field, this blur
 		// is a side effect (e.g. Tab moved focus to field B, then we refocus
 		// field A which blurs B). Ignore it.
-		if (refocusTargetRef.current !== null && e.target !== refocusTargetRef.current) {
+		if (
+			refocusTargetRef.current !== null &&
+			e.target !== refocusTargetRef.current
+		) {
 			return
 		}
 		const original = lastFocusedValueRef.current
@@ -216,7 +218,10 @@ export default function SingleCaseForm({
 						value={JSON.stringify(usageData.heat_load_output)}
 					/>
 				)}
-				<HomeInformation fields={fields} formValidate={(payload: any) => form.validate(payload)} />
+				<HomeInformation
+					fields={fields}
+					formValidate={(payload: any) => form.validate(payload)}
+				/>
 				<CurrentHeatingSystem fields={fields} />
 				{!isEditMode && (
 					<EnergyUseUpload
@@ -250,22 +255,22 @@ export default function SingleCaseForm({
 							}}
 						/>
 						{usageData &&
-							usageData.heat_load_output &&
-							usageData.heat_load_output.design_temperature &&
-							usageData.heat_load_output.whole_home_heat_loss_rate &&
-							!!parsedAndValidatedFormSchema ? (
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						!!parsedAndValidatedFormSchema ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
 								livingArea={parsedAndValidatedFormSchema.living_area}
 							/>
-							) : (
+						) : (
 							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
 								<h2 className="mb-4 text-xl font-bold text-red-600">
 									Not rendering Heat Load
 								</h2>
 								<p>usageData is undefined or missing key values</p>
 							</div>
-							)}
+						)}
 					</>
 				)}
 			</Form>
@@ -284,9 +289,7 @@ export default function SingleCaseForm({
 					<h2 className="mb-2 text-xl font-bold text-green-700">
 						Case Saved Successfully!
 					</h2>
-					<p className="mb-4">
-						Your case data has been saved to the database.
-					</p>
+					<p className="mb-4">Your case data has been saved to the database.</p>
 					<p>
 						<a
 							href={`/cases/${caseInfo?.caseId}`}
