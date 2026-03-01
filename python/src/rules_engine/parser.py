@@ -29,9 +29,8 @@ class NaturalGasCompany(StrEnum):
 
 
 def find_column(column_names: list[str], header: str) -> str:
-    header_lower = header.lower()
     for column_name in column_names:
-        if column_name.lower() in header_lower:
+        if column_name in header:
             return column_name
     raise ValueError("Column not found in header.  Column names tried:", column_names)
 
@@ -150,13 +149,12 @@ def are_column_names_in_string(
 ) -> bool:
     """Return whether every column name is in the data"""
     matches = {"read date": False, "number of days": False, "usage": False}
-    data_lower = data.lower()
     for read_date_name in read_date_names:
-        if read_date_name.lower() in data:
+        if read_date_name in data:
             matches["read date"] = True
             break
     for number_of_days_name in number_of_days_names:
-        if number_of_days_name.lower() in data_lower:
+        if number_of_days_name in data:
             matches["number of days"] = True
             break
     for usage_name in usage_names:
