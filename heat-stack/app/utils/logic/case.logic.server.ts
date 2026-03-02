@@ -1,3 +1,5 @@
+// Code review: broke case processing function into composable pieces and decoupled from 
+// CSV-only input, enabling bill data to be passed directly (supporting the autosave/editing flow).
 import { invariant } from '@epic-web/invariant'
 import { convertPyBills } from '#app/utils/convert/convertPyBills'
 import { deserializeFormData } from '#app/utils/convert/deserializeFormFields'

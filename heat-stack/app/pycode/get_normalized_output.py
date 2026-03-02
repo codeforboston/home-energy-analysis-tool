@@ -5,7 +5,7 @@ from rules_engine.pydantic_models import (  # type: ignore
     TemperatureInput,
 )
 
-# Called from executeGetNormalizedOutput in get_normalized_output.py
+# Code review: Called from executeGetNormalizedOutput in get_normalized_output.py
 #   get_outputs_normalized_output.py called from rules-engine.ts via
 #   getNormalizedOutputPyCode variable
 # Converts JS inputs (home info, temperatures, gas bills) into Python models,
