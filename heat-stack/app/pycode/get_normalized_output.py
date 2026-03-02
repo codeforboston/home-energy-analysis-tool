@@ -5,6 +5,12 @@ from rules_engine.pydantic_models import (  # type: ignore
     TemperatureInput,
 )
 
+# Called from executeGetNormalizedOutput in get_normalized_output.py
+#   get_outputs_normalized_output.py called from rules-engine.ts via
+#   getNormalizedOutputPyCode variable
+# Converts JS inputs (home info, temperatures, gas bills) into Python models,
+# runs the heat load calculation engine, and returns the result as JSON.
+
 
 def executeGetNormalizedOutput(
     summaryInputJs, temperatureInputJs, gasBillsJs, state_id, county_id
@@ -22,16 +28,6 @@ def executeGetNormalizedOutput(
 
     gasBillsFromJs = gasBillsJs.to_py()
     gasBills = gasBillsFromJs.get("records")
-    # Ensure records is a list of dicts for NaturalGasBills2x
-    # bills = gas.map(record => ({
-    # 	periodStartDate: new Date(record["period_start_date"]),
-    # 	periodEndDate: new Date(record["period_end_date"]),
-    # 	usageQuantity: Number(record["usage"]),
-    # 	inclusionOverride: Number(record["inclusion_override"]),
-    # }));
-
-    # We will just pass in this data
-    # naturalGasInputRecords = parser.parse_gas_bill(gasBillingDataJs)
 
     design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(

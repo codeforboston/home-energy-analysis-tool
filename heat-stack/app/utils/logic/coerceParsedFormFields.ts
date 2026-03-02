@@ -1,4 +1,6 @@
-// Utility to coerce parsedForm2 fields to numbers/dates
+// Returns a copy of the form object with string fields
+// and coerces the fields their expected types 
+// (e.g. numbers, dates) based on a predefined schema. This is useful for ensuring that the data is in the correct format before saving to the database or performing calculations.
 export function coerceParsedFormFields(form: any): any {
 	if (!form) return form
 	const result: any = { ...form }

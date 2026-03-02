@@ -6,13 +6,13 @@ import {
 	createCaseRecord,
 	updateCaseRecord,
 } from '#app/utils/db/case.db.server.ts'
-import { coerceParsedFormFields } from './coerceParsedFormFields'
 import { fileUploadHandler } from '#app/utils/file-upload-handler.ts'
 import {
 	executeParseGasBillPy,
 	executeGetNormalizedOutput,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { coerceParsedFormFields } from './coerceParsedFormFields'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide

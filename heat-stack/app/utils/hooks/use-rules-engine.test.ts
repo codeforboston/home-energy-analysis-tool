@@ -1,3 +1,4 @@
+// Code review: removed code previously used for toggling checkbox
 import { renderHook, act } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 

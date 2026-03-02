@@ -1,3 +1,5 @@
+// Code review: Modify so heating system efficiency is what is stored
+// Code now populates efficiency_display with the value in percent
 import { prisma } from '#app/utils/db.server.ts'
 
 export async function createCaseRecord(

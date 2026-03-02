@@ -1,3 +1,4 @@
+// Code review: removed code previously used for toggling checkbox
 import { useEffect, useRef, useState } from 'react'
 import { buildCurrentUsageData, hasDataProperty } from '#app/utils/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
