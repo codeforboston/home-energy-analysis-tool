@@ -1,6 +1,6 @@
 import { invariant } from '@epic-web/invariant'
 import { type UsageDataSchema } from '#/types/types.ts'
-import { Checkbox } from '../../../../components/ui/checkbox.tsx'
+import { Checkbox } from '#//components/ui/checkbox.tsx'
 import {
 	Table,
 	TableBody,

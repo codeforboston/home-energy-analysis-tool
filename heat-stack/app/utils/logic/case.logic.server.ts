@@ -1,5 +1,6 @@
 import { invariant } from '@epic-web/invariant'
-import { convertPyBills } from '#app/utils/convert.ts'
+import { convertPyBills } from '#app/utils/convert/convertPyBills'
+import { deserializeFormData } from '#app/utils/convert/deserializeFormFields'
 import getConvertedDatesTIWD from '#app/utils/date-temp-util.ts'
 import { insertProcessedBills } from '#app/utils/db/bill.db.server.ts'
 import {
@@ -12,7 +13,6 @@ import {
 	executeGetNormalizedOutput,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { deserializeFormData } from '../convert/deserializeFormFields'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
