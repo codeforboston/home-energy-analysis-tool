@@ -1,7 +1,9 @@
+import { type BillingRecordsSchema } from '#types/types.ts'
+
 // Returns a copy of the form object with string fields
 // and coerces the fields their expected types 
 // (e.g. numbers, dates) based on a predefined schema. This is useful for ensuring that the data is in the correct format before saving to the database or performing calculations.
-export function coerceParsedFormFields(form: any): any {
+export function deserializeFormData(form: any): any {
 	if (!form) return form
 	const result: any = { ...form }
 	// Define expected types for fields
@@ -28,8 +30,7 @@ export function coerceParsedFormFields(form: any): any {
 
 	// Special handling for billing_records JSON string
 	if (typeof result.billing_records === 'string') {
-		try {
-			const bills = JSON.parse(result.billing_records)
+			const bills = JSON.parse(result.billing_records) as BillingRecordsSchema
 			result.billing_records = bills.map((bill: any) => {
 				// Coerce bill fields
 				if (typeof bill.usage === 'string') bill.usage = Number(bill.usage)
@@ -44,9 +45,7 @@ export function coerceParsedFormFields(form: any): any {
 				// Add more bill field coercion as needed
 				return bill
 			})
-		} catch (e) {
-			// If parsing fails, leave as string
-		}
+
 	}
 	return result
 }

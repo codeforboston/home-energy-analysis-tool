@@ -1,12 +1,12 @@
+// Code review: tbd
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
-import { coerceUsageDataTypes } from '#app/utils/coerceUsageDataTypes.ts'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { updateCaseRecord } from '#app/utils/db/case.db.server.ts'
+import { deserializeUsageData } from '#app/utils/convert/deserializeUsageData.ts'
 import {
 	getCaseForEditing,
 	getLoggedInUserFromRequest,
@@ -16,6 +16,7 @@ import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 // import { buildCurrentUsageData } from '#app/utils/index.ts'
 // import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 // import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
+import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 import {
 	invariantResponse,
@@ -24,7 +25,6 @@ import {
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
-import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
 	// percentToDecimal no longer needed for loader validation
@@ -392,13 +392,13 @@ export default function EditCase({
 			Object.values(gasBillData).some((v) => v instanceof Map))
 	) {
 		console.log('[EditCase] Deep converting gasBillData Maps to objects')
-		gasBillData = coerceUsageDataTypes(gasBillData)
+		gasBillData = deserializeUsageData(gasBillData)
 	}
 
 	// Coerce actionData if present
 	console.log('Action data before coercion:', actionData)
 	let coercedActionData = actionData
-		? coerceUsageDataTypes(actionData)
+		? deserializeUsageData(actionData)
 		: undefined
 	console.log('Coerced action data:', coercedActionData)
 

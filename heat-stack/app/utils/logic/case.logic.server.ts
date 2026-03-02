@@ -12,7 +12,7 @@ import {
 	executeGetNormalizedOutput,
 } from '#app/utils/rules-engine.ts'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
-import { coerceParsedFormFields } from './coerceParsedFormFields'
+import { deserializeFormData } from '../convert/deserializeFormFields'
 
 /**
  * processes CSV (uploadTextFile) and create a new case, and runs pyodide
@@ -199,13 +199,11 @@ export async function processCaseUpdate(
 	}>,
 ) {
 	// Convert bills to the format required by calculateWithBills
-	const billsForCalc = bills.map((bill) => ({
-		periodStartDate: bill.period_start_date
-			? new Date(bill.period_start_date)
-			: undefined,
-		periodEndDate: bill.period_end_date
-			? new Date(bill.period_end_date)
-			: undefined,
+	const billsForCalc = bills
+		.filter((bill) => bill.period_start_date && bill.period_end_date)
+		.map((bill) => ({
+		periodStartDate: new Date(bill.period_start_date),
+		periodEndDate: new Date(bill.period_end_date),
 		usageTherms: bill.usage,
 		inclusionOverride:
 			typeof bill.inclusion_override === 'boolean'
@@ -214,21 +212,21 @@ export async function processCaseUpdate(
 					: 0
 				: bill.inclusion_override || 0,
 	}))
-	let parsedForm2: any = null
+	let parsedFormObj: any = null
 	try {
-		parsedForm2 = Object.fromEntries(parsedForm.entries())
+		parsedFormObj = Object.fromEntries(parsedForm.entries())
 	} catch (error) {
 		console.error('Error parsing form data:', error)
 	}
-	// Coerce fields after parsedForm2 is created
-	parsedForm2 = coerceParsedFormFields(parsedForm2)
-	console.log('Parsed and coerced form data:', parsedForm2)
+	// Coerce fields after parsedFormObj is created
+	parsedFormObj = deserializeFormData(parsedFormObj)
+	console.log('Parsed and coerced form data:', parsedFormObj)
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedForm2, billsForCalc)
+		await calculateWithBills(parsedFormObj, billsForCalc)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
-		parsedForm2,
+		parsedFormObj,
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 		bills,
