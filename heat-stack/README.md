@@ -5,42 +5,6 @@ Analysis Tool (H.E.A.T.) project. Please follow these instructions carefully.
 
 ---
 
-### Prerequisites
-
-#### Install Git Large File Storage (Git LFS)
-
-Git LFS is required to manage large files in the repository. Choose one of the
-methods below to install it:
-
-**Method 1: Using Homebrew (Recommended)**
-
-```bash
-brew install git-lfs
-git lfs install
-```
-
-**Method 2: Manual Installation**
-
-1. Download the Git LFS installer from [git-lfs.com](https://git-lfs.com/).
-2. Unzip the downloaded file and navigate to the extracted folder:
-   ```bash
-   cd ~/Downloads/git-lfs-<version>
-   ```
-3. Run the installation script:
-   ```bash
-   ./install.sh
-   git lfs install
-   ```
-4. Confirm the installation with:
-   ```bash
-   git lfs install
-   ```
-
-For more details, visit the
-[official documentation](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
-
----
-
 ### Repository Setup
 
 1. **Fork the repository**  
