@@ -94,6 +94,7 @@ describe('SingleCaseForm', () => {
 		usageData: undefined,
 		showUsageData: false,
 		onClickBillingRow: vi.fn(),
+		onBillingRecordsChange: vi.fn(),
 		parsedAndValidatedFormSchema: undefined,
 	}
 
