@@ -218,7 +218,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 		return {
 			submitResult: submission.reply(),
 			parsedAndValidatedFormSchema: undefined,
-			data: undefined,		gasBillData: undefined,			convertedDatesTIWD: undefined,
+			data: undefined,
+			gasBillData: undefined,
+			convertedDatesTIWD: undefined,
 			state_id: undefined,
 			county_id: undefined,
 			caseInfo: undefined,
@@ -242,7 +244,12 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}))
 
 	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
-	const caseUpdateResult = await processCaseUpdate(caseId, formData, userId, bills)
+	const caseUpdateResult = await processCaseUpdate(
+		caseId,
+		formData,
+		userId,
+		bills,
+	)
 
 	const formDataWithFile = {
 		...submission.value,

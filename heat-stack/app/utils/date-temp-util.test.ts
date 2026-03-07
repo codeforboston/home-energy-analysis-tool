@@ -232,7 +232,13 @@ describe('getConvertedDatesTIWD', () => {
 			const town = ''
 			const state = ''
 
-			await getConvertedDatesTIWD(mockStartDate, mockEndDate, street, town, state)
+			await getConvertedDatesTIWD(
+				mockStartDate,
+				mockEndDate,
+				street,
+				town,
+				state,
+			)
 
 			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(', , ')
 		})
@@ -242,7 +248,13 @@ describe('getConvertedDatesTIWD', () => {
 			const town = "St. John's"
 			const state = 'NY'
 
-			await getConvertedDatesTIWD(mockStartDate, mockEndDate, street, town, state)
+			await getConvertedDatesTIWD(
+				mockStartDate,
+				mockEndDate,
+				street,
+				town,
+				state,
+			)
 
 			expect(mockGeocodeUtil.getLL).toHaveBeenCalledWith(
 				"O'Malley's Pub, St. John's, NY",
