@@ -140,13 +140,9 @@ export const NaturalGasBillRecord = z.object({
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
 })
 
-// Helper function to create a date string schema
-const dateStringSchema = () =>
-	z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD')
-
 export const naturalGasUsageSchema = z.map(
-	z.enum(['overall_start_date', 'overall_end_date', 'records']),
-	z.union([dateStringSchema(), z.array(NaturalGasBillRecord)]),
+	z.enum(['records']),
+	z.array(NaturalGasBillRecord),
 )
 
 // Define the schema for one billing record

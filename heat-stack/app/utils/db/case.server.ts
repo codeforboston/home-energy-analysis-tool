@@ -6,6 +6,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { HomeSchema } from '#types/index.ts'
 import { type SchemaZodFromFormType } from '#types/single-form.ts'
 
+// Code review: change heating_system_efficiency to be db value rather than display value, and add setback fields to db and form handling
 export async function getLoggedInUserFromRequest(request: Request) {
 	// Use session-based user lookup
 	const userId = await requireUserId(request)
@@ -196,11 +197,9 @@ export const updateCase = async (
 			analysisId: analysis.id,
 			fuelType: changes.heatingInput.fuel_type,
 			designTemperatureOverride: Boolean(validHI.design_temperature_override),
-			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
-			heatingSystemEfficiency: Math.round(
-				validHI.heating_system_efficiency * 100,
-			),
+			heatingSystemEfficiency: validHI.heating_system_efficiency,
 			thermostatSetPoint: validHI.thermostat_set_point,
+			// Code review todo: fix this
 			setbackTemperature: validHI.setback_temperature ?? null,
 			setbackHoursPerDay: validHI.setback_hours_per_day ?? null,
 			numberOfOccupants: 2, // Default value until we add to form
@@ -283,9 +282,7 @@ export const createCase = async (
 				designTemperatureOverride: Boolean(
 					formInputs.design_temperature_override,
 				),
-				heatingSystemEfficiency: Math.round(
-					formInputs.heating_system_efficiency * 100,
-				),
+				heatingSystemEfficiency: formInputs.heating_system_efficiency,
 				thermostatSetPoint: formInputs.thermostat_set_point,
 				setbackTemperature: formInputs.setback_temperature ?? null,
 				setbackHoursPerDay: formInputs.setback_hours_per_day ?? null,

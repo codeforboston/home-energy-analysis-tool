@@ -1,10 +1,12 @@
+/* Code review: Add start date, end date to getConvertedDatesTIWD rather than relying
+on the form which may not have them
+*/
+
 /** This function takes a CSV string and an address
  * and returns date and weather data,
  * and geolocation information
  */
 
-import { type NaturalGasUsageDataSchema } from '#types/index.ts'
-import { formatDateString, parseOrDefaultDates } from './dateHelpers.ts'
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, {
 	type TemperatureInputDataConverted,
@@ -20,7 +22,8 @@ export interface AddressComponents {
 }
 
 export default async function getConvertedDatesTIWD(
-	pyodideResultsFromTextFile: NaturalGasUsageDataSchema,
+	start_date: Date,
+	end_date: Date,
 	street_address: string,
 	town: string,
 	state: string,
@@ -31,8 +34,6 @@ export default async function getConvertedDatesTIWD(
 	coordinates: { x: number; y: number } | null | undefined
 	addressComponents: AddressComponents | null
 }> {
-	console.log('loading geocodeUtil/weatherUtil')
-
 	const geocodeUtil = new GeocodeUtil()
 	const weatherUtil = new WeatherUtil()
 
@@ -41,18 +42,6 @@ export default async function getConvertedDatesTIWD(
 		await geocodeUtil.getLL(combined_address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
 
-	const startDateString = pyodideResultsFromTextFile.get(
-		'overall_start_date',
-	) as string
-	const endDateString = pyodideResultsFromTextFile.get(
-		'overall_end_date',
-	) as string
-
-	const { start_date, end_date } = parseOrDefaultDates(
-		startDateString,
-		endDateString,
-	)
-
 	// Utility function to parse start and end dates, with defaults if invalid
 
 	// Function to ensure we always return a valid date string
@@ -60,8 +49,8 @@ export default async function getConvertedDatesTIWD(
 	const weatherData = await weatherUtil.getThatWeathaData(
 		x,
 		y,
-		formatDateString(start_date),
-		formatDateString(end_date),
+		start_date,
+		end_date,
 	)
 
 	if (weatherData === undefined) {

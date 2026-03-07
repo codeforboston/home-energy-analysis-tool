@@ -1,6 +1,6 @@
-// code review: changed checked field to !!period.inclusion_override to ensure it's a boolean, and added invariant checks in WeatherUtil for required parameters and valid dates
+import { invariant } from '@epic-web/invariant'
 import { type UsageDataSchema } from '#/types/types.ts'
-import { Checkbox } from '../../../../components/ui/checkbox.tsx'
+import { Checkbox } from '#//components/ui/checkbox.tsx'
 import {
 	Table,
 	TableBody,
@@ -59,6 +59,12 @@ export function EnergyUseHistoryChart({
 	usageData,
 	onClick,
 }: EnergyUseHistoryChartProps) {
+	invariant(
+		usageData?.processed_energy_bills,
+		'usageData.processed_energy_bills is required',
+	)
+
+	const processedBills = usageData?.processed_energy_bills
 	return (
 		<Table
 			id="EnergyUseHistoryChart"
@@ -93,7 +99,7 @@ export function EnergyUseHistoryChart({
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{usageData.processed_energy_bills.map((period, index) => {
+				{processedBills.map((period, index) => {
 					const startDate = new Date(period.period_start_date)
 					const endDate = new Date(period.period_end_date)
 

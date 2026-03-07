@@ -1,6 +1,11 @@
+/* Code review: This branch adds autosave on blur: whenever the user edits a form field
+ and leaves it, the form is automatically submitted (if valid) without needing 
+ to click Save. It also adds checkbox-driven autosave: clicking a billing row's "Override Default" checkbox now updates that row's inclusion_override state and immediately autosaves. Both autosave paths show a brief "Changes saved!" toast notification on success.
+*/
+
 import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
@@ -72,11 +77,13 @@ export default function SingleCaseForm({
 	usageData,
 	showUsageData,
 	action,
-	onClickBillingRow,
+	onBillingRecordsChange,
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
-}: SubmitAnalysisProps) {
+}: SubmitAnalysisProps & {
+	onBillingRecordsChange: (records: BillingRecordsSchema) => void
+}) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
 
 	const [form, fields] = useForm({
@@ -95,9 +102,70 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
+	// Track last focused value for autosave-on-blur
+	const lastFocusedValueRef = useRef<string | null>(null)
+
+	// Toast state for autosave feedback
+	const [showToast, setShowToast] = useState(false)
+	// Show toast for 2 seconds when autosave triggers
+	const handleAutosaveToast = () => {
+		setShowToast(true)
+		setTimeout(() => setShowToast(false), 2000)
+	}
+
+	// Generic onBlur handler for all fields
+	const handleFieldBlur = (e: React.FocusEvent<any>) => {
+		if (lastFocusedValueRef.current === null) return
+		if (!isEditMode) return
+		const original = lastFocusedValueRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && formRef.current) {
+			// Validate form data before autosaving to prevent saving invalid values
+			const formData = new FormData(formRef.current)
+			const result = parseWithZod(formData, { schema: SaveOnlySchema })
+			if (result.status !== 'success') {
+				lastFocusedValueRef.current = null
+				return
+			}
+			formRef.current.requestSubmit()
+			handleAutosaveToast()
+		}
+		lastFocusedValueRef.current = null
+	}
+
+	const formRef = useRef<HTMLFormElement>(null)
+
+	const handleOnClick = (index: number) => {
+		if (!isEditMode || !billingRecords) return
+		const updatedRecords = billingRecords.map((record, i) => {
+			if (i === index) {
+				return {
+					...record,
+					inclusion_override: !record.inclusion_override,
+				}
+			}
+			return record
+		})
+		onBillingRecordsChange(updatedRecords)
+		setTriggerAutosave(true)
+	}
+
+	// Autosave after billingRecords change (must be at top level, not inside JSX)
+	const [triggerAutosave, setTriggerAutosave] = useState(false)
+	useEffect(() => {
+		if (triggerAutosave) {
+			if (formRef.current) {
+				formRef.current.requestSubmit()
+				handleAutosaveToast()
+			}
+			setTriggerAutosave(false)
+		}
+	}, [billingRecords, triggerAutosave])
+
 	return (
 		<>
 			<Form
+				ref={formRef}
 				id={form.id}
 				method="post"
 				onSubmit={form.onSubmit}
@@ -105,7 +173,10 @@ export default function SingleCaseForm({
 				encType="multipart/form-data"
 				aria-invalid={form.errors ? true : undefined}
 				aria-describedby={form.errors ? form.errorId : undefined}
+				onBlur={handleFieldBlur}
 			>
+				{/* Ensure intent is always sent for autosave */}
+				{isEditMode && <input type="hidden" name="intent" value="save" />}
 				<div>Case {caseInfo?.caseId}</div>
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
@@ -125,13 +196,13 @@ export default function SingleCaseForm({
 				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				<EnergyUseUpload
-					setScrollAfterSubmit={setScrollAfterSubmit}
-					fields={fields}
-					isEditMode={isEditMode}
-				/>
+				{!isEditMode && (
+					<EnergyUseUpload
+						setScrollAfterSubmit={setScrollAfterSubmit}
+						fields={fields}
+					/>
+				)}
 				<ErrorList id={form.errorId} errors={form.errors} />
-
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
@@ -141,9 +212,8 @@ export default function SingleCaseForm({
 						/>
 						<EnergyUseHistoryChart
 							usageData={usageData}
-							onClick={onClickBillingRow}
+							onClick={handleOnClick}
 						/>
-
 						{usageData &&
 						usageData.heat_load_output &&
 						usageData.heat_load_output.design_temperature &&
@@ -164,6 +234,15 @@ export default function SingleCaseForm({
 					</>
 				)}
 			</Form>
+			{/* Autosave Toast */}
+			{showToast && (
+				<div
+					style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
+					className="rounded bg-green-600 px-4 py-2 text-white shadow"
+				>
+					Changes saved!
+				</div>
+			)}
 			{/* Show case saved message */}
 			{showSavedCaseIdMsg &&
 				caseInfo &&

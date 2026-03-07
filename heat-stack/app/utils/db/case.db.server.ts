@@ -1,3 +1,5 @@
+// Code review: Modify so heating system efficiency is what is stored
+// Code now populates efficiency_display with the value in percent
 import { prisma } from '#app/utils/db.server.ts'
 
 export async function createCaseRecord(
@@ -78,9 +80,9 @@ export async function createCaseRecord(
 				create: {
 					fuelType: formValues.fuel_type,
 					designTemperatureOverride: false,
-					heatingSystemEfficiency: Math.round(
-						formValues.heating_system_efficiency * 100,
-					),
+					// heatingSystemEfficiency is what is stored in db and is not displayed 
+					// Percent is a separate field and is displayed
+					heatingSystemEfficiency: formValues.heating_system_efficiency,
 					thermostatSetPoint: formValues.thermostat_set_point,
 					setbackTemperature: formValues.setback_temperature ?? null,
 					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
@@ -149,15 +151,15 @@ export async function updateCaseRecord(
 	})
 
 	// Update Location
-	await prisma.location.update({
-		where: { id: existingCase.locationId },
-		data: {
-			address: formValues.street_address,
-			city: formValues.town,
-			state: formValues.state,
-			livingAreaSquareFeet: formValues.living_area,
-		},
-	})
+	   await prisma.location.update({
+		   where: { id: existingCase.locationId },
+		   data: {
+			   address: formValues.street_address,
+			   city: formValues.town,
+			   state: formValues.state,
+			   livingAreaSquareFeet: formValues.living_area,
+		   },
+	   })
 
 	// Update HeatingInput if it exists
 	const firstAnalysis = existingCase.analysis[0]
@@ -167,19 +169,17 @@ export async function updateCaseRecord(
 	) {
 		const firstHeatingInput = firstAnalysis.heatingInput[0]
 		if (firstHeatingInput) {
-			await prisma.heatingInput.update({
-				where: { id: firstHeatingInput.id },
-				data: {
-					fuelType: formValues.fuel_type,
-					heatingSystemEfficiency: Math.round(
-						formValues.heating_system_efficiency * 100,
-					),
-					thermostatSetPoint: formValues.thermostat_set_point,
-					setbackTemperature: formValues.setback_temperature ?? null,
-					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
-					livingArea: formValues.living_area,
-				},
-			})
+			   await prisma.heatingInput.update({
+				   where: { id: firstHeatingInput.id },
+				   data: {
+					   fuelType: formValues.fuel_type,
+					   heatingSystemEfficiency: formValues.heating_system_efficiency,
+					   thermostatSetPoint: formValues.thermostat_set_point,
+					   setbackTemperature: formValues.setback_temperature ?? null,
+					   setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
+					   livingArea: formValues.living_area,
+				   },
+			   })
 
 			// Update billing records if provided
 			if (billingRecords && billingRecords.length > 0) {
@@ -196,13 +196,13 @@ export async function updateCaseRecord(
 					const existingRecord = existingBillingRecords[i]
 
 					if (existingRecord && updatedRecord) {
-						await prisma.processedEnergyBill.update({
-							where: { id: existingRecord.id },
-							data: {
-								invertDefaultInclusion:
-									updatedRecord.inclusion_override || false,
-							},
-						})
+						   await prisma.processedEnergyBill.update({
+							   where: { id: existingRecord.id },
+							   data: {
+								   invertDefaultInclusion:
+									   updatedRecord.inclusion_override || false,
+							   },
+						   })
 					}
 				}
 			}
@@ -217,22 +217,22 @@ export async function updateCaseRecord(
 	) {
 		const firstHeatingOutput = firstAnalysis.heatingOutput[0]
 		if (firstHeatingOutput) {
-			await prisma.heatingOutput.update({
-				where: { id: firstHeatingOutput.id },
-				data: {
-					estimatedBalancePoint: heatLoadOutput.estimated_balance_point,
-					otherFuelUsage: heatLoadOutput.other_fuel_usage,
-					averageIndoorTemperature: heatLoadOutput.average_indoor_temperature,
-					differenceBetweenTiAndTbp:
-						heatLoadOutput.difference_between_ti_and_tbp,
-					designTemperature: heatLoadOutput.design_temperature,
-					wholeHomeHeatLossRate: heatLoadOutput.whole_home_heat_loss_rate,
-					standardDeviationOfHeatLossRate:
-						heatLoadOutput.standard_deviation_of_heat_loss_rate,
-					averageHeatLoad: heatLoadOutput.average_heat_load,
-					maximumHeatLoad: heatLoadOutput.maximum_heat_load,
-				},
-			})
+			   await prisma.heatingOutput.update({
+				   where: { id: firstHeatingOutput.id },
+				   data: {
+					   estimatedBalancePoint: heatLoadOutput.estimated_balance_point,
+					   otherFuelUsage: heatLoadOutput.other_fuel_usage,
+					   averageIndoorTemperature: heatLoadOutput.average_indoor_temperature,
+					   differenceBetweenTiAndTbp:
+						   heatLoadOutput.difference_between_ti_and_tbp,
+					   designTemperature: heatLoadOutput.design_temperature,
+					   wholeHomeHeatLossRate: heatLoadOutput.whole_home_heat_loss_rate,
+					   standardDeviationOfHeatLossRate:
+						   heatLoadOutput.standard_deviation_of_heat_loss_rate,
+					   averageHeatLoad: heatLoadOutput.average_heat_load,
+					   maximumHeatLoad: heatLoadOutput.maximum_heat_load,
+				   },
+			   })
 		}
 	}
 

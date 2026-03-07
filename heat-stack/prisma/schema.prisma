@@ -202,7 +202,7 @@ model HeatingInput {
   analysisId                      Int
   fuelType                        String
   designTemperatureOverride       Boolean
-  heatingSystemEfficiency         Int
+  heatingSystemEfficiency         Float
   thermostatSetPoint              Int
   setbackTemperature              Int?
   setbackHoursPerDay              Int?

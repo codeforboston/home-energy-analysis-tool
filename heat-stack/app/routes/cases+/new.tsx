@@ -1,3 +1,4 @@
+// Code review: tbd
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { data, redirect } from 'react-router'
@@ -10,7 +11,7 @@ import {
 	type RulesEngineActionData,
 	useRulesEngine,
 } from '#app/utils/hooks/use-rules-engine.ts'
-import { processCaseSubmission } from '#app/utils/logic/case.logic.server.ts'
+import { processNewCase } from '#app/utils/logic/case.logic.server.ts'
 import { Schema } from '#types/single-form.ts'
 import { type Route } from './+types/new'
 
@@ -38,9 +39,14 @@ export async function action({ request }: Route.ActionArgs) {
 	}
 
 	try {
-		const result = await processCaseSubmission(submission, userId, formData)
+		const result = await processNewCase({
+			formData,
+			parsedForm: submission.value,
+			userId,
+		})
 
 		// Redirect to the edit page for the newly created case
+		// result is the return value of createNewCase, which has newCase property
 		return redirect(`/cases/${result.newCase.id}/edit`)
 	} catch (error: any) {
 		console.error('❌ Case creation failed', error)
@@ -70,8 +76,9 @@ export default function CreateCase({
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
 
-	const { lazyLoadRulesEngine, usageData, toggleBillingPeriod } =
-		useRulesEngine(actionData as RulesEngineActionData)
+	const { lazyLoadRulesEngine, usageData } = useRulesEngine(
+		actionData as RulesEngineActionData,
+	)
 
 	// ✅ Extract structured values from actionData
 
@@ -112,6 +119,7 @@ export default function CreateCase({
 	// ✅ Pass `result` as `lastResult`
 	return (
 		<SingleCaseForm
+			// TODO: comment out this line?
 			beforeSubmit={() => lazyLoadRulesEngine()}
 			lastResult={actionData?.submitResult}
 			defaultFormValues={defaultValue}
@@ -119,9 +127,15 @@ export default function CreateCase({
 			caseInfo={actionData?.caseInfo}
 			usageData={usageData}
 			showUsageData={!!usageData}
-			onClickBillingRow={toggleBillingPeriod}
+			onClickBillingRow={(index: number) => {
+				// not possible to adjust billing rows on new case creation page
+				throw new Error(
+					`Adjusting billing row ${index} not implemented for new cases`,
+				)
+			}}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}
+			onBillingRecordsChange={() => {}}
 		/>
 	)
 }
