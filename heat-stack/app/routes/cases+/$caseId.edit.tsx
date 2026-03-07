@@ -26,10 +26,6 @@ import { type Route } from './+types/$caseId.edit'
 export async function loader({ params, request }: Route.LoaderArgs) {
 	// percentToDecimal no longer needed for loader validation
 
-	// DEBUG: Log the last action result if available
-	if (typeof global !== 'undefined' && global.lastActionResult) {
-		console.log('[LOADER] Last action result:', global.lastActionResult)
-	}
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 	const user = await getLoggedInUserFromRequest(request)
@@ -38,7 +34,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	invariantResponse(!isNaN(caseId), 'Invalid case ID', { status: 400 })
 
 	const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
-	invariantResponse(caseRecord, 'Case not found', { status: 404 })
+	if (!caseRecord) throw new Response('Case not found', { status: 404 })
 
 	const analysis = caseRecord.analysis?.[0]
 	invariantResponse(analysis, 'Invalid analysis detected', { status: 500 })
@@ -222,8 +218,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		return {
 			submitResult: submission.reply(),
 			parsedAndValidatedFormSchema: undefined,
-			data: undefined,
-			convertedDatesTIWD: undefined,
+			data: undefined,		gasBillData: undefined,			convertedDatesTIWD: undefined,
 			state_id: undefined,
 			county_id: undefined,
 			caseInfo: undefined,
@@ -235,21 +230,19 @@ export async function action({ request, params }: Route.ActionArgs) {
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
 	// Create bills array with start_date and end_date replaced by dates
-	const billsWithStringDates = billingRecordsJson
-		? JSON.parse(billingRecordsJson)
+	const billsWithStringDates: BillingRecordsSchema = billingRecordsJson
+		? (JSON.parse(billingRecordsJson) as BillingRecordsSchema)
 		: []
-	const bills = billsWithStringDates.map((bill) => ({
-		...bill,
-		period_start_date: bill.period_start_date
-			? new Date(bill.period_start_date)
-			: undefined,
-		period_end_date: bill.period_end_date
-			? new Date(bill.period_end_date)
-			: undefined,
-	}))
+	const bills = billsWithStringDates
+		.filter((bill) => bill.period_start_date && bill.period_end_date)
+		.map((bill) => ({
+			...bill,
+			period_start_date: new Date(bill.period_start_date),
+			period_end_date: new Date(bill.period_end_date),
+		}))
 
 	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
-	const updatedCase = await processCaseUpdate(caseId, formData, userId, bills)
+	const caseUpdateResult = await processCaseUpdate(caseId, formData, userId, bills)
 
 	const formDataWithFile = {
 		...submission.value,
@@ -264,18 +257,13 @@ export async function action({ request, params }: Route.ActionArgs) {
 		submitResult: submission.reply(),
 		data: undefined, // No new calculation data
 		parsedAndValidatedFormSchema: formDataWithFile,
-		gasBillData: updatedCase ? updatedCase.gasBillData : undefined,
+		gasBillData: caseUpdateResult.gasBillData,
 		convertedDatesTIWD: undefined,
 		state_id: undefined,
 		county_id: undefined,
 		caseInfo: {
-			caseId: updatedCase && 'id' in updatedCase ? updatedCase.id : undefined,
-			analysisId:
-				updatedCase &&
-				'analysis' in updatedCase &&
-				Array.isArray(updatedCase.analysis)
-					? updatedCase.analysis[0]?.id
-					: undefined,
+			caseId: caseUpdateResult.updatedCase?.id,
+			analysisId: caseUpdateResult.updatedCase?.analysis?.[0]?.id,
 		},
 	}
 	return result
@@ -342,9 +330,9 @@ export default function EditCase({
 	// On initial load, don't show any data until calculation completes to avoid flash
 	// After initial load, use calculated data or fallback
 
-	// Prefer actionData.gasBillData if present, else loaderData.gasBillData (or fallback)
+	// Prefer actionData.gasBillData if present, else fallback
 
-	let gasBillData = actionData?.gasBillData || loaderData.gasBillData
+	let gasBillData = actionData?.gasBillData
 	// Deeply convert any Maps in gasBillData to plain objects
 	if (
 		gasBillData instanceof Map ||
