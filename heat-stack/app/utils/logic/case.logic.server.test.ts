@@ -163,9 +163,9 @@ describe('case.logic.server', () => {
 			const formValues = createFormData()
 			const formData = createMockFormData(formValues)
 
-			await expect(
-				calculateWithCsv(formData, formValues),
-			).rejects.toThrow('Missing county_id')
+			await expect(calculateWithCsv(formData, formValues)).rejects.toThrow(
+				'Missing county_id',
+			)
 		})
 
 		it('should call all external dependencies correctly', async () => {

@@ -140,7 +140,6 @@ export const NaturalGasBillRecord = z.object({
 	// inclusionOverride: z.enum(["Include", "Do not include", "Include in other analysis"]),
 })
 
-
 export const naturalGasUsageSchema = z.map(
 	z.enum(['records']),
 	z.array(NaturalGasBillRecord),

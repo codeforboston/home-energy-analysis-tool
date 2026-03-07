@@ -18,10 +18,7 @@ import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
 // import { executeRoundtripAnalyticsFromFormJs } from '#app/utils/rules-engine.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
-import {
-	invariantResponse,
-	invariant,
-} from '#node_modules/@epic-web/invariant/dist'
+import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
 import { Schema, SaveOnlySchema } from '#types/single-form.ts'
 import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
@@ -198,28 +195,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 		? await parseMultipartFormData(request, uploadHandler)
 		: await request.formData()
 
-	// Log efficiency in form at beginning of action
-	let efficiencyInForm = formData.get('heating_system_efficiency')
-
-	// Fetch from DB for comparison
-	let dbEfficiency: number | undefined = undefined
-	try {
-		const user = await getLoggedInUserFromRequest(request)
-		const isAdmin = hasAdminRole(user)
-		const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
-		const analysis = caseRecord.analysis?.[0]
-		const heatingInput = analysis?.heatingInput?.[0]
-		dbEfficiency = heatingInput?.heatingSystemEfficiency
-	} catch (e) {
-		// TODO: handle error properly - for now we just log and continue with dbEfficiency as undefined
-		dbEfficiency = undefined
-	}
-
 	// Check the intent to determine validation approach
 	const intent = formData.get('intent') as string
-
-	// Log efficiency before any modification
-	efficiencyInForm = formData.get('heating_system_efficiency')
 
 	// Convert heating_system_efficiency from percent to decimal if needed
 	let efficiency = formData.get('heating_system_efficiency')
@@ -228,12 +205,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 		// Log before possible modification
 		if (effNum > 1) {
 			formData.set('heating_system_efficiency', effNum.toString())
-			// Log after modification
 		}
 	}
-
-	// Log efficiency after all possible modification
-	efficiencyInForm = formData.get('heating_system_efficiency')
 
 	let submission
 
@@ -261,7 +234,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
-	let billingRecords: any[] | undefined
 	// Create bills array with start_date and end_date replaced by dates
 	const billsWithStringDates = billingRecordsJson
 		? JSON.parse(billingRecordsJson)
@@ -275,15 +247,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 			? new Date(bill.period_end_date)
 			: undefined,
 	}))
-
-	// Parse heat load output from form data if present
-	const heatLoadOutputJson = formData.get('heat_load_output') as string | null
-	let heatLoadOutput: any | undefined
-	if (heatLoadOutputJson) {
-		try {
-			heatLoadOutput = JSON.parse(heatLoadOutputJson)
-		} catch (error) {}
-	}
 
 	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
 	const updatedCase = await processCaseUpdate(caseId, formData, userId, bills)
@@ -352,8 +315,6 @@ export default function EditCase({
 	// Update local state when loader or action data changes
 	useEffect(() => {
 		if (actionData && actionData.parsedAndValidatedFormSchema) {
-			// Use invariant to ensure billing_records exists
-			const formSchema = actionData.parsedAndValidatedFormSchema
 			setLocalBillingRecords(loaderData.billingRecords)
 		} else {
 			setLocalBillingRecords(loaderData.billingRecords)

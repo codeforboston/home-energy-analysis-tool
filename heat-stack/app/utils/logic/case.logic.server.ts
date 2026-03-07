@@ -1,4 +1,4 @@
-// Code review: broke case processing function into composable pieces and decoupled from 
+// Code review: broke case processing function into composable pieces and decoupled from
 // CSV-only input, enabling bill data to be passed directly (supporting the autosave/editing flow).
 import { invariant } from '@epic-web/invariant'
 import { convertPyBills } from '#app/utils/convert/convertPyBills'
@@ -204,16 +204,16 @@ export async function processCaseUpdate(
 	const billsForCalc = bills
 		.filter((bill) => bill.period_start_date && bill.period_end_date)
 		.map((bill) => ({
-		periodStartDate: new Date(bill.period_start_date),
-		periodEndDate: new Date(bill.period_end_date),
-		usageTherms: bill.usage,
-		inclusionOverride:
-			typeof bill.inclusion_override === 'boolean'
-				? bill.inclusion_override
-					? 1
-					: 0
-				: bill.inclusion_override || 0,
-	}))
+			periodStartDate: new Date(bill.period_start_date),
+			periodEndDate: new Date(bill.period_end_date),
+			usageTherms: bill.usage,
+			inclusionOverride:
+				typeof bill.inclusion_override === 'boolean'
+					? bill.inclusion_override
+						? 1
+						: 0
+					: bill.inclusion_override || 0,
+		}))
 	let parsedFormObj: any = null
 	try {
 		parsedFormObj = Object.fromEntries(parsedForm.entries())

@@ -1,6 +1,6 @@
 // Utility to deeply convert usageData to an object and coerce string fields to numbers/dates for usageData
 
-import invariant from "#node_modules/openimg/dist/types/utils.js"
+import invariant from '#node_modules/openimg/dist/types/utils.js'
 
 // **** New version of pyodide 0.29 may not require this if we can ensure it outputs plain objects with correct types, but this is a safeguard for now. ****
 export function deserializeUsageData(input: any): any {
@@ -14,7 +14,7 @@ export function deserializeUsageData(input: any): any {
 			}
 			return obj
 		} else if (Array.isArray(serializedValue)) {
-			return serializedValue.map(item => deepDeserialize(item))
+			return serializedValue.map((item) => deepDeserialize(item))
 		} else if (serializedValue && typeof serializedValue === 'object') {
 			// Coerce known fields in bill objects
 			const out: any = {}
@@ -28,7 +28,10 @@ export function deserializeUsageData(input: any): any {
 					typeof value === 'string'
 				) {
 					const dateValue = new Date(value)
-					invariant(!isNaN(dateValue.getTime()), `Invalid date string for ${key}: ${value}`)
+					invariant(
+						!isNaN(dateValue.getTime()),
+						`Invalid date string for ${key}: ${value}`,
+					)
 					value = dateValue.getTime()
 				}
 				out[key] = deepDeserialize(value)

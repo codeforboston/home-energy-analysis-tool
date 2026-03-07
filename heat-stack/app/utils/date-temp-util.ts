@@ -7,7 +7,6 @@ on the form which may not have them
  * and geolocation information
  */
 
-
 import GeocodeUtil from './GeocodeUtil.ts'
 import WeatherUtil, {
 	type TemperatureInputDataConverted,
