@@ -162,7 +162,7 @@ test('pyodide solves climate change', async () => {
 	const address = '1 Broadway, Cambridge, MA 02142'
 	let { coordinates } = await GU.getLL(address)
 	let { x, y } = coordinates ?? { x: 0, y: 0 }
-	const TIWD = await WU.getThatWeathaData(x, y, '2024-03-20', '2024-04-20')
+	const TIWD = await WU.getThatWeathaData(x, y, new Date('2024-03-20'), new Date('2024-04-20'))
 
 	// https://github.com/codeforboston/home-energy-analysis-tool/tree/main/python/tests/test_rules_engine/cases/examples/quateman
 	const exampleNationalGridCSV = `Name,FIRST LAST,,,,,
