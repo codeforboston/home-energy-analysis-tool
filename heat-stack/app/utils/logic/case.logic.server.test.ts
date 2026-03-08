@@ -85,8 +85,9 @@ describe('case.logic.server', () => {
 		vi.clearAllMocks()
 
 		// Set up default mock implementations
-		const { createCaseRecord, updateCaseRecord } =
-			await import('#app/utils/db/case.db.server.ts')
+		const { createCaseRecord, updateCaseRecord } = await import(
+			'#app/utils/db/case.db.server.ts'
+		)
 		const mockCreateCase = vi.mocked(createCaseRecord)
 		const mockUpdateCase = vi.mocked(updateCaseRecord)
 
@@ -130,8 +131,9 @@ describe('case.logic.server', () => {
 
 		it('should throw error when state_id is missing', async () => {
 			// Mock getConvertedDatesTIWD to return missing state_id
-			const { default: getConvertedDatesTIWD } =
-				await import('#app/utils/date-temp-util.ts')
+			const { default: getConvertedDatesTIWD } = await import(
+				'#app/utils/date-temp-util.ts'
+			)
 			vi.mocked(getConvertedDatesTIWD).mockResolvedValueOnce({
 				convertedDatesTIWD: { dates: [], temperatures: [] },
 				state_id: undefined,
@@ -150,8 +152,9 @@ describe('case.logic.server', () => {
 
 		it('should throw error when county_id is missing', async () => {
 			// Mock getConvertedDatesTIWD to return missing county_id
-			const { default: getConvertedDatesTIWD } =
-				await import('#app/utils/date-temp-util.ts')
+			const { default: getConvertedDatesTIWD } = await import(
+				'#app/utils/date-temp-util.ts'
+			)
 			vi.mocked(getConvertedDatesTIWD).mockResolvedValueOnce({
 				convertedDatesTIWD: { dates: [], temperatures: [] },
 				state_id: 'test-state-id',
@@ -175,8 +178,9 @@ describe('case.logic.server', () => {
 			await calculateWithCsv(formData, formValues)
 
 			// Verify external functions were called
-			const { fileUploadHandler } =
-				await import('#app/utils/file-upload-handler.ts')
+			const { fileUploadHandler } = await import(
+				'#app/utils/file-upload-handler.ts'
+			)
 			const { executeParseGasBillPy, executeGetAnalyticsFromFormJs } =
 				await import('#app/utils/rules-engine.ts')
 			const getConvertedDatesTIWD = (
@@ -231,8 +235,9 @@ describe('case.logic.server', () => {
 			const { caseRecord } = await createTestCase(testUser.id)
 
 			// Mock updateCaseRecord to return a case without heatingInput
-			const { updateCaseRecord } =
-				await import('#app/utils/db/case.db.server.ts')
+			const { updateCaseRecord } = await import(
+				'#app/utils/db/case.db.server.ts'
+			)
 			const mockUpdateCaseRecord = vi.mocked(updateCaseRecord)
 			mockUpdateCaseRecord.mockResolvedValueOnce({
 				id: caseRecord.id,
@@ -250,10 +255,12 @@ describe('case.logic.server', () => {
 			const { caseRecord, heatingInput } = await createTestCase(testUser.id)
 
 			// For this test, use real database operations for bills but mock updateCaseRecord
-			const { insertProcessedBills, deleteBillsForAnalysis } =
-				await import('#app/utils/db/bill.db.server.ts')
-			const { updateCaseRecord } =
-				await import('#app/utils/db/case.db.server.ts')
+			const { insertProcessedBills, deleteBillsForAnalysis } = await import(
+				'#app/utils/db/bill.db.server.ts'
+			)
+			const { updateCaseRecord } = await import(
+				'#app/utils/db/case.db.server.ts'
+			)
 
 			// Restore real implementations for bill operations
 			vi.mocked(insertProcessedBills).mockRestore()

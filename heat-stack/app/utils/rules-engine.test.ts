@@ -121,8 +121,9 @@ describe('rules-engine', () => {
 			})
 
 			// Import the cleanup function
-			const { cleanupPyodideProxies: cleanup } =
-				await import('./rules-engine.ts')
+			const { cleanupPyodideProxies: cleanup } = await import(
+				'./rules-engine.ts'
+			)
 
 			// Call cleanup
 			cleanup()
