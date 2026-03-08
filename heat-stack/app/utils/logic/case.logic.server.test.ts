@@ -145,9 +145,9 @@ describe('case.logic.server', () => {
 			const formValues = createFormData()
 			const formData = createMockFormData(formValues)
 
-			await expect(
-				calculateWithCsv(formData, formValues),
-			).rejects.toThrow('Missing state_id')
+			await expect(calculateWithCsv(formData, formValues)).rejects.toThrow(
+				'Missing state_id',
+			)
 		})
 
 		it('should throw error when county_id is missing', async () => {
