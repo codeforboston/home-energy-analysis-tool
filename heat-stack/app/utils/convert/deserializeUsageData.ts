@@ -1,6 +1,6 @@
 // Utility to deeply convert usageData to an object and coerce string fields to numbers/dates for usageData
 
-import invariant from '#node_modules/openimg/dist/types/utils.js'
+import { invariant } from '@epic-web/invariant'
 
 // **** New version of pyodide 0.29 may not require this if we can ensure it outputs plain objects with correct types, but this is a safeguard for now. ****
 export function deserializeUsageData(input: any): any {
