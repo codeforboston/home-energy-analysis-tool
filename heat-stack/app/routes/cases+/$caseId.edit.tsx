@@ -125,7 +125,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-		heating_system_efficiency: heatingInput.heatingSystemEfficiency,
+		heating_system_efficiency: heatingInput.heatingSystemEfficiency ? heatingInput.heatingSystemEfficiency / 100 : undefined,
 		thermostat_set_point: heatingInput.thermostatSetPoint,
 		setback_temperature: heatingInput.setbackTemperature,
 		setback_hours_per_day: heatingInput.setbackHoursPerDay,

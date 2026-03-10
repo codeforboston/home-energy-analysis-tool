@@ -24,31 +24,26 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	// Create a state to track the percentage value
 	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
 		() => {
-			// Initialize from the field's default value or initial value
 			const value =
 				props.fields.heating_system_efficiency.value ||
-				props.fields.heating_system_efficiency.defaultValue
-			// If value is decimal, convert to percent for display
-			return value ? Math.round(parseFloat(value) * 100).toString() : ''
+				props.fields.heating_system_efficiency.defaultValue;
+			return value ? Math.round(parseFloat(value) * 100).toString() : '';
 		},
-	)
+	);
 
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
-		const percentNum = parseFloat(percentageValueDisplayed)
-		// Submit decimal value for validation and calculation
-		return !isNaN(percentNum) ? (percentNum / 100).toString() : ''
-	}, [percentageValueDisplayed])
+		const percentNum = parseFloat(percentageValueDisplayed);
+		return !isNaN(percentNum) ? (percentNum / 100).toString() : '';
+	}, [percentageValueDisplayed]);
 
 	// Update percentage when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
 			props.fields.heating_system_efficiency.value ||
-			props.fields.heating_system_efficiency.defaultValue
+			props.fields.heating_system_efficiency.defaultValue;
 		if (value) {
-			setPercentageValueDisplayed(
-				Math.round(parseFloat(value) * 100).toString(),
-			)
+			setPercentageValueDisplayed(Math.round(parseFloat(value) * 100).toString());
 		}
 	}, [
 		props.fields.heating_system_efficiency.value,
