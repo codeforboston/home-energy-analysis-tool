@@ -49,7 +49,7 @@ export async function processCaseSubmission(
 		convertedDatesTIWD,
 		uploadedTextFile,
 		state_id,
-		county_id,
+		county_id
 	)
 	const gasBillData = gasBillDataProxy.toJs()
 	// gasBillDataProxy.destroy()

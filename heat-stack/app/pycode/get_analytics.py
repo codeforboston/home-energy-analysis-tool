@@ -14,15 +14,19 @@ def executeGetAnalyticsFromForm(
     # pack the get_design_temp output into heat_load_input
     """
 
-    summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-    temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
+    summaryInputFromJs = summaryInputJs.as_object_map()
+    temperatureInputFromJs = temperatureInputJs.as_object_map()
 
     # We will just pass in this data
     naturalGasInputRecords = parser.parse_gas_bill(csvDataJs)
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+    if summaryInputFromJs.get("design_temperature_override") == None:
+        design_temp = helpers.get_design_temp(state_id, county_id)
+    else:
+        design_temp = summaryInputFromJs.get("design_temperature_override")
+    
     summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
+        **summaryInputFromJs, design_temperature=design_temp
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)

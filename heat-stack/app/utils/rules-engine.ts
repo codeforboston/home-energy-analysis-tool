@@ -9,6 +9,7 @@ import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
+import { NumericFormatProps } from '#node_modules/react-number-format/types'
 
 // Import Python code as raw string assets
 
@@ -106,7 +107,7 @@ type ExecuteGetAnalyticsFunction = ((
 	temperatureInputJs: TemperatureInputDataConverted,
 	csvDataJs: string,
 	state_id: string | undefined,
-	county_id: string | number | undefined /* check number */,
+	county_id: string | number | undefined /* check number */
 ) => PyProxy) & {
 	destroy(): void
 	toJs?(): any
@@ -141,6 +142,7 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	userAdjustedData: UserAdjustedData | Map<string, any>,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
+	temp_override: number | undefined
 ) => PyProxy) & {
 	destroy(): void
 	toJs?(): any

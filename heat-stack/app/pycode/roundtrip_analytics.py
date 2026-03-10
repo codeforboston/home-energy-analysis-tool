@@ -11,13 +11,17 @@ def executeRoundtripAnalyticsFromForm(
     print("🔧 executeRoundtripAnalyticsFromForm called from server")
     print(f"📊 Input data - state_id: {state_id}, county_id: {county_id}")
 
-    summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
-    temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
+    summaryInputFromJs = summaryInputJs.as_object_map()
+    temperatureInputFromJs = temperatureInputJs.as_object_map()
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+    if summaryInputFromJs.get("design_temperature_override") == None:
+        design_temp = helpers.get_design_temp(state_id, county_id)
+    else:
+        design_temp = summaryInputFromJs.get("design_temperature_override")
+        
     # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
     summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
+        **summaryInputFromJs, design_temperature=design_temp
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
