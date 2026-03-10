@@ -2,21 +2,6 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 
 // Mock the modules before importing the module under test
 vi.mock('#app/utils/rules-engine.ts', () => {
-	const mockPyodideProxy = {
-		toJs: vi.fn(() => ({
-			processed_bills: [
-				{
-					analysis_type: 'electric',
-					period_start_date: '2024-01-01',
-					period_end_date: '2024-01-31',
-					usage_therms: 100,
-					inclusion_flag: true,
-				},
-			],
-		})),
-		destroy: vi.fn(),
-	}
-
 	// For the parseGasBill call, return the expected data
 	const mockParseProxy = {
 		toJs: vi.fn(() => ({ mock: 'pyodide-results' })),
@@ -25,7 +10,6 @@ vi.mock('#app/utils/rules-engine.ts', () => {
 
 	return {
 		executeParseGasBillPy: vi.fn(() => mockParseProxy),
-		executeGetAnalyticsFromFormJs: vi.fn(() => mockPyodideProxy),
 	}
 })
 
@@ -66,7 +50,7 @@ vi.mock('#app/utils/db/bill.db.server.ts', () => ({
 
 // Import after mocking
 import {
-	processCaseSubmission,
+	calculateWithCsv,
 	processCaseUpdate,
 } from '#app/utils/logic/case.logic.server.ts'
 import {
@@ -111,26 +95,18 @@ describe('case.logic.server', () => {
 		testUser = await createTestUser()
 	})
 
-	describe('processCaseSubmission', () => {
+	describe('calculateWithCsv', () => {
 		it('should process a complete case submission', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			const result = await processCaseSubmission(
-				submission,
-				testUser.id,
-				formData,
-			)
+			const result = await calculateWithCsv(formData, formValues)
 
 			expect(result).toBeDefined()
-			expect(result.newCase).toBeDefined()
-			expect(result.newCase.id).toBeDefined()
-			expect(result.gasBillData).toBeDefined()
-			expect(result.insertedCount).toBe(1)
+			// expect(result.newCase).toBeDefined()
+			// expect(result.newCase.id).toBeDefined()
+			expect(result.rulesEngineResult).toBeDefined()
+			// expect(result.insertedCount).toBe(1)
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
 			expect(result.convertedDatesTIWD).toBeDefined()
@@ -150,15 +126,11 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
-			).rejects.toThrow('Missing state_id')
+			await expect(calculateWithCsv(formData, formValues)).rejects.toThrow(
+				'Missing state_id',
+			)
 		})
 
 		it('should throw error when county_id is missing', async () => {
@@ -175,32 +147,24 @@ describe('case.logic.server', () => {
 			})
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			await expect(
-				processCaseSubmission(submission, testUser.id, formData),
-			).rejects.toThrow('Missing county_id')
+			await expect(calculateWithCsv(formData, formValues)).rejects.toThrow(
+				'Missing county_id',
+			)
 		})
 
 		it('should call all external dependencies correctly', async () => {
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
 			const formData = createMockFormData(formValues)
 
-			await processCaseSubmission(submission, testUser.id, formData)
+			await calculateWithCsv(formData, formValues)
 
 			// Verify external functions were called
 			const { fileUploadHandler } = await import(
 				'#app/utils/file-upload-handler.ts'
 			)
-			const { executeParseGasBillPy, executeGetAnalyticsFromFormJs } =
+			const { executeParseGasBillPy } =
 				await import('#app/utils/rules-engine.ts')
 			const getConvertedDatesTIWD = (
 				await import('#app/utils/date-temp-util.ts')
@@ -214,16 +178,6 @@ describe('case.logic.server', () => {
 				formValues.town,
 				formValues.state,
 			)
-			expect(executeGetAnalyticsFromFormJs).toHaveBeenCalledWith(
-				formValues,
-				{
-					dates: ['2024-01-01', '2024-02-01'],
-					temperatures: [20, 25],
-				},
-				'mock-csv-content',
-				'test-state-id',
-				'test-county-id',
-			)
 		})
 	})
 
@@ -231,24 +185,19 @@ describe('case.logic.server', () => {
 		it('should process a case update', async () => {
 			const { caseRecord } = await createTestCase(testUser.id)
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
+			const bills = createGasBillData().processed_energy_bills
 			const result = await processCaseUpdate(
 				caseRecord.id,
-				submission,
+				formValues,
 				testUser.id,
-				formData,
+				bills,
 			)
 
 			expect(result).toBeDefined()
 			expect(result.updatedCase).toBeDefined()
 			expect(result.updatedCase?.id).toBe(caseRecord.id)
 			expect(result.gasBillData).toBeDefined()
-			expect(result.insertedCount).toBe(1)
+			// insertedCount is not returned by processCaseUpdate
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
 			expect(result.convertedDatesTIWD).toBeDefined()
@@ -269,14 +218,9 @@ describe('case.logic.server', () => {
 			} as any)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
-
+			const bills = createGasBillData().processed_energy_bills
 			await expect(
-				processCaseUpdate(caseRecord.id, submission, testUser.id, formData),
+				processCaseUpdate(caseRecord.id, formValues, testUser.id, bills),
 			).rejects.toThrow('Failed to find HeatingInput record for update')
 		})
 
@@ -307,11 +251,6 @@ describe('case.logic.server', () => {
 
 			// Insert some existing bills using the real function
 			const existingGasBillData = createGasBillData()
-			console.log(`HeatingInput ID: ${heatingInput.id}`)
-			console.log(
-				`Existing gas bill data:`,
-				JSON.stringify(existingGasBillData, null, 2),
-			)
 
 			const initialInsertCount = await insertProcessedBills(
 				heatingInput.id,
@@ -331,23 +270,18 @@ describe('case.logic.server', () => {
 			)
 
 			const formValues = createFormData()
-			const submission = {
-				status: 'success' as const,
-				value: formValues,
-			}
-			const formData = createMockFormData(formValues)
 
+			const bills = createGasBillData().processed_energy_bills
 			const result = await processCaseUpdate(
 				caseRecord.id,
-				submission,
+				formValues,
 				testUser.id,
-				formData,
+				bills,
 			)
 			console.log(`Update result:`, JSON.stringify(result, null, 2))
 
 			// For now, just check that the function completed without error
 			expect(result).toBeDefined()
-			expect(result.insertedCount).toBeGreaterThanOrEqual(0)
 		})
 	})
 })

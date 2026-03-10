@@ -28,6 +28,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			const value =
 				props.fields.heating_system_efficiency.value ||
 				props.fields.heating_system_efficiency.defaultValue
+			// If value is decimal, convert to percent for display
 			return value ? Math.round(parseFloat(value) * 100).toString() : ''
 		},
 	)
@@ -35,6 +36,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	// Calculate the decimal value whenever percentage changes
 	const decimalValueHidden = useMemo(() => {
 		const percentNum = parseFloat(percentageValueDisplayed)
+		// Submit decimal value for validation and calculation
 		return !isNaN(percentNum) ? (percentNum / 100).toString() : ''
 	}, [percentageValueDisplayed])
 
