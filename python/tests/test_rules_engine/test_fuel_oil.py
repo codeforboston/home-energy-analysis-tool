@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from rules_engine import engine
 from rules_engine.pydantic_models import FuelType, TemperatureInput
 
-from test_utils import (
+from .test_utils import (
     OilPropaneBillingExampleInput,
     Summary,
     load_fuel_billing_example_input,
