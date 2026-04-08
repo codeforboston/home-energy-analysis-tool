@@ -39,7 +39,6 @@ export type SubmitAnalysisProps = {
 	caseInfo: CaseInfo | undefined
 	usageData: UsageDataSchema | undefined
 	showUsageData: boolean
-	onClickBillingRow: (index: number) => void
 	onBillingRecordsChange: (records: BillingRecordsSchema) => void
 	/**
 	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission

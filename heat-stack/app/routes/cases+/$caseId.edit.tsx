@@ -379,7 +379,6 @@ export default function EditCase({
 				}
 				isEditMode={true}
 				billingRecords={localBillingRecords}
-				onClickBillingRow={() => {}}
 			/>
 
 			<ErrorModal

@@ -125,12 +125,6 @@ export default function CreateCase({
 			caseInfo={actionData?.caseInfo}
 			usageData={usageData}
 			showUsageData={!!usageData}
-			onClickBillingRow={(index: number) => {
-				// not possible to adjust billing rows on new case creation page
-				throw new Error(
-					`Adjusting billing row ${index} not implemented for new cases`,
-				)
-			}}
 			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 			isEditMode={false}
 			onBillingRecordsChange={() => {}}
