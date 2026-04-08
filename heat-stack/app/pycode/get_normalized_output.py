@@ -72,13 +72,6 @@ def executeGetNormalizedOutput(
         )
         records.append(record)
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
-    summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
-    )
-
-    temperatureInput = TemperatureInput(**temperatureInputFromJs)
-
     from rules_engine.pydantic_models import NaturalGasBillingInput
 
     natural_gas_billing_input = NaturalGasBillingInput(records=records)

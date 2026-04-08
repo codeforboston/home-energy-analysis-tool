@@ -127,8 +127,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		fuel_type: heatingInput.fuelType,
 		heating_system_efficiency: heatingInput.heatingSystemEfficiency ? heatingInput.heatingSystemEfficiency / 100 : undefined,
 		thermostat_set_point: heatingInput.thermostatSetPoint,
-		setback_temperature: heatingInput.setbackTemperature,
-		setback_hours_per_day: heatingInput.setbackHoursPerDay,
+		setback_temperature: heatingInput.setbackTemperature ?? undefined,
+		setback_hours_per_day: heatingInput.setbackHoursPerDay  ?? undefined,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	}
