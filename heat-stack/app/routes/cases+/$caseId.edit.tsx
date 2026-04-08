@@ -114,6 +114,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	}
 
 	const schemaValues = {
+		// Placeholder for energy_use_upload since it's required by schema but not needed for edit
 		energy_use_upload: {
 			name: 'existing-energy-data.csv',
 			size: 0,
@@ -206,7 +207,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// Parse billing records from form data if present
 	const billingRecordsJson = formData.get('billing_records') as string | null
-	// Create bills array with start_date and end_date replaced by dates
+	// Create bills array with start_date and end_date replaced by Dates
 	const billsWithStringDates: BillingRecordsSchema = billingRecordsJson
 		? (JSON.parse(billingRecordsJson) as BillingRecordsSchema)
 		: []
@@ -219,7 +220,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}))
 
 
-	//  TODO: turn variables into {} and pass to processCaseUpdate instead of individual variables
+	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
 	const caseUpdateResult = await processCaseUpdate(
 		caseId,
 		formData,

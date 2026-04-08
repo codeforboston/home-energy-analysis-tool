@@ -1,4 +1,4 @@
-// Converts parsed gas bill records to the format expected by Python
+// Converts initially parsed gas bill records to the format expected by Python for the first time
 export function convertPyBills(parsedRecords: any[]): any[] {
 	return parsedRecords.map((record) => ({
 		periodStartDate: new Date(record['period_start_date']),
