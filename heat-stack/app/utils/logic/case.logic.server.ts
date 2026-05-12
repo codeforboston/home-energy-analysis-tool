@@ -24,7 +24,6 @@ export async function calculateWithCsv(formData: FormData, parsedForm: any) {
 	const pyodideProxy: PyProxy = executeParseGasBillPy(uploadedTextFile)
 	const records = pyodideProxy.toJs().get('records') as any
 	const parsedBills = convertPyBills(records)
-	// pyodideProxy.destroy()
 	return await calculateWithBills(parsedForm, parsedBills)
 }
 
@@ -140,8 +139,6 @@ export async function calculateWithBills(
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
 
-	// Use billsIso for Python interop if needed
-	console.log('setback value being sent ')
 	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
@@ -229,10 +226,8 @@ export async function processCaseUpdate(
 	console.log('Debug 3')	
 	// Coerce fields after parsedFormObj is created
 	parsedFormObj = deserializeFormData(parsedFormObj)
-	console.log('Parsed form object:', parsedFormObj)
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
 		await calculateWithBills(parsedFormObj, billsForCalc)
-	console.log('Rules engine result:', rulesEngineResult.get('heat_load_output'))
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
@@ -243,7 +238,6 @@ export async function processCaseUpdate(
 		rulesEngineResult.get('heat_load_output')
 	)
 	invariant(updatedCase, 'Failed to update case record')
-console.log('new heating output', updatedCase.analysis[0]?.heatingOutput[0])
 	return {
 		updatedCase,
 		gasBillData: rulesEngineResult,

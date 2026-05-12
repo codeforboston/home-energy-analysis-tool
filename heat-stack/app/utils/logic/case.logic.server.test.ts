@@ -103,10 +103,7 @@ describe('case.logic.server', () => {
 			const result = await calculateWithCsv(formData, formValues)
 
 			expect(result).toBeDefined()
-			// expect(result.newCase).toBeDefined()
-			// expect(result.newCase.id).toBeDefined()
 			expect(result.rulesEngineResult).toBeDefined()
-			// expect(result.insertedCount).toBe(1)
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
 			expect(result.convertedDatesTIWD).toBeDefined()
@@ -197,7 +194,6 @@ describe('case.logic.server', () => {
 			expect(result.updatedCase).toBeDefined()
 			expect(result.updatedCase?.id).toBe(caseRecord.id)
 			expect(result.gasBillData).toBeDefined()
-			// insertedCount is not returned by processCaseUpdate
 			expect(result.state_id).toBe('test-state-id')
 			expect(result.county_id).toBe('test-county-id')
 			expect(result.convertedDatesTIWD).toBeDefined()
@@ -228,7 +224,7 @@ describe('case.logic.server', () => {
 			const { caseRecord, heatingInput } = await createTestCase(testUser.id)
 
 			// For this test, use real database operations for bills but mock updateCaseRecord
-			const { insertProcessedBills, deleteBillsForAnalysis } = await import(
+			const { insertProcessedBills } = await import(
 				'#app/utils/db/bill.db.server.ts'
 			)
 			const { updateCaseRecord } = await import(
@@ -237,7 +233,6 @@ describe('case.logic.server', () => {
 
 			// Restore real implementations for bill operations
 			vi.mocked(insertProcessedBills).mockRestore()
-			vi.mocked(deleteBillsForAnalysis).mockRestore()
 
 			// Keep updateCaseRecord mocked but return the test case structure
 			vi.mocked(updateCaseRecord).mockResolvedValueOnce({

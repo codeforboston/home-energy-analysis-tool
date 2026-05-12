@@ -76,15 +76,14 @@ await pyodide.loadPackage(`${basePath}rules_engine-0.0.1-py3-none-any.whl`)
 export const executeParseGasBillPy: ExecuteParseFunction =
 	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse')
 
+/**
+* See defn of args and natural gas conversion in ../pycode/get_normalized_output.py?raw
+*/
 export const executeGetNormalizedOutput: ExecuteGetNormalizedOutputFunction =
 	await pyodide.runPythonAsync(
 		getNormalizedOutputPyCode + '\nexecuteGetNormalizedOutput',
 	)
 
-/**
- * Full call with csv data
- * call to get_outputs_natural_gas
- */
 
 /**
  * Full call with userAdjustedData
@@ -102,7 +101,7 @@ export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
 }
 
 // Type for the execute normalized output function
-export type ExecuteGetNormalizedOutputFunction = ((
+type ExecuteGetNormalizedOutputFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	gasBillingDataJs: NaturalGasUsageDataSchema,
@@ -149,6 +148,7 @@ type ExecuteRoundtripAnalyticsFunction = ((
 // When you're done with your application or this module, call this to destroy all the Python function proxies
 export function cleanupPyodideProxies() {
 	safeDestroy(executeParseGasBillPy)
+    safeDestroy(executeGetNormalizedOutput)
 	safeDestroy(executeRoundtripAnalyticsFromFormJs)
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// pyodide.destroy(); // If supported by your pyodide version
