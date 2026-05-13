@@ -230,7 +230,7 @@ export async function processCaseUpdate(
 		{ convertedDatesTIWD, state_id, county_id },
 		userId,
 		bills,
-		rulesEngineResult.get('heat_load_output')
+		rulesEngineResult.get('heat_load_output'),
 	)
 	invariant(updatedCase, 'Failed to update case record')
 	return {

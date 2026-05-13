@@ -126,10 +126,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		town: caseRecord.location.city,
 		state: caseRecord.location.state,
 		fuel_type: heatingInput.fuelType,
-		heating_system_efficiency: heatingInput.heatingSystemEfficiency ? heatingInput.heatingSystemEfficiency / 100 : undefined,
+		heating_system_efficiency: heatingInput.heatingSystemEfficiency
+			? heatingInput.heatingSystemEfficiency / 100
+			: undefined,
 		thermostat_set_point: heatingInput.thermostatSetPoint,
 		setback_temperature: heatingInput.setbackTemperature ?? undefined,
-		setback_hours_per_day: heatingInput.setbackHoursPerDay  ?? undefined,
+		setback_hours_per_day: heatingInput.setbackHoursPerDay ?? undefined,
 		design_temperature_override: heatingInput.designTemperatureOverride ? 1 : 0,
 		// design_temperature: 12 /* TODO:  see #162 and esp. #123*/
 	}
@@ -218,7 +220,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 			period_start_date: new Date(bill.period_start_date),
 			period_end_date: new Date(bill.period_end_date),
 		}))
-
 
 	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
 	const caseUpdateResult = await processCaseUpdate(

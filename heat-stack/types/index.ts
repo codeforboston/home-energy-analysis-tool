@@ -141,7 +141,7 @@ export const NaturalGasBillRecord = z.object({
 })
 
 export const naturalGasUsageSchema = z.map(
-    z.literal('records'),
+	z.literal('records'),
 	z.array(NaturalGasBillRecord),
 )
 

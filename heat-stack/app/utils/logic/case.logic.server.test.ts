@@ -161,8 +161,9 @@ describe('case.logic.server', () => {
 			const { fileUploadHandler } = await import(
 				'#app/utils/file-upload-handler.ts'
 			)
-			const { executeParseGasBillPy } =
-				await import('#app/utils/rules-engine.ts')
+			const { executeParseGasBillPy } = await import(
+				'#app/utils/rules-engine.ts'
+			)
 			const getConvertedDatesTIWD = (
 				await import('#app/utils/date-temp-util.ts')
 			).default
