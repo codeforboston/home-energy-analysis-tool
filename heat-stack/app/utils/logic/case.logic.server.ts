@@ -199,7 +199,6 @@ export async function processCaseUpdate(
 	}>,
 ) {
 	// Convert bills to the format required by calculateWithBills
-	console.log('Debug processCaseUpdate')
 	const billsForCalc = bills
 		.filter((bill) => bill.period_start_date && bill.period_end_date)
 		.map((bill) => ({
@@ -213,17 +212,13 @@ export async function processCaseUpdate(
 						: 0
 					: bill.inclusion_override || 0,
 		}))
-	console.log('Debug 2')
 	let parsedFormObj: any = null
 	try {
-		console.log('Debug 2a')
 		parsedFormObj = Object.fromEntries(parsedForm.entries())
-		console.log('Debug 2b')
 	} catch (error) {
 		console.log('Error parsing form data:', error)
 		console.error('Error parsing form data:', error)
 	}
-	console.log('Debug 3')	
 	// Coerce fields after parsedFormObj is created
 	parsedFormObj = deserializeFormData(parsedFormObj)
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
