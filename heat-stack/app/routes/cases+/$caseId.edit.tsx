@@ -20,8 +20,6 @@ import { type BillingRecordsSchema } from '#types/types.ts'
 import { type Route } from './+types/$caseId.edit'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-	// percentToDecimal no longer needed for loader validation
-
 	const userId = await requireUserId(request)
 	const caseId = parseInt(params.caseId)
 	const user = await getLoggedInUserFromRequest(request)

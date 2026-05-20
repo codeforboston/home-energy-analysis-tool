@@ -32,6 +32,7 @@ export function deserializeUsageData(input: any): any {
 						!isNaN(dateValue.getTime()),
 						`Invalid date string for ${key}: ${value}`,
 					)
+					// as of 2026May19 this is only being used in `<EnergyUseHistoryChart/>`. That table converts this into a `Date()`. Consider keeping this as a `Date()` right here.
 					value = dateValue.getTime()
 				}
 				out[key] = deepDeserialize(value)
