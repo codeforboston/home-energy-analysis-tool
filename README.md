@@ -77,9 +77,9 @@ The epic stack uses Fly.io for default deployment. This application works with i
 
 ### Installation
 
-To install the front end, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
+1. To install the rules engine, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md)
 
-To install the rules engine, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md)
+2. To install the front end, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 ### Documentation
 

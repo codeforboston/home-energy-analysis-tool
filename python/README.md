@@ -89,9 +89,8 @@ source check.python.sh
 ## Appendix A - Local Environment Setup
 
 1. Clone or fork the git repository, if not already done.
-2. Open terminal.
-3. Navigate to python by typing `cd python`.
-4. Install `pre-commit` 
+2. Open Git Bash terminal.
+3. (Optional) Install `pre-commit` 
 - On MacOS: `brew install pre-commit` 
 - On Windows:
   - Open a WSL terminal
@@ -99,10 +98,13 @@ source check.python.sh
     - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` 
     - Follow the steps that appear in the prompt following Homebrew installation
   - `brew install pre-commit`
-5. Install `uv`
+4. Install `uv`
 - On MacOS `brew install uv`
-- On Windows, once you have installed HomeBrew and opened a WSL terminal: `brew install uv`
-6. Run `source setup-python.sh`. 
+- On Windows, `pip install uv`
+5. Navigate to project's python directory by typing `cd python`.
+6. Run `source setup-python.sh`
 7. Run `pytest` and see tests run successfully.
+8. Still in python folder, run `pip install -e .` to install rules-engine.
+Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 
