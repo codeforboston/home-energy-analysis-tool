@@ -5,7 +5,7 @@ This is the workspace for the HEAT rules engine.
 For an outline of the logic behind the rules engine and a glossary of common terms, see the [Intro to Rules Engine wiki page](https://github.com/codeforboston/home-energy-analysis-tool/wiki/Intro-to-Rules-Engine).
 
 ## Local Environment Setup
-This project uses Python version 3.13+
+This project uses Python version 3.13.
 
 1. Clone or fork the git repository, if not already done.
 2. (Optional) Install `pre-commit`
