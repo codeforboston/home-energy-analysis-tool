@@ -7,8 +7,7 @@ For an outline of the logic behind the rules engine and a glossary of common ter
 ## Local Environment Setup
 
 1. Clone or fork the git repository, if not already done.
-2. Open Git Bash terminal.
-3. (Optional) Install `pre-commit`
+2. (Optional) Install `pre-commit`
 
 - On MacOS: `brew install pre-commit`
 - On Windows:
@@ -17,7 +16,7 @@ For an outline of the logic behind the rules engine and a glossary of common ter
     - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
     - Follow the steps that appear in the prompt following Homebrew installation
   - `brew install pre-commit`
-
+3. Open Git Bash terminal.
 4. Install `uv`
 
 - On MacOS `brew install uv`
