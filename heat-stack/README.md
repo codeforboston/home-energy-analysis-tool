@@ -86,6 +86,7 @@ not install NVM, skip `nvm` steps during setup.
    ```
 4. Build the rules engine into the `public/pyodide-env` folder: Close Bash and
    reopen it with Admin permissions (right click and Run as Administrator).
+
    - Before you run `buildpy`, you need to install `uv`
    - On MacOS `brew install uv`
    - On Windows
