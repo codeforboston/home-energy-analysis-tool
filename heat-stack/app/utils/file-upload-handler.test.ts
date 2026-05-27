@@ -169,7 +169,7 @@ describe('file-upload-handler', () => {
 			const result = await fileUploadHandler(mockFormData)
 
 			expect(result).toBe(largeContent)
-			expect(result.length).toBe(1000000)
+			expect(result).toHaveLength(1000000)
 		})
 
 		it('should handle special characters in file content', async () => {

@@ -98,11 +98,6 @@ describe('rules-engine', () => {
 				toJs: vi.fn(),
 			} as any
 
-			const mockExecuteGetAnalyticsFromFormJs = {
-				destroy: vi.fn(),
-				toJs: vi.fn(),
-			} as any
-
 			const mockExecuteRoundtripAnalyticsFromFormJs = {
 				destroy: vi.fn(),
 				toJs: vi.fn(),
@@ -114,7 +109,6 @@ describe('rules-engine', () => {
 				return {
 					...original,
 					executeParseGasBillPy: mockExecuteParseGasBillPy,
-					executeGetAnalyticsFromFormJs: mockExecuteGetAnalyticsFromFormJs,
 					executeRoundtripAnalyticsFromFormJs:
 						mockExecuteRoundtripAnalyticsFromFormJs,
 				}
@@ -130,7 +124,6 @@ describe('rules-engine', () => {
 
 			// Verify all destroy methods were called
 			expect(mockExecuteParseGasBillPy.destroy).toHaveBeenCalled()
-			expect(mockExecuteGetAnalyticsFromFormJs.destroy).toHaveBeenCalled()
 			expect(mockExecuteRoundtripAnalyticsFromFormJs.destroy).toHaveBeenCalled()
 		})
 	})
