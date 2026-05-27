@@ -24,9 +24,9 @@ This project uses Python version 3.13.
 - On Windows, `pip install uv`
 
 5. Navigate to project's python directory by typing `cd python`.
-6. Run `source setup-python.sh`
-7. Run `pytest` and see tests run successfully.
-8. Still in python folder, run `pip install -e .` to install rules-engine.
+6. Still in python folder, run `pip install -e .` to install rules-engine.
+7. Run `source setup-python.sh`
+8. Run `pytest` and see tests run successfully.
    Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 
