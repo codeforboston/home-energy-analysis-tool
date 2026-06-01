@@ -61,12 +61,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	return (
 		<fieldset>
-			<legend className={`${titleClass} ${componentMargin}`}>
-				Existing Heating System
-			</legend>
+
+
+			<div className={`${titleClass} ${componentMargin}`}>
+				<span className='mt-6'>Existing Heating System</span>
+			</div>
 
 			{/* <Form method="post" action="/current"> */}
-			<div className={`${componentMargin}`}>
+			<div className={`${componentMargin} mt-4`}>
 				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
 					Fuel Type
 				</Label>

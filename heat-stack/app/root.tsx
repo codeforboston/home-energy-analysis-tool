@@ -191,6 +191,8 @@ function App() {
 			return data.requestInfo.path === '/'
 		}
 	})
+	const caseId = matches.find(m => m.params?.caseId)?.params?.caseId
+	const caseLabel = caseId ? `Case ${caseId}` : "New Case"
 	useToast(data.toast)
 	console.log('Home page rendered.')
 
@@ -225,7 +227,9 @@ function App() {
 							>
 								<div className="mx-auto max-w-5xl text-center">
 									<h1 className="text-4xl font-bold md:text-4xl">
-										Home Energy Analysis Tool (HEAT)
+										Home Energy Analysis Tool (HEAT): <span>
+											{caseLabel}
+										</span>
 									</h1>
 								</div>
 							</section>

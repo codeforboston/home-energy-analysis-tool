@@ -39,7 +39,7 @@ export function MainNav() {
 						key={item.href}
 						to={item.href}
 						className={cn(
-							'text-sm font-medium transition-colors hover:text-primary',
+							'text-lg font-medium transition-colors hover:text-primary',
 							isActive(item.href) ? 'text-foreground' : 'text-muted-foreground',
 						)}
 					>
