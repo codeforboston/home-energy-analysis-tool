@@ -90,20 +90,8 @@ not install NVM, skip `nvm` steps during setup.
    - Before you run `buildpy`, you need to install `uv`
 See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
    - Navigate back to the heat-stack directory
-   On macOS:
-  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
 
-   - Before you run `buildpy`, you need to install `uv`
-See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
-   - Navigate back to the heat-stack directory
    On macOS:
-  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
-
-   - Before you run `buildpy`, you need to install `uv`
-   - On MacOS `brew install uv`
-- Before you run `buildpy`, you need to install `uv`
-See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
-   - Navigate back to the heat-stack directory
 
    ```bash
    npm run buildpy
