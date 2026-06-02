@@ -38,20 +38,27 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
 
 #### Install NVM (Official Method)
 
+NVM is the version manager for NPM, but is not necessary to use it. If you do
+not install NVM, skip `nvm` steps during setup.
+
 1. Download and install NVM:
+
+   In bash shell:
 
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
    ```
 
-   If curl does not work, please download node.js manually:
-   https://nodejs.org/en/download/current If using mac, install with
-   `brew install nvm`.
+   If curl does not work, please download node.js version 22 manually:
+   https://nodejs.org/en/download/current
+
+   If using mac, install with `brew install nvm`.
 
 2. Restart your terminal. Ensure NVM is installed by running:
    ```bash
    nvm --version
    ```
+   If command cannot be found, add nvm to your environment variable (PATH).
 3. Install Node.js version 22:
    ```bash
    nvm install 22
@@ -77,19 +84,37 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    ```bash
    npm install
    ```
-4. Build the rules engine into the `public/pyodide-env` folder:
+4. Build the rules engine into the `public/pyodide-env` folder: Close Bash and
+  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
+
+   - Before you run `buildpy`, you need to install `uv`
+See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
+   - Navigate back to the heat-stack directory
+   On macOS:
+  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
+
+   - Before you run `buildpy`, you need to install `uv`
+See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
+   - Navigate back to the heat-stack directory
+   On macOS:
+  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
+
    - Before you run `buildpy`, you need to install `uv`
    - On MacOS `brew install uv`
-   - On Windows
-     - Open a WSL terminal
-     - If you lack Homebrew,
-       - Install Homebrew with
-         `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-     - Follow the steps that appear in the prompt following Homebrew
-       installation
+- Before you run `buildpy`, you need to install `uv`
+See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
+   - Navigate back to the heat-stack directory
+
    ```bash
    npm run buildpy
    ```
+
+   on Windows:
+
+   ```bash
+   npm run buildpy-windows
+   ```
+
 5. Copy the example environment file into a new `.env` file:
    ```bash
    cp .env.example .env
@@ -102,6 +127,11 @@ for managing Node.js versions (nvm is preinstalled in coding spaces).
    ```bash
    npm run dev
    ```
+
+Note: After the initial setup, run just commands 6 and 7 to start up the project
+again.
+
+- The login is Kody (ask team for password)
 
 If you encounter errors during this process, try the following steps:
 

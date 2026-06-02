@@ -20,7 +20,7 @@ It will also get information from the weather station API that the rules engine 
 Rules engine provides reading, validation and calculations for heat data that are read from the 2 gas companies National Grid and Eversource. https://docs.google.com/document/d/1-CAsHL1WhCPQW8iXA_XXgSUWHZsCKiTsPHOVz9eV0AE/edit?tab=t.0
 
 Definitions:
-    
+
     Balance point: Outdoor temperature beyond which no heating is required.
     Inclusion code: winter=1|spring=0|summer=-1|fall=0( determines the months to be used for heat load calculations)
     Thermostat set point: the temp in F at which the home is normally set.
@@ -28,7 +28,7 @@ Definitions:
     setback_hours_per_day: average # of hours per day the home is at setback temp.
     design_set_point: a standard internal temperature / thermostat it can be read for a county from helpers.py.
     set point - different from the preferred set point of an individual homeowner.
-    avg_indoor_temp: average indoor temperature on a given day 
+    avg_indoor_temp: average indoor temperature on a given day
     `((24 - setback_hours_per_day) * thermostat_set_point + setback_hours_per_day * setback_temperature) / 24`
     design_temp: an outside temperature that represents one of the coldest days of the year for the given location of a home.
     ua: the heat transfer coefficient
@@ -37,11 +37,11 @@ Definitions:
     maximun heat load: `(design_set_point - design_temp) * ua`
 
 Documentation:
-        
+
         - design_temp [README.md](/design_temp/README.md)
 
 Calculations:
-    
+
     The data files for each home is used to calculate the heat load for the home irrespective of the fuel type used. The data is normalized to be fuel type agnostic and the intermediate bill that is generated converts temperature data and billing period inputs into internal classes used for heat loss calculations.
 
 Validations:
@@ -61,7 +61,6 @@ Tests:
         - Identify gas company
         - Error of neither of the 2 Nation Grid/ Eversource
 
-
 ### Auth
 
 Role based Authorization, used from epic stack. For further documentation refer to
@@ -77,9 +76,9 @@ The epic stack uses Fly.io for default deployment. This application works with i
 
 ### Installation
 
-To install the front end, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
+1. To install the rules engine, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md)
 
-To install the rules engine, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md)
+2. To install the front end, see this [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 ### Documentation
 
