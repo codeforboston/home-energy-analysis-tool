@@ -12,7 +12,7 @@ This project uses Python version 3.13.
 
 - On MacOS: `brew install pre-commit`
 - On Windows:
-  - Open a WSL terminal
+  - Open a Git Bash terminal
   - If you lack Homebrew,
     - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
     - Follow the steps that appear in the prompt following Homebrew installation
