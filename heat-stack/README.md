@@ -85,10 +85,11 @@ not install NVM, skip `nvm` steps during setup.
    npm install
    ```
 4. Build the rules engine into the `public/pyodide-env` folder: Close Bash and
-  and on Windows, reopen Git Bash with Admin permissions (right click and Run as Administrator).
+   and on Windows, reopen Git Bash with Admin permissions (right click and Run
+   as Administrator).
 
-   - Before you run `buildpy`, you need to install `uv`
-See the [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
+   - Before you run `buildpy`, you need to install `uv` See the
+     [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
    - Navigate back to the heat-stack directory
 
    On macOS:
