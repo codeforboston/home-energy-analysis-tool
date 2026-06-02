@@ -15,6 +15,8 @@ export async function loader() {
 			email: true,
 			username: true,
 			name: true,
+			city: true,
+			state: true,
 			roles: { select: { name: true } },
 		},
 	})
@@ -62,9 +64,25 @@ export default function AdminEditUsers() {
 			email: string
 			username: string
 			name: string | null
+			city: string | null
+			state: string | null
 			roles?: { name: string }[]
 		}>
 	}
+	const [searchTerm, setSearchTerm] = useState('')
+	const filteredUsers = users.filter((user) =>
+		[
+			user.name,
+			user.email,
+			user.username,
+			user.city,
+			user.state,
+		]
+			.filter(Boolean)
+			.some((value) =>
+			value!.toLowerCase().includes(searchTerm.toLowerCase()),
+			),
+	)
 	const loggedInUser = useOptionalUser()
 
 	const [editingId, setEditingId] = useState<string | null>(null)
@@ -78,21 +96,53 @@ export default function AdminEditUsers() {
 	}
 	return (
 		<div className="container mt-10" id="users-page">
-			<h2 className="mb-6 text-h2">Edit Users (Admin Only)</h2>
+			
+			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
+				<h2 className="text-3xl font-bold">Edit Users (Admin Only)</h2>
+
+				<div className="flex flex-1 justify-end">
+					<div className="relative w-full max-w-sm">
+						<div className="absolute left-4 top-1/2 -translate-y-1/2">
+							<Icon
+								name="magnifying-glass"
+								className="h-5 w-5 text-emerald-600"
+							/>
+						</div>
+
+						<input
+							type="search"
+							name="search"
+							placeholder="Search users..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className="w-full rounded-full border-2 border-emerald-500 bg-white py-2.5 pl-12 pr-4 text-sm shadow-md transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+						/>
+					</div>
+				</div>
+			</div>
+				
 			<div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">City</div>
+				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">State</div>
 				<div className="flex min-w-[120px] items-center gap-2 px-2">Admin</div>
 				<div className="ml-2 px-2">Edit</div>
 			</div>
 			<ul className="divide-y divide-muted">
-				{users.map((u) => {
+				{filteredUsers.map((u) => {
 					const isEditing = editingId === u.id
 					return (
 						<li key={u.id} className="flex items-center gap-6 py-4 text-base">
 							{!isEditing ? (
 								<div className="flex w-full items-center gap-4">
+									<div
+										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
+										id={`name_${u.username}_display`}
+									>
+										{u.name ?? ''}
+									</div>
 									<div
 										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
 										id={`email_${u.username}_display`}
@@ -107,9 +157,15 @@ export default function AdminEditUsers() {
 									</div>
 									<div
 										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`name_${u.username}_display`}
+										id={`username_${u.username}_display`}
 									>
-										{u.name ?? ''}
+										{u.city}
+									</div>
+									<div
+										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
+										id={`username_${u.username}_display`}
+									>
+										{u.state}
 									</div>
 									<div className="flex min-w-[120px] items-center px-2">
 										<input

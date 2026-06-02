@@ -23,10 +23,24 @@ import { type Route } from './+types/onboarding.ts'
 
 export const onboardingEmailSessionKey = 'onboardingEmail'
 
+export const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE',
+  'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS',
+  'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS',
+  'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY',
+  'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV',
+  'WI', 'WY',
+] as const
+
 const SignupFormSchema = z
 	.object({
 		username: UsernameSchema,
 		name: NameSchema,
+		city: z.string().min(3, 'City/Town is required'),
+    	state: z.enum(US_STATES, {
+			errorMap: () => ({ message: 'Please select a state' }),
+		}),
 		agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
 			required_error:
 				'You must agree to the terms of service and privacy policy',
@@ -52,6 +66,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 	const email = await requireOnboardingEmail(request)
 	return { email }
 }
+
+
 
 export async function action({ request }: Route.ActionArgs) {
 	const email = await requireOnboardingEmail(request)
@@ -170,6 +186,39 @@ export default function OnboardingRoute({
 						}}
 						errors={fields.name.errors}
 					/>
+					<Field
+						labelProps={{
+							htmlFor: fields.city.id,
+							children: 'City/Town',
+						}}
+						inputProps={{
+							...getInputProps(fields.city, { type: 'text' }),
+						}}
+						errors={fields.city.errors}
+					/>
+
+					<div className="flex flex-col gap-1 mb-8">
+						<label htmlFor={fields.state.id} className='font-medium'>State</label>
+
+						<select
+							{...getInputProps(fields.state, { type: 'text' })}
+							defaultValue=""
+							className="rounded border px-3 py-2"
+						>
+							<option value="">Select a State</option>
+
+							{US_STATES.map((state) => (
+							<option key={state} value={state}>
+								{state}
+							</option>
+							))}
+						</select>
+
+						<ErrorList
+							errors={fields.state.errors}
+							id={fields.state.errorId}
+						/>
+					</div>
 					<Field
 						labelProps={{ htmlFor: fields.password.id, children: 'Password' }}
 						inputProps={{
