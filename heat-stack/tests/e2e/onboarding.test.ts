@@ -24,6 +24,8 @@ const test = base.extend<{
 	getOnboardingData(): {
 		username: string
 		name: string
+		city: string,
+		state: string,
 		email: string
 		password: string
 	}
@@ -34,6 +36,8 @@ const test = base.extend<{
 			const onboardingData = {
 				...userData,
 				password: faker.internet.password(),
+				city: 'Boston',
+				state: 'MA',
 			}
 			return onboardingData
 		})
@@ -85,6 +89,13 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 		.fill(onboardingData.username)
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
+
+	await page
+	.getByRole('textbox', { name: /city/i })
+	.fill(onboardingData.city)
+
+	await page.getByLabel(/state/i)
+	.selectOption(onboardingData.state)
 
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 
