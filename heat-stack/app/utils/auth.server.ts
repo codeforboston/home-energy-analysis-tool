@@ -112,19 +112,19 @@ export async function resetUserPassword({
 }
 
 export async function signup({
-  email,
-  username,
-  password,
-  name,
-  city,
-  state,
+	email,
+	username,
+	password,
+	name,
+	city,
+	state,
 }: {
-  email: User['email']
-  username: User['username']
-  name: User['name']
-  city: User['city']
-  state: User['state']
-  password: string
+	email: User['email']
+	username: User['username']
+	name: User['name']
+	city: User['city']
+	state: User['state']
+	password: string
 }) {
 	const hashedPassword = await getPasswordHash(password)
 

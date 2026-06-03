@@ -24,8 +24,8 @@ const test = base.extend<{
 	getOnboardingData(): {
 		username: string
 		name: string
-		city: string,
-		state: string,
+		city: string
+		state: string
 		email: string
 		password: string
 	}
@@ -90,12 +90,9 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
 
-	await page
-	.getByRole('textbox', { name: /city/i })
-	.fill(onboardingData.city)
+	await page.getByRole('textbox', { name: /city/i }).fill(onboardingData.city)
 
-	await page.getByLabel(/state/i)
-	.selectOption(onboardingData.state)
+	await page.getByLabel(/state/i).selectOption(onboardingData.state)
 
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 

@@ -71,17 +71,9 @@ export default function AdminEditUsers() {
 	}
 	const [searchTerm, setSearchTerm] = useState('')
 	const filteredUsers = users.filter((user) =>
-		[
-			user.name,
-			user.email,
-			user.username,
-			user.city,
-			user.state,
-		]
+		[user.name, user.email, user.username, user.city, user.state]
 			.filter(Boolean)
-			.some((value) =>
-			value!.toLowerCase().includes(searchTerm.toLowerCase()),
-			),
+			.some((value) => value!.toLowerCase().includes(searchTerm.toLowerCase())),
 	)
 	const loggedInUser = useOptionalUser()
 
@@ -96,7 +88,6 @@ export default function AdminEditUsers() {
 	}
 	return (
 		<div className="container mt-10" id="users-page">
-			
 			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
 				<h2 className="text-3xl font-bold">Edit Users (Admin Only)</h2>
 
@@ -120,7 +111,7 @@ export default function AdminEditUsers() {
 					</div>
 				</div>
 			</div>
-				
+
 			<div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
 				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
