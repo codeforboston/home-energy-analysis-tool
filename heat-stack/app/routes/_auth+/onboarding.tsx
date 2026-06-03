@@ -27,7 +27,7 @@ const SignupFormSchema = z
 		username: UsernameSchema,
 		// name: NameSchema,
 		firstName: z.string().min(3, 'First name is required'),
-    	lastName: z.string().min(1, 'Last name is required'),
+		lastName: z.string().min(1, 'Last name is required'),
 		agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
 			required_error:
 				'You must agree to the terms of service and privacy policy',
