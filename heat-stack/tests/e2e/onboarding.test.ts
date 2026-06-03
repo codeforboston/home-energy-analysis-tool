@@ -23,6 +23,8 @@ function extractUrl(text: string) {
 const test = base.extend<{
 	getOnboardingData(): {
 		username: string
+		firstName: string
+		lastName: string
 		name: string
 		email: string
 		password: string
@@ -30,9 +32,14 @@ const test = base.extend<{
 }>({
 	getOnboardingData: async ({}, use) => {
 		const userData = createUser()
+		const parts = userData.name.split(' ')
+		const firstName = parts[0]!
+		const lastName = parts.slice(1).join(' ')
 		await use(() => {
 			const onboardingData = {
 				...userData,
+				firstName,
+				lastName,
 				password: faker.internet.password(),
 			}
 			return onboardingData
@@ -84,7 +91,13 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 		.getByRole('textbox', { name: /^username/i })
 		.fill(onboardingData.username)
 
-	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
+	await page.getByRole('textbox', { name: /first name/i })
+		.fill(onboardingData.firstName)
+
+	await page.getByRole('textbox', { name: /last name/i })
+		.fill(onboardingData.lastName)
+
+	// await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
 
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 
