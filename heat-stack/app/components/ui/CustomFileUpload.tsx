@@ -41,7 +41,9 @@ export function CustomFileUpload({ name }: { name: string }) {
 				<HelpButton keyName="download.help" />
 			</div>
 
-			<div className="mt-1 text-sm text-gray-600 mb-6">The file must be a CSV.</div>
+			<div className="mb-6 mt-1 text-sm text-gray-600">
+				The file must be a CSV.
+			</div>
 		</div>
 	)
 }
