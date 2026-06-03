@@ -16,12 +16,12 @@ export function calculateMaxHeatLoad(
 	temperature: number,
 	designSetPoint: number,
 ): number {
-	return Math.round(
-		Math.max(
-			0,
-			(designSetPoint - temperature) * whole_home_heat_loss_rate,
-		) / 100,
+	return (
+		Math.round(
+			Math.max(0, (designSetPoint - temperature) * whole_home_heat_loss_rate) /
+				100,
 		) * 100
+	)
 }
 
 /**
@@ -43,16 +43,18 @@ export function calculateAvgHeatLoad(
 		average_indoor_temperature,
 		estimated_balance_point,
 	} = heatLoadSummary
-	return Math.round(
-		Math.max(
-			0,
-			(designSetPoint -
-			average_indoor_temperature +
-			estimated_balance_point -
-			temperature) *
-			whole_home_heat_loss_rate,
-		) / 100,
-	) * 100
+	return (
+		Math.round(
+			Math.max(
+				0,
+				(designSetPoint -
+					average_indoor_temperature +
+					estimated_balance_point -
+					temperature) *
+					whole_home_heat_loss_rate,
+			) / 100,
+		) * 100
+	)
 }
 
 /**
