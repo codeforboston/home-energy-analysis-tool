@@ -146,6 +146,14 @@ export default function Cases({
 												</Link>
 											</div>
 										</td>
+
+										{isAdmin && (
+											<td className="whitespace-nowrap px-6 py-4">
+												<div className="text-sm text-gray-900">
+													{caseItem.users.map((u) => u.username).join(', ')}
+												</div>
+											</td>
+										)}
 										<td className="whitespace-nowrap px-6 py-4">
 											<div className="text-sm text-gray-900">
 												{caseItem.homeOwner.firstName1}{' '}
