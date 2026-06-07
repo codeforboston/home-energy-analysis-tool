@@ -24,7 +24,6 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	// Create a state to track the percentage value
 	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
 		() => {
-			// Initialize from the field's default value or initial value
 			const value =
 				props.fields.heating_system_efficiency.value ||
 				props.fields.heating_system_efficiency.defaultValue

@@ -2,8 +2,9 @@ import * as pyodideModule from 'pyodide'
 import { type PyodideInterface } from 'pyodide'
 import { type z } from '#node_modules/zod'
 import { type PyProxy } from '#public/pyodide-env/ffi.js'
+import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { type Schema } from '#types/single-form.ts'
-import getAnalyticsPyCode from '../pycode/get_analytics.py?raw'
+import getNormalizedOutputPyCode from '../pycode/get_normalized_output.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
 import { safeDestroy } from './pyodide'
@@ -76,12 +77,11 @@ export const executeParseGasBillPy: ExecuteParseFunction =
 	await pyodide.runPythonAsync(parseGasBillPyCode + '\nexecuteParse')
 
 /**
- * Full call with csv data
- * call to get_outputs_natural_gas
+ * See defn of args and natural gas conversion in ../pycode/get_normalized_output.py?raw
  */
-export const executeGetAnalyticsFromFormJs: ExecuteGetAnalyticsFunction =
+export const executeGetNormalizedOutput: ExecuteGetNormalizedOutputFunction =
 	await pyodide.runPythonAsync(
-		getAnalyticsPyCode + '\nexecuteGetAnalyticsFromForm',
+		getNormalizedOutputPyCode + '\nexecuteGetNormalizedOutput',
 	)
 
 /**
@@ -99,11 +99,11 @@ export type ExecuteParseFunction = ((csvDataJs: string) => PyProxy) & {
 	toJs?(): any
 }
 
-// Type for the execute analytics function - notice we're using Maps now
-type ExecuteGetAnalyticsFunction = ((
+// Type for the execute normalized output function
+type ExecuteGetNormalizedOutputFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
-	csvDataJs: string,
+	gasBillingDataJs: NaturalGasUsageDataSchema,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {
@@ -147,7 +147,7 @@ type ExecuteRoundtripAnalyticsFunction = ((
 // When you're done with your application or this module, call this to destroy all the Python function proxies
 export function cleanupPyodideProxies() {
 	safeDestroy(executeParseGasBillPy)
-	safeDestroy(executeGetAnalyticsFromFormJs)
+	safeDestroy(executeGetNormalizedOutput)
 	safeDestroy(executeRoundtripAnalyticsFromFormJs)
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// pyodide.destroy(); // If supported by your pyodide version
