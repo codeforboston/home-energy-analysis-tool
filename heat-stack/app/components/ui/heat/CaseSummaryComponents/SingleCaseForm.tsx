@@ -175,7 +175,7 @@ export default function SingleCaseForm({
 			>
 				{/* Ensure intent is always sent for autosave */}
 				{isEditMode && <input type="hidden" name="intent" value="save" />}
-				<div>Case {caseInfo?.caseId}</div>
+				{/* <div>Case {caseInfo?.caseId}</div> */}
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
 					<input
