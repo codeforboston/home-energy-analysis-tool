@@ -148,13 +148,13 @@ export default function AdminEditUsers() {
 									</div>
 									<div
 										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`username_${u.username}_display`}
+										id={`city_${u.username}_display`}
 									>
 										{u.city}
 									</div>
 									<div
 										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`username_${u.username}_display`}
+										id={`state_${u.username}_display`}
 									>
 										{u.state}
 									</div>

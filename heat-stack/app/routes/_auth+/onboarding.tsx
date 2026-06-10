@@ -82,7 +82,7 @@ const SignupFormSchema = z
 		name: NameSchema,
 		city: z.string().min(3, 'City/Town is required'),
 		state: z.enum(US_STATES, {
-			errorMap: () => ({ message: 'Please select a state' }),
+			errorMap: () => ({ message: 'Please pick a state' }),
 		}),
 		agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
 			required_error:
@@ -248,7 +248,7 @@ export default function OnboardingRoute({
 							defaultValue=""
 							className="rounded border px-3 py-2"
 						>
-							<option value="">Select a State</option>
+							<option value="">Pick a State</option>
 
 							{US_STATES.map((state) => (
 								<option key={state} value={state}>
