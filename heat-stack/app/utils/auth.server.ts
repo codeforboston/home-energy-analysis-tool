@@ -116,10 +116,14 @@ export async function signup({
 	username,
 	password,
 	name,
+	city,
+	state,
 }: {
 	email: User['email']
 	username: User['username']
 	name: User['name']
+	city: User['city']
+	state: User['state']
 	password: string
 }) {
 	const hashedPassword = await getPasswordHash(password)
@@ -132,6 +136,8 @@ export async function signup({
 					email: email.toLowerCase(),
 					username: username.toLowerCase(),
 					name,
+					city,
+					state,
 					roles: { connect: { name: 'user' } },
 					password: {
 						create: {
