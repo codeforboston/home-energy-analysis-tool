@@ -4,6 +4,9 @@
 
 **Original method**: An Excel spreadsheet with formulas that perform the calculations. Inputs to the existing spreadsheet include historic energy usage, typical thermostat settings, and temperature data from a weather station close to the home. More info on this existing spreadsheet and a link to request a download are available from the HeatSmart Alliance at [this link](https://heatsmartalliance.org/coaching-tools/heat-load-analysis/).
 
+**Visit the Live Version**:
+The live version of this project can be found at [heat.heatsmartalliance.org](https://heat.heatsmartalliance.org)!
+
 ## Teams
 
 ### UI/UX and/or Design
