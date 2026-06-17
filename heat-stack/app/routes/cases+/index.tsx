@@ -35,7 +35,8 @@ export default function Cases({
         () =>    
             new Fuse(cases, {
                 keys: ["homeOwner.firstName1","homeOwner.lastName1", "users.some.email", "users.some.username", "location.city", "location.state","location.address","location.zipcode"],
-                includeScore:true
+                includeScore:true,
+                threshold:0.3,
             })
         ,
         [cases]

@@ -74,7 +74,9 @@ export default function AdminEditUsers() {
     const fuse = useMemo(
         () => 
             new Fuse(users,{
-                keys:["name","email","username","city","state"]
+                keys:["name","email","username","city","state"],
+                includeScore:true,
+                threshold:0.3,
             }),
         [users]
     ) 
