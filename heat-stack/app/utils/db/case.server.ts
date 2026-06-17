@@ -102,6 +102,11 @@ export const getCases = async (
 	search?: string | null,
 	isAdmin?: boolean,
 ) => {
+
+    // TODO: replace ME
+    search = ""
+    // TODO
+
 	let where1 = undefined
 	let where2 = undefined
 

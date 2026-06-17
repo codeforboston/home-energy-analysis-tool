@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js'
 import { useMemo, useState } from 'react'
 import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -5,7 +6,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
-import Fuse from 'fuse.js'
+
 export async function loader() {
 	// Only admins can access
 	// This should be enforced in the route config or loader
