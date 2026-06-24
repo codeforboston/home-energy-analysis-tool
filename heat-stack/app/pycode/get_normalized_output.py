@@ -29,9 +29,13 @@ def executeGetNormalizedOutput(
     gasBillsFromJs = gasBillsJs.to_py()
     gasBills = gasBillsFromJs.get("records")
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+    if summaryInputFromJs.get("design_temperature_override") == None:
+        design_temp = helpers.get_design_temp(state_id, county_id)
+    else:
+        design_temp = summaryInputFromJs.get("design_temperature_override")
+
     summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
+        **summaryInputFromJs, design_temperature=design_temp
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
