@@ -112,12 +112,16 @@ not install NVM, skip `nvm` steps during setup.
    ```bash
    npm run setup
    ```
-7. Start the development server:
+7. Seed the database with initial data:
+   ```bash
+   npx prisma db seed
+   ```
+8. Start the development server:
    ```bash
    npm run dev
    ```
 
-Note: After the initial setup, run just commands 6 and 7 to start up the project
+Note: After the initial setup, run just commands 6, 7, and 8 to start up the project
 again.
 
 - The login is Kody (ask team for password)
@@ -161,6 +165,7 @@ If using GitHub Codespaces, follow these steps:
    npm install
    npm run buildpy
    npm run setup
+   npx prisma db seed
    npm run dev
    ```
 5. Disable auto-save in VSCode (this is to avoid auto recompiling and page
@@ -235,6 +240,7 @@ Below is a table summarizing the available scripts in the project:
 | `npm run format`           | Formats the codebase using Prettier.                                             |
 | `npm run lint`             | Lints the codebase using ESLint.                                                 |
 | `npm run setup`            | Runs setup tasks including building, migrations, and Playwright setup.           |
+| `npx prisma db seed`       | Seeds the database with initial data.                                            |
 | `npm run start`            | Starts the application in production mode.                                       |
 | `npm run start:mocks`      | Starts the application with mock data in production mode.                        |
 | `npm run test`             | Runs unit tests and builds the Python rules engine.                              |
