@@ -4,6 +4,7 @@ import { invariantResponse } from '@epic-web/invariant'
 import { data, redirect, useFetcher, useFetchers } from 'react-router'
 import { ServerOnly } from 'remix-utils/server-only'
 import { z } from 'zod'
+import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { useHints, useOptionalHints } from '#app/utils/client-hints.tsx'
 import {
@@ -86,12 +87,14 @@ export function ThemeSwitch({
 			</ServerOnly>
 			<input type="hidden" name="theme" value={nextMode} />
 			<div className="flex gap-2">
-				<button
+				<Button
 					type="submit"
+					variant="ghost"
+					size="icon"
 					className="flex h-8 w-8 cursor-pointer items-center justify-center"
 				>
 					{modeLabel[mode]}
-				</button>
+				</Button>
 			</div>
 		</fetcher.Form>
 	)
