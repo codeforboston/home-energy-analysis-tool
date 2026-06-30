@@ -7,7 +7,6 @@ import urllib.request
 import json
 from datetime import date
 
-
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent.parent / "data"
 DESIGN_TEMP_FILE = DESIGN_TEMP_DIR / "merged_structure_temps.csv"
 
@@ -61,7 +60,7 @@ def get_design_temp(state_id: str, county_id: str) -> int:
 
 def _urlopen(url):
     try:
-        from pyodide.http import open_url
+        from pyodide.http import open_url  # type: ignore[import]
 
         return open_url(url).read()
     except ImportError:
