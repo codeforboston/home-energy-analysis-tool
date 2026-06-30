@@ -1,6 +1,8 @@
 from datetime import date
-from rules_engine.helpers import calculate_design_temperature, get_date_range
+
 from pytest import approx
+
+from rules_engine.helpers import calculate_design_temperature, get_date_range
 
 LAT = 42.29244555
 LON = -70.98631661

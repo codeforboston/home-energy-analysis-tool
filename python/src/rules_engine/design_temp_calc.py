@@ -1,9 +1,9 @@
-from datetime import date
+import json
 import statistics
+import time
 import urllib.parse
 import urllib.request
-import json
-import time
+from datetime import date
 
 # Project name: design temperature calculator
 

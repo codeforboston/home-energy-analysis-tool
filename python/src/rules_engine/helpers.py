@@ -1,13 +1,11 @@
 import csv
-import pathlib
-import time
-import statistics
 import json
-from datetime import date
-
+import pathlib
+import statistics
+import time
 import urllib.parse
 import urllib.request
-
+from datetime import date
 
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent.parent / "data"
 DESIGN_TEMP_FILE = DESIGN_TEMP_DIR / "merged_structure_temps.csv"
