@@ -61,9 +61,9 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	return (
 		<fieldset>
-			<div className={`${titleClass} ${componentMargin}`}>
+			<legend className={`${titleClass} ${componentMargin}`}>
 				<span className="mt-6">Existing Heating System</span>
-			</div>
+			</legend>
 
 			{/* <Form method="post" action="/current"> */}
 			<div className={`${componentMargin} mt-4`}>
