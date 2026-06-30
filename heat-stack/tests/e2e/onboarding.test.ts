@@ -103,8 +103,6 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 		.getByRole('textbox', { name: /last name/i })
 		.fill(onboardingData.lastName)
 
-	// await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
-
 	await page.getByRole('textbox', { name: /city/i }).fill(onboardingData.city)
 
 	await page.getByLabel(/state/i).selectOption(onboardingData.state)

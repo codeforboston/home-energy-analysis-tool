@@ -78,7 +78,6 @@ export const US_STATES = [
 const SignupFormSchema = z
 	.object({
 		username: UsernameSchema,
-		// name: NameSchema,
 		firstName: z.string().min(3, 'First name is required'),
 		lastName: z.string().min(1, 'Last name is required'),
 		city: z.string().min(3, 'City/Town is required'),
