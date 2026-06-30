@@ -121,7 +121,6 @@ not install NVM, skip `nvm` steps during setup.
    npm run dev
    ```
 
-
 Note: After the initial setup, run just commands 6 and 7 to start up the project
 again.
 
