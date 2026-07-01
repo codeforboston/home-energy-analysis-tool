@@ -14,7 +14,6 @@ import { useIsPending } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import {
-	NameSchema,
 	PasswordAndConfirmPasswordSchema,
 	UsernameSchema,
 } from '#app/utils/user-validation.ts'
@@ -79,7 +78,8 @@ export const US_STATES = [
 const SignupFormSchema = z
 	.object({
 		username: UsernameSchema,
-		name: NameSchema,
+		firstName: z.string().min(3, 'First name is required'),
+		lastName: z.string().min(1, 'Last name is required'),
 		city: z.string().min(3, 'City/Town is required'),
 		state: z.enum(US_STATES, {
 			errorMap: () => ({ message: 'Please pick a state' }),
@@ -132,8 +132,19 @@ export async function action({ request }: Route.ActionArgs) {
 			}).transform(async (data) => {
 				if (intent !== null) return { ...data, session: null }
 
-				const session = await signup({ ...data, email })
-				return { ...data, session }
+				const formattedName = `${data.lastName}, ${data.firstName}`
+
+				const session = await signup({
+					...data,
+					email,
+					name: formattedName,
+				})
+
+				return {
+					...data,
+					name: formattedName,
+					session,
+				}
 			}),
 		async: true,
 	})
@@ -220,12 +231,27 @@ export default function OnboardingRoute({
 						errors={fields.username.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-						inputProps={{
-							...getInputProps(fields.name, { type: 'text' }),
-							autoComplete: 'name',
+						labelProps={{
+							htmlFor: fields.firstName.id,
+							children: 'First Name',
 						}}
-						errors={fields.name.errors}
+						inputProps={{
+							...getInputProps(fields.firstName, { type: 'text' }),
+							autoComplete: 'given-name',
+						}}
+						errors={fields.firstName.errors}
+					/>
+
+					<Field
+						labelProps={{
+							htmlFor: fields.lastName.id,
+							children: 'Last Name',
+						}}
+						inputProps={{
+							...getInputProps(fields.lastName, { type: 'text' }),
+							autoComplete: 'family-name',
+						}}
+						errors={fields.lastName.errors}
 					/>
 					<Field
 						labelProps={{
