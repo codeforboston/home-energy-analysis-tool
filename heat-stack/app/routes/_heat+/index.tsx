@@ -3,43 +3,108 @@ import { Link } from 'react-router'
 export default function HEATLandingPage() {
 	return (
 		<div className="flex min-h-screen flex-col">
-			{/* Hero Section */}
+			{/* Hero Banner - identical to login page and all inside pages */}
 			<section
-				className="bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-20 text-white"
+				className="bg-gradient-to-r from-emerald-600 to-teal-500 py-5 text-white"
 				style={{ borderRadius: '10px' }}
 			>
 				<div className="mx-auto max-w-5xl text-center">
-					<h1 className="text-5xl font-bold md:text-6xl">
-						Home Energy Analysis Tool (HEAT){' '}
+					<h1 className="text-4xl font-bold md:text-4xl">
+						Home Energy Analysis Tool (HEAT)
 					</h1>
-					<p className="mb-8 mt-6 text-xl md:text-2xl">
-						Right-Size Your Heat Pump
-					</p>
-					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						<Link
-							to="/cases/new"
-							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-						>
-							Get Started (with Empty Form)
-						</Link>
-						<Link
-							to="/cases/new?dev=true"
-							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-						>
-							Get Started (with Demo Data)
-						</Link>
-						<a
-							href="#learn-more"
-							className="inline-block rounded-lg border-2 border-white px-8 py-4 font-semibold text-white transition-all hover:bg-white hover:text-emerald-700"
-						>
-							Learn More
-						</a>
+				</div>
+			</section>
+
+			{/* Why Use HEAT Section */}
+			<section className="bg-white px-4 py-16">
+				<div className="mx-auto max-w-5xl">
+					<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
+						Why Use HEAT
+					</h2>
+
+					<div className="grid gap-8 md:grid-cols-3">
+						<div className="rounded-lg border border-emerald-200 bg-gray-50 p-6 shadow-md">
+							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									className="h-8 w-8 text-emerald-600"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+									/>
+								</svg>
+							</div>
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Ready for a Heat Pump?
+							</h3>
+							<p className="text-gray-600">
+								Is a home well enough sealed and insulated for heat pump
+								success?
+							</p>
+						</div>
+
+						<div className="rounded-lg border border-emerald-200 bg-gray-50 p-6 shadow-md">
+							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									className="h-8 w-8 text-emerald-600"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+									/>
+								</svg>
+							</div>
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Evaluate Proposals
+							</h3>
+							<p className="text-gray-600">
+								Is the heating capacity of a proposed heat pump system
+								appropriate for a home?
+							</p>
+						</div>
+
+						<div className="rounded-lg border border-emerald-200 bg-gray-50 p-6 shadow-md">
+							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									className="h-8 w-8 text-emerald-600"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+									/>
+								</svg>
+							</div>
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Compare with Manual J
+							</h3>
+							<p className="text-gray-600">
+								HEAT serves as a fast and easy check on Manual J analysis.
+							</p>
+						</div>
 					</div>
 				</div>
 			</section>
 
 			{/* Features Section */}
-			<section id="learn-more" className="bg-white px-4 py-16">
+			<section id="learn-more" className="bg-gray-50 px-4 py-16">
 				<div className="mx-auto max-w-5xl">
 					<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
 						How HEAT Works
@@ -67,8 +132,8 @@ export default function HEATLandingPage() {
 								Easy Data Input
 							</h3>
 							<p className="text-gray-600">
-								Upload historical energy usage data from utility bills and
-								provide basic information about your home.
+								Provide basic information about your home and upload historical
+								energy use obtained from bills or the utility company.
 							</p>
 						</div>
 
@@ -93,8 +158,9 @@ export default function HEATLandingPage() {
 								Accurate Analysis
 							</h3>
 							<p className="text-gray-600">
-								Our algorithm calculates your home's precise heating
-								requirements using weather data and energy consumption patterns.
+								HEAT uses your inputs and historical outdoor temperature data at
+								the home's location to accurately estimate the home's overall
+								heat loss rate and total design heating load.
 							</p>
 						</div>
 
@@ -119,8 +185,9 @@ export default function HEATLandingPage() {
 								Visual Results
 							</h3>
 							<p className="text-gray-600">
-								Get clear heat load charts and size recommendations that help
-								you make informed decisions about heat pump systems.
+								Get clear charts with assessing the home's weatherization, i.e.
+								is it ready for heat pumps, and properly sizing the heat pump
+								for its heating needs.
 							</p>
 						</div>
 					</div>

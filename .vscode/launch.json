@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Chrome (Remix)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/heat-stack/app",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/heat-stack/app/**",
+                "!**/node_modules/**"
+            ],
+            "sourceMapPathOverrides": {
+                "webpack:///./app/*": "${webRoot}/*"
+            }
+        },
+        {
+            "name": "Debug Remix Server (Node)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/heat-stack",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "skipFiles": ["<node_internals>/**"],
+            "console": "integratedTerminal"
+        }
+    ]
+}
