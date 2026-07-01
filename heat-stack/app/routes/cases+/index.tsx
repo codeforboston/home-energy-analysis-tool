@@ -1,5 +1,6 @@
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { Input } from '#app/components/ui/input.tsx'
 import {
 	getCases,
 	getLoggedInUserFromRequest,
@@ -45,7 +46,7 @@ export default function Cases({
 								className="h-5 w-5 text-emerald-600"
 							/>
 						</div>
-						<input
+						<Input
 							type="search"
 							name="search"
 							defaultValue={search ?? ''}
