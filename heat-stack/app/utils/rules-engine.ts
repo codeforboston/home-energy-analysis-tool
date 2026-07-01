@@ -28,6 +28,7 @@ const getPyodide = async (): Promise<PyodideInterface> => {
 
 const runPythonScript = async (): Promise<PyodideInterface> => {
 	const pyodide: PyodideInterface = await getPyodide()
+	pyodide.setDebug(true)
 	return pyodide
 }
 
@@ -104,6 +105,10 @@ type ExecuteGetNormalizedOutputFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	gasBillingDataJs: NaturalGasUsageDataSchema,
+	coordinates: {
+		x: number
+		y: number
+	} | undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {
@@ -146,9 +151,9 @@ type ExecuteRoundtripAnalyticsFunction = ((
 }
 // When you're done with your application or this module, call this to destroy all the Python function proxies
 export function cleanupPyodideProxies() {
-	safeDestroy(executeParseGasBillPy)
-	safeDestroy(executeGetNormalizedOutput)
-	safeDestroy(executeRoundtripAnalyticsFromFormJs)
+	// safeDestroy(executeParseGasBillPy)
+	// safeDestroy(executeGetNormalizedOutput)
+	// safeDestroy(executeRoundtripAnalyticsFromFormJs)
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// pyodide.destroy(); // If supported by your pyodide version
 }

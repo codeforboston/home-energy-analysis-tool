@@ -13,7 +13,7 @@ from rules_engine.pydantic_models import (  # type: ignore
 
 
 def executeGetNormalizedOutput(
-    summaryInputJs, temperatureInputJs, gasBillsJs, state_id, county_id
+    summaryInputJs, temperatureInputJs, gasBillsJs, coordinates, state_id, county_id
 ):
     """
     second step: this will be the first time to draw the table
@@ -29,9 +29,23 @@ def executeGetNormalizedOutput(
     gasBillsFromJs = gasBillsJs.to_py()
     gasBills = gasBillsFromJs.get("records")
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+    coordinatesFromJs = coordinates.to_py()
+    latitude = coordinatesFromJs.get("x")
+    longitude = coordinatesFromJs.get("y")
+
+    print("Hello world")
+    start_date, end_date = helpers.get_date_range(30)
+    design_temp, elapsed = helpers.calculate_design_temperature(
+        latitude, longitude, start_date, end_date
+    )
+    print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed))
+
+    # npx prisma, - look at readme
+    # db 
+
+    #design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
+        **summaryInputFromJs, design_temperature=design_temp 
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)

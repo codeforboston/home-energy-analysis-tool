@@ -14,10 +14,18 @@ def executeRoundtripAnalyticsFromForm(
     summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
     temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
 
-    design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+    #design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
+
+    print("Hello world")
+    start_date, end_date = helpers.get_date_range(30)
+    weather_design_temp, elapsed = helpers.calculate_design_temperature(
+        42.29244555, -70.98631661, start_date, end_date
+    )
+    print("The weather design temp was found! " + str(weather_design_temp) + " " + str(elapsed))
+
     # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
     summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp_looked_up
+        **summaryInputFromJs, design_temperature=weather_design_temp #design_temp_looked_up
     )
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)

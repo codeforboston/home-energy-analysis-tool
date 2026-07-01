@@ -160,8 +160,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		},
 		billingRecords,
 		heatLoadOutput,
-		state_id,
-		county_id,
+		coordinates,
 		convertedDatesTIWD,
 	}
 }
