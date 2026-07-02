@@ -23,6 +23,7 @@ import {
 } from '../utility/heat-load-calculations.ts'
 import { CustomLegend } from './HeatLoadGraphLegend.tsx'
 import { HeatLoadGraphToolTip } from './HeatLoadGraphToolTip.tsx'
+import { DiamondShape, SquareShape } from './HeatLoadScatterShapes.tsx'
 
 const X_AXIS_BUFFER_PERCENTAGE_MAX = 1.3 // 30% buffer
 const Y_AXIS_ROUNDING_UNIT = 10000 // Rounding unit for minY and maxY
@@ -148,15 +149,17 @@ export function HeatLoad({
 							type="monotone"
 							dataKey="maxLine"
 							stroke={COLOR_ORANGE}
+							strokeWidth={2}
 							dot={false}
 							name="Maximum, no internal or solar gain"
 						/>
 
-						{/* Line for average heat load */}
 						<Line
 							type="monotone"
 							dataKey="avgLine"
 							stroke={COLOR_BLUE}
+							strokeWidth={3}
+							strokeDasharray="8 4"
 							dot={false}
 							name="Average, with internal & solar gain"
 						/>
@@ -166,17 +169,16 @@ export function HeatLoad({
 							dataKey="maxPoint"
 							fill={COLOR_ORANGE}
 							name="Maximum at design temperature"
-							shape="diamond"
-							legendType="diamond"
+							shape={(props: any) => <DiamondShape {...props} />}
 						/>
 
 						{/* Scatter point for average heat load at design temperature */}
+
 						<Scatter
 							dataKey="avgPoint"
 							fill={COLOR_BLUE}
 							name="Average at design temperature"
-							shape="diamond"
-							legendType="diamond"
+							shape={(props: any) => <SquareShape {...props} />}
 						/>
 					</ComposedChart>
 				</ResponsiveContainer>
