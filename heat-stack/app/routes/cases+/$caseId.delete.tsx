@@ -1,12 +1,12 @@
+import { invariantResponse } from '@epic-web/invariant'
+import { Form, Link, redirect } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server'
 import {
 	deleteCaseWithUser,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server'
-import { invariantResponse } from '@epic-web/invariant'
-import { type Route } from './+types/$caseId.delete'
-import { Form, Link, redirect } from 'react-router'
 import { hasAdminRole } from '#app/utils/user.ts'
+import { type Route } from './+types/$caseId.delete'
 
 export async function action({ request, params }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
