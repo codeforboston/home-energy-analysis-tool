@@ -12,7 +12,7 @@ from rules_engine.pydantic_models import (  # type: ignore
 # runs the heat load calculation engine, and returns the result as JSON.
 
 
-def executeGetNormalizedOutput(
+async def executeGetNormalizedOutput(
     summaryInputJs, temperatureInputJs, gasBillsJs, coordinates, state_id, county_id
 ):
     """
@@ -30,18 +30,15 @@ def executeGetNormalizedOutput(
     gasBills = gasBillsFromJs.get("records")
 
     coordinatesFromJs = coordinates.to_py()
-    latitude = coordinatesFromJs.get("x")
-    longitude = coordinatesFromJs.get("y")
+    latitude = coordinatesFromJs.get("y")
+    longitude = coordinatesFromJs.get("x")
 
     print("Hello world")
     start_date, end_date = helpers.get_date_range(30)
-    design_temp, elapsed = helpers.calculate_design_temperature(
+    design_temp, elapsed = await helpers.calculate_design_temperature(
         latitude, longitude, start_date, end_date
     )
     print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed))
-
-    # npx prisma, - look at readme
-    # db 
 
     #design_temp_looked_up = helpers.get_design_temp(state_id, county_id)
     summaryInput = HeatLoadInput(

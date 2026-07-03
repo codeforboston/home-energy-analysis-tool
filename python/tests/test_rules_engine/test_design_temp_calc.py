@@ -8,7 +8,7 @@ LAT = 42.29244555
 LON = -70.98631661
 
 
-def test_design_temperature_calculator():
+async def test_design_temperature_calculator():
     """
     Validate the design temperature calculator with a given lat and lon representing a home address
     Input: home address (lat, lon), start_date, end_date
@@ -17,7 +17,7 @@ def test_design_temperature_calculator():
 
     start_date, end_date = get_date_range(30)
 
-    design_temp, elapsed = calculate_design_temperature(
+    design_temp, elapsed = await calculate_design_temperature(
         LAT, LON, start_date=start_date, end_date=end_date
     )
 

@@ -68,6 +68,10 @@ def _urlopen(url):
         with urllib.request.urlopen(url) as r:
             return r.read()
 
+async def _urlopen_async(url):
+    from pyodide.http import pyfetch  # type: ignore[import]
+    response = await pyfetch(url)
+    return await response.string()
 
 def get_date_range(years_back, end_date=date(2025, 12, 31)):
     """
@@ -80,7 +84,7 @@ def get_date_range(years_back, end_date=date(2025, 12, 31)):
     return start_date.isoformat(), end_date.isoformat()
 
 
-def calculate_design_temperature(lat, lon, start_date, end_date):
+async def calculate_design_temperature(lat, lon, start_date, end_date):
     """
     Fetch hourly temperatures from Open-Meteo's archive API
     """
@@ -102,7 +106,11 @@ def calculate_design_temperature(lat, lon, start_date, end_date):
     query_string = urllib.parse.urlencode(params)
     url = f"https://archive-api.open-meteo.com/v1/archive?{query_string}"
 
-    raw_data = _urlopen(url)
+    try:
+        raw_data = await _urlopen_async(url)
+    except ImportError:
+        # CPython fallback (tests): no pyodide, use sync urllib
+        raw_data = _urlopen(url)
 
     # Parse the JSON text into a Python dict
     data = json.loads(raw_data)

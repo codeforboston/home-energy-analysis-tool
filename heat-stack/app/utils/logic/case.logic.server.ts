@@ -140,7 +140,7 @@ export async function calculateWithBills(
 	invariant(coordinates?.x, 'Missing coordinates')
 	invariant(coordinates?.y, 'Missing coordinates')
 
-	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
+	const rulesEngineResultProxy: PyProxy = await executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
 		billsPyReady,

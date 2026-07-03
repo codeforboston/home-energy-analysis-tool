@@ -143,9 +143,13 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	userAdjustedData: UserAdjustedData | Map<string, any>,
+	coordinates: {
+		x: number
+		y: number
+	} | undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
-) => PyProxy) & {
+) => Promise<PyProxy>) & {
 	destroy(): void
 	toJs?(): any
 }
