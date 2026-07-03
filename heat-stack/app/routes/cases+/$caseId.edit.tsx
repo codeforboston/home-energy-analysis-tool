@@ -57,7 +57,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// Calculate geographic data for rules engine recalculation
 	const geocodeUtil = new GeocodeUtil()
 	const combined_address = `${caseRecord.location.address}, ${caseRecord.location.city}, ${caseRecord.location.state}`
-	const { state_id, county_id, coordinates } =
+	const { coordinates } =
 		await geocodeUtil.getLL(combined_address)
 
 	// Get temperature data for the billing period date range

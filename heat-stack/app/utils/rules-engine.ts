@@ -7,7 +7,7 @@ import { type Schema } from '#types/single-form.ts'
 import getNormalizedOutputPyCode from '../pycode/get_normalized_output.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
-import { safeDestroy } from './pyodide'
+//import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
 
 // Import Python code as raw string assets
