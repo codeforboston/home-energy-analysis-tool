@@ -68,10 +68,13 @@ def _urlopen(url):
         with urllib.request.urlopen(url) as r:
             return r.read()
 
+
 async def _urlopen_async(url):
     from pyodide.http import pyfetch  # type: ignore[import]
+
     response = await pyfetch(url)
     return await response.string()
+
 
 def get_date_range(years_back, end_date=date(2025, 12, 31)):
     """

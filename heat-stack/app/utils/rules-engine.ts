@@ -105,10 +105,12 @@ type ExecuteGetNormalizedOutputFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	gasBillingDataJs: NaturalGasUsageDataSchema,
-	coordinates: {
-		x: number
-		y: number
-	} | undefined,
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {
@@ -143,10 +145,12 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	userAdjustedData: UserAdjustedData | Map<string, any>,
-	coordinates: {
-		x: number
-		y: number
-	} | undefined,
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => Promise<PyProxy>) & {
