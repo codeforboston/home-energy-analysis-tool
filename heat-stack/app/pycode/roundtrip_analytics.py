@@ -23,7 +23,8 @@ async def executeRoundtripAnalyticsFromForm(
     # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
     if summaryInputFromJs.get("design_temperature_override") == None:
         design_temp, elapsed = await helpers.calculate_design_temperature(
-        latitude, longitude, start_date, end_date)
+            latitude, longitude, start_date, end_date
+        )
         print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed))
     else:
         design_temp = summaryInputFromJs.get("design_temperature_override")
