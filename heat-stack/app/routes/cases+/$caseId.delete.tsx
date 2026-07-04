@@ -9,27 +9,25 @@ import {
 import { hasAdminRole } from '#app/utils/user.ts'
 import { type Route } from './+types/$caseId.delete'
 
-
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const userId = await requireUserId(request);
-  const user = await getLoggedInUserFromRequest(request);
-  const isAdmin = hasAdminRole(user);
+	const userId = await requireUserId(request)
+	const user = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(user)
 
-  const caseId = Number(params.caseId);
+	const caseId = Number(params.caseId)
 
-  invariantResponse(!isNaN(caseId), "Invalid case ID", {
-    status: 400,
-  });
+	invariantResponse(!isNaN(caseId), 'Invalid case ID', {
+		status: 400,
+	})
 
-  const caseRecord = await getCaseForEditing(caseId, userId, isAdmin);
+	const caseRecord = await getCaseForEditing(caseId, userId, isAdmin)
 
-  if (!caseRecord) {
-    throw new Response("Case not found", { status: 404 });
-  }
+	if (!caseRecord) {
+		throw new Response('Case not found', { status: 404 })
+	}
 
-  return null;
+	return null
 }
-
 
 export async function action({ request, params }: Route.ActionArgs) {
 	const userId = await requireUserId(request)
