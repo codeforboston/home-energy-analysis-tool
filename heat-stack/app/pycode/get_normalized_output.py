@@ -12,8 +12,8 @@ from rules_engine.pydantic_models import (  # type: ignore
 # runs the heat load calculation engine, and returns the result as JSON.
 
 
-def executeGetNormalizedOutput(
-    summaryInputJs, temperatureInputJs, gasBillsJs, state_id, county_id
+async def executeGetNormalizedOutput(
+    summaryInputJs, temperatureInputJs, gasBillsJs, coordinates, state_id, county_id
 ):
     """
     second step: this will be the first time to draw the table
@@ -29,8 +29,17 @@ def executeGetNormalizedOutput(
     gasBillsFromJs = gasBillsJs.to_py()
     gasBills = gasBillsFromJs.get("records")
 
+    coordinatesFromJs = coordinates.to_py()
+    latitude = coordinatesFromJs.get("y")
+    longitude = coordinatesFromJs.get("x")
+
+    start_date, end_date = helpers.get_date_range(30)
+
     if summaryInputFromJs.get("design_temperature_override") == None:
-        design_temp = helpers.get_design_temp(state_id, county_id)
+        design_temp, elapsed = await helpers.calculate_design_temperature(
+            latitude, longitude, start_date, end_date
+        )
+        print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed))
     else:
         design_temp = summaryInputFromJs.get("design_temperature_override")
 

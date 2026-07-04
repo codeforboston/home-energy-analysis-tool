@@ -126,7 +126,7 @@ export async function calculateWithBills(
 		],
 	])
 
-	const { convertedDatesTIWD, state_id, county_id } =
+	const { convertedDatesTIWD, state_id, county_id, coordinates } =
 		await getConvertedDatesTIWD(
 			overall_start_date,
 			overall_end_date,
@@ -137,11 +137,14 @@ export async function calculateWithBills(
 
 	invariant(state_id, 'Missing state_id')
 	invariant(county_id, 'Missing county_id')
+	invariant(coordinates?.x, 'Missing coordinates')
+	invariant(coordinates?.y, 'Missing coordinates')
 
-	const rulesEngineResultProxy: PyProxy = executeGetNormalizedOutput(
+	const rulesEngineResultProxy: PyProxy = await executeGetNormalizedOutput(
 		parsedForm,
 		convertedDatesTIWD,
 		billsPyReady,
+		coordinates,
 		state_id,
 		county_id,
 	)
