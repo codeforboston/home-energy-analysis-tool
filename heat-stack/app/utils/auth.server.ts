@@ -32,10 +32,17 @@ export async function getUserId(request: Request) {
 	const sessionId = authSession.get(sessionKey)
 	if (!sessionId) return null
 	const session = await prisma.session.findUnique({
-		select: { userId: true },
+		select: {
+			userId: true,
+			user: {
+				select: {
+					suspended: true,
+				},
+			},
+		},
 		where: { id: sessionId, expirationDate: { gt: new Date() } },
 	})
-	if (!session?.userId) {
+	if (!session?.userId || session.user.suspended) {
 		throw redirect('/', {
 			headers: {
 				'set-cookie': await authSessionStorage.destroySession(authSession),
@@ -63,6 +70,17 @@ export async function requireUserId(
 		throw redirect(loginRedirect)
 	}
 	return userId
+}
+
+export async function isUserSuspended(userId: string) {
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: {
+			suspended: true,
+		},
+	})
+
+	return user?.suspended ?? false
 }
 
 export async function requireAnonymous(request: Request) {
@@ -246,7 +264,7 @@ export async function verifyUserPassword(
 ) {
 	const userWithPassword = await prisma.user.findUnique({
 		where,
-		select: { id: true, password: { select: { hash: true } } },
+		select: { id: true, suspended: true, password: { select: { hash: true } } },
 	})
 
 	if (!userWithPassword || !userWithPassword.password) {
@@ -256,6 +274,10 @@ export async function verifyUserPassword(
 	const isValid = await bcrypt.compare(password, userWithPassword.password.hash)
 
 	if (!isValid) {
+		return null
+	}
+
+	if (userWithPassword.suspended) {
 		return null
 	}
 

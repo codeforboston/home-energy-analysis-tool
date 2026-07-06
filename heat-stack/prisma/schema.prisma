@@ -24,6 +24,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  suspended  Boolean  @default(false)
+
   image       UserImage?
   password    Password?
   notes       Note[]
