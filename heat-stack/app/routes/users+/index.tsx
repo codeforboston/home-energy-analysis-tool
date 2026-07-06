@@ -328,7 +328,7 @@ export default function AdminEditUsers() {
 					<div className="w-24 text-center">Edit</div>
 				</div>
 
-				<ul className="max-h-[1000px] min-w-[1500px]">
+				<ul className="max-h-[1000px] min-w-[1500px] divide-y">
 					{filteredUsers.map((u) => {
 						const isEditing = editingId === u.id
 
