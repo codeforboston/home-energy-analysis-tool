@@ -10,19 +10,19 @@ import { hasAdminRole } from '#app/utils/user.ts'
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
-    const search = new URL(request.url).searchParams.get('search')
-    const loggedInUser = await getLoggedInUserFromRequest(request)
-    const isAdmin = hasAdminRole(loggedInUser)
-    let cases
+	const search = new URL(request.url).searchParams.get('search')
+	const loggedInUser = await getLoggedInUserFromRequest(request)
+	const isAdmin = hasAdminRole(loggedInUser)
+	let cases
 
-    // fuze search needs to filter on as many cases as possible. 
-    // searching on the empty string allows for the search to be done later while still allowing for filtering based on authorization.
-    if (isAdmin) {
-        cases = await getCases('all', "", true)
-    } else {
-        cases = await getCases(loggedInUser.id, "", false)
-    }
-    return data({ cases, search, isAdmin })
+	// fuze search needs to filter on as many cases as possible.
+	// searching on the empty string allows for the search to be done later while still allowing for filtering based on authorization.
+	if (isAdmin) {
+		cases = await getCases('all', '', true)
+	} else {
+		cases = await getCases(loggedInUser.id, '', false)
+	}
+	return data({ cases, search, isAdmin })
 }
 
 export default function Cases({
