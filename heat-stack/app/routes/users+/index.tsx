@@ -71,18 +71,20 @@ export default function AdminEditUsers() {
 			roles?: { name: string }[]
 		}>
 	}
-    const fuse = useMemo(
-        () => 
-            new Fuse(users,{
-                keys:["name","email","username","city","state"],
-                includeScore:true,
-                threshold:0.3,
-            }),
-        [users]
-    ) 
-    
+	const fuse = useMemo(
+		() =>
+			new Fuse(users, {
+				keys: ['name', 'email', 'username', 'city', 'state'],
+				includeScore: true,
+				threshold: 0.3,
+			}),
+		[users],
+	)
+
 	const [searchTerm, setSearchTerm] = useState('')
-	const filteredUsers = fuse.search(searchTerm).map((fuseResult)=>fuseResult.item)
+	const filteredUsers = fuse
+		.search(searchTerm)
+		.map((fuseResult) => fuseResult.item)
 	const loggedInUser = useOptionalUser()
 
 	const [editingId, setEditingId] = useState<string | null>(null)
