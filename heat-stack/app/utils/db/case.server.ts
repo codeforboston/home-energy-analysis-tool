@@ -103,10 +103,6 @@ export const getCases = async (
 	isAdmin?: boolean,
 ) => {
 
-    // TODO: replace ME
-    search = ""
-    // TODO
-
 	let where1 = undefined
 	let where2 = undefined
 

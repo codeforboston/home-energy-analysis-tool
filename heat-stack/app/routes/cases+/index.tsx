@@ -15,10 +15,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     const loggedInUser = await getLoggedInUserFromRequest(request)
     const isAdmin = hasAdminRole(loggedInUser)
     let cases
+
+    // fuze search needs to filter on as many cases as possible. 
+    // searching on the empty string allows for the search to be done later while still allowing for filtering based on authorization.
     if (isAdmin) {
-        cases = await getCases('all', search, true)
+        cases = await getCases('all', "", true)
     } else {
-        cases = await getCases(loggedInUser.id, search, false)
+        cases = await getCases(loggedInUser.id, "", false)
     }
     return data({ cases, search, isAdmin })
 }
