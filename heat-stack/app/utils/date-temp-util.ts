@@ -36,7 +36,13 @@ export default async function getConvertedDatesTIWD(
 	const combined_address = `${street_address}, ${town}, ${state}`
 	const { coordinates, state_id, county_id, addressComponents } =
 		await geocodeUtil.getLL(combined_address)
-	let { x, y } = coordinates ?? { x: 0, y: 0 }
+
+	if (!coordinates) {
+		throw new Error(
+			`We couldn't find the location for "${combined_address}". Please check the street address, city, and state and try again.`,
+		)
+	}
+	const { x, y } = coordinates
 
 	// Utility function to parse start and end dates, with defaults if invalid
 
