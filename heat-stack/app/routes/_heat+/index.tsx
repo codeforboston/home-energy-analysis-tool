@@ -25,6 +25,7 @@ export default function HEATLandingPage() {
 						<Link
 							to="/cases/new?dev=true"
 							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+							data-testid="get-started-demo-data"
 						>
 							Get Started (with Demo Data)
 						</Link>

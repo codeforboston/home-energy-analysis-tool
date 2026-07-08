@@ -87,7 +87,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<legend className={`${titleClass} ${componentMargin}`}>
+			<legend className={`${titleClass} ${componentMargin} my-4`}>
 				Home Information
 			</legend>
 
@@ -95,7 +95,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				Resident/Client Name(s)
 			</Label>
 
-			<div className={componentMargin}>
+			<div className={`${componentMargin} mt-2`}>
 				<div className="mt-4 flex space-x-4">
 					<div>
 						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
@@ -183,7 +183,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 
-			<div className="mt-9">
+			<div className="mt-1">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
 				</Label>
@@ -192,7 +192,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					id="living_area"
 					placeholder="Enter a number 0-10000"
 					value={livingAreaStringDisplayed}
-					className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+					className="mt-4 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 					onChange={handleLivingAreaChange}
 					thousandSeparator={true}
 					valueIsNumericString={true}
@@ -207,15 +207,17 @@ export function HomeInformation(props: HomeInformationProps) {
 					value={livingAreaNumberHidden}
 				/>
 
-				<div className="min-h-[12px] px-4 pb-3 pt-1">
+				<div className="min-h-[12px] px-4 pb-2">
 					<ErrorList
 						id={props.fields.living_area.errorId}
 						errors={props.fields.living_area.errors}
 					/>
 				</div>
 
-				<span className={descriptiveClass}>
-					The home's above-grade, conditioned space
+				<span className={`${descriptiveClass}`}>
+					<span className="my-8">
+						The home's above-grade, conditioned space
+					</span>
 				</span>
 			</div>
 		</fieldset>

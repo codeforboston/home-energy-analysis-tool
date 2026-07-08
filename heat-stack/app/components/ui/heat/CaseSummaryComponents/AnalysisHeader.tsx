@@ -110,7 +110,7 @@ export function AnalysisHeader({
 	const textColor = value <= 10 ? 'text-green-400' : 'text-red-500'
 
 	return (
-		<div className="section-title mt-12" ref={targetRef}>
+		<div className="section-title -mt-4" ref={targetRef}>
 			<div className="mb-4 flex flex-row gap-0.5">
 				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
 					Heat Load Analysis

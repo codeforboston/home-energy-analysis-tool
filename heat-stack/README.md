@@ -112,7 +112,11 @@ not install NVM, skip `nvm` steps during setup.
    ```bash
    npm run setup
    ```
-7. Start the development server:
+7. Seed the Database:
+   ```bash
+   npx prisma db seed
+   ```
+8. Start the development server:
    ```bash
    npm run dev
    ```

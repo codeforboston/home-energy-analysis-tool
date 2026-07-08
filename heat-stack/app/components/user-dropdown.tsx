@@ -30,10 +30,10 @@ export function UserDropdown() {
 					<Link
 						to={`/users/${loggedInUser.username}`}
 						onClick={(e) => e.preventDefault()}
-						className="flex items-center gap-2"
+						className="flex items-center gap-3"
 					>
 						<Img
-							className="h-8 w-8 rounded-full object-cover"
+							className="h-6 w-6 rounded-full object-cover"
 							alt={loggedInUser.name ?? loggedInUser.username}
 							src={getUserImgSrc(loggedInUser.image?.objectKey)}
 							width={256}
