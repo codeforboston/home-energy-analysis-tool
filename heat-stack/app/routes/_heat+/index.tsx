@@ -153,7 +153,7 @@ export default function HEATLandingPage() {
 					<div className="flex flex-col items-center gap-12 md:flex-row">
 						<div className="md:w-1/2">
 							<img
-								src="/img/2024-charts.jpg"
+								src="/img/2024-charts.jpeg"
 								alt="Heat pump analysis screenshot"
 								className="rounded-lg shadow-xl"
 							/>
@@ -248,6 +248,7 @@ export default function HEATLandingPage() {
 						<Link
 							to="/cases/new?dev=true"
 							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+							data-testid="get-started-demo-data"
 						>
 							Get Started (with Demo Data)
 						</Link>
