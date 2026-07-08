@@ -54,7 +54,7 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	await page.goto('/')
 
 	// click the "demo data" link
-	await page.getByText('Get Started (with Demo Data)').click()
+	await page.getByTestId('get-started-demo-data').click()
 
 	await uploadEnergyBill()
 
@@ -91,7 +91,7 @@ test.skip('Custom name persists after form submission', async ({
 	await page.goto('/')
 
 	// click the "demo data" link
-	await page.getByText('Get Started (with Demo Data)').click()
+	await page.getByTestId('get-started-demo-data').click()
 
 	// Get the name input field and verify it has the default value
 	let nameInput = page.locator('input[name="name"]')
@@ -143,7 +143,7 @@ test.skip('Upload multiple CSVs', async ({
 	await page.goto('/')
 
 	// click the "demo data" link
-	await page.getByText('Get Started (with Demo Data)').click()
+	await page.getByTestId('get-started-demo-data').click()
 
 	await uploadEnergyBill()
 
