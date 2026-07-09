@@ -168,10 +168,12 @@ export function cleanupPyodideProxies() {
 }
 
 type ExecuteLookupDesignTempToDisplayFunction = ((
-	coordinates: {
-		x: number
-		y: number
-	} | undefined
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
 ) => PyProxy) & {
 	destroy(): void
 	toJs?(): any

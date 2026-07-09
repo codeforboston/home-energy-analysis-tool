@@ -37,7 +37,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const [streetAddress, setStreetAddress] = useState(
 		props.fields.street_address.value ||
-		props.fields.street_address.defaultValue,
+			props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town,
@@ -50,10 +50,9 @@ export function HomeInformation(props: HomeInformationProps) {
 		x: number
 		y: number
 	} | null>(null)
-	const [calcedDesignTemp, setCalcedDesignTemp] = useState<unknown>(null) // add this
-
-	const [geoStateId, setGeoStateId] = useState<string | null>(null)
-	const [geoCountyId, setGeoCountyId] = useState<string | null>(null)
+	const [calcedDesignTemp, setCalcedDesignTemp] = useState<
+		[number, number] | null
+	>(null) // add this
 
 	useEffect(() => {
 		if (!geoCoordinates) return
@@ -203,20 +202,26 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			{geoCoordinates !== null && calcedDesignTemp === null && ("Loading design temperature...")}
+			{geoCoordinates !== null &&
+				calcedDesignTemp === null &&
+				'Loading design temperature...'}
 			{geoCoordinates !== null && calcedDesignTemp !== null && (
 				<fieldset>
 					<legend className={subtitleClass}>Heating Design Temperature</legend>
 
 					<div className="mt-4 flex space-x-4">
 						<div className="basis-1/2">
-							<Label>County-Level Design Temperature</Label>
+							<Label>30 Year Design Temperature</Label>
 
 							<div className="item mt-4 flex h-10 items-center font-bold">
 								{JSON.stringify(
-									roundTo(calcedDesignTemp[1], 2),
+									roundTo(calcedDesignTemp ? calcedDesignTemp[1] : -99, 2),
 								)}{' '}
-								°F, took {JSON.stringify(roundTo(calcedDesignTemp[0], 1))} sec
+								°F, took{' '}
+								{JSON.stringify(
+									roundTo(calcedDesignTemp ? calcedDesignTemp[0] : -1, 1),
+								)}{' '}
+								sec
 							</div>
 							<div className={`mt-4 ${descriptiveClass}`}>
 								This value is calculated from the address and will be used
