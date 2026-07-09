@@ -50,14 +50,6 @@ def get_design_temp(state_id: str, county_id: str) -> int:
     return int(design_temp)
 
 
-# TO-DO: Fix these functions to use for the calculate design temp
-"""async def _urlopenpyfetch(url):
-    from pyodide.http import pyfetch
-    response = await pyfetch(url)
-    return await response.bytes()
-"""
-
-
 def _urlopen(url):
     try:
         from pyodide.http import open_url  # type: ignore[import]
@@ -92,9 +84,6 @@ async def calculate_design_temperature(lat, lon, start_date, end_date):
     Fetch hourly temperatures from Open-Meteo's archive API
     """
 
-    # start time duration
-    start_time = time.time()
-
     # Build the query parameters as a dict
     params = {
         "latitude": lat,
@@ -124,8 +113,5 @@ async def calculate_design_temperature(lat, lon, start_date, end_date):
     # Compute the 1st percentile (no pandas)
     design_temp = statistics.quantiles(data, n=100)[0]
 
-    # calculate total time to compute function
-    elapsed = time.time() - start_time
-
     # return all values
-    return design_temp, elapsed
+    return design_temp

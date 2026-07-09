@@ -39,7 +39,7 @@ async def executeGetNormalizedOutput(
         design_temp, elapsed = await helpers.calculate_design_temperature(
             latitude, longitude, start_date, end_date
         )
-        print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed))
+        print("The weather design temp was found! " + str(design_temp) + " " + str(elapsed) + ", latitude: " + str(latitude) + ", longitude: " + str(longitude))
     else:
         design_temp = summaryInputFromJs.get("design_temperature_override")
 
