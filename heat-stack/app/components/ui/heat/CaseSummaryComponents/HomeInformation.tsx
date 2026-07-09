@@ -32,7 +32,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const [streetAddress, setStreetAddress] = useState(
 		props.fields.street_address.value ||
-		props.fields.street_address.defaultValue,
+			props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town,
