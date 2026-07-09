@@ -168,8 +168,10 @@ export function cleanupPyodideProxies() {
 }
 
 type ExecuteLookupDesignTempToDisplayFunction = ((
-	state_id: string | undefined,
-	county_id: string | number | undefined /* check number */,
+	coordinates: {
+		x: number
+		y: number
+	} | undefined
 ) => PyProxy) & {
 	destroy(): void
 	toJs?(): any

@@ -1,6 +1,15 @@
 from rules_engine import helpers
 
-def executeLookupDesignTempToDisplay(
-    state_id, county_id
+async def executeLookupDesignTempToDisplay(
+    coordinates
 ):
-    return helpers.get_design_temp(state_id, county_id)
+    coordinatesFromJs = coordinates.to_py()
+    latitude = coordinatesFromJs.get("y")
+    longitude = coordinatesFromJs.get("x")
+
+    start_date, end_date = helpers.get_date_range(30)
+
+    design_temp, elapsed = await helpers.calculate_design_temperature(
+        latitude, longitude, start_date, end_date
+    )
+    return helpers.calculate_design_temperature(latitude, longitude, start_date, end_date)
