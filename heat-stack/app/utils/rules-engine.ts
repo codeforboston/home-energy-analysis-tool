@@ -54,7 +54,7 @@ await pyodide.loadPackage(
 	`${basePath}typing_extensions-4.14.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(`${basePath}annotated_types-0.7.0-py3-none-any.whl`)
-await pyodide.loadPackage(`${basePath}rules_engine-0.0.1-py3-none-any.whl`)
+await pyodide.loadPackage(`${basePath}rules_engine-0.9.0-py3-none-any.whl`)
 
 /* 
     RULES-ENGINE CALLS

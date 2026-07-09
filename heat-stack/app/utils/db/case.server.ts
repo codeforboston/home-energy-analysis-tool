@@ -185,7 +185,7 @@ export const updateCase = async (
 		data: {
 			caseId: caseRecord.id,
 			// TODO: WI: Create constant for rules engine version
-			rules_engine_version: '0.0.1',
+			rules_engine_version: '0.9.0',
 		},
 	})
 	// Create HeatingInput
@@ -271,7 +271,7 @@ export const createCase = async (
 		const analysis = await tx.analysis.create({
 			data: {
 				caseId: caseRecord.id,
-				rules_engine_version: '0.0.1',
+				rules_engine_version: '0.9.0',
 			},
 		})
 
