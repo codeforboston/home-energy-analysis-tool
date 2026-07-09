@@ -5,40 +5,57 @@ export default function HEATLandingPage() {
 		<div className="flex min-h-screen flex-col">
 			{/* Hero Section */}
 			<section
-				className="bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-20 text-white"
+				className="bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-5 text-white"
 				style={{ borderRadius: '10px' }}
 			>
 				<div className="mx-auto max-w-5xl text-center">
-					<h1 className="text-5xl font-bold md:text-6xl">
+					<h1 className="text-4xl font-bold md:text-4xl">
 						Home Energy Analysis Tool (HEAT){' '}
 					</h1>
 					<p className="mb-8 mt-6 text-xl md:text-2xl">
 						Right-Size Your Heat Pump
 					</p>
-					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						<Link
-							to="/cases/new"
-							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-						>
-							Get Started (with Empty Form)
-						</Link>
-						<Link
-							to="/cases/new?dev=true"
-							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-							data-testid="get-started-demo-data"
-						>
-							Get Started (with Demo Data)
-						</Link>
-						<a
-							href="#learn-more"
-							className="inline-block rounded-lg border-2 border-white px-8 py-4 font-semibold text-white transition-all hover:bg-white hover:text-emerald-700"
-						>
-							Learn More
-						</a>
+				</div>
+			</section>
+			{/* Why Use HEAT Section */}
+			<section className="bg-gray-50 px-4 py-16">
+				<div className="mx-auto max-w-5xl">
+					<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
+						Why Use HEAT
+					</h2>
+
+					<div className="grid gap-8 md:grid-cols-3">
+						<div className="rounded-lg bg-white p-6 shadow-md">
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Ready for a Heat Pump?
+							</h3>
+							<p className="text-gray-600">
+								Is a home well enough sealed and insulated for heat pump
+								success?
+							</p>
+						</div>
+
+						<div className="rounded-lg bg-white p-6 shadow-md">
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Evaluate Proposals
+							</h3>
+							<p className="text-gray-600">
+								Is the heating capacity of a proposed heat pump system
+								appropriate for a home?
+							</p>
+						</div>
+
+						<div className="rounded-lg bg-white p-6 shadow-md">
+							<h3 className="mb-2 text-xl font-semibold text-gray-800">
+								Compare with Manual J
+							</h3>
+							<p className="text-gray-600">
+								HEAT serves as a fast and easy check on Manual J analysis.
+							</p>
+						</div>
 					</div>
 				</div>
 			</section>
-
 			{/* Features Section */}
 			<section id="learn-more" className="bg-white px-4 py-16">
 				<div className="mx-auto max-w-5xl">
@@ -94,8 +111,9 @@ export default function HEATLandingPage() {
 								Accurate Analysis
 							</h3>
 							<p className="text-gray-600">
-								Our algorithm calculates your home's precise heating
-								requirements using weather data and energy consumption patterns.
+								HEAT uses your inputs and historical outdoor temperature data at
+								the home's location to accurately estimate the home's overall
+								heat loss rate and total design heating load.
 							</p>
 						</div>
 
@@ -120,8 +138,9 @@ export default function HEATLandingPage() {
 								Visual Results
 							</h3>
 							<p className="text-gray-600">
-								Get clear heat load charts and size recommendations that help
-								you make informed decisions about heat pump systems.
+								Get clear charts that help with assessing a home's
+								weatherization — i.e. is it ready for heat pumps — and properly
+								sizing the heat pump for its heating needs.
 							</p>
 						</div>
 					</div>
@@ -134,7 +153,7 @@ export default function HEATLandingPage() {
 					<div className="flex flex-col items-center gap-12 md:flex-row">
 						<div className="md:w-1/2">
 							<img
-								src="/img/2024-charts.jpg"
+								src="/img/2024-charts.jpeg"
 								alt="Heat pump analysis screenshot"
 								className="rounded-lg shadow-xl"
 							/>
@@ -145,13 +164,13 @@ export default function HEATLandingPage() {
 							</h2>
 							<p className="mb-4 text-gray-600">
 								Undersized heat pumps won't keep your home comfortable in cold
-								weather. Oversized systems cost more and cycle too frequently,
-								reducing efficiency and lifespan.
+								weather. Oversized systems cost more and also cause comfort
+								issues and waste energy.
 							</p>
 							<p className="mb-6 text-gray-600">
-								Our tool uses proven engineering methods to analyze your home's
-								unique heating requirements, ensuring you get the right-sized
-								system for optimal comfort and efficiency.
+								HEAT uses proven engineering methods to analyze a home's heating
+								requirements, helping homeowners get the right-sized system for
+								optimal comfort and efficiency.
 							</p>
 							<Link
 								to="/cases/new"
@@ -167,10 +186,6 @@ export default function HEATLandingPage() {
 			{/* About Energy Coaches */}
 			<section className="bg-white px-4 py-16">
 				<div className="mx-auto max-w-5xl">
-					<h2 className="mb-12 text-center text-4xl font-bold text-gray-800">
-						Energy Coach Approved
-					</h2>
-
 					<div className="rounded-lg border border-emerald-100 bg-emerald-50 p-8 shadow-md">
 						<div className="flex flex-col items-center gap-8 md:flex-row">
 							<div className="md:w-1/3">
@@ -193,7 +208,7 @@ export default function HEATLandingPage() {
 							</div>
 							<div className="md:w-2/3">
 								<h3 className="mb-4 text-2xl font-semibold text-gray-800">
-									HeatSmart Alliance Coaches
+									A Tool for Energy Coaches and Homeowners
 								</h3>
 								<p className="mb-4 text-gray-600">
 									This tool was designed with energy coaches in mind,
@@ -201,9 +216,9 @@ export default function HEATLandingPage() {
 									homeowners navigate the heat pump conversion process.
 								</p>
 								<p className="text-gray-600">
-									Coaches use this powerful tool to collect home information,
-									analyze heating requirements, and recommend appropriate heat
-									pump solutions, helping homeowners make confident decisions.
+									Coaches use this tool to analyze a home's heating
+									requirements, and provide guidance to their clients on
+									evaluating heat pump proposals.
 								</p>
 								<a
 									href="https://heatsmartalliance.org/about-our-volunteer-coaches/"
@@ -222,19 +237,22 @@ export default function HEATLandingPage() {
 			{/* CTA Section */}
 			<section className="rounded-t-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-16 text-white">
 				<div className="mx-auto max-w-3xl text-center">
-					<h2 className="mb-6 text-4xl font-bold">
-						Ready to Find Your Perfect Heat Pump?
-					</h2>
-					<p className="mb-8 text-xl">
-						Join the thousands of homeowners who have used our tool to make the
-						switch to efficient, climate-friendly heating.
-					</p>
-					<Link
-						to="/cases/new"
-						className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-					>
-						Start Your Free Analysis
-					</Link>
+					<h2 className="mb-8 text-4xl font-bold">Try HEAT?</h2>
+					<div className="flex flex-col justify-center gap-4 sm:flex-row">
+						<Link
+							to="/cases/new"
+							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+						>
+							Get Started (with Empty Form)
+						</Link>
+						<Link
+							to="/cases/new?dev=true"
+							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+							data-testid="get-started-demo-data"
+						>
+							Get Started (with Demo Data)
+						</Link>
+					</div>
 				</div>
 			</section>
 
