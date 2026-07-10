@@ -59,6 +59,13 @@ export default function Cases({
 					>
 						Create New Case
 					</Link>
+					<Link
+						to="/cases/new?dev=true"
+						className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+						data-testid="get-started-demo-data"
+					>
+						Create Case With Demo Data
+					</Link>
 				</div>
 			</div>
 			{cases.length === 0 ? (

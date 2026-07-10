@@ -51,7 +51,7 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 }) => {
 	await login()
 	// Visit the root
-	await page.goto('/')
+	await page.goto('/cases')
 
 	// click the "demo data" link
 	await page.getByTestId('get-started-demo-data').click()
