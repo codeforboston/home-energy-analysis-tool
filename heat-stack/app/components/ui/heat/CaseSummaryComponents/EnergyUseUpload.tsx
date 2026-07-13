@@ -1,7 +1,10 @@
+import {useState} from "react"
 import { Upload } from 'lucide-react'
 import { Button } from '#/app/components/ui/button.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { ErrorList } from './ErrorList'
+import { Spinner } from '#app/components/spinner.tsx'
+import { useNavigation } from "react-router"
 
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
@@ -15,6 +18,9 @@ export function EnergyUseUpload({
 	isEditMode = false,
 }: EnergyUseUploadProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
+    const navigation = useNavigation()
+    const isIdle = navigation.state==="idle"
+    
 	/*
 	When the calculate button is pressed, sets scrollAfterSubmit to
 	true because we want the page to scroll then.
@@ -59,12 +65,15 @@ export function EnergyUseUpload({
 						type="submit"
 						name="intent"
 						value="upload"
+                        disabled={!isIdle}
 						onClick={handleSubmit}
 						style={{ marginBottom: '20px' }}
 					>
-						<Upload className="mr-2 h-4 w-4" />
+						{isIdle && <Upload className="mr-2 h-4 w-4"/>}
+                        <Spinner showSpinner={!isIdle}/>
 						Calculate
 					</Button>
+                    
 				)}
 
 				<a
