@@ -5,7 +5,6 @@ import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { ErrorList } from './ErrorList'
 
-
 interface EnergyUseUploadProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
 	fields: any
