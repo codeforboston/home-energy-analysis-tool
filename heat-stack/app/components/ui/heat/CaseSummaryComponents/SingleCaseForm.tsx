@@ -199,7 +199,6 @@ export default function SingleCaseForm({
 						fields={fields}
 					/>
 				)}
-				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
