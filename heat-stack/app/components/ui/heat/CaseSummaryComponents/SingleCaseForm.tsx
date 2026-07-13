@@ -3,7 +3,6 @@ import { parseWithZod } from '@conform-to/zod'
 import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import {
 	Schema,
 	SaveOnlySchema,
