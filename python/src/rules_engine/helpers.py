@@ -84,6 +84,9 @@ async def calculate_design_temperature(lat, lon, start_date, end_date):
     Fetch hourly temperatures from Open-Meteo's archive API
     """
 
+    # start time duration
+    start_time = time.time()
+
     # Build the query parameters as a dict
     params = {
         "latitude": lat,
@@ -113,5 +116,8 @@ async def calculate_design_temperature(lat, lon, start_date, end_date):
     # Compute the 1st percentile (no pandas)
     design_temp = statistics.quantiles(data, n=100)[0]
 
+    # calculate total time to compute function
+    elapsed = time.time() - start_time
+
     # return all values
-    return design_temp
+    return design_temp, elapsed

@@ -17,7 +17,7 @@ async def test_design_temperature_calculator():
 
     start_date, end_date = get_date_range(30)
 
-    design_temp = await calculate_design_temperature(
+    design_temp, elapsed = await calculate_design_temperature(
         LAT, LON, start_date=start_date, end_date=end_date
     )
 

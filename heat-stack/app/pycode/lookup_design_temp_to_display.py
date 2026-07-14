@@ -12,4 +12,6 @@ async def executeLookupDesignTempToDisplay(
     design_temp, elapsed = await helpers.calculate_design_temperature(
         latitude, longitude, start_date, end_date
     )
-    return helpers.calculate_design_temperature(latitude, longitude, start_date, end_date)
+
+    # changed the return value to be design temperature and elapsed
+    return design_temp, elapsed
