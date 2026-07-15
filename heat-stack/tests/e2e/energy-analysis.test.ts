@@ -53,6 +53,8 @@ test('Logged out user can upload CSV, toggle table row checkbox, expecting analy
 	// Visit the root
 	await page.goto('/cases')
 
+	await page.getByTestId('create-new-case').click()
+
 	// click the "demo data" link
 	await page.getByTestId('get-started-demo-data').click()
 
