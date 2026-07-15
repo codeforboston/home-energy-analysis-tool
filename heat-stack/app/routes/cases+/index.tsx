@@ -1,5 +1,5 @@
-import { Eye, Pencil, Trash2 } from 'lucide-react'
 import Fuse from 'fuse.js'
+import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
