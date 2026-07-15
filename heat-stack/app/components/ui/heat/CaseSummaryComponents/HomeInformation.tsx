@@ -7,6 +7,7 @@ import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
+import { Link } from 'react-router'
 
 type HomeInformationProps = { fields: any }
 
@@ -93,9 +94,20 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<legend className={`${titleClass} ${componentMargin} my-4`}>
-				Home Information
-			</legend>
+			<div
+				className={`flex items-center justify-between ${componentMargin} my-4`}
+			>
+				<legend className={titleClass}>Home Information</legend>
+
+				<Link
+					to="/cases/new?dev=true"
+					reloadDocument
+					className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+					data-testid="get-started-demo-data"
+				>
+					Autofill With Demo Data
+				</Link>
+			</div>
 
 			<Label className={subtitleClass} htmlFor="name">
 				Resident/Client Name(s)
