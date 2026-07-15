@@ -66,7 +66,7 @@ describe('rules-engine', () => {
 				expect.stringContaining('annotated_types-0.7.0-py3-none-any.whl'),
 			)
 			expect(mockPyodideInterface.loadPackage).toHaveBeenCalledWith(
-				expect.stringContaining('rules_engine-0.0.1-py3-none-any.whl'),
+				expect.stringContaining('rules_engine-0.9.0-py3-none-any.whl'),
 			)
 		})
 

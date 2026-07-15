@@ -139,7 +139,7 @@ export async function createTestCase(userId: string) {
 	const analysis = await prisma.analysis.create({
 		data: {
 			caseId: caseRecord.id,
-			rules_engine_version: '1.0.0',
+			rules_engine_version: '0.9.0',
 		},
 	})
 
