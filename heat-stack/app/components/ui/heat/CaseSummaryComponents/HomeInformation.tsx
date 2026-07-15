@@ -37,7 +37,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const [streetAddress, setStreetAddress] = useState(
 		props.fields.street_address.value ||
-			props.fields.street_address.defaultValue,
+		props.fields.street_address.defaultValue,
 	)
 	const [town, setTown] = useState(
 		props.fields.town.value || props.fields.town.defaultValue?.town,
@@ -224,7 +224,6 @@ export function HomeInformation(props: HomeInformationProps) {
 							<Label>30 Year Design Temperature</Label>
 
 							<div className="item mt-4 flex h-10 items-center font-bold">
-								{JSON.stringify(geoCoordinates)}&nbsp;
 								{/* Switched the index locations to display temperature and elapsed time */}
 								{JSON.stringify(
 									roundTo(calcedDesignTemp ? calcedDesignTemp[0] : -99, 2),
