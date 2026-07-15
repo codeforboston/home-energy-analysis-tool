@@ -57,8 +57,6 @@ export function HomeInformation(props: HomeInformationProps) {
 	useEffect(() => {
 		if (!geoCoordinates) return
 		executeLookupDesignTempToDisplay(geoCoordinates).then((result: any) => {
-			console.log('index [0] =', result?.[0])
-			console.log('index [1] =', result?.[1])
 			setCalcedDesignTemp(result)
 		})
 	}, [geoCoordinates])
@@ -96,6 +94,8 @@ export function HomeInformation(props: HomeInformationProps) {
 				console.log('geo', data)
 				setGeoError(null)
 				setGeoCoordinates(data.coordinates)
+				setCalcedDesignTemp(null)
+
 			}
 		} catch (error) {
 			setGeoError('Error connecting to geocoding service' + error)
