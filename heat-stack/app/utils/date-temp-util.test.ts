@@ -118,48 +118,42 @@ describe('getConvertedDatesTIWD', () => {
 			)
 		})
 
-		it('should handle null coordinates gracefully', async () => {
+		it('should throw a user-friendly error when coordinates are null (address not found)', async () => {
 			mockGeocodeUtil.getLL.mockResolvedValue({
 				...mockGeocodeResponse,
 				coordinates: null,
 			})
 
-			await getConvertedDatesTIWD(
-				mockStartDate,
-				mockEndDate,
-				'123 Main St',
-				'Boston',
-				'MA',
-			)
+			await expect(
+				getConvertedDatesTIWD(
+					mockStartDate,
+					mockEndDate,
+					'123 Main St',
+					'Boston',
+					'MA',
+				),
+			).rejects.toThrow(/couldn't find the location/i)
 
-			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
-				0,
-				0,
-				'2023-01-01',
-				'2023-12-31',
-			)
+			expect(mockWeatherUtil.getThatWeathaData).not.toHaveBeenCalled()
 		})
 
-		it('should handle undefined coordinates gracefully', async () => {
+		it('should throw a user-friendly error when coordinates are undefined (address not found)', async () => {
 			mockGeocodeUtil.getLL.mockResolvedValue({
 				...mockGeocodeResponse,
 				coordinates: undefined,
 			})
 
-			await getConvertedDatesTIWD(
-				mockStartDate,
-				mockEndDate,
-				'123 Main St',
-				'Boston',
-				'MA',
-			)
+			await expect(
+				getConvertedDatesTIWD(
+					mockStartDate,
+					mockEndDate,
+					'123 Main St',
+					'Boston',
+					'MA',
+				),
+			).rejects.toThrow(/couldn't find the location/i)
 
-			expect(mockWeatherUtil.getThatWeathaData).toHaveBeenCalledWith(
-				0,
-				0,
-				'2023-01-01',
-				'2023-12-31',
-			)
+			expect(mockWeatherUtil.getThatWeathaData).not.toHaveBeenCalled()
 		})
 	})
 
