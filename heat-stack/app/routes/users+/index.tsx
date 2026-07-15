@@ -2,7 +2,9 @@ import Fuse from 'fuse.js'
 import { useMemo, useState } from 'react'
 import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { Input } from '#app/components/ui/input.tsx'
 import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
@@ -110,7 +112,7 @@ export default function AdminEditUsers() {
 							/>
 						</div>
 
-						<input
+						<Input
 							type="search"
 							name="search"
 							placeholder="Search users..."
@@ -177,14 +179,15 @@ export default function AdminEditUsers() {
 										/>
 									</div>
 
-									<button
+									<Button
 										type="button"
+										variant="ghost"
 										className="ml-2 rounded p-2 hover:bg-accent"
 										id={`edit_btn_${u.username}`}
 										onClick={() => setEditingId(u.id)}
 									>
 										<Icon name="pencil-2" size="md" />
-									</button>
+									</Button>
 								</div>
 							) : (
 								<Form
@@ -237,14 +240,15 @@ export default function AdminEditUsers() {
 											onChange={(e) => e.target.form?.requestSubmit()}
 										/>
 									</div>
-									<button
+									<Button
 										type="button"
+										variant="ghost"
 										className="ml-2 rounded p-2 hover:bg-accent"
 										id={`cancel_edit_btn_${u.username}`}
 										onClick={() => setEditingId(null)}
 									>
 										<Icon name="cross-1" size="md" />
-									</button>
+									</Button>
 								</Form>
 							)}
 						</li>
