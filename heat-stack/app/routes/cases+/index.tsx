@@ -1,8 +1,4 @@
-import {
-	EyeIcon,
-	PencilSquareIcon,
-	TrashIcon,
-} from '@heroicons/react/24/outline'
+import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
 import {
@@ -205,7 +201,7 @@ export default function Cases({
 													className="rounded-md p-2 text-blue-600 transition hover:bg-blue-100 hover:text-blue-700"
 													title="View"
 												>
-													<EyeIcon className="h-5 w-5" />
+													<Eye className="h-5 w-5" />
 												</Link>
 
 												<Link
@@ -213,7 +209,7 @@ export default function Cases({
 													className="rounded-md p-2 text-amber-600 transition hover:bg-amber-100 hover:text-amber-700"
 													title="Edit"
 												>
-													<PencilSquareIcon className="h-5 w-5" />
+													<Pencil className="h-5 w-5" />
 												</Link>
 
 												<Link
@@ -221,7 +217,7 @@ export default function Cases({
 													className="rounded-md p-2 text-red-600 transition hover:bg-red-100 hover:text-red-700"
 													title="Delete"
 												>
-													<TrashIcon className="h-5 w-5" />
+													<Trash2 className="h-5 w-5" />
 												</Link>
 											</div>
 										</td>
