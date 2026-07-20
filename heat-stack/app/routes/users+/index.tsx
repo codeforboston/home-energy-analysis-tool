@@ -128,195 +128,8 @@ export default function AdminEditUsers() {
 				</div>
 			</div>
 
-			{/* <div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">City</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">State</div>
-				<div className="flex min-w-[120px] items-center gap-2 px-2">Admin</div>
-				<div className="flex min-w-[120px] items-center gap-2 px-2">Status</div>
-				<div className="ml-2 px-2">Edit</div>
-			</div>
-			<ul className="divide-y divide-muted">
-				{filteredUsers.map((u) => {
-					const isEditing = editingId === u.id
-					return (
-						<li key={u.id} className="flex items-center gap-6 py-4 text-base">
-							{!isEditing ? (
-								<div className="flex w-full items-center gap-4">
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded border px-2 py-1 text-lg"
-										id={`name_${u.username}_display`}
-									>
-										{u.name ?? ''}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded border px-2 py-1 text-lg"
-										id={`email_${u.username}_display`}
-									>
-										{u.email}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded border px-2 py-1 text-lg"
-										id={`username_${u.username}_display`}
-									>
-										{u.username}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded border px-2 py-1 text-lg"
-										id={`city_${u.username}_display`}
-									>
-										{u.city??''}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded border px-2 py-1 text-lg"
-										id={`state_${u.username}_display`}
-									>
-										{u.state??''}
-									</div>
-									<div className="flex min-w-[120px] items-center px-2">
-										<input
-											type="checkbox"
-											checked={hasAdminRole(u)}
-											readOnly
-											aria-label="Admin Role"
-										/>
-									</div>
-									<button
-										type="submit"
-										name="intent"
-										value={u.suspended ? 'unsuspend' : 'suspend'}
-										disabled={!isEditing}
-										className={`rounded-md px-4 py-2 font-semibold transition-colors duration-200
-											${
-												!isEditing
-													? 'cursor-not-allowed bg-gray-300 text-gray-500'
-													: u.suspended
-														? 'bg-emerald-600 text-white hover:bg-emerald-700'
-														: 'bg-red-600 text-white hover:bg-red-700'
-											}`}
-									>
-										{u.suspended ? 'Unsuspend' : 'Suspend'}
-									</button>
-
-									<button
-										type="button"
-										className="ml-2 rounded p-2 hover:bg-accent"
-										id={`edit_btn_${u.username}`}
-										onClick={() => setEditingId(u.id)}
-									>
-										<Icon name="pencil-2" size="md" />
-									</button>
-								</div>
-							) : (
-								<Form
-									method="post"
-									className="flex w-full items-center gap-4 text-lg"
-									onBlur={(e) => {
-										if (e.relatedTarget === null) setEditingId(null)
-									}}
-								>
-									<input type="hidden" name="id" value={u.id} />
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Name
-										<input
-											name="name"
-											id={`name_${u.username}`}
-											defaultValue={u.name ?? ''}
-											className="input rounded border px-3 py-2 text-xs font-mono text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Email
-										<input
-											name="email"
-											id={`email_${u.username}`}
-											defaultValue={u.email}
-											className="input rounded border px-3 py-2 text-xs font-mono text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Username
-										<input
-											name="username"
-											id={`username_${u.username}`}
-											defaultValue={u.username}
-											className="input rounded border px-3 py-2 text-xs font-mono text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										City
-										<input
-											name="city"
-											id={`city_${u.username}`}
-											defaultValue={u.city ? u.city: ""}
-											className="input rounded border px-3 py-2 text-xs font-mono text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										State
-										<input
-											name="state"
-											id={`state_${u.username}`}
-											defaultValue={u.state? u.state : ""}
-											className="input rounded border px-3 py-2 text-xs font-mono text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									
-									<div className="flex min-w-[120px] items-center px-2">
-										<input
-											type="checkbox"
-											name="admin"
-											defaultChecked={hasAdminRole(u)}
-											aria-label="Admin Role"
-											onChange={(e) => e.target.form?.requestSubmit()}
-										/>
-									</div>
-									<button
-										type="submit"
-										name="intent"
-										value={u.suspended ? 'unsuspend' : 'suspend'}
-										disabled={!isEditing}
-										className={`rounded-md px-4 py-2 font-semibold transition-colors duration-200
-											${
-												!isEditing
-													? 'cursor-not-allowed bg-gray-300 text-gray-500'
-													: u.suspended
-														? 'bg-emerald-600 text-white hover:bg-emerald-700'
-														: 'bg-red-600 text-white hover:bg-red-700'
-											}`}
-									>
-										{u.suspended ? 'Unsuspend' : 'Suspend'}
-									</button>
-									<button
-										type="button"
-										className="ml-2 rounded p-2 hover:bg-accent"
-										id={`cancel_edit_btn_${u.username}`}
-										onClick={() => setEditingId(null)}
-									>
-										<Icon name="cross-1" size="md" />
-									</button>
-								</Form>
-							)}
-							
-						</li>
-					)
-				})}
-			</ul> */}
-
-			<div className="overflow-x-auto rounded-xl border bg-background shadow-sm">
-				<div className="border/90 sticky top-0 z-20 flex min-w-[1500px] items-center gap-4 border-b px-6 py-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
+			<div className="overflow-x-auto rounded-xl border border-gray-300 bg-background shadow-sm">
+				<div className="border/90 sticky top-0 z-20 flex min-w-[1500px] items-center gap-4 border-b border-gray-300 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
 					<div className="flex-[1.3]">Name</div>
 					<div className="flex-[1.6]">Email</div>
 					<div className="flex-1">Username</div>
@@ -328,14 +141,14 @@ export default function AdminEditUsers() {
 					<div className="w-24 text-center">Edit</div>
 				</div>
 
-				<ul className="max-h-[1000px] min-w-[1500px] divide-y">
+				<ul className="max-h-[1000px] min-w-[1500px]">
 					{filteredUsers.map((u) => {
 						const isEditing = editingId === u.id
 
 						return (
 							<li
 								key={u.id}
-								className="m-4 rounded-xl border bg-card shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
+								className="m-4 rounded-xl border border-gray-300 bg-card shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
 							>
 								{!isEditing ? (
 									<div className="flex items-center gap-4 px-2 py-2">
