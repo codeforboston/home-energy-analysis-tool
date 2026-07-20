@@ -1,5 +1,8 @@
+const proxy = import.meta.env.VITE_CORS_PROXY_URL?.trim()
+
 const BASE_URL =
-	import.meta.env.VITE_CORS_PROXY_URL ?? 'https://geocoding.geo.census.gov'
+	proxy && proxy.length > 0 ? proxy : 'https://geocoding.geo.census.gov'
+
 const CORS_ORIGIN = import.meta.env.VITE_CORS_ORIGIN
 const ADDRESS_ENDPOINT = '/geocoder/geographies/onelineaddress'
 

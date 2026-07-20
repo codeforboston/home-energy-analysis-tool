@@ -77,7 +77,7 @@ export default function SingleCaseForm({
 	isEditMode = false,
 	billingRecords,
 }: SubmitAnalysisProps) {
-	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
 	const [form, fields] = useForm({
 		lastResult: lastResult,

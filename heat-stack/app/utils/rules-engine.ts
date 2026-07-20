@@ -5,9 +5,10 @@ import { type PyProxy } from '#public/pyodide-env/ffi.js'
 import { type NaturalGasUsageDataSchema } from '#types/index.ts'
 import { type Schema } from '#types/single-form.ts'
 import getNormalizedOutputPyCode from '../pycode/get_normalized_output.py?raw'
+import executeLookupDesignTempToDisplayPyCode from '../pycode/lookup_design_temp_to_display.py?raw'
 import parseGasBillPyCode from '../pycode/parse_gas_bill.py?raw'
 import roundtripAnalyticsPyCode from '../pycode/roundtrip_analytics.py?raw'
-import { safeDestroy } from './pyodide'
+//import { safeDestroy } from './pyodide'
 import { type TemperatureInputDataConverted } from './WeatherUtil'
 
 // Import Python code as raw string assets
@@ -28,6 +29,7 @@ const getPyodide = async (): Promise<PyodideInterface> => {
 
 const runPythonScript = async (): Promise<PyodideInterface> => {
 	const pyodide: PyodideInterface = await getPyodide()
+	pyodide.setDebug(true)
 	return pyodide
 }
 
@@ -52,7 +54,7 @@ await pyodide.loadPackage(
 	`${basePath}typing_extensions-4.14.0-py3-none-any.whl`,
 )
 await pyodide.loadPackage(`${basePath}annotated_types-0.7.0-py3-none-any.whl`)
-await pyodide.loadPackage(`${basePath}rules_engine-0.0.1-py3-none-any.whl`)
+await pyodide.loadPackage(`${basePath}rules_engine-0.9.0-py3-none-any.whl`)
 
 /* 
     RULES-ENGINE CALLS
@@ -104,6 +106,12 @@ type ExecuteGetNormalizedOutputFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	gasBillingDataJs: NaturalGasUsageDataSchema,
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
 ) => PyProxy) & {
@@ -138,17 +146,44 @@ type ExecuteRoundtripAnalyticsFunction = ((
 	summaryInputJs: z.infer<typeof Schema>,
 	temperatureInputJs: TemperatureInputDataConverted,
 	userAdjustedData: UserAdjustedData | Map<string, any>,
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
 	state_id: string | undefined,
 	county_id: string | number | undefined /* check number */,
-) => PyProxy) & {
+) => Promise<PyProxy>) & {
 	destroy(): void
 	toJs?(): any
 }
 // When you're done with your application or this module, call this to destroy all the Python function proxies
 export function cleanupPyodideProxies() {
-	safeDestroy(executeParseGasBillPy)
-	safeDestroy(executeGetNormalizedOutput)
-	safeDestroy(executeRoundtripAnalyticsFromFormJs)
+	// safeDestroy(executeParseGasBillPy)
+	// safeDestroy(executeGetNormalizedOutput)
+	// safeDestroy(executeRoundtripAnalyticsFromFormJs)
 	// If you have access to the pyodide instance itself, you might want to clean it up too
 	// pyodide.destroy(); // If supported by your pyodide version
 }
+
+type ExecuteLookupDesignTempToDisplayFunction = ((
+	coordinates:
+		| {
+				x: number
+				y: number
+		  }
+		| undefined,
+) => PyProxy) & {
+	destroy(): void
+	toJs?(): any
+}
+
+/**
+ * Take state_id and county_id and return the looked up temperature for typescript usage
+ */
+export const executeLookupDesignTempToDisplay: ExecuteLookupDesignTempToDisplayFunction =
+	await pyodide.runPythonAsync(
+		executeLookupDesignTempToDisplayPyCode +
+			'\nexecuteLookupDesignTempToDisplay',
+	)
