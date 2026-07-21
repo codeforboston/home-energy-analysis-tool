@@ -82,9 +82,8 @@ export default function SingleCaseForm({
 	const [form, fields] = useForm({
 		lastResult: lastResult,
 		onValidate({ formData }) {
-			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
-			const intent = formData.get('intent') as string
-			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+			// Edit mode never requires file validation; new-case mode does.
+			const schema = isEditMode ? SaveOnlySchema : Schema
 			return parseWithZod(formData, { schema })
 		},
 		onSubmit() {
@@ -173,8 +172,6 @@ export default function SingleCaseForm({
 				onBlur={handleFieldBlur}
 				onFocus={handleFieldFocus}
 			>
-				{/* Ensure intent is always sent for autosave */}
-				{isEditMode && <input type="hidden" name="intent" value="save" />}
 				{/* Include billing records as hidden input for save operations in edit mode */}
 				{isEditMode && billingRecords && (
 					<input

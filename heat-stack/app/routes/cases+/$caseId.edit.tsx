@@ -177,18 +177,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 		? await parseMultipartFormData(request, uploadHandler)
 		: await request.formData()
 
-	// Check the intent to determine validation approach
-	const intent = formData.get('intent') as string
-
-	let submission
-
-	if (intent === 'save') {
-		// For save intent, use schema without file validation
-		submission = parseWithZod(formData, { schema: SaveOnlySchema })
-	} else {
-		// Use full validation for process-file intent
-		submission = parseWithZod(formData, { schema: Schema })
-	}
+	// This route only ever saves an existing case, so file validation is
+	// never required here (unlike the new-case route).
+	const submission = parseWithZod(formData, { schema: SaveOnlySchema })
 
 	if (submission.status !== 'success') {
 		return {
