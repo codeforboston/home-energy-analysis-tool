@@ -1,11 +1,13 @@
+import Fuse from 'fuse.js'
+import { useMemo } from 'react'
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { Input } from '#app/components/ui/input.tsx'
 import {
 	getCases,
 	getLoggedInUserFromRequest,
 } from '#app/utils/db/case.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
-
 import { type Route } from './+types/index.ts'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -13,10 +15,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 	const loggedInUser = await getLoggedInUserFromRequest(request)
 	const isAdmin = hasAdminRole(loggedInUser)
 	let cases
+
+	// fuze search needs to filter on as many cases as possible.
+	// searching on the empty string allows for the search to be done later while still allowing for filtering based on authorization.
 	if (isAdmin) {
-		cases = await getCases('all', search, true)
+		cases = await getCases('all', '', true)
 	} else {
-		cases = await getCases(loggedInUser.id, search, false)
+		cases = await getCases(loggedInUser.id, '', false)
 	}
 	return data({ cases, search, isAdmin })
 }
@@ -27,6 +32,29 @@ export default function Cases({
 }: Route.ComponentProps) {
 	const { cases = [], isAdmin, search } = loaderData
 	const submit = useSubmit()
+
+	const fuse = useMemo(
+		() =>
+			new Fuse(cases, {
+				keys: [
+					'homeOwner.firstName1',
+					'homeOwner.lastName1',
+					'users.some.email',
+					'users.some.username',
+					'location.city',
+					'location.state',
+					'location.address',
+					'location.zipcode',
+				],
+				includeScore: true,
+				threshold: 0.3,
+			}),
+		[cases],
+	)
+
+	let filtered_cases = fuse
+		.search(search ?? '')
+		.map((fuseResult) => fuseResult.item)
 
 	return (
 		<div id="cases-page" className="container mx-auto p-6">
@@ -45,7 +73,7 @@ export default function Cases({
 								className="h-5 w-5 text-emerald-600"
 							/>
 						</div>
-						<input
+						<Input
 							type="search"
 							name="search"
 							defaultValue={search ?? ''}
@@ -61,7 +89,7 @@ export default function Cases({
 					</Link>
 				</div>
 			</div>
-			{cases.length === 0 ? (
+			{filtered_cases.length === 0 ? (
 				<div className="mt-8 rounded-lg border-2 border-gray-200 p-8 text-center">
 					<h2 className="mb-2 text-xl font-medium text-gray-600">
 						{search && search.trim().length > 0
@@ -130,7 +158,7 @@ export default function Cases({
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 bg-white">
-							{cases.map((caseItem) => {
+							{filtered_cases.map((caseItem) => {
 								const firstAnalysis = caseItem.analysis[0]
 								const heatingInput = firstAnalysis?.heatingInput[0]
 

@@ -107,12 +107,13 @@ export default function CacheAdminRoute({ loaderData }: Route.ComponentProps) {
 			>
 				<div className="flex-1">
 					<div className="flex flex-1 gap-4">
-						<button
+						<Button
 							type="submit"
+							variant="ghost"
 							className="flex h-16 items-center justify-center"
 						>
 							🔎
-						</button>
+						</Button>
 						<Field
 							className="flex-1"
 							labelProps={{ children: 'Search' }}
