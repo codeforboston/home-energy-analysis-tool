@@ -15,7 +15,7 @@ import {
 } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
-import { EnergyUseHistory } from './EnergyUseUpload.tsx'
+import { EnergyUseHistory } from './EnergyUseHistory.tsx'
 import { HeatLoadAnalysis } from './HeatLoadAnalysis.tsx'
 import { HomeInformation } from './HomeInformation.tsx'
 
