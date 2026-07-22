@@ -1,11 +1,11 @@
-import {useState} from 'react'
 import { Upload } from 'lucide-react'
 import { useNavigation } from 'react-router'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
-import { ErrorList } from './ErrorList'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
+import { ErrorList } from './ErrorList'
+
 
 interface EnergyUseHistoryProps {
     setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
