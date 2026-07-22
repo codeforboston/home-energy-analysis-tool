@@ -21,6 +21,7 @@ export async function loader() {
 			name: true,
 			city: true,
 			state: true,
+			suspended: true,
 			roles: { select: { name: true } },
 		},
 	})
@@ -41,7 +42,21 @@ export async function action({ request }: { request: Request }) {
 	const email = formData.get('email') as string
 	const username = formData.get('username') as string
 	const name = formData.get('name') as string
+	const city = formData.get('city') as string
+	const state = formData.get('state') as string
 	const adminChecked = formData.get('admin') === 'on'
+	const intent = formData.get('intent')
+
+	if (intent === 'suspend' || intent === 'unsuspend') {
+		await prisma.user.update({
+			where: { id },
+			data: {
+				suspended: intent === 'suspend',
+			},
+		})
+
+		return null
+	}
 
 	// Update admin role with a single update statement
 	await prisma.user.update({
@@ -56,7 +71,7 @@ export async function action({ request }: { request: Request }) {
 	// Update other fields
 	await prisma.user.update({
 		where: { id },
-		data: { email, username, name },
+		data: { email, username, name, city, state },
 	})
 	return null
 }
@@ -70,6 +85,7 @@ export default function AdminEditUsers() {
 			name: string | null
 			city: string | null
 			state: string | null
+			suspended: boolean
 			roles?: { name: string }[]
 		}>
 	}
@@ -124,137 +140,206 @@ export default function AdminEditUsers() {
 				</div>
 			</div>
 
-			<div className="mb-2 flex w-full items-center gap-4 text-lg font-bold">
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Name</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Email</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">Username</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">City</div>
-				<div className="min-w-[200px] max-w-[400px] flex-1 px-2">State</div>
-				<div className="flex min-w-[120px] items-center gap-2 px-2">Admin</div>
-				<div className="ml-2 px-2">Edit</div>
-			</div>
-			<ul className="divide-y divide-muted">
-				{filteredUsers.map((u) => {
-					const isEditing = editingId === u.id
-					return (
-						<li key={u.id} className="flex items-center gap-6 py-4 text-base">
-							{!isEditing ? (
-								<div className="flex w-full items-center gap-4">
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`name_${u.username}_display`}
-									>
-										{u.name ?? ''}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`email_${u.username}_display`}
-									>
-										{u.email}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`username_${u.username}_display`}
-									>
-										{u.username}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`city_${u.username}_display`}
-									>
-										{u.city}
-									</div>
-									<div
-										className="min-w-[200px] max-w-[400px] flex-1 break-words rounded bg-muted px-2 py-1 text-lg"
-										id={`state_${u.username}_display`}
-									>
-										{u.state}
-									</div>
-									<div className="flex min-w-[120px] items-center px-2">
-										<input
-											type="checkbox"
-											checked={hasAdminRole(u)}
-											readOnly
-											aria-label="Admin Role"
-										/>
-									</div>
+			<div className="overflow-x-auto rounded-xl border border-gray-300 bg-background shadow-sm">
+				<div className="border/90 sticky top-0 z-20 flex min-w-[1500px] items-center gap-4 border-b border-gray-300 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
+					<div className="flex-[1.3]">Name</div>
+					<div className="flex-[1.6]">Email</div>
+					<div className="flex-1">Username</div>
+					<div className="flex-1">City</div>
+					<div className="flex-1">State</div>
 
-									<Button
-										type="button"
-										variant="ghost"
-										className="ml-2 rounded p-2 hover:bg-accent"
-										id={`edit_btn_${u.username}`}
-										onClick={() => setEditingId(u.id)}
-									>
-										<Icon name="pencil-2" size="md" />
-									</Button>
-								</div>
-							) : (
-								<Form
-									method="post"
-									className="flex w-full items-center gap-4 text-lg"
-									onBlur={(e) => {
-										if (e.relatedTarget === null) setEditingId(null)
-									}}
-								>
-									<input type="hidden" name="id" value={u.id} />
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Email
-										<input
-											name="email"
-											id={`email_${u.username}`}
-											defaultValue={u.email}
-											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Username
-										<input
-											name="username"
-											id={`username_${u.username}`}
-											defaultValue={u.username}
-											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<label className="flex min-w-[200px] max-w-[400px] flex-1 flex-col text-xs">
-										Name
-										<input
-											name="name"
-											id={`name_${u.username}`}
-											defaultValue={u.name ?? ''}
-											className="input rounded border px-3 py-2 text-lg focus:outline-accent"
-											style={{ width: '100%' }}
-											onBlur={(e) => e.target.form?.requestSubmit()}
-										/>
-									</label>
-									<div className="flex min-w-[120px] items-center px-2">
-										<input
-											type="checkbox"
-											name="admin"
-											defaultChecked={hasAdminRole(u)}
-											aria-label="Admin Role"
-											onChange={(e) => e.target.form?.requestSubmit()}
-										/>
+					<div className="w-24 text-center">Admin</div>
+					<div className="w-32 text-center">Status</div>
+					<div className="w-24 text-center">Edit</div>
+				</div>
+
+				<ul className="max-h-[1000px] min-w-[1500px]">
+					{filteredUsers.map((u) => {
+						const isEditing = editingId === u.id
+
+						return (
+							<li
+								key={u.id}
+								className="m-4 rounded-xl border border-gray-300 bg-card shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
+							>
+								{!isEditing ? (
+									<div className="flex items-center gap-4 px-2 py-2">
+										<div
+											className="flex-[1.3] rounded-lg border px-3 py-2 font-mono text-xs"
+											id={`name_${u.username}_display`}
+										>
+											{u.name ?? '-'}
+										</div>
+
+										<div
+											className="flex-[1.6] rounded-lg border px-3 py-2 font-mono text-xs"
+											id={`email_${u.username}_display`}
+										>
+											{u.email}
+										</div>
+
+										<div
+											className="flex-1 rounded-lg border px-3 py-2 font-mono text-xs"
+											id={`username_${u.username}_display`}
+										>
+											{u.username}
+										</div>
+
+										<div
+											className="flex-1 rounded-lg border px-3 py-2 font-mono text-xs"
+											id={`city_${u.username}_display`}
+										>
+											{u.city ?? '-'}
+										</div>
+
+										<div
+											className="flex-1 rounded-lg border px-3 py-2 font-mono text-xs"
+											id={`state_${u.username}_display`}
+										>
+											{u.state ?? '-'}
+										</div>
+
+										<div className="flex w-24 justify-center">
+											<input
+												type="checkbox"
+												checked={hasAdminRole(u)}
+												readOnly
+												aria-label="Admin Role"
+												className="h-4 w-4 accent-emerald-600"
+											/>
+										</div>
+
+										<div className="flex w-32 justify-center">
+											<span
+												className={`rounded-full px-3 py-1 text-xs font-semibold ${
+													u.suspended
+														? 'bg-red-100 text-red-700'
+														: 'bg-emerald-100 text-emerald-700'
+												}`}
+											>
+												{u.suspended ? 'Suspended' : 'Active'}
+											</span>
+										</div>
+
+										<div className="flex w-24 justify-center">
+											<button
+												type="button"
+												id={`edit_btn_${u.username}`}
+												onClick={() => setEditingId(u.id)}
+												className="rounded-lg border p-2 transition hover:bg-accent"
+											>
+												<Icon name="pencil-2" size="md" />
+											</button>
+										</div>
 									</div>
-									<Button
-										type="button"
-										variant="ghost"
-										className="ml-2 rounded p-2 hover:bg-accent"
-										id={`cancel_edit_btn_${u.username}`}
-										onClick={() => setEditingId(null)}
+								) : (
+									<Form
+										method="post"
+										className="border/30 flex items-center gap-4 rounded-xl px-6 py-5"
+										onBlur={(e) => {
+											if (e.relatedTarget === null) setEditingId(null)
+										}}
 									>
-										<Icon name="cross-1" size="md" />
-									</Button>
-								</Form>
-							)}
-						</li>
-					)
-				})}
-			</ul>
+										<input type="hidden" name="id" value={u.id} />
+
+										<label className="flex flex-[1.3] flex-col gap-1 font-mono text-xs">
+											Name
+											<input
+												name="name"
+												id={`name_${u.username}`}
+												defaultValue={u.name ?? ''}
+												className="rounded-lg border bg-background px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary"
+												onBlur={(e) => e.target.form?.requestSubmit()}
+											/>
+										</label>
+
+										<label className="flex flex-[1.6] flex-col gap-1 font-mono text-xs">
+											Email
+											<input
+												name="email"
+												id={`email_${u.username}`}
+												defaultValue={u.email}
+												className="rounded-lg border bg-background px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary"
+												onBlur={(e) => e.target.form?.requestSubmit()}
+											/>
+										</label>
+
+										<label className="flex flex-1 flex-col gap-1 font-mono text-xs">
+											Username
+											<input
+												name="username"
+												id={`username_${u.username}`}
+												defaultValue={u.username}
+												className="rounded-lg border bg-background px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary"
+												onBlur={(e) => e.target.form?.requestSubmit()}
+											/>
+										</label>
+
+										<label className="flex flex-1 flex-col gap-1 font-mono text-xs">
+											City
+											<input
+												name="city"
+												id={`city_${u.username}`}
+												defaultValue={u.city ?? ''}
+												className="rounded-lg border bg-background px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary"
+												onBlur={(e) => e.target.form?.requestSubmit()}
+											/>
+										</label>
+
+										<label className="flex flex-1 flex-col gap-1 font-mono text-xs">
+											State
+											<input
+												name="state"
+												id={`state_${u.username}`}
+												defaultValue={u.state ?? ''}
+												className="rounded-lg border bg-background px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary"
+												onBlur={(e) => e.target.form?.requestSubmit()}
+											/>
+										</label>
+
+										<div className="flex w-24 justify-center pt-5">
+											<input
+												type="checkbox"
+												name="admin"
+												defaultChecked={hasAdminRole(u)}
+												aria-label="Admin Role"
+												className="h-4 w-4 accent-emerald-600"
+												onChange={(e) => e.target.form?.requestSubmit()}
+											/>
+										</div>
+
+										<div className="flex w-32 justify-center pt-5">
+											<button
+												type="submit"
+												name="intent"
+												value={u.suspended ? 'unsuspend' : 'suspend'}
+												className={`h-10 w-28 rounded-lg text-sm font-semibold text-white transition ${
+													u.suspended
+														? 'bg-emerald-600 hover:bg-emerald-700'
+														: 'bg-red-600 hover:bg-red-700'
+												}`}
+											>
+												{u.suspended ? 'Unsuspend' : 'Suspend'}
+											</button>
+										</div>
+
+										<div className="flex w-24 justify-center pt-5">
+											<button
+												type="button"
+												id={`cancel_edit_btn_${u.username}`}
+												onClick={() => setEditingId(null)}
+												className="rounded-lg border p-2 transition hover:bg-accent"
+											>
+												<Icon name="cross-1" size="md" />
+											</button>
+										</div>
+									</Form>
+								)}
+							</li>
+						)
+					})}
+				</ul>
+			</div>
 		</div>
 	)
 }
