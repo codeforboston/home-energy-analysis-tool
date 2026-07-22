@@ -2,7 +2,6 @@ import { type SubmissionResult, useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
-import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
 import {
 	Schema,
 	SaveOnlySchema,
@@ -14,7 +13,7 @@ import {
 } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
-import { EnergyUseUpload } from './EnergyUseUpload.tsx'
+import { EnergyUseHistory } from './EnergyUseHistory.tsx'
 import { HeatLoadAnalysis } from './HeatLoadAnalysis.tsx'
 import { HomeInformation } from './HomeInformation.tsx'
 
@@ -157,7 +156,6 @@ export default function SingleCaseForm({
 			setTriggerAutosave(false)
 		}
 	}, [billingRecords, triggerAutosave])
-
 	return (
 		<>
 			<Form
@@ -192,22 +190,20 @@ export default function SingleCaseForm({
 				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-				{!isEditMode && (
-					<EnergyUseUpload
-						setScrollAfterSubmit={setScrollAfterSubmit}
-						fields={fields}
-					/>
-				)}
+				<EnergyUseHistory
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+					isEditMode={isEditMode}
+					showUsageData={showUsageData}
+					usageData={usageData}
+					chartClickHandler={handleOnClick}
+				/>
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
 							usageData={usageData}
 							scrollAfterSubmit={scrollAfterSubmit}
 							setScrollAfterSubmit={setScrollAfterSubmit}
-						/>
-						<EnergyUseHistoryChart
-							usageData={usageData}
-							onClick={handleOnClick}
 						/>
 						{usageData &&
 						usageData.heat_load_output &&
