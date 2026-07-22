@@ -27,9 +27,9 @@ vi.mock(
 )
 
 vi.mock(
-	'#app/components/ui/heat/CaseSummaryComponents/EnergyUseUpload.tsx',
+	'#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistory.tsx',
 	() => ({
-		EnergyUseUpload: ({ isEditMode }: { isEditMode?: boolean }) => (
+		EnergyUseHistory: ({ isEditMode }: { isEditMode?: boolean }) => (
 			<div data-testid="energy-use-upload">
 				<button type="submit">
 					{isEditMode ? 'Save Changes' : 'Calculate'}
@@ -102,7 +102,7 @@ describe('SingleCaseForm', () => {
 
 		expect(screen.getByTestId('home-information')).toBeInTheDocument()
 		expect(screen.getByTestId('current-heating-system')).toBeInTheDocument()
-		expect(screen.getByTestId('energy-use-upload')).toBeInTheDocument()
+		expect(screen.getByTestId('energy-use-history')).toBeInTheDocument()
 	})
 
 	it('should show Calculate button when not in edit mode', () => {
