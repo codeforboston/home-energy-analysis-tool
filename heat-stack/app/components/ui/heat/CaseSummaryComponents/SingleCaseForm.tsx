@@ -3,13 +3,13 @@ import { parseWithZod } from '@conform-to/zod'
 import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import {
-    Schema,
-    SaveOnlySchema,
-    type SchemaZodFromFormType,
+	Schema,
+	SaveOnlySchema,
+	type SchemaZodFromFormType,
 } from '#types/single-form.ts'
 import {
-    type UsageDataSchema,
-    type BillingRecordsSchema,
+	type UsageDataSchema,
+	type BillingRecordsSchema,
 } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
@@ -19,242 +19,242 @@ import { HomeInformation } from './HomeInformation.tsx'
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-    caseId?: number
-    analysisId?: number
-    heatingInputId?: number
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 type MinimalFormData = { fuel_type: 'GAS' }
 type DefaultFormValues = SchemaZodFromFormType | MinimalFormData
 
 export type SubmitAnalysisProps = {
-    /**
-     * Callback to fire before submit is executed
-     */
-    beforeSubmit: () => void
-    lastResult: SubmissionResult<string[]> | null | undefined
-    defaultFormValues: DefaultFormValues
-    showSavedCaseIdMsg: boolean
-    caseInfo: CaseInfo | undefined
-    usageData: UsageDataSchema | undefined
-    showUsageData: boolean
-    onBillingRecordsChange: (records: BillingRecordsSchema) => void
-    /**
-     * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
-     * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
-     */
-    action?: '/cases/new' | undefined
-    parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
-    /**
-     * Whether this form is in edit mode (shows Save button instead of Calculate button)
-     */
-    isEditMode?: boolean
-    /**
-     * Billing records to save when form is submitted (edit mode only)
-     */
-    billingRecords?: BillingRecordsSchema
-    // actionData: (RulesEngineActionData & {
-    // 	/**
-    // 	 * Results returned from `parseWithZod` in the action function
-    // 	 */
-    // 	submitResults: SubmissionResult<string[]>
-    // 	caseInfo?: CaseInfo,
-    // } )| undefined
+	/**
+	 * Callback to fire before submit is executed
+	 */
+	beforeSubmit: () => void
+	lastResult: SubmissionResult<string[]> | null | undefined
+	defaultFormValues: DefaultFormValues
+	showSavedCaseIdMsg: boolean
+	caseInfo: CaseInfo | undefined
+	usageData: UsageDataSchema | undefined
+	showUsageData: boolean
+	onBillingRecordsChange: (records: BillingRecordsSchema) => void
+	/**
+	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
+	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
+	 */
+	action?: '/cases/new' | undefined
+	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
+	/**
+	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
+	 */
+	isEditMode?: boolean
+	/**
+	 * Billing records to save when form is submitted (edit mode only)
+	 */
+	billingRecords?: BillingRecordsSchema
+	// actionData: (RulesEngineActionData & {
+	// 	/**
+	// 	 * Results returned from `parseWithZod` in the action function
+	// 	 */
+	// 	submitResults: SubmissionResult<string[]>
+	// 	caseInfo?: CaseInfo,
+	// } )| undefined
 }
 
 export default function SingleCaseForm({
-    beforeSubmit,
-    lastResult,
-    defaultFormValues,
-    showSavedCaseIdMsg,
-    caseInfo,
-    usageData,
-    showUsageData,
-    action,
-    onBillingRecordsChange,
-    parsedAndValidatedFormSchema,
-    isEditMode = false,
-    billingRecords,
+	beforeSubmit,
+	lastResult,
+	defaultFormValues,
+	showSavedCaseIdMsg,
+	caseInfo,
+	usageData,
+	showUsageData,
+	action,
+	onBillingRecordsChange,
+	parsedAndValidatedFormSchema,
+	isEditMode = false,
+	billingRecords,
 }: SubmitAnalysisProps) {
-    const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
-    const [form, fields] = useForm({
-        lastResult: lastResult,
-        onValidate({ formData }) {
-            // Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
-            const intent = formData.get('intent') as string
-            const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
-            return parseWithZod(formData, { schema })
-        },
-        onSubmit() {
-            beforeSubmit()
-        },
-        defaultValue: defaultFormValues,
-        shouldValidate: 'onBlur',
-        shouldRevalidate: 'onInput',
-    })
+	const [form, fields] = useForm({
+		lastResult: lastResult,
+		onValidate({ formData }) {
+			// Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
+			const intent = formData.get('intent') as string
+			const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
+			return parseWithZod(formData, { schema })
+		},
+		onSubmit() {
+			beforeSubmit()
+		},
+		defaultValue: defaultFormValues,
+		shouldValidate: 'onBlur',
+		shouldRevalidate: 'onInput',
+	})
 
-    // Track last focused value for autosave-on-blur
-    const lastFocusedValueRef = useRef<string | null>(null)
+	// Track last focused value for autosave-on-blur
+	const lastFocusedValueRef = useRef<string | null>(null)
 
-    // Toast state for autosave feedback
-    const [showToast, setShowToast] = useState(false)
-    // Show toast for 2 seconds when autosave triggers
-    const handleAutosaveToast = () => {
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 2000)
-    }
+	// Toast state for autosave feedback
+	const [showToast, setShowToast] = useState(false)
+	// Show toast for 2 seconds when autosave triggers
+	const handleAutosaveToast = () => {
+		setShowToast(true)
+		setTimeout(() => setShowToast(false), 2000)
+	}
 
-    // Track the value when a field receives focus
-    const handleFieldFocus = (e: React.FocusEvent<any>) => {
-        lastFocusedValueRef.current = e.target.value
-    }
+	// Track the value when a field receives focus
+	const handleFieldFocus = (e: React.FocusEvent<any>) => {
+		lastFocusedValueRef.current = e.target.value
+	}
 
-    // Generic onBlur handler for all fields
-    const handleFieldBlur = (e: React.FocusEvent<any>) => {
-        if (!isEditMode) return
-        const original = lastFocusedValueRef.current
-        const current = e.target.value
-        if (original !== null && original !== current && formRef.current) {
-            // Validate form data before autosaving to prevent saving invalid values
-            const formData = new FormData(formRef.current)
-            const result = parseWithZod(formData, { schema: SaveOnlySchema })
-            if (result.status !== 'success') {
-                lastFocusedValueRef.current = null
-                return
-            }
-            formRef.current.requestSubmit()
-            handleAutosaveToast()
-        }
-        lastFocusedValueRef.current = null
-    }
+	// Generic onBlur handler for all fields
+	const handleFieldBlur = (e: React.FocusEvent<any>) => {
+		if (!isEditMode) return
+		const original = lastFocusedValueRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && formRef.current) {
+			// Validate form data before autosaving to prevent saving invalid values
+			const formData = new FormData(formRef.current)
+			const result = parseWithZod(formData, { schema: SaveOnlySchema })
+			if (result.status !== 'success') {
+				lastFocusedValueRef.current = null
+				return
+			}
+			formRef.current.requestSubmit()
+			handleAutosaveToast()
+		}
+		lastFocusedValueRef.current = null
+	}
 
-    const formRef = useRef<HTMLFormElement>(null)
+	const formRef = useRef<HTMLFormElement>(null)
 
-    const handleOnClick = (index: number) => {
-        if (!isEditMode || !billingRecords) return
-        const updatedRecords = billingRecords.map((record, i) => {
-            if (i === index) {
-                return {
-                    ...record,
-                    inclusion_override: !record.inclusion_override,
-                }
-            }
-            return record
-        })
-        onBillingRecordsChange(updatedRecords)
-        setTriggerAutosave(true)
-    }
+	const handleOnClick = (index: number) => {
+		if (!isEditMode || !billingRecords) return
+		const updatedRecords = billingRecords.map((record, i) => {
+			if (i === index) {
+				return {
+					...record,
+					inclusion_override: !record.inclusion_override,
+				}
+			}
+			return record
+		})
+		onBillingRecordsChange(updatedRecords)
+		setTriggerAutosave(true)
+	}
 
-    // Autosave after billingRecords change (must be at top level, not inside JSX)
-    const [triggerAutosave, setTriggerAutosave] = useState(false)
-    useEffect(() => {
-        if (triggerAutosave) {
-            if (formRef.current) {
-                formRef.current.requestSubmit()
-                handleAutosaveToast()
-            }
-            setTriggerAutosave(false)
-        }
-    }, [billingRecords, triggerAutosave])
-    return (
-        <>
-            <Form
-                ref={formRef}
-                id={form.id}
-                method="post"
-                onSubmit={form.onSubmit}
-                action={action}
-                encType="multipart/form-data"
-                aria-invalid={form.errors ? true : undefined}
-                aria-describedby={form.errors ? form.errorId : undefined}
-                onBlur={handleFieldBlur}
-                onFocus={handleFieldFocus}
-            >
-                {/* Ensure intent is always sent for autosave */}
-                {isEditMode && <input type="hidden" name="intent" value="save" />}
-                {/* Include billing records as hidden input for save operations in edit mode */}
-                {isEditMode && billingRecords && (
-                    <input
-                        type="hidden"
-                        name="billing_records"
-                        value={JSON.stringify(billingRecords)}
-                    />
-                )}
-                {/* Include heat load output for save operations in edit mode */}
-                {isEditMode && usageData?.heat_load_output && (
-                    <input
-                        type="hidden"
-                        name="heat_load_output"
-                        value={JSON.stringify(usageData.heat_load_output)}
-                    />
-                )}
-                <HomeInformation fields={fields} />
-                <CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory
-                    setScrollAfterSubmit={setScrollAfterSubmit}
-                    fields={fields}
-                    isEditMode={isEditMode}
-                    showUsageData={showUsageData}
-                    usageData={usageData}
-                    chartClickHandler={handleOnClick}
-                />
-                {showUsageData && usageData && (
-                    <>
-                        <AnalysisHeader
-                            usageData={usageData}
-                            scrollAfterSubmit={scrollAfterSubmit}
-                            setScrollAfterSubmit={setScrollAfterSubmit}
-                        />
-                        {usageData &&
-                            usageData.heat_load_output &&
-                            usageData.heat_load_output.design_temperature &&
-                            usageData.heat_load_output.whole_home_heat_loss_rate &&
-                            !!parsedAndValidatedFormSchema ? (
-                            <HeatLoadAnalysis
-                                heatLoadSummaryOutput={usageData.heat_load_output}
-                                livingArea={parsedAndValidatedFormSchema.living_area}
-                            />
-                        ) : (
-                            <div className="my-4 rounded-lg border-2 border-red-400 p-4">
-                                <h2 className="mb-4 text-xl font-bold text-red-600">
-                                    Not rendering Heat Load
-                                </h2>
-                                <p>usageData is undefined or missing key values</p>
-                            </div>
-                        )}
-                    </>
-                )}
-            </Form>
-            {/* Autosave Toast */}
-            {showToast && (
-                <div
-                    style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
-                    className="rounded bg-green-600 px-4 py-2 text-white shadow"
-                >
-                    Changes saved!
-                </div>
-            )}
-            {/* Show case saved message */}
-            {showSavedCaseIdMsg &&
-                caseInfo &&
-                typeof caseInfo.caseId === 'number' && (
-                    <div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-                        <h2 className="mb-2 text-xl font-bold text-green-700">
-                            Case Saved Successfully!
-                        </h2>
-                        <p className="mb-4">
-                            Your case data has been saved to the database.
-                        </p>
-                        <p>
-                            <a
-                                href={`/cases/${caseInfo.caseId}`}
-                                className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                            >
-                                View Case Details
-                            </a>
-                        </p>
-                    </div>
-                )}
-        </>
-    )
+	// Autosave after billingRecords change (must be at top level, not inside JSX)
+	const [triggerAutosave, setTriggerAutosave] = useState(false)
+	useEffect(() => {
+		if (triggerAutosave) {
+			if (formRef.current) {
+				formRef.current.requestSubmit()
+				handleAutosaveToast()
+			}
+			setTriggerAutosave(false)
+		}
+	}, [billingRecords, triggerAutosave])
+	return (
+		<>
+			<Form
+				ref={formRef}
+				id={form.id}
+				method="post"
+				onSubmit={form.onSubmit}
+				action={action}
+				encType="multipart/form-data"
+				aria-invalid={form.errors ? true : undefined}
+				aria-describedby={form.errors ? form.errorId : undefined}
+				onBlur={handleFieldBlur}
+				onFocus={handleFieldFocus}
+			>
+				{/* Ensure intent is always sent for autosave */}
+				{isEditMode && <input type="hidden" name="intent" value="save" />}
+				{/* Include billing records as hidden input for save operations in edit mode */}
+				{isEditMode && billingRecords && (
+					<input
+						type="hidden"
+						name="billing_records"
+						value={JSON.stringify(billingRecords)}
+					/>
+				)}
+				{/* Include heat load output for save operations in edit mode */}
+				{isEditMode && usageData?.heat_load_output && (
+					<input
+						type="hidden"
+						name="heat_load_output"
+						value={JSON.stringify(usageData.heat_load_output)}
+					/>
+				)}
+				<HomeInformation fields={fields} />
+				<CurrentHeatingSystem fields={fields} />
+				<EnergyUseHistory
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+					isEditMode={isEditMode}
+					showUsageData={showUsageData}
+					usageData={usageData}
+					chartClickHandler={handleOnClick}
+				/>
+				{showUsageData && usageData && (
+					<>
+						<AnalysisHeader
+							usageData={usageData}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
+						/>
+						{usageData &&
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						!!parsedAndValidatedFormSchema ? (
+							<HeatLoadAnalysis
+								heatLoadSummaryOutput={usageData.heat_load_output}
+								livingArea={parsedAndValidatedFormSchema.living_area}
+							/>
+						) : (
+							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
+								<h2 className="mb-4 text-xl font-bold text-red-600">
+									Not rendering Heat Load
+								</h2>
+								<p>usageData is undefined or missing key values</p>
+							</div>
+						)}
+					</>
+				)}
+			</Form>
+			{/* Autosave Toast */}
+			{showToast && (
+				<div
+					style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
+					className="rounded bg-green-600 px-4 py-2 text-white shadow"
+				>
+					Changes saved!
+				</div>
+			)}
+			{/* Show case saved message */}
+			{showSavedCaseIdMsg &&
+				caseInfo &&
+				typeof caseInfo.caseId === 'number' && (
+					<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+						<h2 className="mb-2 text-xl font-bold text-green-700">
+							Case Saved Successfully!
+						</h2>
+						<p className="mb-4">
+							Your case data has been saved to the database.
+						</p>
+						<p>
+							<a
+								href={`/cases/${caseInfo.caseId}`}
+								className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+							>
+								View Case Details
+							</a>
+						</p>
+					</div>
+				)}
+		</>
+	)
 }
