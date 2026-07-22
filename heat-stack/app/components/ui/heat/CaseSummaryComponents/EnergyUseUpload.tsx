@@ -28,15 +28,12 @@ export function EnergyUseHistory({
     const navigation = useNavigation()
     const isIdle = navigation.state === 'idle'
 
-    const [displayFilePicker,setDisplayFilePicker] = useState(!isEditMode)
-
     /*
     When the calculate button is pressed, sets scrollAfterSubmit to
     true because we want the page to scroll then.
     */
     const handleSubmit = () => {
         setScrollAfterSubmit(true)
-        // setDisplayFilePicker(!isEditMode)
     }
 
     return (
@@ -50,20 +47,7 @@ export function EnergyUseHistory({
                 />
             )}
 
-            {isEditMode && 
-                <div
-					className="flex items-center gap-3"
-				    style={{ marginBottom: '20px' }}
-				>
-                    <Button
-                        onClick={() => setDisplayFilePicker(!displayFilePicker)}
-                    >
-                        {!displayFilePicker ? <p>Show File Picker</p>: <p>Hide File Picker</p>}
-                    </Button>
-                </div>
-            }
-
-            {displayFilePicker && 
+            {!isEditMode && 
                 <div>
                     <CustomFileUpload name={fields.energy_use_upload.name} />
                     <div>
