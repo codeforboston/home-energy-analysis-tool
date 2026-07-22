@@ -2,17 +2,13 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import * as E from '@react-email/components'
-import { data, redirect, Form, useSearchParams } from 'react-router'
+import { data, redirect, Form } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireAnonymous } from '#app/utils/auth.server.ts'
-import {
-	ProviderConnectionForm,
-	providerNames,
-} from '#app/utils/connections.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendEmail } from '#app/utils/email.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -123,8 +119,6 @@ export const meta: Route.MetaFunction = () => {
 
 export default function SignupRoute({ actionData }: Route.ComponentProps) {
 	const isPending = useIsPending()
-	const [searchParams] = useSearchParams()
-	const redirectTo = searchParams.get('redirectTo')
 
 	const [form, fields] = useForm({
 		id: 'signup-form',
@@ -170,17 +164,6 @@ export default function SignupRoute({ actionData }: Route.ComponentProps) {
 						Submit
 					</StatusButton>
 				</Form>
-				<ul className="mt-5 flex flex-col gap-5 border-b-2 border-t-2 border-border py-3">
-					{providerNames.map((providerName) => (
-						<li key={providerName}>
-							<ProviderConnectionForm
-								type="Signup"
-								providerName={providerName}
-								redirectTo={redirectTo}
-							/>
-						</li>
-					))}
-				</ul>
 			</div>
 		</div>
 	)

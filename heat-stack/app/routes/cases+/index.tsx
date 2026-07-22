@@ -101,6 +101,7 @@ export default function Cases({
 					</p>
 					<Link
 						to="/cases/new"
+						data-testid="create-new-case"
 						className="inline-block rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
 					>
 						📈 Create New Case
