@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js'
+import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { Form, data, Link, useSubmit } from 'react-router'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -163,66 +164,90 @@ export default function Cases({
 								const heatingInput = firstAnalysis?.heatingInput[0]
 
 								return (
-									<tr key={caseItem.id} className="hover:bg-gray-50">
+									<tr
+										key={caseItem.id}
+										className="border-b border-gray-100 transition-colors duration-150 hover:bg-indigo-50"
+									>
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm font-medium text-gray-900">
-												<Link
-													to={`/cases/${caseItem.id}/edit?edit_mode=true`}
-													className="text-sm font-medium text-indigo-700 underline hover:underline"
-												>
-													{caseItem.id}
-												</Link>
-											</div>
+											<Link
+												to={`/cases/${caseItem.id}/edit?edit_mode=true`}
+												className="font-mono text-sm font-semibold text-indigo-700 hover:text-indigo-900"
+											>
+												#{caseItem.id}
+											</Link>
 										</td>
 
 										{isAdmin && (
-											<td className="whitespace-nowrap px-6 py-4">
-												<div className="text-sm text-gray-900">
+											<td className="px-6 py-4">
+												<div className="text-sm text-gray-700">
 													{caseItem.users.map((u) => u.username).join(', ')}
 												</div>
 											</td>
 										)}
-										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">
+
+										<td className="px-6 py-4">
+											<div className="font-medium text-gray-900">
 												{caseItem.homeOwner.firstName1}{' '}
 												{caseItem.homeOwner.lastName1}
 											</div>
 										</td>
+
 										<td className="px-6 py-4">
-											<div className="text-sm text-gray-900">
+											<div className="text-sm text-gray-700">
 												{caseItem.location.address}, {caseItem.location.city},{' '}
 												{caseItem.location.state}
 											</div>
 										</td>
+
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">
-												{caseItem.location.livingAreaSquareFeet} sq ft
-											</div>
+											<span className="font-semibold text-gray-900">
+												{caseItem.location.livingAreaSquareFeet.toLocaleString()}
+											</span>
+											<span className="ml-1 text-sm text-gray-500">sq ft</span>
 										</td>
+
 										<td className="whitespace-nowrap px-6 py-4">
-											<div className="text-sm text-gray-900">
+											<span
+												className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+													heatingInput?.fuelType === 'Natural Gas'
+														? 'bg-green-100 text-green-700'
+														: heatingInput?.fuelType === 'Oil'
+															? 'bg-orange-100 text-orange-700'
+															: heatingInput?.fuelType === 'Electric'
+																? 'bg-blue-100 text-blue-700'
+																: 'bg-gray-100 text-gray-600'
+												}`}
+											>
 												{heatingInput?.fuelType || 'N/A'}
-											</div>
+											</span>
 										</td>
+
 										<td className="whitespace-nowrap px-6 py-4">
-											<Link
-												to={`/cases/${firstAnalysis?.id}`}
-												className="mx-1 text-indigo-600 hover:text-indigo-900"
-											>
-												View
-											</Link>
-											<Link
-												to={`/cases/${caseItem.id}/edit`}
-												className="mx-1 text-indigo-600 hover:text-indigo-900"
-											>
-												Edit
-											</Link>
-											<Link
-												to={`/cases/${caseItem.id}/delete`}
-												className="hover:text-indigo-9001 mx-1 text-indigo-600"
-											>
-												Delete
-											</Link>
+											<div className="flex items-center gap-2">
+												<Link
+													to={`/cases/${firstAnalysis?.id}`}
+													className="rounded-md p-2 text-blue-600 transition hover:bg-blue-100 hover:text-blue-700"
+													title="View"
+												>
+													<Eye className="h-5 w-5" />
+												</Link>
+
+												<Link
+													to={`/cases/${caseItem.id}/edit`}
+													className="rounded-md p-2 text-amber-600 transition hover:bg-amber-100 hover:text-amber-700"
+													title="Edit"
+												>
+													<Pencil className="h-5 w-5" />
+												</Link>
+
+												<Link
+													to={`/cases/${caseItem.id}/delete`}
+													className="rounded-md p-2 text-red-600 transition hover:bg-red-100 hover:text-red-700"
+													title="Delete"
+												>
+													<Trash2 className="h-5 w-5" />
+												</Link>
+											</div>
 										</td>
 									</tr>
 								)
