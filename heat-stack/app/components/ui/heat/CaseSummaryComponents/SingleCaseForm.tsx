@@ -3,7 +3,6 @@ import { parseWithZod } from '@conform-to/zod'
 import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import { EnergyUseHistoryChart } from '#app/components/ui/heat/CaseSummaryComponents/EnergyUseHistoryChart.tsx'
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
 import {
 	Schema,
 	SaveOnlySchema,
@@ -77,7 +76,7 @@ export default function SingleCaseForm({
 	isEditMode = false,
 	billingRecords,
 }: SubmitAnalysisProps) {
-	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(false)
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
 	const [form, fields] = useForm({
 		lastResult: lastResult,
@@ -199,7 +198,6 @@ export default function SingleCaseForm({
 						fields={fields}
 					/>
 				)}
-				<ErrorList id={form.errorId} errors={form.errors} />
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader

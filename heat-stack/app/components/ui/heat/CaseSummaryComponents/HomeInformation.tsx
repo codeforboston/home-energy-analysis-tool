@@ -10,6 +10,11 @@ import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
 
+function roundTo(n: number, decimals = 0) {
+	const factor = 10 ** decimals
+	return Math.round(n * factor) / factor
+}
+
 export function HomeInformation(props: HomeInformationProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
@@ -41,8 +46,20 @@ export function HomeInformation(props: HomeInformationProps) {
 		props.fields.state.value || props.fields.state.defaultValue?.state,
 	)
 	const [geoError, setGeoError] = useState<string | null>(null)
-	const [geoStateId, setGeoStateId] = useState<string | null>(null)
-	const [geoCountyId, setGeoCountyId] = useState<string | null>(null)
+	const [geoCoordinates, setGeoCoordinates] = useState<{
+		x: number
+		y: number
+	} | null>(null)
+	const [calcedDesignTemp, setCalcedDesignTemp] = useState<
+		[number, number] | null
+	>(null) // add this
+
+	useEffect(() => {
+		if (!geoCoordinates) return
+		executeLookupDesignTempToDisplay(geoCoordinates).then((result: any) => {
+			setCalcedDesignTemp(result)
+		})
+	}, [geoCoordinates])
 
 	const handleStreetAddressBlur = async () => {
 		await validateGeocode()
@@ -57,7 +74,13 @@ export function HomeInformation(props: HomeInformationProps) {
 	}
 
 	async function validateGeocode() {
+		console.log('validateGeocode fired', {
+			streetAddress,
+			town,
+			usaStateAbbrev,
+		})
 		if (!streetAddress || !town || !usaStateAbbrev) {
+			console.log('bailed — a field is empty')
 			setGeoError(null)
 			return
 		}
@@ -70,8 +93,8 @@ export function HomeInformation(props: HomeInformationProps) {
 			} else {
 				console.log('geo', data)
 				setGeoError(null)
-				setGeoStateId(data.state_id)
-				setGeoCountyId(data.county_id)
+				setGeoCoordinates(data.coordinates)
+				setCalcedDesignTemp(null)
 			}
 		} catch (error) {
 			setGeoError('Error connecting to geocoding service' + error)
@@ -188,20 +211,27 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-
-			{geoStateId && geoCountyId && (
+			{geoCoordinates !== null &&
+				calcedDesignTemp === null &&
+				'Loading design temperature...'}
+			{geoCoordinates !== null && calcedDesignTemp !== null && (
 				<fieldset>
 					<legend className={subtitleClass}>Heating Design Temperature</legend>
 
 					<div className="mt-4 flex space-x-4">
 						<div className="basis-1/2">
-							<Label>County-Level Design Temperature</Label>
+							<Label>30 Year Design Temperature</Label>
 
 							<div className="item mt-4 flex h-10 items-center font-bold">
+								{/* Switched the index locations to display temperature and elapsed time */}
 								{JSON.stringify(
-									executeLookupDesignTempToDisplay(geoStateId, geoCountyId),
+									roundTo(calcedDesignTemp ? calcedDesignTemp[0] : -99, 2),
 								)}{' '}
-								°F
+								°F, took{' '}
+								{JSON.stringify(
+									roundTo(calcedDesignTemp ? calcedDesignTemp[1] : -1, 1),
+								)}{' '}
+								sec
 							</div>
 							<div className={`mt-4 ${descriptiveClass}`}>
 								This value is calculated from the address and will be used

@@ -1,11 +1,14 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
+import { useEffect, useState } from 'react'
 import { data, redirect } from 'react-router'
 import { type z } from 'zod'
 
+import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
+import { formatErrorMessage } from '#app/utils/hooks/use-fetcher-error-handler.ts'
 import {
 	type RulesEngineActionData,
 	useRulesEngine,
@@ -48,10 +51,7 @@ export async function action({ request }: Route.ActionArgs) {
 		return redirect(`/cases/${result.newCase.id}/edit`)
 	} catch (error: any) {
 		console.error('❌ Case creation failed', error)
-		const message =
-			error instanceof Error
-				? error.message
-				: 'Unknown error during case creation'
+		const message = formatErrorMessage(error)
 		return data(
 			{
 				submitResult: submission.reply({ formErrors: [message] }),
@@ -61,6 +61,7 @@ export async function action({ request }: Route.ActionArgs) {
 				state_id: undefined,
 				county_id: undefined,
 				caseInfo: undefined,
+				error: message,
 			},
 			{ status: 500 },
 		)
@@ -73,6 +74,14 @@ export default function CreateCase({
 }: Route.ComponentProps) {
 	type SchemaZodFromFormType = z.infer<typeof Schema>
 	type MinimalFormData = { fuel_type: 'GAS' }
+
+	const [errorModalOpen, setErrorModalOpen] = useState(false)
+
+	useEffect(() => {
+		if ((actionData as any)?.error) {
+			setErrorModalOpen(true)
+		}
+	}, [actionData])
 
 	const { lazyLoadRulesEngine, usageData } = useRulesEngine(
 		actionData as RulesEngineActionData,
@@ -116,18 +125,30 @@ export default function CreateCase({
 
 	// ✅ Pass `result` as `lastResult`
 	return (
-		<SingleCaseForm
-			// TODO: comment out this line?
-			beforeSubmit={() => lazyLoadRulesEngine()}
-			lastResult={actionData?.submitResult}
-			defaultFormValues={defaultValue}
-			showSavedCaseIdMsg={!!actionData}
-			caseInfo={actionData?.caseInfo}
-			usageData={usageData}
-			showUsageData={!!usageData}
-			parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
-			isEditMode={false}
-			onBillingRecordsChange={() => {}}
-		/>
+		<div>
+			<SingleCaseForm
+				// TODO: comment out this line?
+				beforeSubmit={() => lazyLoadRulesEngine()}
+				lastResult={actionData?.submitResult}
+				defaultFormValues={defaultValue}
+				showSavedCaseIdMsg={!!actionData}
+				caseInfo={actionData?.caseInfo}
+				usageData={usageData}
+				showUsageData={!!usageData}
+				parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
+				isEditMode={false}
+				onBillingRecordsChange={() => {}}
+			/>
+			<ErrorModal
+				isOpen={errorModalOpen}
+				onClose={() => setErrorModalOpen(false)}
+				title="Upload Error"
+				message={
+					typeof (actionData as any)?.error === 'string'
+						? (actionData as any).error
+						: 'Something went wrong while processing your CSV upload.'
+				}
+			/>
+		</div>
 	)
 }

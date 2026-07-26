@@ -2,8 +2,8 @@ from rules_engine import ProcessedEnergyBillInput, TemperatureInput, engine, hel
 from rules_engine.pydantic_models import HeatLoadInput
 
 
-def executeRoundtripAnalyticsFromForm(
-    summaryInputJs, temperatureInputJs, userAdjustedData, state_id, county_id
+async def executeRoundtripAnalyticsFromForm(
+    summaryInputJs, temperatureInputJs, userAdjustedData, coordinates, state_id, county_id
 ):
     """
     "processed_energy_bills" is the "roundtripping" parameter to be passed as userAdjustedData.
@@ -14,8 +14,19 @@ def executeRoundtripAnalyticsFromForm(
     summaryInputFromJs = summaryInputJs.as_object_map().values()._mapping
     temperatureInputFromJs = temperatureInputJs.as_object_map().values()._mapping
 
+    coordinatesFromJs = coordinates.to_py()
+    latitude = coordinatesFromJs.get("y")
+    longitude = coordinatesFromJs.get("x")
+
+    start_date, end_date = helpers.get_date_range(30)
+    
+    # expect 1 for middlesex county:  print("design temp check ",design_temp_looked_up, state_id, county_id)
     if summaryInputFromJs.get("design_temperature_override") == None:
-        design_temp = helpers.get_design_temp(state_id, county_id)
+        design_temp, elapsed = await helpers.calculate_design_temperature(
+            latitude, longitude, start_date, end_date
+        )
+        # print statement to display the values of the temperature design value along with the time it takes to extract the data
+        print("The weather design temp was found! " + "Design temp: " + str(design_temp) + ", elapsed: " + str(elapsed) + ", latitude: " + str(latitude) + ", longitude: " + str(longitude))
     else:
         design_temp = summaryInputFromJs.get("design_temperature_override")
 

@@ -1,5 +1,11 @@
 import csv
+import json
 import pathlib
+import statistics
+import time
+import urllib.parse
+import urllib.request
+from datetime import date
 
 DESIGN_TEMP_DIR = pathlib.Path(__file__).parent.parent / "data"
 DESIGN_TEMP_FILE = DESIGN_TEMP_DIR / "merged_structure_temps.csv"
@@ -42,3 +48,76 @@ def get_design_temp(state_id: str, county_id: str) -> int:
         )
 
     return int(design_temp)
+
+
+def _urlopen(url):
+    try:
+        from pyodide.http import open_url  # type: ignore[import]
+
+        return open_url(url).read()
+    except ImportError:
+        # Fallback for non-Pyodide environments (e.g. running tests in CPython)
+        with urllib.request.urlopen(url) as r:
+            return r.read()
+
+
+async def _urlopen_async(url):
+    from pyodide.http import pyfetch  # type: ignore[import]
+
+    response = await pyfetch(url)
+    return await response.string()
+
+
+def get_date_range(years_back, end_date=date(2025, 12, 31)):
+    """
+    Return the start date and the end_date for a given number of years back
+    """
+
+    # ex: 2025 - 9 years + 1, 1, 1
+    start_date = date(end_date.year - years_back + 1, 1, 1)
+
+    return start_date.isoformat(), end_date.isoformat()
+
+
+async def calculate_design_temperature(lat, lon, start_date, end_date):
+    """
+    Fetch hourly temperatures from Open-Meteo's archive API
+    """
+
+    # start time duration
+    start_time = time.time()
+
+    # Build the query parameters as a dict
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": start_date,
+        "end_date": end_date,
+        "hourly": "temperature_2m",
+        "temperature_unit": "fahrenheit",
+    }
+
+    # Turn the dict into a URL query string like "latitude=42.46&longitude=-71.27&..."
+    query_string = urllib.parse.urlencode(params)
+    url = f"https://archive-api.open-meteo.com/v1/archive?{query_string}"
+
+    try:
+        raw_data = await _urlopen_async(url)
+    except ImportError:
+        # CPython fallback (tests): no pyodide, use sync urllib
+        raw_data = _urlopen(url)
+
+    # Parse the JSON text into a Python dict
+    data = json.loads(raw_data)
+
+    # Pull out the list of temperatures
+    data = data["hourly"]["temperature_2m"]
+
+    # Compute the 1st percentile (no pandas)
+    design_temp = statistics.quantiles(data, n=100)[0]
+
+    # calculate total time to compute function
+    elapsed = time.time() - start_time
+
+    # return all values
+    return design_temp, elapsed

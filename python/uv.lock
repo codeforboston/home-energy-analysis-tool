@@ -271,7 +271,7 @@ wheels = [
 
 [[package]]
 name = "rules-engine"
-version = "0.0.1"
+version = "0.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },

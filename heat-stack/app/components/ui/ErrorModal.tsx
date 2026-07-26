@@ -1,6 +1,6 @@
+import { OctagonAlert, ClipboardList, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '#app/components/ui/button.tsx'
-
 interface ErrorModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -34,7 +34,9 @@ export function ErrorModal({
 				<div className="mb-4 flex items-center">
 					<div className="flex-shrink-0">
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-							<span className="text-xl text-yellow-600">⚠️</span>
+							<span className="text-xl text-yellow-600">
+								<OctagonAlert color="red" />
+							</span>
 						</div>
 					</div>
 					<div className="ml-3">
@@ -48,7 +50,17 @@ export function ErrorModal({
 
 				<div className="flex justify-end gap-3">
 					<Button variant="outline" onClick={handleCopy} className="text-sm">
-						{copied ? '✓ Copied!' : '📋 Copy'}
+						{copied ? (
+							<>
+								<Check className="h-4 w-4" />
+								<span>Copied!</span>
+							</>
+						) : (
+							<>
+								<ClipboardList className="pr-2" />
+								<span>Copy</span>
+							</>
+						)}
 					</Button>
 					<Button onClick={onClose} className="text-sm">
 						Close

@@ -126,7 +126,7 @@ test('pyodide solves climate change', async () => {
 		// await micropip.install(['annotated-types'])
 
 		await pyodide.loadPackage(
-			'../python/dist/rules_engine-0.0.1-py3-none-any.whl',
+			'../python/dist/rules_engine-0.9.0-py3-none-any.whl',
 		)
 
 		return pyodide

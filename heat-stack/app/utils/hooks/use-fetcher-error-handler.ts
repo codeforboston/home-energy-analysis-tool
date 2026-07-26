@@ -4,52 +4,75 @@ import { type Fetcher } from 'react-router'
 /**
  * Format error message by extracting stack trace up to /app/ line or first 500 chars
  */
+const USER_FACING_ERROR_MAP: Array<{ pattern: RegExp; message: string }> = [
+	{
+		pattern: /Could not determine natural gas company\./i,
+		message:
+			'Could not detect your bill format. Please upload a supported Eversource or National Grid gas bill CSV.',
+	},
+	{
+		pattern: /time data '' does not match format '%m\/%d\/%Y'/i,
+		message:
+			'A billing row contains an empty start or end date. Check your CSV for blank date fields and upload a valid Eversource or National Grid file.',
+	},
+	{
+		pattern: /time data .* does not match format/i,
+		message:
+			'A billing row contains a malformed date. Make sure the dates in your CSV use a supported format like MM/DD/YYYY or YYYY/MM/DD.',
+	},
+	{
+		pattern: /mean requires at least one data point/i,
+		message:
+			'No valid billing records were found in your CSV. Please upload a file with at least three completed usage rows.',
+	},
+	{
+		pattern: /header row not found in the csv data/i,
+		message:
+			'Could not find the expected billing header row in your CSV. Upload a valid National Grid or Eversource energy usage file.',
+	},
+	{
+		pattern: /could not convert string to float: ''/i,
+		message:
+			'One or more numeric fields in your CSV are empty. Please fill in the missing values and try again.',
+	},
+]
+
 export function formatErrorMessage(error: any): string {
 	let errorMessage =
-		typeof error === 'string' ? error : error?.message || String(error)
+		typeof error === 'string' ? error : String(error?.message ?? error)
 
-	// If error has a stack trace, extract up to /app/ line or first 500 chars
-	if (typeof errorMessage === 'string') {
-		const lines = errorMessage.split('\n')
-
-		// For Python errors, extract the main error message and relevant parts
-		if (
-			errorMessage.includes('PythonError:') ||
-			errorMessage.includes('ImportError:') ||
-			errorMessage.includes('Traceback')
-		) {
-			// Find the actual Python exception (last non-empty line before JS stack)
-			const pythonErrorLine = lines.find((line) =>
-				line.match(
-					/^(ImportError|TypeError|ValueError|AttributeError|ZeroDivisionError|KeyError|IndexError|RuntimeError|PythonError):/,
-				),
-			)
-
-			if (pythonErrorLine) {
-				// Also include the file/line info if available
-				const fileLineIndex = lines.findIndex((line) =>
-					line.includes('File "/'),
-				)
-				if (fileLineIndex !== -1) {
-					const fileInfo = lines
-						.slice(fileLineIndex, fileLineIndex + 2)
-						.join('\n')
-					return `${pythonErrorLine}\n\n${fileInfo}`
-				}
-				return pythonErrorLine
-			}
+	for (const { pattern, message } of USER_FACING_ERROR_MAP) {
+		if (pattern.test(errorMessage)) {
+			return message
 		}
+	}
 
-		// Look for /app/ line in stack trace
-		const appLineIndex = lines.findIndex((line) => line.includes('/app/'))
+	const lines = errorMessage
+		.split('\n')
+		.map((line: string) => line.trim())
+		.filter((line: string | any[]) => line.length > 0)
 
-		if (appLineIndex !== -1) {
-			// Include up to and including the line with "/app/"
-			errorMessage = lines.slice(0, appLineIndex + 1).join('\n')
-		} else if (errorMessage.length > 500) {
-			// Take first 500 characters if no /app/ line found
-			errorMessage = errorMessage.substring(0, 500) + '...'
-		}
+	const pythonErrorLine = lines.find((line: string) =>
+		/^(ImportError|TypeError|ValueError|AttributeError|ZeroDivisionError|KeyError|IndexError|RuntimeError|PythonError):/.test(
+			line,
+		),
+	)
+
+	if (pythonErrorLine) {
+		return pythonErrorLine.replace(/^PythonError:\s*/i, '')
+	}
+
+	const firstUsefulLine = lines.find(
+		(line: string) =>
+			!line.startsWith('Traceback') && !line.startsWith('File "/'),
+	)
+
+	if (firstUsefulLine) {
+		errorMessage = firstUsefulLine
+	}
+
+	if (errorMessage.length > 500) {
+		errorMessage = `${errorMessage.substring(0, 500)}...`
 	}
 
 	return errorMessage

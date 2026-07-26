@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import Fuse from 'fuse.js'
+import { useMemo, useState } from 'react'
 import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { Input } from '#app/components/ui/input.tsx'
 import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
+
 export async function loader() {
 	// Only admins can access
 	// This should be enforced in the route config or loader
@@ -69,12 +73,20 @@ export default function AdminEditUsers() {
 			roles?: { name: string }[]
 		}>
 	}
-	const [searchTerm, setSearchTerm] = useState('')
-	const filteredUsers = users.filter((user) =>
-		[user.name, user.email, user.username, user.city, user.state]
-			.filter(Boolean)
-			.some((value) => value!.toLowerCase().includes(searchTerm.toLowerCase())),
+	const fuse = useMemo(
+		() =>
+			new Fuse(users, {
+				keys: ['name', 'email', 'username', 'city', 'state'],
+				includeScore: true,
+				threshold: 0.3,
+			}),
+		[users],
 	)
+
+	const [searchTerm, setSearchTerm] = useState('')
+	const filteredUsers = fuse
+		.search(searchTerm)
+		.map((fuseResult) => fuseResult.item)
 	const loggedInUser = useOptionalUser()
 
 	const [editingId, setEditingId] = useState<string | null>(null)
@@ -100,7 +112,7 @@ export default function AdminEditUsers() {
 							/>
 						</div>
 
-						<input
+						<Input
 							type="search"
 							name="search"
 							placeholder="Search users..."
@@ -167,14 +179,15 @@ export default function AdminEditUsers() {
 										/>
 									</div>
 
-									<button
+									<Button
 										type="button"
+										variant="ghost"
 										className="ml-2 rounded p-2 hover:bg-accent"
 										id={`edit_btn_${u.username}`}
 										onClick={() => setEditingId(u.id)}
 									>
 										<Icon name="pencil-2" size="md" />
-									</button>
+									</Button>
 								</div>
 							) : (
 								<Form
@@ -227,14 +240,15 @@ export default function AdminEditUsers() {
 											onChange={(e) => e.target.form?.requestSubmit()}
 										/>
 									</div>
-									<button
+									<Button
 										type="button"
+										variant="ghost"
 										className="ml-2 rounded p-2 hover:bg-accent"
 										id={`cancel_edit_btn_${u.username}`}
 										onClick={() => setEditingId(null)}
 									>
 										<Icon name="cross-1" size="md" />
-									</button>
+									</Button>
 								</Form>
 							)}
 						</li>
