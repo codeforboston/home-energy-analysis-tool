@@ -10,7 +10,7 @@ inputs:
   install-dev:
     description: Install dev dependencies
     required: false
-    default: "true"
+    default: "false"
 runs:
   using: "composite"
   steps:
