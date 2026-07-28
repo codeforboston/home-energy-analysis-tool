@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Trap errors and print a message
-trap 'echo "An error occurred"; set +x' ERR
+# Trap errors and print a message (bash-only feature; skip under other shells like dash)
+if [ -n "$BASH_VERSION" ]; then
+    trap 'echo "An error occurred"; set +x' ERR
+fi
 
 # Create a virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
@@ -10,8 +12,8 @@ fi
 
 # Activate the virtual environment
 case "$OSTYPE" in
-  msys*) source .venv/Scripts/activate;;
-  *) source .venv/bin/activate;;
+  msys*) . .venv/Scripts/activate;;
+  *) . .venv/bin/activate;;
 esac
 
 # Sync dependencies into the virtual environment
