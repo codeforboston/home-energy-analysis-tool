@@ -211,67 +211,65 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			{geoCoordinates !== null &&
-				calcedDesignTemp === null &&
-				'Loading design temperature...'}
-			{geoCoordinates !== null && calcedDesignTemp !== null && (
-				<fieldset>
-					<legend className={subtitleClass}>Heating Design Temperature</legend>
+			<fieldset>
+				<legend className={subtitleClass}>Heating Design Temperature</legend>
 
-					<div className="mt-4 flex space-x-4">
-						<div className="basis-1/2">
-							<Label>30 Year Design Temperature</Label>
+				<div className="mt-4 flex space-x-4">
+					<div className="basis-1/2">
+						<Label>Calculated Design Temperature</Label>
 
-							<div className="item mt-4 flex h-10 items-center font-bold">
-								{/* Switched the index locations to display temperature and elapsed time */}
-								{JSON.stringify(
-									roundTo(calcedDesignTemp ? calcedDesignTemp[0] : -99, 2),
-								)}{' '}
-								°F, took{' '}
-								{JSON.stringify(
-									roundTo(calcedDesignTemp ? calcedDesignTemp[1] : -1, 1),
-								)}{' '}
-								sec
-							</div>
-							<div className={`mt-4 ${descriptiveClass}`}>
-								This value is calculated from the address and will be used
-								unless an override value is entered.
-							</div>
+						<div className="item mt-4 flex h-10 items-center font-bold">
+							{geoCoordinates === null ? (
+								<>Enter address above</>
+							) : calcedDesignTemp === null ? (
+								<>Calculating...</>
+							) : (
+								<>
+									{JSON.stringify(roundTo(calcedDesignTemp[0], 2))} °F, took{' '}
+									{JSON.stringify(roundTo(calcedDesignTemp[1], 1))} sec
+								</>
+							)}
 						</div>
 
-						<div className="basis-1/2">
-							<Label htmlFor="design_temperature_override">
-								Design Temperature Override
-							</Label>
+						<div className={`mt-4 ${descriptiveClass}`}>
+							This value is calculated from the address and will be used unless
+							an override value is entered.
+						</div>
+					</div>
 
-							<HelpButton
-								keyName="design_temperature_override.help"
-								className="ml-[1ch]"
-							/>
+					<div className="basis-1/2">
+						<Label htmlFor="design_temperature_override">
+							Design Temperature Override
+						</Label>
 
-							<div className="mt-4 flex space-x-4">
-								<div>
-									<Input
-										{...getInputProps(
-											props.fields.design_temperature_override,
-											{ type: 'number' },
-										)}
+						<HelpButton
+							keyName="design_temperature_override.help"
+							className="ml-[1ch]"
+						/>
+
+						<div className="mt-4 flex space-x-4">
+							<div>
+								<Input
+									{...getInputProps(props.fields.design_temperature_override, {
+										type: 'number',
+									})}
+								/>
+
+								<div className={`${descriptiveClass}`}>
+									Enter a value in the range -10 to 32
+								</div>
+
+								<div className="min-h-[32px] px-4 pb-3 pt-1">
+									<ErrorList
+										id={props.fields.design_temperature_override.errorId}
+										errors={props.fields.design_temperature_override.errors}
 									/>
-									<div className={`${descriptiveClass}`}>
-										Enter a value in the range -10 to 32
-									</div>
-									<div className="min-h-[32px] px-4 pb-3 pt-1">
-										<ErrorList
-											id={props.fields.design_temperature_override.errorId}
-											errors={props.fields.design_temperature_override.errors}
-										/>
-									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</fieldset>
-			)}
+				</div>
+			</fieldset>
 			<div className="mt-1">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
