@@ -2,12 +2,17 @@ import Fuse from 'fuse.js'
 import { useMemo, useState } from 'react'
 import { Form, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { Input } from '#app/components/ui/input.tsx'
 import { ACCESS_DENIED_MESSAGE } from '#app/constants/error-messages.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { useOptionalUser, hasAdminRole } from '#app/utils/user.ts'
+import {
+	useOptionalUser,
+	hasAdminRole,
+	hasSuspendedRole,
+} from '#app/utils/user.ts'
+
+export const SUSPENDED_ROLE_NAME = 'suspended'
 
 export async function loader() {
 	// Only admins can access
@@ -21,7 +26,6 @@ export async function loader() {
 			name: true,
 			city: true,
 			state: true,
-			suspended: true,
 			roles: { select: { name: true } },
 		},
 	})
@@ -48,10 +52,22 @@ export async function action({ request }: { request: Request }) {
 	const intent = formData.get('intent')
 
 	if (intent === 'suspend' || intent === 'unsuspend') {
+		await prisma.role.upsert({
+			where: { name: SUSPENDED_ROLE_NAME },
+			create: {
+				name: SUSPENDED_ROLE_NAME,
+				description: 'Suspended user account',
+			},
+			update: {},
+		})
+
 		await prisma.user.update({
 			where: { id },
 			data: {
-				suspended: intent === 'suspend',
+				roles:
+					intent === 'suspend'
+						? { connect: { name: SUSPENDED_ROLE_NAME } }
+						: { disconnect: { name: SUSPENDED_ROLE_NAME } },
 			},
 		})
 
@@ -85,7 +101,6 @@ export default function AdminEditUsers() {
 			name: string | null
 			city: string | null
 			state: string | null
-			suspended: boolean
 			roles?: { name: string }[]
 		}>
 	}
@@ -153,12 +168,13 @@ export default function AdminEditUsers() {
 					<div className="w-24 text-center">Edit</div>
 				</div>
 
-				<ul className="max-h-[1000px] min-w-[1500px]">
+				<ul className="max-h-[1000px] min-w-[1500px]" data-testid="users-list">
 					{filteredUsers.map((u) => {
 						const isEditing = editingId === u.id
-
+						const suspended = hasSuspendedRole(u)
 						return (
 							<li
+								data-testid="user-row"
 								key={u.id}
 								className="m-4 rounded-xl border border-gray-300 bg-card shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
 							>
@@ -212,12 +228,12 @@ export default function AdminEditUsers() {
 										<div className="flex w-32 justify-center">
 											<span
 												className={`rounded-full px-3 py-1 text-xs font-semibold ${
-													u.suspended
+													suspended
 														? 'bg-red-100 text-red-700'
 														: 'bg-emerald-100 text-emerald-700'
 												}`}
 											>
-												{u.suspended ? 'Suspended' : 'Active'}
+												{suspended ? 'Suspended' : 'Active'}
 											</span>
 										</div>
 
@@ -312,14 +328,14 @@ export default function AdminEditUsers() {
 											<button
 												type="submit"
 												name="intent"
-												value={u.suspended ? 'unsuspend' : 'suspend'}
+												value={suspended ? 'unsuspend' : 'suspend'}
 												className={`h-10 w-28 rounded-lg text-sm font-semibold text-white transition ${
-													u.suspended
+													suspended
 														? 'bg-emerald-600 hover:bg-emerald-700'
 														: 'bg-red-600 hover:bg-red-700'
 												}`}
 											>
-												{u.suspended ? 'Unsuspend' : 'Suspend'}
+												{suspended ? 'Unsuspend' : 'Suspend'}
 											</button>
 										</div>
 

@@ -68,7 +68,7 @@ test('Admin can view and edit users', async ({
 	const otherUser = await insertTemporaryUser({ is_admin: false })
 	await page.goto('/users')
 	const dbUserCount = await prisma.user.count()
-	const userRows = await page.locator('ul.divide-y > li').all()
+	const userRows = await page.getByTestId('user-row').all()
 	expect(userRows.length).toBe(dbUserCount)
 	const firstRow = userRows[0]
 	const emailText = await firstRow?.locator('div').nth(0).textContent()

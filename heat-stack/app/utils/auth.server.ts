@@ -15,6 +15,7 @@ export const getSessionExpirationDate = () =>
 	new Date(Date.now() + SESSION_EXPIRATION_TIME)
 
 export const sessionKey = 'sessionId'
+export const SUSPENDED_ROLE_NAME = 'suspended'
 
 export const authenticator = new Authenticator<ProviderUser>()
 
@@ -36,13 +37,16 @@ export async function getUserId(request: Request) {
 			userId: true,
 			user: {
 				select: {
-					suspended: true,
+					roles: { select: { name: true } },
 				},
 			},
 		},
 		where: { id: sessionId, expirationDate: { gt: new Date() } },
 	})
-	if (!session?.userId || session.user.suspended) {
+	const isSuspended = session?.user.roles.some(
+		(role) => role.name === SUSPENDED_ROLE_NAME,
+	)
+	if (!session?.userId || isSuspended) {
 		throw redirect('/', {
 			headers: {
 				'set-cookie': await authSessionStorage.destroySession(authSession),
@@ -76,11 +80,11 @@ export async function isUserSuspended(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		select: {
-			suspended: true,
+			roles: { select: { name: true } },
 		},
 	})
 
-	return user?.suspended ?? false
+	return user?.roles.some((role) => role.name === SUSPENDED_ROLE_NAME) ?? false
 }
 
 export async function requireAnonymous(request: Request) {
@@ -264,7 +268,11 @@ export async function verifyUserPassword(
 ) {
 	const userWithPassword = await prisma.user.findUnique({
 		where,
-		select: { id: true, suspended: true, password: { select: { hash: true } } },
+		select: {
+			id: true,
+			roles: { select: { name: true } },
+			password: { select: { hash: true } },
+		},
 	})
 
 	if (!userWithPassword || !userWithPassword.password) {
@@ -277,7 +285,10 @@ export async function verifyUserPassword(
 		return null
 	}
 
-	if (userWithPassword.suspended) {
+	const isSuspended = userWithPassword.roles.some(
+		(role) => role.name === SUSPENDED_ROLE_NAME,
+	)
+	if (isSuspended) {
 		return null
 	}
 
