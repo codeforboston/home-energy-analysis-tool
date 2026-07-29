@@ -62,7 +62,7 @@ export function EnergyUseHistory({
 						Calculate
 					</Button>
 				</div>
-			)}
+            )}
 
 			{showUsageData && usageData && (
 				<EnergyUseHistoryChart

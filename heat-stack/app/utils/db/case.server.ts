@@ -80,19 +80,35 @@ export const getCaseForEditing = async (
 	})
 }
 
-export const deleteCaseWithUser = async (caseId: number, userId: string) => {
+export const deleteCaseWithUser = async (
+	caseId: number,
+	userId: string,
+	isAdmin: boolean,
+) => {
 	// WIll need to delete:
 	// 1. analysis
 	// 2. csv records
 	// 3. Do we leave location and homeOwner alone?
-	return await prisma.case.delete({
+	const caseRecord = await prisma.case.findFirst({
 		where: {
 			id: caseId,
-			users: {
-				some: {
-					id: userId,
-				},
-			},
+			...(isAdmin
+				? {}
+				: {
+						users: {
+							some: { id: userId },
+						},
+					}),
+		},
+	})
+
+	if (!caseRecord) {
+		throw new Response('Not Found', { status: 404 })
+	}
+
+	await prisma.case.delete({
+		where: {
+			id: caseId,
 		},
 	})
 }
