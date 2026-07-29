@@ -77,21 +77,20 @@ export default function SingleCaseForm({
 }: SubmitAnalysisProps) {
     const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
-    const [form, fields] = useForm({
-        lastResult: lastResult,
-        onValidate({ formData }) {
-            // Use SaveOnlySchema for save operations in edit mode, otherwise use full Schema
-            const intent = formData.get('intent') as string
-            const schema = isEditMode && intent === 'save' ? SaveOnlySchema : Schema
-            return parseWithZod(formData, { schema })
-        },
-        onSubmit() {
-            beforeSubmit()
-        },
-        defaultValue: defaultFormValues,
-        shouldValidate: 'onBlur',
-        shouldRevalidate: 'onInput',
-    })
+	const [form, fields] = useForm({
+		lastResult: lastResult,
+		onValidate({ formData }) {
+			// Edit mode never requires file validation; new-case mode does.
+			const schema = isEditMode ? SaveOnlySchema : Schema
+			return parseWithZod(formData, { schema })
+		},
+		onSubmit() {
+			beforeSubmit()
+		},
+		defaultValue: defaultFormValues,
+		shouldValidate: 'onBlur',
+		shouldRevalidate: 'onInput',
+	})
 
     // Track last focused value for autosave-on-blur
     const lastFocusedValueRef = useRef<string | null>(null)
@@ -145,51 +144,50 @@ export default function SingleCaseForm({
         setTriggerAutosave(true)
     }
 
-    // Autosave after billingRecords change (must be at top level, not inside JSX)
-    const [triggerAutosave, setTriggerAutosave] = useState(false)
-    useEffect(() => {
-        if (triggerAutosave) {
-            if (formRef.current) {
-                formRef.current.requestSubmit()
-                handleAutosaveToast()
-            }
-            setTriggerAutosave(false)
-        }
-    }, [billingRecords, triggerAutosave])
-    return (
-        <>
-            <Form
-                ref={formRef}
-                id={form.id}
-                method="post"
-                onSubmit={form.onSubmit}
-                action={action}
-                encType="multipart/form-data"
-                aria-invalid={form.errors ? true : undefined}
-                aria-describedby={form.errors ? form.errorId : undefined}
-                onBlur={handleFieldBlur}
-                onFocus={handleFieldFocus}
-            >
-                {/* Ensure intent is always sent for autosave */}
-                {isEditMode && <input type="hidden" name="intent" value="save" />}
-                {/* Include billing records as hidden input for save operations in edit mode */}
-                {isEditMode && billingRecords && (
-                    <input
-                        type="hidden"
-                        name="billing_records"
-                        value={JSON.stringify(billingRecords)}
-                    />
-                )}
-                {/* Include heat load output for save operations in edit mode */}
-                {isEditMode && usageData?.heat_load_output && (
-                    <input
-                        type="hidden"
-                        name="heat_load_output"
-                        value={JSON.stringify(usageData.heat_load_output)}
-                    />
-                )}
-                <HomeInformation fields={fields} />
-                <CurrentHeatingSystem fields={fields} />
+	// Autosave after billingRecords change (must be at top level, not inside JSX)
+	const [triggerAutosave, setTriggerAutosave] = useState(false)
+	useEffect(() => {
+		if (triggerAutosave) {
+			if (formRef.current) {
+				formRef.current.requestSubmit()
+				handleAutosaveToast()
+			}
+			setTriggerAutosave(false)
+		}
+	}, [billingRecords, triggerAutosave])
+
+	return (
+		<>
+			<Form
+				ref={formRef}
+				id={form.id}
+				method="post"
+				onSubmit={form.onSubmit}
+				action={action}
+				encType="multipart/form-data"
+				aria-invalid={form.errors ? true : undefined}
+				aria-describedby={form.errors ? form.errorId : undefined}
+				onBlur={handleFieldBlur}
+				onFocus={handleFieldFocus}
+			>
+				{/* Include billing records as hidden input for save operations in edit mode */}
+				{isEditMode && billingRecords && (
+					<input
+						type="hidden"
+						name="billing_records"
+						value={JSON.stringify(billingRecords)}
+					/>
+				)}
+				{/* Include heat load output for save operations in edit mode */}
+				{isEditMode && usageData?.heat_load_output && (
+					<input
+						type="hidden"
+						name="heat_load_output"
+						value={JSON.stringify(usageData.heat_load_output)}
+					/>
+				)}
+				<HomeInformation fields={fields} />
+				<CurrentHeatingSystem fields={fields} />
                 <EnergyUseHistory
                     setScrollAfterSubmit={setScrollAfterSubmit}
                     fields={fields}
@@ -198,63 +196,63 @@ export default function SingleCaseForm({
                     usageData={usageData}
                     chartClickHandler={handleOnClick}
                 />
-                {showUsageData && usageData && (
-                    <>
-                        <AnalysisHeader
-                            usageData={usageData}
-                            scrollAfterSubmit={scrollAfterSubmit}
-                            setScrollAfterSubmit={setScrollAfterSubmit}
-                        />
-                        {usageData &&
-                            usageData.heat_load_output &&
-                            usageData.heat_load_output.design_temperature &&
-                            usageData.heat_load_output.whole_home_heat_loss_rate &&
-                            !!parsedAndValidatedFormSchema ? (
-                            <HeatLoadAnalysis
-                                heatLoadSummaryOutput={usageData.heat_load_output}
-                                livingArea={parsedAndValidatedFormSchema.living_area}
-                            />
-                        ) : (
-                            <div className="my-4 rounded-lg border-2 border-red-400 p-4">
-                                <h2 className="mb-4 text-xl font-bold text-red-600">
-                                    Not rendering Heat Load
-                                </h2>
-                                <p>usageData is undefined or missing key values</p>
-                            </div>
-                        )}
-                    </>
-                )}
-            </Form>
-            {/* Autosave Toast */}
-            {showToast && (
-                <div
-                    style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
-                    className="rounded bg-green-600 px-4 py-2 text-white shadow"
-                >
-                    Changes saved!
-                </div>
-            )}
-            {/* Show case saved message */}
-            {showSavedCaseIdMsg &&
-                caseInfo &&
-                typeof caseInfo.caseId === 'number' && (
-                    <div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
-                        <h2 className="mb-2 text-xl font-bold text-green-700">
-                            Case Saved Successfully!
-                        </h2>
-                        <p className="mb-4">
-                            Your case data has been saved to the database.
-                        </p>
-                        <p>
-                            <a
-                                href={`/cases/${caseInfo.caseId}`}
-                                className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                            >
-                                View Case Details
-                            </a>
-                        </p>
-                    </div>
-                )}
-        </>
-    )
+				{showUsageData && usageData && (
+					<>
+						<AnalysisHeader
+							usageData={usageData}
+							scrollAfterSubmit={scrollAfterSubmit}
+							setScrollAfterSubmit={setScrollAfterSubmit}
+						/>
+						{usageData &&
+						usageData.heat_load_output &&
+						usageData.heat_load_output.design_temperature &&
+						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						!!parsedAndValidatedFormSchema ? (
+							<HeatLoadAnalysis
+								heatLoadSummaryOutput={usageData.heat_load_output}
+								livingArea={parsedAndValidatedFormSchema.living_area}
+							/>
+						) : (
+							<div className="my-4 rounded-lg border-2 border-red-400 p-4">
+								<h2 className="mb-4 text-xl font-bold text-red-600">
+									Not rendering Heat Load
+								</h2>
+								<p>usageData is undefined or missing key values</p>
+							</div>
+						)}
+					</>
+				)}
+			</Form>
+			{/* Autosave Toast */}
+			{showToast && (
+				<div
+					style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}
+					className="rounded bg-green-600 px-4 py-2 text-white shadow"
+				>
+					Changes saved!
+				</div>
+			)}
+			{/* Show case saved message */}
+			{showSavedCaseIdMsg &&
+				caseInfo &&
+				typeof caseInfo.caseId === 'number' && (
+					<div className="mt-8 rounded-lg border-2 border-green-400 bg-green-50 p-4">
+						<h2 className="mb-2 text-xl font-bold text-green-700">
+							Case Saved Successfully!
+						</h2>
+						<p className="mb-4">
+							Your case data has been saved to the database.
+						</p>
+						<p>
+							<a
+								href={`/cases/${caseInfo.caseId}`}
+								className="inline-block rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+							>
+								View Case Details
+							</a>
+						</p>
+					</div>
+				)}
+		</>
+	)
 }
