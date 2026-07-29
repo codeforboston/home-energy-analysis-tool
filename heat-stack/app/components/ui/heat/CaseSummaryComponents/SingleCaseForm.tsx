@@ -3,13 +3,13 @@ import { parseWithZod } from '@conform-to/zod'
 import { useState, useRef, useEffect } from 'react'
 import { Form } from 'react-router'
 import {
-    Schema,
-    SaveOnlySchema,
-    type SchemaZodFromFormType,
+	Schema,
+	SaveOnlySchema,
+	type SchemaZodFromFormType,
 } from '#types/single-form.ts'
 import {
-    type UsageDataSchema,
-    type BillingRecordsSchema,
+	type UsageDataSchema,
+	type BillingRecordsSchema,
 } from '#types/types.ts'
 import { AnalysisHeader } from './AnalysisHeader.tsx'
 import { CurrentHeatingSystem } from './CurrentHeatingSystem.tsx'
@@ -19,63 +19,63 @@ import { HomeInformation } from './HomeInformation.tsx'
 
 /* consolidate into FEATUREFLAG_PRISMA_HEAT_BETA2 when extracted into sep. file, export it */
 export interface CaseInfo {
-    caseId?: number
-    analysisId?: number
-    heatingInputId?: number
+	caseId?: number
+	analysisId?: number
+	heatingInputId?: number
 }
 type MinimalFormData = { fuel_type: 'GAS' }
 type DefaultFormValues = SchemaZodFromFormType | MinimalFormData
 
 export type SubmitAnalysisProps = {
-    /**
-     * Callback to fire before submit is executed
-     */
-    beforeSubmit: () => void
-    lastResult: SubmissionResult<string[]> | null | undefined
-    defaultFormValues: DefaultFormValues
-    showSavedCaseIdMsg: boolean
-    caseInfo: CaseInfo | undefined
-    usageData: UsageDataSchema | undefined
-    showUsageData: boolean
-    onBillingRecordsChange: (records: BillingRecordsSchema) => void
-    /**
-     * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
-     * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
-     */
-    action?: '/cases/new' | undefined
-    parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
-    /**
-     * Whether this form is in edit mode (shows Save button instead of Calculate button)
-     */
-    isEditMode?: boolean
-    /**
-     * Billing records to save when form is submitted (edit mode only)
-     */
-    billingRecords?: BillingRecordsSchema
-    // actionData: (RulesEngineActionData & {
-    // 	/**
-    // 	 * Results returned from `parseWithZod` in the action function
-    // 	 */
-    // 	submitResults: SubmissionResult<string[]>
-    // 	caseInfo?: CaseInfo,
-    // } )| undefined
+	/**
+	 * Callback to fire before submit is executed
+	 */
+	beforeSubmit: () => void
+	lastResult: SubmissionResult<string[]> | null | undefined
+	defaultFormValues: DefaultFormValues
+	showSavedCaseIdMsg: boolean
+	caseInfo: CaseInfo | undefined
+	usageData: UsageDataSchema | undefined
+	showUsageData: boolean
+	onBillingRecordsChange: (records: BillingRecordsSchema) => void
+	/**
+	 * action is the route that the form data will be sent to. If no action is provided, current route will handle the submission
+	 * TODO: I don't think this field should exist but since we have /cases/new?dev=true that we want to redirect to /cases/new, this seemed nececssary for now
+	 */
+	action?: '/cases/new' | undefined
+	parsedAndValidatedFormSchema: SchemaZodFromFormType | undefined
+	/**
+	 * Whether this form is in edit mode (shows Save button instead of Calculate button)
+	 */
+	isEditMode?: boolean
+	/**
+	 * Billing records to save when form is submitted (edit mode only)
+	 */
+	billingRecords?: BillingRecordsSchema
+	// actionData: (RulesEngineActionData & {
+	// 	/**
+	// 	 * Results returned from `parseWithZod` in the action function
+	// 	 */
+	// 	submitResults: SubmissionResult<string[]>
+	// 	caseInfo?: CaseInfo,
+	// } )| undefined
 }
 
 export default function SingleCaseForm({
-    beforeSubmit,
-    lastResult,
-    defaultFormValues,
-    showSavedCaseIdMsg,
-    caseInfo,
-    usageData,
-    showUsageData,
-    action,
-    onBillingRecordsChange,
-    parsedAndValidatedFormSchema,
-    isEditMode = false,
-    billingRecords,
+	beforeSubmit,
+	lastResult,
+	defaultFormValues,
+	showSavedCaseIdMsg,
+	caseInfo,
+	usageData,
+	showUsageData,
+	action,
+	onBillingRecordsChange,
+	parsedAndValidatedFormSchema,
+	isEditMode = false,
+	billingRecords,
 }: SubmitAnalysisProps) {
-    const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
+	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
 	const [form, fields] = useForm({
 		lastResult: lastResult,
@@ -92,57 +92,57 @@ export default function SingleCaseForm({
 		shouldRevalidate: 'onInput',
 	})
 
-    // Track last focused value for autosave-on-blur
-    const lastFocusedValueRef = useRef<string | null>(null)
+	// Track last focused value for autosave-on-blur
+	const lastFocusedValueRef = useRef<string | null>(null)
 
-    // Toast state for autosave feedback
-    const [showToast, setShowToast] = useState(false)
-    // Show toast for 2 seconds when autosave triggers
-    const handleAutosaveToast = () => {
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 2000)
-    }
+	// Toast state for autosave feedback
+	const [showToast, setShowToast] = useState(false)
+	// Show toast for 2 seconds when autosave triggers
+	const handleAutosaveToast = () => {
+		setShowToast(true)
+		setTimeout(() => setShowToast(false), 2000)
+	}
 
-    // Track the value when a field receives focus
-    const handleFieldFocus = (e: React.FocusEvent<any>) => {
-        lastFocusedValueRef.current = e.target.value
-    }
+	// Track the value when a field receives focus
+	const handleFieldFocus = (e: React.FocusEvent<any>) => {
+		lastFocusedValueRef.current = e.target.value
+	}
 
-    // Generic onBlur handler for all fields
-    const handleFieldBlur = (e: React.FocusEvent<any>) => {
-        if (!isEditMode) return
-        const original = lastFocusedValueRef.current
-        const current = e.target.value
-        if (original !== null && original !== current && formRef.current) {
-            // Validate form data before autosaving to prevent saving invalid values
-            const formData = new FormData(formRef.current)
-            const result = parseWithZod(formData, { schema: SaveOnlySchema })
-            if (result.status !== 'success') {
-                lastFocusedValueRef.current = null
-                return
-            }
-            formRef.current.requestSubmit()
-            handleAutosaveToast()
-        }
-        lastFocusedValueRef.current = null
-    }
+	// Generic onBlur handler for all fields
+	const handleFieldBlur = (e: React.FocusEvent<any>) => {
+		if (!isEditMode) return
+		const original = lastFocusedValueRef.current
+		const current = e.target.value
+		if (original !== null && original !== current && formRef.current) {
+			// Validate form data before autosaving to prevent saving invalid values
+			const formData = new FormData(formRef.current)
+			const result = parseWithZod(formData, { schema: SaveOnlySchema })
+			if (result.status !== 'success') {
+				lastFocusedValueRef.current = null
+				return
+			}
+			formRef.current.requestSubmit()
+			handleAutosaveToast()
+		}
+		lastFocusedValueRef.current = null
+	}
 
-    const formRef = useRef<HTMLFormElement>(null)
+	const formRef = useRef<HTMLFormElement>(null)
 
-    const handleOnClick = (index: number) => {
-        if (!isEditMode || !billingRecords) return
-        const updatedRecords = billingRecords.map((record, i) => {
-            if (i === index) {
-                return {
-                    ...record,
-                    inclusion_override: !record.inclusion_override,
-                }
-            }
-            return record
-        })
-        onBillingRecordsChange(updatedRecords)
-        setTriggerAutosave(true)
-    }
+	const handleOnClick = (index: number) => {
+		if (!isEditMode || !billingRecords) return
+		const updatedRecords = billingRecords.map((record, i) => {
+			if (i === index) {
+				return {
+					...record,
+					inclusion_override: !record.inclusion_override,
+				}
+			}
+			return record
+		})
+		onBillingRecordsChange(updatedRecords)
+		setTriggerAutosave(true)
+	}
 
 	// Autosave after billingRecords change (must be at top level, not inside JSX)
 	const [triggerAutosave, setTriggerAutosave] = useState(false)
@@ -155,7 +155,6 @@ export default function SingleCaseForm({
 			setTriggerAutosave(false)
 		}
 	}, [billingRecords, triggerAutosave])
-
 	return (
 		<>
 			<Form
@@ -188,14 +187,14 @@ export default function SingleCaseForm({
 				)}
 				<HomeInformation fields={fields} />
 				<CurrentHeatingSystem fields={fields} />
-                <EnergyUseHistory
-                    setScrollAfterSubmit={setScrollAfterSubmit}
-                    fields={fields}
-                    isEditMode={isEditMode}
-                    showUsageData={showUsageData}
-                    usageData={usageData}
-                    chartClickHandler={handleOnClick}
-                />
+				<EnergyUseHistory
+					setScrollAfterSubmit={setScrollAfterSubmit}
+					fields={fields}
+					isEditMode={isEditMode}
+					showUsageData={showUsageData}
+					usageData={usageData}
+					chartClickHandler={handleOnClick}
+				/>
 				{showUsageData && usageData && (
 					<>
 						<AnalysisHeader
