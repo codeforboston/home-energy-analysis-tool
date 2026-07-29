@@ -49,26 +49,18 @@ export function EnergyUseHistory({
 			{!isEditMode && (
 				<div>
 					<CustomFileUpload name={fields.energy_use_upload.name} />
-					<div>
-						<Button
-							type="submit"
-							name="intent"
-							value={isEditMode ? 'save' : 'upload'}
-							disabled={!isIdle}
-							onClick={handleSubmit}
-							style={{ marginBottom: '20px' }}
-						>
-							{isIdle && <Upload className="mr-2 h-4 w-4" />}
-							<Spinner showSpinner={!isIdle} />
-							Calculate
-						</Button>
-						<a
-							className="ml-3 inline-flex items-center gap-1 rounded-md border border-transparent bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-							href="https://github.com/codeforboston/home-energy-analysis-tool/issues/162#issuecomment-2246594484"
-						>
-							Get example file here
-						</a>
-					</div>
+					<Button
+						type="submit"
+						name="intent"
+						value={isEditMode ? 'save' : 'upload'}
+						disabled={!isIdle}
+						onClick={handleSubmit}
+						style={{ marginBottom: '20px' }}
+					>
+						{isIdle && <Upload className="mr-2 h-4 w-4" />}
+						<Spinner showSpinner={!isIdle} />
+						Calculate
+					</Button>
 				</div>
 			)}
 
