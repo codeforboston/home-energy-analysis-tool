@@ -23,3 +23,38 @@
 - <img width="996" height="305" alt="image" src="https://github.com/user-attachments/assets/48534ab5-27bd-457b-83f4-d582ac7017db" />
 - Press "Save 1 Change" in green
   - <img width="539" height="60" alt="image" src="https://github.com/user-attachments/assets/69bd9a8e-b57b-4962-953e-bd912b159735" />
+
+
+## Account Suspension
+
+Administrators can temporarily suspend user accounts from the **Edit Users** page.
+
+### Suspending an Account
+
+1. Navigate to **Users** (Admin only).
+2. Click the **Edit** button for the desired user.
+3. Click **Suspend**.
+
+When a user is suspended:
+
+* The `suspended` role is added to the user's account.
+* Existing sessions are invalidated on the next authenticated request.
+* The user is prevented from logging in.
+* Suspended users cannot access any authenticated routes or perform any actions within the application.
+
+### Unsuspending an Account
+
+1. Navigate to **Users** (Admin only).
+2. Click **Edit** for the suspended user.
+3. Click **Unsuspend**.
+
+This removes the `suspended` role from the account, allowing the user to log in and use the application again.
+
+### Implementation Details
+
+Account suspension is implemented using the existing role system rather than introducing a new database field.
+
+* Active users retain their existing roles (for example, `user` or `admin`).
+* Suspended users receive an additional `suspended` role.
+* Authentication checks for the presence of the `suspended` role during login and session validation.
+* If the role is present, authentication is denied and any active session is cleared.
