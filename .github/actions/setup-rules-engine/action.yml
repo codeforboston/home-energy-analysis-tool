@@ -23,7 +23,7 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        if [ "false" = "true" ]; then
+        if [ "true" = "true" ]; then
           pip install ".[dev]"
         else
           pip install .
