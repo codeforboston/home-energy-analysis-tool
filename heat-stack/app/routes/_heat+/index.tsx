@@ -1,8 +1,6 @@
 import { Link } from 'react-router'
-import { useOptionalUser } from '#app/utils/user.ts'
 
 export default function HEATLandingPage() {
-	const user = useOptionalUser()
 	return (
 		<div className="flex min-h-screen flex-col">
 			{/* Hero Section */}
