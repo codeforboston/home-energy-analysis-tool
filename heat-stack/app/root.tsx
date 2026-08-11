@@ -192,7 +192,15 @@ function App() {
 		}
 	})
 	const caseId = matches.find((m) => m.params?.caseId)?.params?.caseId
-	const caseLabel = caseId ? `Case ${caseId}` : 'New Case'
+	const currentPath = data.requestInfo.path
+	const caseLabel =
+		currentPath === '/login'
+			? 'Login'
+			: currentPath === '/signup'
+				? 'Create Account'
+				: caseId
+					? `Case ${caseId}`
+					: 'New Case'
 	useToast(data.toast)
 	console.log('Home page rendered.')
 
