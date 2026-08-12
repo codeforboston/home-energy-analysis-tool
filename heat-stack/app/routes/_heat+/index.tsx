@@ -229,9 +229,16 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="rounded-t-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-16 text-white">
+			<section
+				id="try-heat"
+				className="rounded-t-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-16 text-white"
+			>
 				<div className="mx-auto max-w-3xl text-center">
-					<h2 className="mb-8 text-4xl font-bold">Try HEAT?</h2>
+					<h2 className="mb-8 text-4xl font-bold">Try HEAT</h2>
+					<p className="mb-8 text-lg">
+						There is no cost for using HEAT and we intend to keep it this way.
+						However, you must create an account to use it.
+					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
 						<Link
 							to="/signup"
