@@ -129,7 +129,7 @@ export default function SingleCaseForm({
 
 	const formRef = useRef<HTMLFormElement>(null)
 
-	const handleOnClick = (index: number) => {
+	const chartClickHandler = (index: number) => {
 		if (!isEditMode || !billingRecords) return
 		const updatedRecords = billingRecords.map((record, i) => {
 			if (i === index) {
@@ -193,7 +193,7 @@ export default function SingleCaseForm({
 					isEditMode={isEditMode}
 					showUsageData={showUsageData}
 					usageData={usageData}
-					chartClickHandler={handleOnClick}
+					chartClickHandler={chartClickHandler}
 				/>
 				{showUsageData && usageData && (
 					<>
