@@ -192,22 +192,15 @@ function App() {
 		}
 	})
 	const caseId = matches.find((m) => m.params?.caseId)?.params?.caseId
-	const currentPath = (
-		matches.find((match) => {
-			let data = {} as any // Typescript is freaking out about m.data.requestInfo
-			if (match && match.data) {
-				data = match.data
-			}
-			return data.requestInfo && data.requestInfo.path
-		})?.data as any
-	)?.requestInfo?.path
-	const caseLabel = caseId ? `Case ${caseId}` : 'New Case'
-	const bannerLabel =
+	const currentPath = data.requestInfo.path
+	const caseLabel =
 		currentPath === '/login'
 			? 'Login'
 			: currentPath === '/signup'
 				? 'Create Account'
-				: caseLabel
+				: caseId
+					? `Case ${caseId}`
+					: 'New Case'
 	useToast(data.toast)
 	console.log('Home page rendered.')
 
@@ -242,7 +235,7 @@ function App() {
 							>
 								<div className="mx-auto max-w-5xl text-center">
 									<h1 className="text-4xl font-bold md:text-4xl">
-										Home Energy Analysis Tool (HEAT): <span>{bannerLabel}</span>
+										Home Energy Analysis Tool (HEAT): <span>{caseLabel}</span>
 									</h1>
 								</div>
 							</section>

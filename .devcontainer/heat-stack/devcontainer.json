@@ -1,6 +1,7 @@
 {
     "image": "mcr.microsoft.com/devcontainers/universal:2",
     "postCreateCommand": "bash .devcontainer/heat-stack/postCreate.sh",
+    "postStartCommand": "cd ${containerWorkspaceFolder}/heat-stack && [ -f .env ] || cp .env.example .env && npx prisma migrate deploy",
     "remoteEnv": {
         "PATH": "${containerEnv:PATH}:${containerEnv:HOME}/.local/bin"
     }
