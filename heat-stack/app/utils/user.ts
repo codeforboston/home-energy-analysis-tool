@@ -7,6 +7,11 @@ export function hasAdminRole(
 	if (!user || !user.roles) return false
 	return user.roles.some((r) => r.name === 'admin')
 }
+
+export function hasSuspendedRole(user: { roles?: { name: string }[] }) {
+	return user.roles?.some((role) => role.name === 'suspended') ?? false
+}
+
 import { useRouteLoaderData } from 'react-router'
 import { type loader as rootLoader } from '#app/root.tsx'
 
