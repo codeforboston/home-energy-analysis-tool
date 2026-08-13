@@ -59,8 +59,14 @@ class WeatherUtil {
 		invariant(endDate, 'endDate is required')
 		invariant(longitude, 'longitude is required')
 		invariant(latitude, 'latitude is required')
-		invariant(!isNaN(startDate.getTime()), 'startDate must be a valid Date')
-		invariant(!isNaN(endDate.getTime()), 'endDate must be a valid Date')
+		// Reachable from user input: a malformed date in an uploaded bill CSV
+		// produces an Invalid Date here, so this needs user-facing copy rather
+		// than a raw invariant message.
+		if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+			throw new Error(
+				'One or more of the billing dates on this case are invalid. Please check the dates and try re-uploading.',
+			)
+		}
 		const startDateString = startDate.toISOString().split('T')[0]
 		const endDateString = endDate.toISOString().split('T')[0]
 		invariant(startDateString, 'startDate is required')
