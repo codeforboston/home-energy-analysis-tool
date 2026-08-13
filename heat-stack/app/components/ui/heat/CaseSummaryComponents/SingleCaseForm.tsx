@@ -130,7 +130,7 @@ export default function SingleCaseForm({
 	const formRef = useRef<HTMLFormElement>(null)
 
 	const chartClickHandler = (index: number) => {
-        // TODO: all three parts related to this function (this function, hook, useEffect) ought to be refactored to be closer encapsulated toward <EnergyUseHistory />
+		// TODO: all three parts related to this function (this function, hook, useEffect) ought to be refactored to be closer encapsulated toward <EnergyUseHistory />
 		if (!isEditMode || !billingRecords) return
 		const updatedRecords = billingRecords.map((record, i) => {
 			if (i === index) {
