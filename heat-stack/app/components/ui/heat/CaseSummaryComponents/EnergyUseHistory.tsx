@@ -3,27 +3,34 @@ import { useNavigation } from 'react-router'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
+import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
 import { ErrorList } from './ErrorList'
 
-interface EnergyUseUploadProps {
+interface EnergyUseHistoryProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
 	fields: any
+	showUsageData?: boolean
 	isEditMode?: boolean
+	usageData?: any
+	chartClickHandler?: (index: number) => void
 }
 
-export function EnergyUseUpload({
+export function EnergyUseHistory({
 	setScrollAfterSubmit,
 	fields,
+	showUsageData = false,
 	isEditMode = false,
-}: EnergyUseUploadProps) {
+	usageData = null,
+	chartClickHandler = () => {},
+}: EnergyUseHistoryProps) {
 	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	const navigation = useNavigation()
 	const isIdle = navigation.state === 'idle'
 
 	/*
-	When the calculate button is pressed, sets scrollAfterSubmit to
-	true because we want the page to scroll then.
-	*/
+    When the calculate button is pressed, sets scrollAfterSubmit to
+    true because we want the page to scroll then.
+    */
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true)
 	}
@@ -39,31 +46,13 @@ export function EnergyUseUpload({
 				/>
 			)}
 
-			<CustomFileUpload name={fields.energy_use_upload.name} />
-
-			<div>
-				{isEditMode ? (
-					// Two buttons for edit mode
-					<div
-						className="flex items-center gap-3"
-						style={{ marginBottom: '20px' }}
-					>
-						<Button
-							type="submit"
-							name="intent"
-							value="save"
-							variant="default"
-							onClick={() => console.log('💾 Save Changes button clicked')}
-						>
-							Save Changes{' '}
-						</Button>
-					</div>
-				) : (
-					// Single button for new cases
+			{!isEditMode && (
+				<div>
+					<CustomFileUpload name={fields.energy_use_upload.name} />
 					<Button
 						type="submit"
 						name="intent"
-						value="upload"
+						value={isEditMode ? 'save' : 'upload'}
 						disabled={!isIdle}
 						onClick={handleSubmit}
 						style={{ marginBottom: '20px' }}
@@ -72,8 +61,15 @@ export function EnergyUseUpload({
 						<Spinner showSpinner={!isIdle} />
 						Calculate
 					</Button>
-				)}
-			</div>
+				</div>
+			)}
+
+			{showUsageData && usageData && (
+				<EnergyUseHistoryChart
+					usageData={usageData}
+					onClick={chartClickHandler}
+				/>
+			)}
 		</fieldset>
 	)
 }
