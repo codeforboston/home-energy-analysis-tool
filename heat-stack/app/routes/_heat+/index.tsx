@@ -8,7 +8,7 @@ export default function HEATLandingPage() {
 				className="bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-5 text-white"
 				style={{ borderRadius: '10px' }}
 			>
-				<div className="mx-auto max-w-5xl text-center">
+				<div className="mx-auto max-w-5xl pt-5 text-center">
 					<h1 className="text-4xl font-bold md:text-4xl">
 						Home Energy Analysis Tool (HEAT){' '}
 					</h1>
@@ -172,12 +172,6 @@ export default function HEATLandingPage() {
 								requirements, helping homeowners get the right-sized system for
 								optimal comfort and efficiency.
 							</p>
-							<Link
-								to="/cases/new"
-								className="inline-block rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
-							>
-								Start Your Analysis
-							</Link>
 						</div>
 					</div>
 				</div>
@@ -235,22 +229,22 @@ export default function HEATLandingPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="rounded-t-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-16 text-white">
+			<section
+				id="try-heat"
+				className="rounded-t-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-16 text-white"
+			>
 				<div className="mx-auto max-w-3xl text-center">
-					<h2 className="mb-8 text-4xl font-bold">Try HEAT?</h2>
+					<h2 className="mb-8 text-4xl font-bold">Try HEAT</h2>
+					<p className="mb-8 text-lg">
+						There is no cost for using HEAT and we intend to keep it this way.
+						However, you must create an account to use it.
+					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
 						<Link
-							to="/cases/new"
+							to="/signup"
 							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
 						>
-							Get Started (with Empty Form)
-						</Link>
-						<Link
-							to="/cases/new?dev=true"
-							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
-							data-testid="get-started-demo-data"
-						>
-							Get Started (with Demo Data)
+							Create an Account
 						</Link>
 					</div>
 				</div>
