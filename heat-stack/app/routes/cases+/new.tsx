@@ -137,6 +137,7 @@ export default function CreateCase({
 				showUsageData={!!usageData}
 				parsedAndValidatedFormSchema={actionData?.parsedAndValidatedFormSchema}
 				isEditMode={false}
+				isDevMode={loaderData?.isDevMode}
 				onBillingRecordsChange={() => {}}
 			/>
 			<ErrorModal

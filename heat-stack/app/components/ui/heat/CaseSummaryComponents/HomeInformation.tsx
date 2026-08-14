@@ -1,5 +1,5 @@
 import { getInputProps } from '@conform-to/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
 import { Input } from '#/app/components/ui/input.tsx'
@@ -9,7 +9,7 @@ import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
-type HomeInformationProps = { fields: any }
+type HomeInformationProps = { fields: any; isDevMode?: boolean }
 
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
@@ -21,6 +21,8 @@ export function HomeInformation(props: HomeInformationProps) {
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
+
+	const { isDevMode } = props
 
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
 		() => {
@@ -53,7 +55,17 @@ export function HomeInformation(props: HomeInformationProps) {
 	} | null>(null)
 	const [calcedDesignTemp, setCalcedDesignTemp] = useState<
 		[number, number] | null
-	>(null) // add this
+	>(null)
+
+	const hasAutoTriggered = useRef(false)
+
+	// Auto-trigger geocode validation once when demo data is loaded
+	useEffect(() => {
+		if (isDevMode && streetAddress && town && usaStateAbbrev && !hasAutoTriggered.current) {
+			hasAutoTriggered.current = true
+			void validateGeocode()
+		}
+	}, [isDevMode, streetAddress, town, usaStateAbbrev])
 
 	useEffect(() => {
 		if (!geoCoordinates) return
@@ -223,7 +235,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			
+
 			<div className="mt-1">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
@@ -261,7 +273,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</span>
 				</span>
 			</div>
-			
+
 			<fieldset>
 				<legend className={subtitleClass}>Heating Design Temperature</legend>
 
