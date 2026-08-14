@@ -76,11 +76,22 @@ export function StateDropdown(props: StateDropDownProps) {
 					<div className="basis-1/4">
 						<Select
 							onValueChange={(val) => props.onChange && props.onChange(val)}
+							onOpenChange={(open) => {
+								// When dropdown closes (open = false), trigger blur
+								if (!open && props.onBlur) {
+									props.onBlur()
+								}
+							}}
 							value={props.value}
 						>
-							<SelectTrigger className="w-[180px]">
+
+							<SelectTrigger 
+								className="w-[180px]"
+								onBlur={props.onBlur}
+							>
 								<SelectValue placeholder="State" />
 							</SelectTrigger>
+
 							<SelectContent>
 								{states.map((usaStateAbbrev) => (
 									<SelectItem
