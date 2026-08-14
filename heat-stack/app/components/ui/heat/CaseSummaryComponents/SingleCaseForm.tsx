@@ -59,7 +59,7 @@ export type SubmitAnalysisProps = {
 	// 	submitResults: SubmissionResult<string[]>
 	// 	caseInfo?: CaseInfo,
 	// } )| undefined
-	isDevMode?: boolean,
+	isDevMode?: boolean
 }
 
 export default function SingleCaseForm({
