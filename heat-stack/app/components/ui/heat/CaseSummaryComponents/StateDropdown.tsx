@@ -77,9 +77,8 @@ export function StateDropdown(props: StateDropDownProps) {
 						<Select
 							onValueChange={(val) => props.onChange && props.onChange(val)}
 							onOpenChange={(open) => {
-								// When dropdown closes (open = false), trigger blur
-								if (!open && props.onBlur) {
-									props.onBlur()
+								if (!open) {
+									void props.onBlur?.()
 								}
 							}}
 							value={props.value}
