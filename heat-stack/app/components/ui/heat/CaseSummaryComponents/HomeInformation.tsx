@@ -1,5 +1,5 @@
 import { getInputProps } from '@conform-to/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
 import { Input } from '#/app/components/ui/input.tsx'
@@ -54,6 +54,7 @@ export function HomeInformation(props: HomeInformationProps) {
 	const [calcedDesignTemp, setCalcedDesignTemp] = useState<
 		[number, number] | null
 	>(null) // add this
+	const lastRequestedAddressRef = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (!geoCoordinates) return
@@ -62,17 +63,15 @@ export function HomeInformation(props: HomeInformationProps) {
 		})
 	}, [geoCoordinates])
 
-	const handleStreetAddressBlur = async () => {
-		await validateGeocode()
-	}
-
-	const handleTownBlur = async () => {
-		await validateGeocode()
-	}
-
-	const handleStateBlur = async () => {
-		await validateGeocode()
-	}
+	// Geocode automatically as the user types (debounced), instead of waiting
+	// for the address fields to lose focus.
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			void validateGeocode()
+		}, 600)
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [streetAddress, town, usaStateAbbrev])
 
 	async function validateGeocode() {
 		console.log('validateGeocode fired', {
@@ -86,6 +85,13 @@ export function HomeInformation(props: HomeInformationProps) {
 			return
 		}
 		const address = `${streetAddress}, ${town}, ${usaStateAbbrev}`
+		if (address === lastRequestedAddressRef.current) {
+			// Already requested (or in flight) for this exact address — the
+			// onBlur trigger and the debounced onChange trigger can both fire
+			// for the same final address; skip the duplicate expensive lookup.
+			return
+		}
+		lastRequestedAddressRef.current = address
 		try {
 			const res = await fetch(`/geocode?address=${encodeURIComponent(address)}`)
 			const data: any = await res.json()
@@ -98,6 +104,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				setCalcedDesignTemp(null)
 			}
 		} catch (error) {
+			lastRequestedAddressRef.current = null
 			setGeoError('Error connecting to geocoding service' + error)
 		}
 	}
@@ -164,7 +171,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								type="text"
 								value={streetAddress}
 								onChange={(e) => setStreetAddress(e.target.value)}
-								onBlur={handleStreetAddressBlur}
+								onBlur={() => validateGeocode()}
 								aria-invalid={
 									props.fields.street_address.errors?.length ? true : undefined
 								}
@@ -189,7 +196,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								type="text"
 								value={town}
 								onChange={(e) => setTown(e.target.value)}
-								onBlur={handleTownBlur}
+								onBlur={() => validateGeocode()}
 								aria-invalid={
 									props.fields.town.errors?.length ? true : undefined
 								}
@@ -211,7 +218,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								fields={props.fields}
 								value={usaStateAbbrev}
 								onChange={(val) => setUsaStateAbbrev(val)}
-								onBlur={handleStateBlur}
+								onBlur={() => validateGeocode()}
 							/>
 							<div className="min-h-[32px] px-4 pb-3 pt-1">
 								<ErrorList
