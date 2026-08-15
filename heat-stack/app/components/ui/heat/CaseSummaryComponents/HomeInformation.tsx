@@ -67,7 +67,7 @@ export function HomeInformation(props: HomeInformationProps) {
 	// for the address fields to lose focus.
 	useEffect(() => {
 		const timeoutId = setTimeout(() => {
-			validateGeocode()
+			void validateGeocode()
 		}, 600)
 		return () => clearTimeout(timeoutId)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
