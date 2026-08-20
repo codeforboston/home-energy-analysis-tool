@@ -59,6 +59,7 @@ export type SubmitAnalysisProps = {
 	// 	submitResults: SubmissionResult<string[]>
 	// 	caseInfo?: CaseInfo,
 	// } )| undefined
+	isDevMode?: boolean
 }
 
 export default function SingleCaseForm({
@@ -74,6 +75,7 @@ export default function SingleCaseForm({
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
+	isDevMode
 }: SubmitAnalysisProps) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
@@ -186,7 +188,7 @@ export default function SingleCaseForm({
 						value={JSON.stringify(usageData.heat_load_output)}
 					/>
 				)}
-				<HomeInformation fields={fields} />
+				<HomeInformation fields={fields} isDevMode={isDevMode}/>
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseHistory
 					setScrollAfterSubmit={setScrollAfterSubmit}

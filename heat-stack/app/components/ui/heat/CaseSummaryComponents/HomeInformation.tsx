@@ -1,5 +1,5 @@
 import { getInputProps } from '@conform-to/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
 import { Input } from '#/app/components/ui/input.tsx'
@@ -9,7 +9,7 @@ import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
-type HomeInformationProps = { fields: any }
+type HomeInformationProps = { fields: any; isDevMode?: boolean }
 
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
@@ -21,6 +21,8 @@ export function HomeInformation(props: HomeInformationProps) {
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
+
+	const { isDevMode } = props
 
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
 		() => {
@@ -53,7 +55,50 @@ export function HomeInformation(props: HomeInformationProps) {
 	} | null>(null)
 	const [calcedDesignTemp, setCalcedDesignTemp] = useState<
 		[number, number] | null
-	>(null) // add this
+	>(null)
+
+	const hasAutoTriggered = useRef(false)
+
+	// Sync street address from props when case data loads
+	useEffect(() => {
+		const newAddress =
+			props.fields.street_address.value || props.fields.street_address.defaultValue
+		if (newAddress !== streetAddress) {
+			setStreetAddress(newAddress)
+		}
+	}, [props.fields.street_address.value, props.fields.street_address.defaultValue])
+
+	// Sync town from props when case data loads
+	useEffect(() => {
+		const newTown =
+			props.fields.town.value || props.fields.town.defaultValue?.town
+		if (newTown !== town) {
+			setTown(newTown)
+		}
+	}, [props.fields.town.value, props.fields.town.defaultValue?.town])
+
+	// Sync state from props when case data loads
+	useEffect(() => {
+		const newState =
+			props.fields.state.value || props.fields.state.defaultValue?.state
+		if (newState !== usaStateAbbrev) {
+			setUsaStateAbbrev(newState)
+		}
+	}, [props.fields.state.value, props.fields.state.defaultValue?.state])
+
+	// Auto-trigger geocode validation once when fields are populated
+	useEffect(() => {
+		if (
+			streetAddress &&
+			town &&
+			usaStateAbbrev &&
+			!hasAutoTriggered.current
+		) {
+			hasAutoTriggered.current = true
+			void validateGeocode()
+		}
+	}, [streetAddress, town, usaStateAbbrev])
+
 
 	useEffect(() => {
 		if (!geoCoordinates) return
@@ -102,7 +147,7 @@ export function HomeInformation(props: HomeInformationProps) {
 		}
 	}
 
-	// Update percentage when the underlying field changes (e.g., from form reset)
+	// Update living area when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
 			props.fields.living_area.value || props.fields.living_area.defaultValue
@@ -223,6 +268,9 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
+
+			
+
 			<fieldset>
 				<legend className={subtitleClass}>Heating Design Temperature</legend>
 
@@ -282,6 +330,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
+
 			<div className="mt-1">
 				<Label className={subtitleClass} htmlFor="living_area">
 					Living Area (sf)
@@ -320,5 +369,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</span>
 			</div>
 		</fieldset>
+
+
 	)
 }
