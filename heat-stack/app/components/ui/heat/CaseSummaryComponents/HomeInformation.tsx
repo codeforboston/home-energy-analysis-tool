@@ -59,13 +59,46 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	const hasAutoTriggered = useRef(false)
 
-	// Auto-trigger geocode validation once when demo data is loaded
+	// Sync street address from props when case data loads
 	useEffect(() => {
-		if (isDevMode && streetAddress && town && usaStateAbbrev && !hasAutoTriggered.current) {
+		const newAddress =
+			props.fields.street_address.value || props.fields.street_address.defaultValue
+		if (newAddress !== streetAddress) {
+			setStreetAddress(newAddress)
+		}
+	}, [props.fields.street_address.value, props.fields.street_address.defaultValue])
+
+	// Sync town from props when case data loads
+	useEffect(() => {
+		const newTown =
+			props.fields.town.value || props.fields.town.defaultValue?.town
+		if (newTown !== town) {
+			setTown(newTown)
+		}
+	}, [props.fields.town.value, props.fields.town.defaultValue?.town])
+
+	// Sync state from props when case data loads
+	useEffect(() => {
+		const newState =
+			props.fields.state.value || props.fields.state.defaultValue?.state
+		if (newState !== usaStateAbbrev) {
+			setUsaStateAbbrev(newState)
+		}
+	}, [props.fields.state.value, props.fields.state.defaultValue?.state])
+
+	// Auto-trigger geocode validation once when fields are populated
+	useEffect(() => {
+		if (
+			streetAddress &&
+			town &&
+			usaStateAbbrev &&
+			!hasAutoTriggered.current
+		) {
 			hasAutoTriggered.current = true
 			void validateGeocode()
 		}
-	}, [isDevMode, streetAddress, town, usaStateAbbrev])
+	}, [streetAddress, town, usaStateAbbrev])
+
 
 	useEffect(() => {
 		if (!geoCoordinates) return
@@ -114,7 +147,7 @@ export function HomeInformation(props: HomeInformationProps) {
 		}
 	}
 
-	// Update percentage when the underlying field changes (e.g., from form reset)
+	// Update living area when the underlying field changes (e.g., from form reset)
 	useEffect(() => {
 		const value =
 			props.fields.living_area.value || props.fields.living_area.defaultValue
