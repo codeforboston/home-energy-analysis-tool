@@ -21,6 +21,7 @@ export function HelpButton({
 			<button
 				onClick={() => setModalOpen(true)}
 				className={`text-sm ${className ?? ''}`}
+				type="button"
 				{...rest}
 			>
 				<HelpCircle size={size} /> {/* 18px icon size */}
