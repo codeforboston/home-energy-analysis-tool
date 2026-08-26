@@ -175,7 +175,7 @@ export default function HEATLandingPage() {
 								optimal comfort and efficiency.
 							</p>
 
-							{ user &&
+							{ user && 
 							<div className="flex flex-col justify-center gap-4 sm:flex-row">
 								<Link
 									to="/cases/new"
@@ -185,7 +185,7 @@ export default function HEATLandingPage() {
 								</Link>
 							</div>
 							}
-						</div>
+						</div> 
 					</div>
 				</div>
 			</section>
@@ -253,12 +253,21 @@ export default function HEATLandingPage() {
 						However, you must create an account to use it.
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
+						{ user ?
+						<Link
+							to="/cases/new"
+							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
+						>
+							Create New Case
+						</Link>
+						:
 						<Link
 							to="/signup"
 							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
 						>
 							Create an Account
 						</Link>
+						}
 					</div>
 				</div>
 			</section>
