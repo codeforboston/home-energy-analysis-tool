@@ -250,10 +250,10 @@ export default function HEATLandingPage() {
 					<h2 className="mb-8 text-4xl font-bold">Try HEAT</h2>
 					<p className="mb-8 text-lg">
 						There is no cost for using HEAT and we intend to keep it this way.
-						However, you must create an account to use it.
+						{ !user && " However, you must create an account to use it." }
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						{ user ?
+					{ user ?
 						<Link
 							to="/cases/new"
 							className="inline-block rounded-lg bg-white px-8 py-4 font-semibold text-emerald-700 shadow-lg transition-all hover:shadow-xl"
@@ -267,7 +267,7 @@ export default function HEATLandingPage() {
 						>
 							Create an Account
 						</Link>
-						}
+					}
 					</div>
 				</div>
 			</section>
