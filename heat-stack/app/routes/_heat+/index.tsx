@@ -1,6 +1,8 @@
 import { Link } from 'react-router'
+import { useOptionalUser } from '../../utils/user.ts'
 
 export default function HEATLandingPage() {
+	const user = useOptionalUser()
 	return (
 		<div className="flex min-h-screen flex-col">
 			{/* Hero Section */}
@@ -172,6 +174,17 @@ export default function HEATLandingPage() {
 								requirements, helping homeowners get the right-sized system for
 								optimal comfort and efficiency.
 							</p>
+
+							{ user &&
+							<div className="flex flex-col justify-center gap-4 sm:flex-row">
+								<Link
+									to="/cases/new"
+									className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+								>
+									Create New Case
+								</Link>
+							</div>
+							}
 						</div>
 					</div>
 				</div>
