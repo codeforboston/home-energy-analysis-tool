@@ -13,14 +13,21 @@ export function deserializeFormData(form: any): any {
 		thermostat_set_point: 'number',
 		setback_temperature: 'number',
 		setback_hours_per_day: 'number',
+		design_temperature_override: 'number',
 		// Add more fields as needed
 	}
 	for (const key in fieldTypes) {
+		if (result[key] === '') {
+			result[key] = undefined
+			continue
+		}
+
 		if (result[key] !== undefined && result[key] !== null) {
 			if (fieldTypes[key] === 'number' && typeof result[key] === 'string') {
 				const n = Number(result[key])
 				if (!isNaN(n)) result[key] = n
 			}
+			// this is redundant since there are no data values passed into form
 			if (fieldTypes[key] === 'date' && typeof result[key] === 'string') {
 				const d = new Date(result[key])
 				if (!isNaN(d.getTime())) result[key] = d
