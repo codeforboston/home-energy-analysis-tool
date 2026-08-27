@@ -237,8 +237,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								<>Calculating...</>
 							) : (
 								<>
-									{JSON.stringify(roundTo(calcedDesignTemp[0], 2))} °F, took{' '}
-									{JSON.stringify(roundTo(calcedDesignTemp[1], 1))} sec
+									{JSON.stringify(roundTo(calcedDesignTemp[0], 2))} °F
 								</>
 							)}
 						</div>
@@ -268,7 +267,7 @@ export function HomeInformation(props: HomeInformationProps) {
 								/>
 
 								<div className={`${descriptiveClass}`}>
-									Enter a value in the range -10 to 32
+									Leave blank or enter a value in the range -10 to 32
 								</div>
 
 								<div className="min-h-[32px] px-4 pb-3 pt-1">
