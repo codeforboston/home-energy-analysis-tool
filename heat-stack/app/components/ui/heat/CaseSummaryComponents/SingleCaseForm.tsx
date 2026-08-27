@@ -205,8 +205,8 @@ export default function SingleCaseForm({
 						/>
 						{usageData &&
 						usageData.heat_load_output &&
-						usageData.heat_load_output.design_temperature &&
-						usageData.heat_load_output.whole_home_heat_loss_rate &&
+						usageData.heat_load_output.design_temperature != null &&
+						usageData.heat_load_output.whole_home_heat_loss_rate != null &&
 						!!parsedAndValidatedFormSchema ? (
 							<HeatLoadAnalysis
 								heatLoadSummaryOutput={usageData.heat_load_output}
