@@ -10,9 +10,7 @@ export function createFormData() {
 		town: faker.location.city(),
 		state: faker.location.state({ abbreviated: true }),
 		fuel_type: faker.helpers.arrayElement(['GAS', 'OIL', 'PROPANE']) as
-			| 'GAS'
-			| 'OIL'
-			| 'PROPANE',
+			'GAS' | 'OIL' | 'PROPANE',
 		heating_system_efficiency: faker.number.float({
 			min: 0.7,
 			max: 0.98,

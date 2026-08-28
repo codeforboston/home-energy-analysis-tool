@@ -236,9 +236,7 @@ export function HomeInformation(props: HomeInformationProps) {
 							) : calcedDesignTemp === null ? (
 								<>Calculating...</>
 							) : (
-								<>
-									{JSON.stringify(roundTo(calcedDesignTemp[0], 2))} °F
-								</>
+								<>{JSON.stringify(roundTo(calcedDesignTemp[0], 2))} °F</>
 							)}
 						</div>
 
