@@ -166,7 +166,7 @@ describe('SingleCaseForm', () => {
 			thermostat_set_point: 68,
 			setback_temperature: 65,
 			setback_hours_per_day: 8,
-			design_temperature_override: 0,
+			design_temperature_override: undefined,
 			energy_use_upload: { name: 'test.csv', type: 'text/csv', size: 1024 },
 		}
 

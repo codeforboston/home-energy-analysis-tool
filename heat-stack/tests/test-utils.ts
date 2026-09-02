@@ -147,7 +147,7 @@ export async function createTestCase(userId: string) {
 		data: {
 			analysisId: analysis.id,
 			fuelType: 'GAS',
-			designTemperatureOverride: false,
+			designTemperatureOverride: undefined,
 			heatingSystemEfficiency: 85,
 			thermostatSetPoint: 68,
 			setbackTemperature: 65,

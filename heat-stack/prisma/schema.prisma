@@ -204,7 +204,7 @@ model HeatingInput {
   analysis                        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   analysisId                      Int
   fuelType                        String
-  designTemperatureOverride       Boolean
+  designTemperatureOverride       Float?
   heatingSystemEfficiency         Int
   thermostatSetPoint              Int
   setbackTemperature              Int?

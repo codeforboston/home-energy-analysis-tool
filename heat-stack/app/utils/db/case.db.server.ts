@@ -77,7 +77,7 @@ export async function createCaseRecord(
 			heatingInput: {
 				create: {
 					fuelType: formValues.fuel_type,
-					designTemperatureOverride: false,
+					designTemperatureOverride: formValues.design_temperature_override,
 					heatingSystemEfficiency: Math.round(
 						formValues.heating_system_efficiency * 100,
 					),
