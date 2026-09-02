@@ -21,7 +21,7 @@ export function createFormData() {
 		thermostat_set_point: faker.number.int({ min: 65, max: 75 }),
 		setback_temperature: faker.number.int({ min: 60, max: 70 }),
 		setback_hours_per_day: faker.number.int({ min: 0, max: 12 }),
-		design_temperature_override: faker.number.int({ min: 0, max: 1 }),
+		design_temperature_override: faker.number.int({ min: -10, max: 32 }),
 		energy_use_upload: {
 			name: 'test-file.csv',
 			type: 'text/csv',
