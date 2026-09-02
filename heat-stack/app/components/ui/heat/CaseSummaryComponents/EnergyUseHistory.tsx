@@ -3,9 +3,9 @@ import { useNavigation } from 'react-router'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
+import { HelpButton } from '../../HelpButton'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
 import { ErrorList } from './ErrorList'
-import { HelpButton } from '../../HelpButton'
 
 interface EnergyUseHistoryProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
