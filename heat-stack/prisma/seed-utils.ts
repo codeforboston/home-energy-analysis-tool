@@ -70,7 +70,7 @@ function mockCaseInput(username: string, idx: number): SchemaZodFromFormType {
 		state: 'MA',
 		living_area: 1500 + idx * 100,
 		fuel_type: 'GAS' as 'GAS',
-		design_temperature_override: 65,
+		design_temperature_override: 5,
 		heating_system_efficiency: 0.85,
 		thermostat_set_point: 68,
 		setback_temperature: 62,

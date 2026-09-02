@@ -211,7 +211,7 @@ export const updateCase = async (
 		data: {
 			analysisId: analysis.id,
 			fuelType: changes.heatingInput.fuel_type,
-			designTemperatureOverride: Float(validHI.design_temperature_override),
+			designTemperatureOverride: validHI.design_temperature_override,
 			// TODO: WI: CREATE ISSUE TO QUESTION WHAT IS THE BEST WAY TO SAVE EFFICIENCY (PROBLEM IS DECIMAL VS WHOLE NUMBER PERCENT)
 			heatingSystemEfficiency: Math.round(
 				validHI.heating_system_efficiency * 100,
@@ -296,9 +296,7 @@ export const createCase = async (
 			data: {
 				analysisId: analysis.id,
 				fuelType: formInputs.fuel_type,
-				designTemperatureOverride: Float(
-					formInputs.design_temperature_override,
-				),
+				designTemperatureOverride: formInputs.design_temperature_override,
 				heatingSystemEfficiency: Math.round(
 					formInputs.heating_system_efficiency * 100,
 				),
