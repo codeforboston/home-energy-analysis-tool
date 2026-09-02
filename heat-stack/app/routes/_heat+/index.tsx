@@ -249,7 +249,7 @@ export default function HEATLandingPage() {
 				<div className="mx-auto max-w-3xl text-center">
 					<h2 className="mb-8 text-4xl font-bold">Try HEAT</h2>
 					<p className="mb-8 text-lg">
-						There is no cost for using HEAT and we intend to keep it this way.
+						There is no cost for using HEAT, and we intend to keep it this way.
 						{!user && ' However, you must create an account to use it.'}
 					</p>
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
