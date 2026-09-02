@@ -102,11 +102,13 @@ interface HasParsedAndValidatedFormSchema {
 export function hasParsedAndValidatedFormSchemaProperty(
 	value: unknown,
 ): value is HasParsedAndValidatedFormSchema {
-	if (!(
-		value !== null &&
-		typeof value === 'object' &&
-		'parsedAndValidatedFormSchema' in value
-	)) {
+	if (
+		!(
+			value !== null &&
+			typeof value === 'object' &&
+			'parsedAndValidatedFormSchema' in value
+		)
+	) {
 		return false
 	}
 

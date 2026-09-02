@@ -23,8 +23,9 @@ vi.mock('#app/utils/logic/case.logic.server.ts', () => ({
 }))
 
 const { action } = await import('./$caseId.edit.tsx')
-const { processCaseUpdate } =
-	await import('#app/utils/logic/case.logic.server.ts')
+const { processCaseUpdate } = await import(
+	'#app/utils/logic/case.logic.server.ts'
+)
 
 // Fields required by SaveOnlySchema (HomeFormSchema + CurrentHeatingSystemSchema).
 // Deliberately omits `energy_use_upload`, which only the full `Schema` requires -

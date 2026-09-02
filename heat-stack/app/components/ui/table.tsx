@@ -53,8 +53,7 @@ const TableFooter = React.forwardRef<
 TableFooter.displayName = 'TableFooter'
 
 export interface TableRowProps
-	extends
-		React.HTMLAttributes<HTMLTableRowElement>,
+	extends React.HTMLAttributes<HTMLTableRowElement>,
 		VariantProps<typeof tableRowVariants> {
 	asChild?: boolean
 }
