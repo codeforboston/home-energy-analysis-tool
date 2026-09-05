@@ -24,9 +24,8 @@ This project uses Python version 3.13.
 - On Windows, `pip install uv`
 
 5. Navigate to project's python directory by typing `cd python`.
-6. Still in python folder, run `pip install -e .` to install rules-engine.
-7. Run `source setup-python.sh`
-8. Run `pytest` and see tests run successfully.
+6. Run `uv sync --dev` to create the virtual environment and install all dependencies.
+7. Run `uv run pytest` and see tests run successfully.
    Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 
@@ -75,35 +74,68 @@ The owner of the codespace:
 
 1. Find an issue to work on
 2. Open a bash terminal
-3. Create a branch from main. Best practice for naming looks like this: <issue, feature, or other>/<issue number>/<description>. Separate words in the description using a dash (-). Consider using the subject as a description. Example:
+3. Create a branch from main. Best practice for naming looks like this: <feature/fix/chore>/<issue number>/<description>. Separate words in the description using a dash (-). Consider using the subject as a description. Example:
 
 ```
 git checkout main
 git checkout -b feature/341/validate-address
 ```
 
-4. Commit frequently when you have made progress on the issue (you can always rollback). Advantages:
+4. Commit each time you make progress. Advantages include, but are not limited to:
 
-- incrementaly roll back smaller changes
-- review smaller changes
-- prevent losing unsaved files
-- get sense of progress
+- Being able to roll back to the latest commit when you make a mistake later (we all do)
+- Reviewing each future change independently before committing it (saves headaches)
+- Preventing the loss of unsaved files or changes (helpful during crashes)
+- Getting a sense of how far along you are (keeping work tracked)
 
 To revert a commmit:
 
-- `git reset --hard HEAD~1` if you want to go to the previous commit. If you want to revert 2 commits, do `git reset --hard HEAD~2`.
-- if you have pushed the branch to github, you can either delete the branch from github and push again or do a force push.
+- `git reset <--soft/--mixed/--hard> HEAD~1` if you want to go to the previous commit.
+- `git reset <--soft/--mixed/--hard> HEAD~2` If you want to revert 2 commits.
+- `git reset <--soft/--mixed/--hard> HEAD~N` If you want to revert N commits.
+
+Use `--soft` if you want the committed changes to be staged.  This flag is handy if you have unstaged changes you don't want to mix them with.
+Use `--mixed` if you want the committed changes to be unstaged.  This flag is handy if you have staged changes you don't want to mix them with.
+Use `--hard` if you want the committed changes gone immediately.  This flag causes irreversible data loss.
+
+If you have already pushed your branch to GitHub, you have two choices depending on what else you have already done.
+
+1. If you have opened a pull request, then do a force push via `git push origin <branch_name> --force-with-lease`
+2. If you have not, then delete the branch on GitHub and push your local branch up again.
+
 
 ### Adding Python Packages
 
-Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production src code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
+Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production `src` code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
 
-1. Add package to the "dev" section of pyproject.toml
-2. Run pip-compile as described in the comments of requirements-dev.txt. These instructions will autogenerate requirements-dev.txt.
+1. Add package to the [project.optional-dependencies] or [dependency-groups.dev] section of pyproject.toml
+2. Run `uv sync --dev` to lock dependencies and update your environment.
+
+### Pre-Commit Verification
+
+Before committing your changes, navigate to the `python` directory and run the complete verification script:
+
+```bash
+source prepare.sh
+```
+
+This script:
+1. **Formats code** with Black
+2. **Type-checks** with mypy
+3. **Sorts imports** with isort
+4. **Runs tests** with pytest
+5. **Builds the wheel** to verify packaging integrity
+
+The wheel build is critical because the rules engine is used by Pyodide (WebAssembly). This step ensures that:
+- All data files (`.csv`) are correctly included
+- Module structure is correct
+- The packaged wheel matches what will be deployed
+
+If `prepare.sh` succeeds without errors, your changes are ready to commit and push.
 
 ### Committing Your Changes
 
-Before committing your changes, go to the `python` directory and run `source prepare.sh` from the terminal to format, check for typing errors, and run all tests via `pytest`.
+Run the pre-commit verification script (see [Pre-Commit Verification](#pre-commit-verification)) before committing your changes.
 
 ### Creating a Pull Request
 
@@ -116,16 +148,10 @@ git checkout <your branch>
 git rebase main
 ```
 
-2. run the following validation commands first and fix any errors:
-
-```
-source check.python.sh
-```
-
-3. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
-4. Create pull request from github.
+2. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
+3. Create pull request from github.
    - Include statement "Closes `#<issue number>`" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
-5. Review file changes.
-6. Include a brief description of changes in each file.
-7. Request reviewers.
+4. Review file changes.
+5. Include a brief description of changes in each file.
+6. Request reviewers.
