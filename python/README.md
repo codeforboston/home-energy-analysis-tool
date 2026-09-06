@@ -108,7 +108,7 @@ If you have already pushed your branch to GitHub, you have two choices depending
 
 Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production `src` code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
 
-1. Add package to the [project.optional-dependencies] or [dependency-groups.dev] section of pyproject.toml
+1. Add package to the `project.optional-dependencies` section of pyproject.toml
 2. Run `uv sync --dev` to lock dependencies and update your environment.
 
 ### Pre-Commit Verification
