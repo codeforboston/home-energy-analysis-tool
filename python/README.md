@@ -24,7 +24,10 @@ This project uses Python version 3.13.
 - On Windows, `pip install uv`
 
 5. Navigate to project's python directory by typing `cd python`.
-6. Run `uv sync --dev` to create the virtual environment and install all dependencies.
+6. Run `uv sync --extra dev` to create the virtual environment and install all dependencies, including dev tools like pytest, black, mypy, and isort.
+
+- Dev dependencies live under `[project.optional-dependencies].dev` in `pyproject.toml`, which `uv` treats as an "extra" rather than a dependency group. `uv sync` and `uv run` only install the base `dependencies` list unless the extra is requested explicitly, so `uv sync --dev` (with no `--extra`) will silently create a venv without pytest and any subsequent `uv run pytest` will fail with `error: Failed to spawn: pytest`.
+
 7. Run `uv run pytest` and see tests run successfully.
    Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
@@ -109,7 +112,7 @@ If you have already pushed your branch to GitHub, you have two choices depending
 Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production `src` code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
 
 1. Add package to the `project.optional-dependencies` section of pyproject.toml
-2. Run `uv sync --dev` to lock dependencies and update your environment.
+2. Run `uv sync --extra dev` to lock dependencies and update your environment.
 
 ### Pre-Commit Verification
 

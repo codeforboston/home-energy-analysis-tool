@@ -38,3 +38,7 @@ heat-tmp
 
 /heat-stack/tests/fixtures/openimg/
 /heat-stack/tests/fixtures/uploaded/
+
+# allows custom harness
+.claude
+CLAUDE.local.md 
