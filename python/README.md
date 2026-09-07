@@ -157,5 +157,5 @@ git rebase main
    - Include statement "Closes `#<issue number>`" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
 4. Review file changes.
-5. Include a brief description of changes in each file.
+5. Include a brief description of the changes you made to each file.
 6. Request reviewers.
