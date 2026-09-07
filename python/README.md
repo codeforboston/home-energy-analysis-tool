@@ -78,15 +78,15 @@ The owner of the codespace:
 
 ```
 git checkout main
-git checkout -b feature/341/validate-address
+git switch -c feature/341/validate-address
 ```
 
-4. Commit each time you make progress. Advantages include, but are not limited to:
+4. Commit each time you make progress. This lets you:
 
-- Being able to roll back to the latest commit when you make a mistake later (we all do)
-- Reviewing each future change independently before committing it (saves headaches)
-- Preventing the loss of unsaved files or changes (helpful during crashes)
-- Getting a sense of how far along you are (keeping work tracked)
+- Lose less work when you roll back after a mistake (we all make them)
+- Review smaller changes and allow your team to do the same during their review
+- Protect new changes from misfortune, like a crash
+- Track progress for yourself and your team
 
 ### Reverting commits
 
