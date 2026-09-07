@@ -145,6 +145,21 @@ Run the pre-commit verification script (see [Pre-Commit Verification](#pre-commi
 
 1. Rebase from main if not done recently.
 
+<details open>
+<summary>Protect your progress</summary>
+Rebasing can have unexpected effects. We recommend you either push your code before rebasing or do a dry run:
+
+```git
+git checkout <rebase test branch name>
+git checkout main
+git pull origin main
+git checkout <rebase test branch name>
+git rebase main
+```
+
+If you have trouble, talk to the team. If not continue to the usual instructions.
+</details>
+
 ```
 git checkout main
 git pull origin main
