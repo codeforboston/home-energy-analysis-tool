@@ -168,7 +168,7 @@ git rebase main
 ```
 
 2. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
-3. Create pull request from github.
+3. Create a pull request from github.
    - Include statement "Closes `#<issue number>`" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
 4. Review file changes.
