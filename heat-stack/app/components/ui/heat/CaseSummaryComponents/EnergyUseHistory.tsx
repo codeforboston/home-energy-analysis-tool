@@ -1,10 +1,11 @@
 import { Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useNavigation } from 'react-router'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
+import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
-import { ErrorList } from './ErrorList'
 
 interface EnergyUseHistoryProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
@@ -14,6 +15,18 @@ interface EnergyUseHistoryProps {
 	usageData?: any
 	chartClickHandler?: (index: number) => void
 }
+
+/**
+ * Shown to the user when the energy-use file fails the form's client-side
+ * validation (no file chosen, or the browser handed us something that isn't a
+ * file). The raw conform message for this is just "Invalid input", which means
+ * nothing to a homeowner, so we surface this friendlier copy in the shared
+ * error modal instead of printing it next to the field.
+ */
+const FILE_REQUIRED_MESSAGE =
+	'Please choose your energy-use history file before clicking Calculate.\n\n' +
+	'Download it as a CSV from your energy utility company (for example ' +
+	'Eversource or National Grid), then upload it here.'
 
 export function EnergyUseHistory({
 	setScrollAfterSubmit,
@@ -27,6 +40,15 @@ export function EnergyUseHistory({
 	const navigation = useNavigation()
 	const isIdle = navigation.state === 'idle'
 
+	// Open the modal whenever the file field picks up a validation error, and
+	// close it again once the user selects a valid file (conform revalidates
+	// on input, clearing the error).
+	const fileErrorKey: string = (fields.energy_use_upload.errors ?? []).join('|')
+	const [showFileErrorModal, setShowFileErrorModal] = useState(false)
+	useEffect(() => {
+		setShowFileErrorModal(!isEditMode && fileErrorKey.length > 0)
+	}, [isEditMode, fileErrorKey])
+
 	/*
     When the calculate button is pressed, sets scrollAfterSubmit to
     true because we want the page to scroll then.
@@ -38,13 +60,6 @@ export function EnergyUseHistory({
 	return (
 		<fieldset>
 			<legend className={`${titleClass} pb-6`}>Energy Use History</legend>
-			{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
-			{!isEditMode && (
-				<ErrorList
-					id={fields.energy_use_upload.errorId}
-					errors={fields.energy_use_upload.errors}
-				/>
-			)}
 
 			{!isEditMode && (
 				<div>
@@ -70,6 +85,13 @@ export function EnergyUseHistory({
 					onClick={chartClickHandler}
 				/>
 			)}
+
+			<ErrorModal
+				isOpen={showFileErrorModal}
+				onClose={() => setShowFileErrorModal(false)}
+				title="Upload Error"
+				message={FILE_REQUIRED_MESSAGE}
+			/>
 		</fieldset>
 	)
 }
