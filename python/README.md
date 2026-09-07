@@ -88,6 +88,10 @@ git checkout -b feature/341/validate-address
 - Preventing the loss of unsaved files or changes (helpful during crashes)
 - Getting a sense of how far along you are (keeping work tracked)
 
+### Reverting commits
+
+If you have already made a pull request, avoid reverting if at all possible. If you must revert a commit, consult with the team first.
+
 To revert a commmit:
 
 - `git reset <--soft/--mixed/--hard> HEAD~1` if you want to go to the previous commit.
