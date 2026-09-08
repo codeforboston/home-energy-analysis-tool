@@ -83,28 +83,37 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			// Fetch weather data for the billing period
 			const { x, y } = coordinates ?? { x: 0, y: 0 }
 			if (x !== 0 && y !== 0) {
-				const WeatherUtil = (await import('#app/utils/WeatherUtil.ts')).default
-				const weatherUtil = new WeatherUtil()
+				try {
+					const WeatherUtil = (await import('#app/utils/WeatherUtil.ts'))
+						.default
+					const weatherUtil = new WeatherUtil()
 
-				const weatherData = await weatherUtil.getThatWeathaData(
-					x,
-					y,
-					startDate,
-					endDate,
-				)
+					const weatherData = await weatherUtil.getThatWeathaData(
+						x,
+						y,
+						startDate,
+						endDate,
+					)
 
-				if (weatherData) {
-					const datesFromTIWD = weatherData.dates
-						.map(
-							(datestring) => new Date(datestring).toISOString().split('T')[0],
-						)
-						.filter((date): date is string => date !== undefined)
-					convertedDatesTIWD = {
-						dates: datesFromTIWD,
-						temperatures: weatherData.temperatures.filter(
-							(temp): temp is number => temp !== null,
-						),
+					if (weatherData) {
+						const datesFromTIWD = weatherData.dates
+							.map(
+								(datestring) =>
+									new Date(datestring).toISOString().split('T')[0],
+							)
+							.filter((date): date is string => date !== undefined)
+						convertedDatesTIWD = {
+							dates: datesFromTIWD,
+							temperatures: weatherData.temperatures.filter(
+								(temp): temp is number => temp !== null,
+							),
+						}
 					}
+				} catch (error) {
+					// Don't let a weather-fetch failure (e.g. an invalid billing
+					// date) take down the whole edit page; fall back to the empty
+					// convertedDatesTIWD default declared above.
+					console.error('Failed to fetch weather data for case edit', error)
 				}
 			}
 		}
