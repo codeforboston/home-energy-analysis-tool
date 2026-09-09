@@ -24,9 +24,11 @@ This project uses Python version 3.13.
 - On Windows, `pip install uv`
 
 5. Navigate to project's python directory by typing `cd python`.
-6. Still in python folder, run `pip install -e .` to install rules-engine.
-7. Run `source setup-python.sh`
-8. Run `pytest` and see tests run successfully.
+6. Run `uv sync --extra dev` to create the virtual environment and install all dependencies, including dev tools like pytest, black, mypy, and isort.
+
+- Dev dependencies live under `[project.optional-dependencies].dev` in `pyproject.toml`, which `uv` treats as an "extra" rather than a dependency group. `uv sync` and `uv run` only install the base `dependencies` list unless the extra is requested explicitly, so `uv sync --dev` (with no `--extra`) will silently create a venv without pytest and any subsequent `uv run pytest` will fail with `error: Failed to spawn: pytest`.
+
+7. Run `uv run pytest` and see tests run successfully.
    Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
 
 
@@ -75,39 +77,73 @@ The owner of the codespace:
 
 1. Find an issue to work on
 2. Open a bash terminal
-3. Create a branch from main. Best practice for naming looks like this: <issue, feature, or other>/<issue number>/<description>. Separate words in the description using a dash (-). Consider using the subject as a description. Example:
+3. Create a branch from main. Best practice for naming looks like this: <feature/fix/chore>/<issue number>/<description>. Separate words in the description using a dash (-). Consider using the subject as a description. Example:
 
 ```
 git checkout main
-git checkout -b feature/341/validate-address
+git switch -c feature/341/validate-address
 ```
 
-4. Commit frequently when you have made progress on the issue (you can always rollback). Advantages:
+4. Commit each time you make progress. This lets you:
 
-- incrementaly roll back smaller changes
-- review smaller changes
-- prevent losing unsaved files
-- get sense of progress
+- Lose less work when you roll back after a mistake (we all make them)
+- Review smaller changes and allow your team to do the same during their review
+- Protect new changes from misfortune, like a crash
+- Track progress for yourself and your team
+
+### Reverting commits
+
+If you have already made a pull request, avoid reverting if at all possible. If you must revert a commit, consult with the team first.
 
 To revert a commmit:
 
-- `git reset --hard HEAD~1` if you want to go to the previous commit. If you want to revert 2 commits, do `git reset --hard HEAD~2`.
-- if you have pushed the branch to github, you can either delete the branch from github and push again or do a force push.
+- `git reset <--soft/--mixed/--hard> HEAD~1` if you want to go to the previous commit.
+- `git reset <--soft/--mixed/--hard> HEAD~2` If you want to revert 2 commits.
+- `git reset <--soft/--mixed/--hard> HEAD~N` If you want to revert N commits.
+
+Use `--soft` if you want the committed changes to be staged.  This flag is handy if you have unstaged changes you don't want to mix them with.
+Use `--mixed` if you want the committed changes to be unstaged.  This flag is handy if you have staged changes you don't want to mix them with.
+Use `--hard` if you want the committed changes gone immediately.  This flag causes irreversible data loss.
+
+If you have already pushed your branch to GitHub, you have two choices depending on what else you have already done.
+
+1. If you have opened a pull request, then do a force push via `git push origin <branch_name> --force-with-lease`
+2. If you have not, then delete the branch on GitHub and push your local branch up again.
+
 
 ### Adding Python Packages
 
-Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production src code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
+Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production `src` code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
 
-1. Add package to the "dev" section of pyproject.toml
-2. Run pip-compile as described in the comments of requirements-dev.txt. These instructions will autogenerate requirements-dev.txt.
+1. Add package to the `project.optional-dependencies` section of pyproject.toml
+2. Run `uv sync --extra dev` to lock dependencies and update your environment.
+
+### Pre-Commit Verification
+
+We use pre-commit.
 
 ### Committing Your Changes
 
-Before committing your changes, go to the `python` directory and run `source prepare.sh` from the terminal to format, check for typing errors, and run all tests via `pytest`.
+Run the pre-commit verification script (see [Pre-Commit Verification](#pre-commit-verification)) before committing your changes.
 
 ### Creating a Pull Request
 
 1. Rebase from main if not done recently.
+
+<details open>
+<summary>Protect your progress</summary>
+Rebasing can have unexpected effects. We recommend you either push your code before rebasing or do a dry run:
+
+```git
+git checkout <rebase test branch name>
+git checkout main
+git pull origin main
+git checkout <rebase test branch name>
+git rebase main
+```
+
+If you have trouble, talk to the team. If not continue to the usual instructions.
+</details>
 
 ```
 git checkout main
@@ -116,16 +152,10 @@ git checkout <your branch>
 git rebase main
 ```
 
-2. run the following validation commands first and fix any errors:
-
-```
-source check.python.sh
-```
-
-3. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
-4. Create pull request from github.
+2. Push your branch either to a fork of the repository or to the main repo (if you have privileges): `git push origin <branch_name>`.
+3. Create a pull request from github.
    - Include statement "Closes `#<issue number>`" if your changes completely fix or address the issue.
    - Check that all checks pass in the pull request.
-5. Review file changes.
-6. Include a brief description of changes in each file.
-7. Request reviewers.
+4. Review file changes.
+5. Include a brief description of the changes you made to each file.
+6. Request reviewers.
