@@ -1,0 +1,3 @@
+title: Help for the Allowed Usage column
+
+markdown: The icon in this column indicates how data is used. A red flame icon indicates the row’s data are used for estimating heating usage. If the icon is red but greyed out, the row’s data are not used for heating usage by default, but can be included by checking the Override Default checkbox. A blue flame icon with line through it indicates the row’s data are used for estimating non-heating usage. If the icon is greyed out, the row’s data are not used for non-heating usage by default, but can be included by checking the Override Default checkbox. Finally, the universal prohibited ion (circle with a line through it) indicates the row’s data cannot be used for heating or non-heating usage.
