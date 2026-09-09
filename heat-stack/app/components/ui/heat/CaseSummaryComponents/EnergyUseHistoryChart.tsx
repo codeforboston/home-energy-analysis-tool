@@ -70,7 +70,7 @@ export function EnergyUseHistoryChart({
 					<TableHead className="text-center">#</TableHead>
 					<TableHead className="text-center">
 						<div className="flex flex-row">
-							<div className="text-left">Allowed Usage</div>
+							<div className="text-center">Allowed Usage</div>
 							<HelpButton
 								keyName="allowed_usage_column.help"
 								className="pl-2"
@@ -86,13 +86,11 @@ export function EnergyUseHistoryChart({
 					</TableHead>
 					<TableHead className="text-center">
 						<div className="flex flex-row">
-							<div className="text-right">Override Default</div>
+							<div className="text-center">Override Default</div>
 							<HelpButton
 								keyName="override_default_column.help"
 								className="pl-2"
 							/>
-							{/* TODO: add help text */}
-							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
 						</div>
 					</TableHead>
 				</TableRow>
