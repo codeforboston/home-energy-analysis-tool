@@ -120,25 +120,7 @@ Check with a development lead before adding a python package. Adding python pack
 
 ### Pre-Commit Verification
 
-Before committing your changes, navigate to the `python` directory and run the complete verification script:
-
-```bash
-source prepare.sh
-```
-
-This script:
-1. **Formats code** with Black
-2. **Type-checks** with mypy
-3. **Sorts imports** with isort
-4. **Runs tests** with pytest
-5. **Builds the wheel** to verify packaging integrity
-
-The wheel build is critical because the rules engine is used by Pyodide (WebAssembly). This step ensures that:
-- All data files (`.csv`) are correctly included
-- Module structure is correct
-- The packaged wheel matches what will be deployed
-
-If `prepare.sh` succeeds without errors, your changes are ready to commit and push.
+We use pre-commit.
 
 ### Committing Your Changes
 
