@@ -208,6 +208,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 			period_start_date: new Date(bill.period_start_date),
 			period_end_date: new Date(bill.period_end_date),
 		}))
+	const user = await getLoggedInUserFromRequest(request)
+	const existingCase = await getCaseForEditing(
+		caseId,
+		userId,
+		hasAdminRole(user),
+	)
+	const savedDesignTemperature =
+		existingCase?.analysis?.[0]?.heatingOutput?.[0]?.designTemperature
 
 	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
 	const caseUpdateResult = await processCaseUpdate(
@@ -215,6 +223,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 		formData,
 		userId,
 		bills,
+		savedDesignTemperature,
 	)
 
 	const formDataWithFile = {
@@ -369,6 +378,7 @@ export default function EditCase({
 				}
 				isEditMode={true}
 				billingRecords={localBillingRecords}
+				storedDesignTemperature={loaderData.heatLoadOutput?.design_temperature}
 			/>
 
 			<ErrorModal
