@@ -85,7 +85,6 @@ export async function calculateWithBills(
 		usageTherms: number
 		inclusionOverride: number | boolean
 	}>,
-	designTemperature?: number,
 ) {
 	// Calculate overall_start_date and overall_end_date from bills
 	const overall_start_date = new Date(
@@ -226,7 +225,7 @@ export async function processCaseUpdate(
 	// Coerce fields after parsedFormObj is created
 	parsedFormObj = deserializeFormData(parsedFormObj)
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedFormObj, billsForCalc, designTemperature)
+		await calculateWithBills(parsedFormObj, billsForCalc)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
