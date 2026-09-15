@@ -18,7 +18,7 @@ repos:
       - id: prettier
         name: prettier
         entry: bash -c 'cd heat-stack && exec ./node_modules/.bin/prettier --check "${@#heat-stack/}"' --
-        language: system
+        language: node
         files: ^heat-stack/.*\.(css|js|jsx|json|md|ts|tsx|yaml|yml)$
       - id: pytest
         name: pytest before push
