@@ -33,7 +33,7 @@ This is a **design-language-only** change: no field labels, copy, form behavior,
    - `as?: 'legend' | 'h3'` (default `'h3'`) — render as `<legend>` when nested inside a `<fieldset>`, for a11y parity with current markup.
    - `help?: { keyName: string }` — when present, wraps the title text and a `HelpButton` in one `flex items-center gap-2` container, guaranteeing vertical centering. This is the pattern already used correctly by `Graphs/HeatLoad.tsx` and `Graphs/WholeHomeUAComparison.tsx`; it becomes the only pattern.
 
-3. **`Field`** (existing, extended) — add the same optional `help?: { keyName: string }` prop. When present, the internal `<Label>` is wrapped with `HelpButton` in a `flex items-center gap-2` row instead of being rendered bare. Fully backward compatible — omitting `help` preserves current behavior for the 14+ other routes using `Field` (auth, settings, notes).
+3. **`Field`** (existing, extended) — add the same optional `help?: { keyName: string }` prop. When present, the internal `<Label>` is wrapped with `HelpButton` in a `flex items-center gap-2` row instead of being rendered bare. Also add an optional `description?: React.ReactNode`, rendered between the `<Input>` and the error area — matching the exact visual order every current hand-rolled field already uses (label, input, description, errors). Both props are fully backward compatible — omitting them preserves current behavior for the 14+ other routes using `Field` (auth, settings, notes).
 
 4. Tier-3 field/stat labels get no new component — they use `Field`'s existing default `Label` styling (regular weight, small) as the canonical tier-3 style.
 
@@ -67,3 +67,4 @@ This is a **design-language-only** change: no field labels, copy, form behavior,
 - No placeholders/TBDs remain.
 - Scope is bounded to one page's components plus one additive, backward-compatible extension to a shared primitive — appropriately sized for a single implementation plan.
 - Ambiguity resolved: tier assignment for every title/label instance in the current code is enumerated above; nothing is left for the implementer to guess.
+- Amended during plan-writing (2026-09-21): discovered `Field` had no slot for the description text under nearly every hand-rolled field. Added the `description` prop above rather than dropping content or reordering it — confirmed with user.
