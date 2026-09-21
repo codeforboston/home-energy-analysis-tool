@@ -1,7 +1,9 @@
 import { useInputControl } from '@conform-to/react'
 import { REGEXP_ONLY_DIGITS_AND_CHARS, type OTPInputProps } from 'input-otp'
 import React, { useId } from 'react'
+import { cn } from '#app/utils/misc.tsx'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
+import { HelpButton } from './ui/HelpButton.tsx'
 import {
 	InputOTP,
 	InputOTPGroup,
@@ -34,29 +36,96 @@ export function ErrorList({
 	)
 }
 
+export function SectionTitle({
+	as = 'legend',
+	className,
+	children,
+}: {
+	as?: 'legend' | 'h2'
+	className?: string
+	children: React.ReactNode
+}) {
+	const Tag = as
+	return (
+		<Tag className={cn('text-4xl font-bold tracking-wide', className)}>
+			{children}
+		</Tag>
+	)
+}
+
+export function SubsectionTitle({
+	as = 'h3',
+	htmlFor,
+	help,
+	className,
+	children,
+}: {
+	as?: 'legend' | 'h3' | 'label'
+	htmlFor?: string
+	help?: { keyName: string }
+	className?: string
+	children: React.ReactNode
+}) {
+	const baseClasses = 'text-2xl font-semibold text-zinc-950'
+	const flexClasses = help ? 'flex items-center gap-2' : undefined
+	const classes = cn(baseClasses, flexClasses, className)
+
+	const content = help ? (
+		<span className="flex items-center gap-2">
+			{children}
+			<HelpButton keyName={help.keyName} />
+		</span>
+	) : (
+		children
+	)
+	if (as === 'label') {
+		return (
+			<Label htmlFor={htmlFor} className={classes}>
+				{content}
+			</Label>
+		)
+	}
+	const Tag = as
+	return <Tag className={classes}>{content}</Tag>
+}
+
 export function Field({
 	labelProps,
 	inputProps,
 	errors,
 	className,
+	help,
+	description,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: React.InputHTMLAttributes<HTMLInputElement>
 	errors?: ListOfErrors
 	className?: string
+	help?: { keyName: string }
+	description?: React.ReactNode
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
 	return (
 		<div className={className}>
-			<Label htmlFor={id} {...labelProps} />
+			{help ? (
+				<div className="flex items-center gap-2">
+					<Label htmlFor={id} {...labelProps} />
+					<HelpButton keyName={help.keyName} />
+				</div>
+			) : (
+				<Label htmlFor={id} {...labelProps} />
+			)}
 			<Input
 				id={id}
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
 			/>
+			{description ? (
+				<div className="mt-2 text-sm text-slate-500">{description}</div>
+			) : null}
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
