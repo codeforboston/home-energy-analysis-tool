@@ -11,7 +11,7 @@ import {
 	Label,
 } from 'recharts'
 import { type SummaryOutputSchema } from '#/types/types'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
+import { SubsectionTitle } from '#app/components/forms.tsx'
 import { COLOR_BLUE, COLOR_GREY_LIGHT, COLOR_ORANGE } from '../constants'
 import { defaultComparisonData, defaultLineData } from './home-comparison-data'
 import { SharedCustomTooltip } from './SharedCustomToolTip'
@@ -111,10 +111,12 @@ export function WholeHomeUAComparison({
 	return (
 		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
-			<div className="mb-4 mt-4 flex items-center gap-2 pb-[0.5em] pl-[0.5em] text-2xl font-semibold">
+			<SubsectionTitle
+				help={{ keyName: 'whole_home_heat_loss_graph.help' }}
+				className="mb-4 mt-4 pb-[0.5em] pl-[0.5em]"
+			>
 				Whole-home Heat Loss Comparison
-				<HelpButton keyName="whole_home_heat_loss_graph.help" />
-			</div>
+			</SubsectionTitle>
 
 			{/* Responsive container to ensure chart resizes */}
 			<div className="relative h-[400px] w-full">
