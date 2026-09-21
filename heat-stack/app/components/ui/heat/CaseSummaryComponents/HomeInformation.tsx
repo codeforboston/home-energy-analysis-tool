@@ -2,11 +2,16 @@ import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
+import {
+	ErrorList,
+	Field,
+	SectionTitle,
+	SubsectionTitle,
+} from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 import { HelpButton } from '../../HelpButton.tsx'
-import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
@@ -17,11 +22,6 @@ function roundTo(n: number, decimals = 0) {
 }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
-	const componentMargin = 'mt-10'
-
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
 		() => {
 			const string =
@@ -124,10 +124,8 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div
-				className={`flex items-center justify-between ${componentMargin} my-4`}
-			>
-				<legend className={titleClass}>Home Information</legend>
+			<div className="my-4 mt-10 flex items-center justify-between">
+				<SectionTitle>Home Information</SectionTitle>
 
 				<Link
 					to="/cases/new?dev=true"
@@ -139,26 +137,16 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<Label className={subtitleClass} htmlFor="name">
-				Resident/Client Name(s)
-			</Label>
-
-			<div className={`${componentMargin} mt-2`}>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.name.errorId}
-								errors={props.fields.name.errors}
-							/>
-						</div>
-					</div>
-				</div>
+			<div className="mt-10 mt-2">
+				<Field
+					labelProps={{ children: 'Resident/Client Name(s)' }}
+					inputProps={getInputProps(props.fields.name, { type: 'text' })}
+					errors={props.fields.name.errors}
+				/>
 			</div>
 
 			<fieldset>
-				<legend className={subtitleClass}>Address Information</legend>
+				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
@@ -231,15 +219,14 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend className={subtitleClass}>Heating Design Temperature</legend>
+				<SubsectionTitle as="legend">Heating Design Temperature</SubsectionTitle>
 
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/2">
-						<Label>Calculated Design Temperature (℉)</Label>
-						<HelpButton
-							keyName="calculated_design_temperature.help"
-							className="ml-[1ch]"
-						/>
+						<div className="flex items-center gap-2">
+							<Label>Calculated Design Temperature (℉)</Label>
+							<HelpButton keyName="calculated_design_temperature.help" />
+						</div>
 						<div className="item mt-4 flex h-10 items-center font-bold">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
@@ -250,50 +237,33 @@ export function HomeInformation(props: HomeInformationProps) {
 							)}
 						</div>
 
-						<div className={`mt-4 ${descriptiveClass}`}>
+						<div className="mt-4 mt-2 text-sm text-slate-500">
 							This value is calculated from the address and will be used unless
 							an override value is entered.
 						</div>
 					</div>
 
 					<div className="basis-1/2">
-						<Label htmlFor="design_temperature_override">
-							Design Temperature Override (℉)
-						</Label>
-
-						<HelpButton
-							keyName="design_temperature_override.help"
-							className="ml-[1ch]"
+						<Field
+							labelProps={{ children: 'Design Temperature Override (℉)' }}
+							inputProps={getInputProps(props.fields.design_temperature_override, {
+								type: 'number',
+							})}
+							errors={props.fields.design_temperature_override.errors}
+							help={{ keyName: 'design_temperature_override.help' }}
+							description="Leave blank or enter a value in the range -10 to 32"
 						/>
-
-						<div className="mt-4 flex space-x-4">
-							<div>
-								<Input
-									{...getInputProps(props.fields.design_temperature_override, {
-										type: 'number',
-									})}
-								/>
-
-								<div className={`${descriptiveClass}`}>
-									Leave blank or enter a value in the range -10 to 32
-								</div>
-
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.design_temperature_override.errorId}
-										errors={props.fields.design_temperature_override.errors}
-									/>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</fieldset>
 			<div className="mt-1">
-				<Label className={subtitleClass} htmlFor="living_area">
+				<SubsectionTitle
+					as="label"
+					htmlFor="living_area"
+					help={{ keyName: 'living_area.help' }}
+				>
 					Living Area (sf)
-				</Label>
-				<HelpButton keyName="living_area.help" className="ml-[1ch]" />
+				</SubsectionTitle>
 				<NumericFormat
 					id="living_area"
 					placeholder="Enter a number 0-10000"
@@ -320,10 +290,8 @@ export function HomeInformation(props: HomeInformationProps) {
 					/>
 				</div>
 
-				<span className={`${descriptiveClass}`}>
-					<span className="my-8">
-						The home's above-grade, conditioned space
-					</span>
+				<span className="mt-2 text-sm text-slate-500">
+					<span className="my-8">The home's above-grade, conditioned space</span>
 				</span>
 			</div>
 		</fieldset>
