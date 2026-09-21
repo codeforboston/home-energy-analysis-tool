@@ -69,7 +69,7 @@ export function EnergyUseHistoryChart({
 				<TableRow className="bg-neutral-50 text-xs text-muted-foreground">
 					<TableHead className="text-center">#</TableHead>
 					<TableHead className="text-center">
-						<div className="flex flex-row">
+						<div className="flex flex-row items-center">
 							<div className="text-center">Allowed Usage</div>
 							<HelpButton
 								keyName="allowed_usage_column.help"
@@ -85,7 +85,7 @@ export function EnergyUseHistoryChart({
 						Whole-home UA (BTU/h-°F)
 					</TableHead>
 					<TableHead className="text-center">
-						<div className="flex flex-row">
+						<div className="flex flex-row items-center">
 							<div className="text-center">Override Default</div>
 							<HelpButton
 								keyName="override_default_column.help"

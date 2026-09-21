@@ -1,11 +1,11 @@
 import { Upload } from 'lucide-react'
 import { useNavigation } from 'react-router'
+import { ErrorList, SectionTitle } from '#/app/components/forms.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { HelpButton } from '../../HelpButton'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
-import { ErrorList } from './ErrorList'
 
 interface EnergyUseHistoryProps {
 	setScrollAfterSubmit: React.Dispatch<React.SetStateAction<boolean>>
@@ -24,7 +24,6 @@ export function EnergyUseHistory({
 	usageData = null,
 	chartClickHandler = () => {},
 }: EnergyUseHistoryProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	const navigation = useNavigation()
 	const isIdle = navigation.state === 'idle'
 
@@ -38,9 +37,12 @@ export function EnergyUseHistory({
 
 	return (
 		<fieldset>
-			<legend className={`${titleClass} pb-6`}>
-				Energy Use History <HelpButton keyName="energy_use_history.help" />
-			</legend>
+			<SectionTitle className="mb-6 mt-10">
+				<span className="flex items-center gap-2">
+					Energy Use History
+					<HelpButton keyName="energy_use_history.help" />
+				</span>
+			</SectionTitle>
 			{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
 			{!isEditMode && (
 				<ErrorList
