@@ -127,9 +127,11 @@ export function Field({
 			{description ? (
 				<div className="mt-2 text-sm text-slate-500">{description}</div>
 			) : null}
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{errorId ? (
+				<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<ErrorList id={errorId} errors={errors} />
+				</div>
+			) : null}
 		</div>
 	)
 }
@@ -171,9 +173,11 @@ export function OTPField({
 					<InputOTPSlot index={5} />
 				</InputOTPGroup>
 			</InputOTP>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{errorId ? (
+				<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<ErrorList id={errorId} errors={errors} />
+				</div>
+			) : null}
 		</div>
 	)
 }
@@ -201,9 +205,11 @@ export function TextareaField({
 				aria-describedby={errorId}
 				{...textareaProps}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{errorId ? (
+				<div className="min-h-[32px] px-4 pb-3 pt-1">
+					<ErrorList id={errorId} errors={errors} />
+				</div>
+			) : null}
 		</div>
 	)
 }
@@ -264,9 +270,11 @@ export function CheckboxField({
 					className="self-center text-body-xs text-muted-foreground"
 				/>
 			</div>
-			<div className="px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{errorId ? (
+				<div className="px-4 pb-3 pt-1">
+					<ErrorList id={errorId} errors={errors} />
+				</div>
+			) : null}
 		</div>
 	)
 }

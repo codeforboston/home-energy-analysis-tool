@@ -124,7 +124,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div className="my-4 mt-10 flex items-center justify-between">
+			<div className="mb-[10px] flex items-center justify-between">
 				<SectionTitle>Home Information</SectionTitle>
 
 				<Link
@@ -137,17 +137,17 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<div className="mt-10 mt-2">
-				<Field
-					labelProps={{ children: 'Resident/Client Name(s)' }}
-					inputProps={getInputProps(props.fields.name, { type: 'text' })}
-					errors={props.fields.name.errors}
-				/>
-			</div>
+			<Field
+				labelProps={{ children: 'Resident/Client Name(s)' }}
+				inputProps={getInputProps(props.fields.name, { type: 'text' })}
+				errors={props.fields.name.errors}
+			/>
 
 			<fieldset>
-				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-[25px]">
+					<SubsectionTitle as="legend">Address Information</SubsectionTitle>
+				</div>
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
 							Street Address
@@ -166,12 +166,14 @@ export function HomeInformation(props: HomeInformationProps) {
 								aria-describedby={props.fields.street_address.errorId}
 							/>
 							{geoError && <div className="mt-2 text-red-600">{geoError}</div>}
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.street_address.errorId}
-									errors={props.fields.street_address.errors}
-								/>
-							</div>
+							{props.fields.street_address.errors?.length ? (
+								<div className="min-h-[32px] px-4 pb-3 pt-1">
+									<ErrorList
+										id={props.fields.street_address.errorId}
+										errors={props.fields.street_address.errors}
+									/>
+								</div>
+							) : null}
 						</div>
 					</div>
 
@@ -190,12 +192,14 @@ export function HomeInformation(props: HomeInformationProps) {
 								}
 								aria-describedby={props.fields.town.errorId}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.town.errorId}
-									errors={props.fields.town.errors}
-								/>
-							</div>
+							{props.fields.town.errors?.length ? (
+								<div className="min-h-[32px] px-4 pb-3 pt-1">
+									<ErrorList
+										id={props.fields.town.errorId}
+										errors={props.fields.town.errors}
+									/>
+								</div>
+							) : null}
 						</div>
 					</div>
 
@@ -208,26 +212,32 @@ export function HomeInformation(props: HomeInformationProps) {
 								onChange={(val) => setUsaStateAbbrev(val)}
 								onBlur={() => validateGeocode()}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.state.errorId}
-									errors={props.fields.state.errors}
-								/>
-							</div>
+							{props.fields.state.errors?.length ? (
+								<div className="min-h-[32px] px-4 pb-3 pt-1">
+									<ErrorList
+										id={props.fields.state.errorId}
+										errors={props.fields.state.errors}
+									/>
+								</div>
+							) : null}
 						</div>
 					</div>
 				</div>
 			</fieldset>
 			<fieldset>
-				<SubsectionTitle as="legend">Heating Design Temperature</SubsectionTitle>
+				<div className="mt-[25px]">
+					<SubsectionTitle as="legend">
+						Heating Design Temperature
+					</SubsectionTitle>
+				</div>
 
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/2">
 						<div className="flex items-center gap-2">
 							<Label>Calculated Design Temperature (℉)</Label>
 							<HelpButton keyName="calculated_design_temperature.help" />
 						</div>
-						<div className="item mt-2 flex h-10 items-center font-bold">
+						<div className="mt-2 flex h-10 w-full items-center text-base font-bold md:text-sm">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
 							) : calcedDesignTemp === null ? (
@@ -237,7 +247,7 @@ export function HomeInformation(props: HomeInformationProps) {
 							)}
 						</div>
 
-						<div className="mt-4 mt-2 text-sm text-slate-500">
+						<div className="mt-2 text-sm text-slate-500">
 							This value is calculated from the address and will be used unless
 							an override value is entered.
 						</div>
@@ -256,7 +266,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			<div className="mt-1">
+			<div className="mt-[25px]">
 				<SubsectionTitle
 					as="label"
 					htmlFor="living_area"
@@ -268,7 +278,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					id="living_area"
 					placeholder="Enter a number 0-10000"
 					value={livingAreaStringDisplayed}
-					className="mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+					className="mt-[5px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 					onChange={handleLivingAreaChange}
 					thousandSeparator={true}
 					valueIsNumericString={true}
@@ -283,12 +293,14 @@ export function HomeInformation(props: HomeInformationProps) {
 					value={livingAreaNumberHidden}
 				/>
 
-				<div className="min-h-[12px] px-4 pb-2">
-					<ErrorList
-						id={props.fields.living_area.errorId}
-						errors={props.fields.living_area.errors}
-					/>
-				</div>
+				{props.fields.living_area.errors?.length ? (
+					<div className="min-h-[12px] px-4 pb-2">
+						<ErrorList
+							id={props.fields.living_area.errorId}
+							errors={props.fields.living_area.errors}
+						/>
+					</div>
+				) : null}
 
 				<span className="mt-2 text-sm text-slate-500">
 					<span className="my-8">The home's above-grade, conditioned space</span>

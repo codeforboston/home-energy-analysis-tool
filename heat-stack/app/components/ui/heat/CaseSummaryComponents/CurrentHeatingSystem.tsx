@@ -60,9 +60,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	return (
 		<fieldset>
-			<SectionTitle className="mt-10">Existing Heating System</SectionTitle>
+			<hr className="mt-[30px] border-gray-300" />
+			<div className="mt-[45px] mb-[10px]">
+				<SectionTitle>Existing Heating System</SectionTitle>
+			</div>
 
-			<div className="mt-10 mt-4">
+			<div>
 				<Label htmlFor="fuel_type">Fuel Type</Label>
 				<div className="mt-2 flex space-x-4">
 					<div className="basis-1/4">
@@ -79,22 +82,25 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Input type="hidden" name="fuel_type" value={fuelType} />
 					</div>
 				</div>
-				<div className="min-h-[32px] px-4 pb-3 pt-1">
-					<ErrorList
-						id={props.fields.fuel_type.errorId}
-						errors={props.fields.fuel_type.errors}
-					/>
-				</div>
+				{props.fields.fuel_type.errors?.length ? (
+					<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<ErrorList
+							id={props.fields.fuel_type.errorId}
+							errors={props.fields.fuel_type.errors}
+						/>
+					</div>
+				) : null}
 			</div>
 
 			<SubsectionTitle
 				as="label"
 				htmlFor="heating_system_efficiency_display"
 				help={{ keyName: 'heating_system_efficiency.help' }}
+				className="mt-[25px]"
 			>
 				Heating System Efficiency %
 			</SubsectionTitle>
-			<div className="mt-2 flex space-x-4">
+			<div className="mt-[5px] flex space-x-4">
 				<div className="basis-1/3">
 					{/* Display percentage to the user */}
 					<Input
@@ -116,18 +122,22 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						Enter efficiency as a percentage (60-100). Typical natural gas
 						efficiency is 80-95%.
 					</span>
-					<div className="min-h-[32px] px-4 pb-3 pt-1">
-						<ErrorList
-							id={props.fields.heating_system_efficiency.errorId}
-							errors={props.fields.heating_system_efficiency.errors}
-						/>
-					</div>
+					{props.fields.heating_system_efficiency.errors?.length ? (
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							<ErrorList
+								id={props.fields.heating_system_efficiency.errorId}
+								errors={props.fields.heating_system_efficiency.errors}
+							/>
+						</div>
+					) : null}
 				</div>
 			</div>
 
 			<fieldset>
-				<SubsectionTitle as="legend">Thermostat Settings</SubsectionTitle>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-[25px]">
+					<SubsectionTitle as="legend">Thermostat Settings</SubsectionTitle>
+				</div>
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
 						<Field
 							labelProps={{ children: 'Set Point (°F)' }}

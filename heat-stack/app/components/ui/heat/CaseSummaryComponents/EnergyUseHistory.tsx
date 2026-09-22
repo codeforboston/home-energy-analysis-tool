@@ -37,12 +37,15 @@ export function EnergyUseHistory({
 
 	return (
 		<fieldset>
-			<SectionTitle className="mb-6 mt-10">
-				<span className="flex items-center gap-2">
-					Energy Use History
-					<HelpButton keyName="energy_use_history.help" />
-				</span>
-			</SectionTitle>
+			<hr className="mt-[30px] border-gray-300" />
+			<div className="mt-[45px] mb-[10px]">
+				<SectionTitle>
+					<span className="flex items-center gap-2">
+						Energy Use History
+						<HelpButton keyName="energy_use_history.help" />
+					</span>
+				</SectionTitle>
+			</div>
 			{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
 			{!isEditMode && (
 				<ErrorList
