@@ -152,7 +152,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						<Label htmlFor={props.fields.street_address.id}>
 							Street Address
 						</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.street_address.id}
 								name={props.fields.street_address.name}
@@ -177,7 +177,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.town.id}>City/Town</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.town.id}
 								name={props.fields.town.name}
@@ -201,7 +201,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/3">
 						<Label htmlFor="state">State</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<StateDropdown
 								fields={props.fields}
 								value={usaStateAbbrev}
@@ -227,7 +227,7 @@ export function HomeInformation(props: HomeInformationProps) {
 							<Label>Calculated Design Temperature (℉)</Label>
 							<HelpButton keyName="calculated_design_temperature.help" />
 						</div>
-						<div className="item mt-4 flex h-10 items-center font-bold">
+						<div className="item mt-2 flex h-10 items-center font-bold">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
 							) : calcedDesignTemp === null ? (
@@ -268,7 +268,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					id="living_area"
 					placeholder="Enter a number 0-10000"
 					value={livingAreaStringDisplayed}
-					className="mt-4 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+					className="mt-2 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 					onChange={handleLivingAreaChange}
 					thousandSeparator={true}
 					valueIsNumericString={true}

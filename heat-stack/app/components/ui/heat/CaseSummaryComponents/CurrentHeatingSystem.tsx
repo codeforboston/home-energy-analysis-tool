@@ -64,7 +64,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 			<div className="mt-10 mt-4">
 				<Label htmlFor="fuel_type">Fuel Type</Label>
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-2 flex space-x-4">
 					<div className="basis-1/4">
 						<Select onValueChange={(val) => setFuelType(val)} value={fuelType}>
 							<SelectTrigger className="w-[180px]">
@@ -94,7 +94,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			>
 				Heating System Efficiency %
 			</SubsectionTitle>
-			<div className="mt-4 flex space-x-4">
+			<div className="mt-2 flex space-x-4">
 				<div className="basis-1/3">
 					{/* Display percentage to the user */}
 					<Input

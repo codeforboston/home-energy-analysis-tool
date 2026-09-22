@@ -122,6 +122,7 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+				className={cn('mt-2', inputProps.className)}
 			/>
 			{description ? (
 				<div className="mt-2 text-sm text-slate-500">{description}</div>
