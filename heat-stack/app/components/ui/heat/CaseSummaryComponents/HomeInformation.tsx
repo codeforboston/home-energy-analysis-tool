@@ -9,7 +9,10 @@ import { HelpButton } from '../../HelpButton.tsx'
 import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
-type HomeInformationProps = { fields: any }
+type HomeInformationProps = {
+	fields: any
+	storedDesignTemperature?: number
+}
 
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
@@ -57,11 +60,15 @@ export function HomeInformation(props: HomeInformationProps) {
 	const lastRequestedAddressRef = useRef<string | null>(null)
 
 	useEffect(() => {
+		if (props.storedDesignTemperature != null) {
+			setCalcedDesignTemp([props.storedDesignTemperature, 0])
+			return
+		}
 		if (!geoCoordinates) return
 		executeLookupDesignTempToDisplay(geoCoordinates).then((result: any) => {
 			setCalcedDesignTemp(result)
 		})
-	}, [geoCoordinates])
+	}, [geoCoordinates, props.storedDesignTemperature])
 
 	// Geocode automatically as the user types (debounced), instead of waiting
 	// for the address fields to lose focus.
