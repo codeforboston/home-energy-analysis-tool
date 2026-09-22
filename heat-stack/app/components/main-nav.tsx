@@ -22,6 +22,11 @@ export function MainNav() {
 		{ label: 'Cases', href: '/cases' },
 		isAdmin ? { label: 'Users', href: '/users' } : null,
 		{ label: 'Privacy', href: '/privacy' },
+		{
+			label: 'Feedback',
+			target: '_blank',
+			href: 'https://docs.google.com/forms/d/e/1FAIpQLSfR4XGz9Pihyd8AKxKFfFMEpB_dD_Bz5hTp47H8V9ZxSr1efQ/viewform?usp=header',
+		},
 	].filter(Boolean)
 
 	const isActive = (href: string) => {
@@ -38,6 +43,7 @@ export function MainNav() {
 					<Link
 						key={item.href}
 						to={item.href}
+						target={item.target || '_self'}
 						className={cn(
 							'text-lg font-medium transition-colors hover:text-primary',
 							isActive(item.href) ? 'text-foreground' : 'text-muted-foreground',
