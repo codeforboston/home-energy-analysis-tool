@@ -109,7 +109,7 @@ export function WholeHomeUAComparison({
 	}, [comparisonData, whole_home_heat_loss_rate, livingArea])
 
 	return (
-		<div className="mt-8 min-w-[625px] rounded-lg pb-4 shadow-lg">
+		<div className="mt-8 min-w-[625px] rounded-lg border border-gray-200 pb-4 shadow-lg">
 			{/* Title and icon for the chart */}
 			<SubsectionTitle
 				help={{ keyName: 'whole_home_heat_loss_graph.help' }}
