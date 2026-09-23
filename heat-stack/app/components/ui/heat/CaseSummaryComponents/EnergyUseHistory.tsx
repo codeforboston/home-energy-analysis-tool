@@ -46,9 +46,13 @@ export function EnergyUseHistory({
 	// on input, clearing the error).
 	const fileErrorKey: string = (fields.energy_use_upload.errors ?? []).join('|')
 	const [showFileErrorModal, setShowFileErrorModal] = useState(false)
+    const [buttonPressedToggle,setButtonPressedToggle] = useState(false)
+    const buttonToggled = ()=>{
+        setButtonPressedToggle(!buttonPressedToggle)
+    }
 	useEffect(() => {
 		setShowFileErrorModal(!isEditMode && fileErrorKey.length > 0)
-	}, [isEditMode, fileErrorKey])
+	}, [isEditMode, fileErrorKey, buttonPressedToggle])
 
 	/*
     When the calculate button is pressed, sets scrollAfterSubmit to
@@ -56,8 +60,9 @@ export function EnergyUseHistory({
     */
 	const handleSubmit = () => {
 		setScrollAfterSubmit(true)
+        buttonToggled()
 	}
-
+    console.log(showFileErrorModal)
 	return (
 		<fieldset>
 			<legend className={`${titleClass} pb-6`}>
