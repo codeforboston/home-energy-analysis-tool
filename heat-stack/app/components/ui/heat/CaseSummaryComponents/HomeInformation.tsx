@@ -2,11 +2,16 @@ import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
+import {
+	Field,
+	FieldErrors,
+	LabelWithHelp,
+	SectionTitle,
+	SubsectionTitle,
+} from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
-import { HelpButton } from '../../HelpButton.tsx'
-import { ErrorList } from './ErrorList.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
@@ -17,11 +22,6 @@ function roundTo(n: number, decimals = 0) {
 }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
-	const componentMargin = 'mt-10'
-
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
 		() => {
 			const string =
@@ -124,10 +124,8 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div
-				className={`flex items-center justify-between ${componentMargin} my-4`}
-			>
-				<legend className={titleClass}>Home Information</legend>
+			<div className="mb-[10px] flex items-center justify-between">
+				<SectionTitle className="mb-0">Home Information</SectionTitle>
 
 				<Link
 					to="/cases/new?dev=true"
@@ -139,32 +137,24 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<Label className={subtitleClass} htmlFor="name">
-				Resident/Client Name(s)
-			</Label>
+			<Field
+				labelProps={{ children: 'Resident/Client Name(s)' }}
+				inputProps={{
+					...getInputProps(props.fields.name, { type: 'text' }),
+					className: 'mt-2',
+				}}
+				errors={props.fields.name.errors}
+				collapseEmptyErrors
+			/>
 
-			<div className={`${componentMargin} mt-2`}>
-				<div className="mt-4 flex space-x-4">
-					<div>
-						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.name.errorId}
-								errors={props.fields.name.errors}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<fieldset>
-				<legend className={subtitleClass}>Address Information</legend>
-				<div className="mt-4 flex space-x-4">
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
 							Street Address
 						</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.street_address.id}
 								name={props.fields.street_address.name}
@@ -178,18 +168,17 @@ export function HomeInformation(props: HomeInformationProps) {
 								aria-describedby={props.fields.street_address.errorId}
 							/>
 							{geoError && <div className="mt-2 text-red-600">{geoError}</div>}
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.street_address.errorId}
-									errors={props.fields.street_address.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.street_address.errorId}
+								errors={props.fields.street_address.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.town.id}>City/Town</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.town.id}
 								name={props.fields.town.name}
@@ -202,45 +191,45 @@ export function HomeInformation(props: HomeInformationProps) {
 								}
 								aria-describedby={props.fields.town.errorId}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.town.errorId}
-									errors={props.fields.town.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.town.errorId}
+								errors={props.fields.town.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
 					<div className="basis-1/3">
 						<Label htmlFor="state">State</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<StateDropdown
 								fields={props.fields}
 								value={usaStateAbbrev}
 								onChange={(val) => setUsaStateAbbrev(val)}
 								onBlur={() => validateGeocode()}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.state.errorId}
-									errors={props.fields.state.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.state.errorId}
+								errors={props.fields.state.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
-				<legend className={subtitleClass}>Heating Design Temperature</legend>
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">
+					Heating Design Temperature
+				</SubsectionTitle>
 
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/2">
-						<Label>Calculated Design Temperature (℉)</Label>
-						<HelpButton
-							keyName="calculated_design_temperature.help"
-							className="ml-[1ch]"
-						/>
-						<div className="item mt-4 flex h-10 items-center font-bold">
+						<LabelWithHelp
+							help={{ keyName: 'calculated_design_temperature.help' }}
+						>
+							Calculated Design Temperature (℉)
+						</LabelWithHelp>
+						<div className="mt-2 flex h-10 w-full items-center text-base font-bold md:text-sm">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
 							) : calcedDesignTemp === null ? (
@@ -250,55 +239,42 @@ export function HomeInformation(props: HomeInformationProps) {
 							)}
 						</div>
 
-						<div className={`mt-4 ${descriptiveClass}`}>
+						<div className="mt-2 text-sm text-slate-500">
 							This value is calculated from the address and will be used unless
 							an override value is entered.
 						</div>
 					</div>
 
 					<div className="basis-1/2">
-						<Label htmlFor="design_temperature_override">
-							Design Temperature Override (℉)
-						</Label>
-
-						<HelpButton
-							keyName="design_temperature_override.help"
-							className="ml-[1ch]"
+						<Field
+							labelProps={{ children: 'Design Temperature Override (℉)' }}
+							inputProps={{
+								...getInputProps(props.fields.design_temperature_override, {
+									type: 'number',
+								}),
+								className: 'mt-2',
+							}}
+							errors={props.fields.design_temperature_override.errors}
+							collapseEmptyErrors
+							help={{ keyName: 'design_temperature_override.help' }}
+							description="Leave blank or enter a value in the range -10 to 32"
 						/>
-
-						<div className="mt-4 flex space-x-4">
-							<div>
-								<Input
-									{...getInputProps(props.fields.design_temperature_override, {
-										type: 'number',
-									})}
-								/>
-
-								<div className={`${descriptiveClass}`}>
-									Leave blank or enter a value in the range -10 to 32
-								</div>
-
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.design_temperature_override.errorId}
-										errors={props.fields.design_temperature_override.errors}
-									/>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</fieldset>
-			<div className="mt-1">
-				<Label className={subtitleClass} htmlFor="living_area">
+			<div className="mt-[25px]">
+				<SubsectionTitle
+					as="label"
+					htmlFor="living_area"
+					help={{ keyName: 'living_area.help' }}
+				>
 					Living Area (sf)
-				</Label>
-				<HelpButton keyName="living_area.help" className="ml-[1ch]" />
+				</SubsectionTitle>
 				<NumericFormat
 					id="living_area"
 					placeholder="Enter a number 0-10000"
 					value={livingAreaStringDisplayed}
-					className="mt-4 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+					className="mt-[5px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 					onChange={handleLivingAreaChange}
 					thousandSeparator={true}
 					valueIsNumericString={true}
@@ -313,14 +289,13 @@ export function HomeInformation(props: HomeInformationProps) {
 					value={livingAreaNumberHidden}
 				/>
 
-				<div className="min-h-[12px] px-4 pb-2">
-					<ErrorList
-						id={props.fields.living_area.errorId}
-						errors={props.fields.living_area.errors}
-					/>
-				</div>
+				<FieldErrors
+					id={props.fields.living_area.errorId}
+					errors={props.fields.living_area.errors}
+					collapseWhenEmpty
+				/>
 
-				<span className={`${descriptiveClass}`}>
+				<span className="mt-2 text-sm text-slate-500">
 					<span className="my-8">
 						The home's above-grade, conditioned space
 					</span>
