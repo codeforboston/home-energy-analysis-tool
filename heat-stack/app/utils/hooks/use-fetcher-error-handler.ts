@@ -33,6 +33,12 @@ const USER_FACING_ERROR_MAP: Array<{ pattern: RegExp; message: string }> = [
 	{
 		pattern: /could not convert string to float: ''/i,
 		message:
+			'One or more numeric fields in your CSV have values that are not a number. Please fill in the missing values and try again.',
+	},
+	{
+		pattern:
+			/TypeError: int\(\) argument must be a string, a bytes-like object or a real number, not 'NoneType'/i,
+		message:
 			'One or more numeric fields in your CSV are empty. Please fill in the missing values and try again.',
 	},
 ]
