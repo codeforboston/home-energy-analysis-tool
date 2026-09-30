@@ -1,14 +1,13 @@
+# 4.4.0 renamed `language: system` to `language: unsupported`, which the local
+# hooks below use. Older versions reject it with an unclear error; this makes
+# them ask for an upgrade instead. To get the version pinned in
+# python/pyproject.toml, run `uv sync --extra dev` from the python folder.
+minimum_pre_commit_version: "4.4.0"
 repos:
   - repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:
       - id: black
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
-    hooks:
-      - id: mypy
-        args: [“--config-file=mypy.ini”]
-        files: ^heat-stack/python/
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
     hooks:
@@ -18,12 +17,19 @@ repos:
       - id: prettier
         name: prettier
         entry: bash -c 'cd heat-stack && exec ./node_modules/.bin/prettier --check "${@#heat-stack/}"' --
-        language: system
+        language: unsupported
         files: ^heat-stack/.*\.(css|js|jsx|json|md|ts|tsx|yaml|yml)$
+      - id: mypy
+        name: mypy
+        entry: uv run --directory python mypy . --exclude build
+        language: unsupported
+        files: ^python/
+        pass_filenames: false
       - id: pytest
         name: pytest before push
-        entry: pytest
-        language: system
+        entry: uv run --directory python pytest
+        language: unsupported
         types: [python]
         stages: [pre-push]
+        pass_filenames: false
         exclude: ^heat-stack/app/pycode/

@@ -29,6 +29,7 @@ dev = [
     "pip-tools==7.4.1",
     "platformdirs==3.7.0",
     "pluggy==1.0.0",
+    "pre-commit==4.6.2",
     "pydocstyle==6.3.0",
     "pyproject-hooks==1.2.0",
     "pytest==7.3.2",

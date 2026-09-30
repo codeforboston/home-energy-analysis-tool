@@ -7,29 +7,36 @@ For an outline of the logic behind the rules engine and a glossary of common ter
 ## Local Environment Setup
 This project uses Python version 3.13.
 
+Everyone working on this repository needs this setup, including JavaScript-only developers, because the [pre-commit checks](#pre-commit-verification) run Python tools on every commit.
+
 1. Clone or fork the git repository, if not already done.
-2. (Optional) Install `pre-commit`
+2. Install `uv`. uv installs Python 3.13 and all Python packages for you, so you don't need to install Python separately.
 
-- On MacOS: `brew install pre-commit`
-- On Windows:
-  - Open a Git Bash terminal
-  - If you lack Homebrew,
-    - Install Homebrew with `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-    - Follow the steps that appear in the prompt following Homebrew installation
-  - `brew install pre-commit`
-3. Open Git Bash terminal.
-4. Install `uv`
+- On MacOS: `brew install uv`
+- On Windows: `winget install --id=astral-sh.uv -e`, then close and reopen your terminal so it can find `uv`.
+- If neither works: `pip install uv`
 
-- On MacOS `brew install uv`
-- On Windows, `pip install uv`
+3. Navigate to project's python directory by typing `cd python`.
+4. On macOS, Linux or Git Bash, run `bash setup-python.sh`. In Windows PowerShell or cmd, run the script's two commands directly instead (`bash` there is either missing or starts WSL's Linux bash, which builds a `.venv` that Windows can't use):
 
-5. Navigate to project's python directory by typing `cd python`.
-6. Run `uv sync --extra dev` to create the virtual environment and install all dependencies, including dev tools like pytest, black, mypy, and isort.
+   ```
+   uv sync --extra dev
+   uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+   ```
+
+   Either way, this does two things:
+
+- Runs `uv sync --extra dev`, which creates the virtual environment (`python/.venv`) and installs all dependencies, including dev tools like pytest, black, mypy, isort and pre-commit.
+- Runs `uv run pre-commit install`, which tells git to run the [pre-commit checks](#pre-commit-verification) before each commit and push.
+
+  It is safe to run again at any time, for example after pulling changes that update `pyproject.toml`. JavaScript developers get the same setup by running `npm run buildpy` in `heat-stack`.
 
 - Dev dependencies live under `[project.optional-dependencies].dev` in `pyproject.toml`, which `uv` treats as an "extra" rather than a dependency group. `uv sync` and `uv run` only install the base `dependencies` list unless the extra is requested explicitly, so `uv sync --dev` (with no `--extra`) will silently create a venv without pytest and any subsequent `uv run pytest` will fail with `error: Failed to spawn: pytest`.
 
-7. Run `uv run pytest` and see tests run successfully.
+5. Run `uv run pytest` and see tests run successfully.
    Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
+
+> **Windows + WSL users:** use one system per project folder. `.venv` only works on the system that created it, so running Windows `uv` or `npm` against a `.venv` made in WSL (or the reverse) breaks it. Inside WSL, `which npm` and `which uv` should show Linux paths, not paths starting with `/mnt/c`. If npm shows `/mnt/c/...`, install Node inside WSL by following the WSL steps under "Install Dependencies and Build" in [heat-stack/README.md](../heat-stack/README.md#install-dependencies-and-build).
 
 
 ## Development
@@ -120,11 +127,22 @@ Check with a development lead before adding a python package. Adding python pack
 
 ### Pre-Commit Verification
 
-We use pre-commit.
+We use [pre-commit](https://pre-commit.com/) to run checks automatically. It is installed by `bash setup-python.sh` (or `npm run buildpy` in `heat-stack`), and the checks are listed in `.pre-commit-config.yaml` at the root of the repository.
+
+- **On every `git commit`:** black and isort (Python formatting), mypy (Python type checking) and prettier (formatting for `heat-stack` files).
+- **On every `git push`:** pytest (the Python tests).
+
+To run all the checks by hand without committing, from the `python` directory:
+
+```
+uv run pre-commit run --all-files
+```
+
+If a check fails, the commit or push is stopped and the output says which check failed. Formatters like black, isort and prettier often fix the files themselves ("files were modified by this hook"). Review the changes, `git add` the fixed files, and commit again.
 
 ### Committing Your Changes
 
-Run the pre-commit verification script (see [Pre-Commit Verification](#pre-commit-verification)) before committing your changes.
+The [pre-commit checks](#pre-commit-verification) run automatically when you commit. Fix anything they report before pushing.
 
 ### Creating a Pull Request
 
