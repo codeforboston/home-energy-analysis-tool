@@ -235,8 +235,11 @@ export function HomeInformation(props: HomeInformationProps) {
 
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/2">
-						<Label>Calculated Design Temperature</Label>
-
+						<Label>Calculated Design Temperature (℉)</Label>
+						<HelpButton
+							keyName="calculated_design_temperature.help"
+							className="ml-[1ch]"
+						/>
 						<div className="item mt-4 flex h-10 items-center font-bold">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
@@ -255,7 +258,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/2">
 						<Label htmlFor="design_temperature_override">
-							Design Temperature Override
+							Design Temperature Override (℉)
 						</Label>
 
 						<HelpButton

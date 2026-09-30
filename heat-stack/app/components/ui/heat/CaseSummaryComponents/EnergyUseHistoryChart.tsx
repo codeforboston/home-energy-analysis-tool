@@ -8,6 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../../../components/ui/table.tsx'
+import { HelpButton } from '../../HelpButton.tsx'
 
 import HeatingUsage from './assets/HeatingUsage.svg'
 import NonHeatingUsage from './assets/NonHeatingUsage.svg'
@@ -69,12 +70,13 @@ export function EnergyUseHistoryChart({
 					<TableHead className="text-center">#</TableHead>
 					<TableHead className="text-center">
 						<div className="flex flex-row">
-							<div className="text-right">Allowed Usage</div>
-							{/* TODO: add help text */}
-							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+							<div className="text-center">Allowed Usage</div>
+							<HelpButton
+								keyName="allowed_usage_column.help"
+								className="pl-2"
+							/>
 						</div>
 					</TableHead>
-
 					<TableHead className="text-center">Start Date</TableHead>
 					<TableHead className="text-center">End Date</TableHead>
 					<TableHead className="text-center">Days in Period</TableHead>
@@ -84,9 +86,11 @@ export function EnergyUseHistoryChart({
 					</TableHead>
 					<TableHead className="text-center">
 						<div className="flex flex-row">
-							<div className="text-right">Override Default</div>
-							{/* TODO: add help text */}
-							{/* <img src={HelpCircle} alt='help text' className='pl-2'/> */}
+							<div className="text-center">Override Default</div>
+							<HelpButton
+								keyName="override_default_column.help"
+								className="pl-2"
+							/>
 						</div>
 					</TableHead>
 				</TableRow>
@@ -130,8 +134,12 @@ export function EnergyUseHistoryChart({
 					return (
 						<TableRow key={index} variant={variant}>
 							<TableCell className="font-medium">{index + 1}</TableCell>
-							<TableCell className="justify-items-center">
-								<img src={analysisType_Image} alt="Analysis Type" />
+							<TableCell>
+								<img
+									src={analysisType_Image}
+									alt="Analysis Type"
+									className="mx-auto inline-block"
+								/>
 							</TableCell>
 							<TableCell>{startDate.toLocaleDateString()}</TableCell>
 							<TableCell>{endDate.toLocaleDateString()}</TableCell>
