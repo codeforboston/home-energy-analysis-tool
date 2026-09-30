@@ -32,6 +32,41 @@ Analysis Tool (H.E.A.T.) project. Please follow these instructions carefully.
 
 ### Node.js Setup
 
+> **Windows + WSL users: before installing Node, check where the project is.**
+> Clone the project inside WSL's own Linux file system (for example `~/code`),
+> not under `/mnt/c/...` (your Windows drive), and do every step below in the
+> WSL terminal. Two reasons:
+>
+> - **Speed:** WSL reads and writes files on the Windows drive much more slowly,
+>   and folders synced by OneDrive are slower still. `npm install` creates tens
+>   of thousands of files, so it can take 10+ minutes there instead of 1–2.
+> - **The right Node:** installing nvm from the WSL terminal (it doesn't matter
+>   which directory you're in to install node) gives you the Linux (WSL) version
+>   of Node. Using Windows Node on a project you also use from WSL breaks
+>   `node_modules` and `python/.venv`, which only work on the system that
+>   installed them.
+>
+> **How to know you are in your Linux directory**
+>
+> Run `pwd` (print the current folder) in the project folder. If it starts with
+> `/mnt/c`, clone the repository again inside your WSL home folder (`~`) and
+> work from that copy:
+>
+> ```bash
+> mkdir -p ~/path/where/you/want/this/project
+> cd ~/path/where/you/want/this/project
+> git clone git@github.com:your-username/home-energy-analysis-tool.git
+> ```
+>
+> `mkdir -p` creates the folder (and any missing folders above it) if it does
+> not exist yet, because `cd` fails on a folder that doesn't exist. `git clone`
+> then creates a `home-energy-analysis-tool` folder inside it.
+>
+> To see these files in Windows File Explorer, paste
+> `\\wsl$\<distro name>\home\<your-username>` into File Explorer's address bar
+> (to the left of the search bar; you can in fact type things into it), or run
+> `explorer.exe .` from that folder in the WSL terminal.
+
 The project requires Node.js version 22.
 [Use Node Version Manager (NVM)](https://github.com/nvm-sh/nvm/blob/master/README.md)
 for managing Node.js versions (nvm is preinstalled in coding spaces).
@@ -72,6 +107,29 @@ not install NVM, skip `nvm` steps during setup.
 
 ### Install Dependencies and Build
 
+> **Windows + WSL users: the order of setup matters.**
+>
+> ✅ **Do it in this order:**
+>
+> 1. Install WSL.
+> 2. In the WSL terminal, install Node with nvm (see
+>    [Install NVM (Official Method)](#install-nvm-official-method)).
+> 3. In the WSL terminal, clone the project into your WSL home folder (for
+>    example `cd ~`, then `git clone ...`).
+> 4. Then install the node modules (step 3 below).
+>
+> ❌ **Avoid this order:** cloning the project on Windows first, then installing
+> WSL, then installing Node in WSL, then running `npm install` from WSL. The
+> project then lives on the Windows drive (`/mnt/c/...` in WSL), and WSL has to
+> pay a flat time tax at reading and writing each file there and, if OneDrive
+> syncs the folder, slows down. `npm install` writes tens of thousands of files,
+> so it can take 10+ minutes instead of 1–2, and every later build and test is
+> slower too.
+>
+> **Already cloned on Windows?** Run `pwd` in the project folder. If the path
+> starts with `/mnt/c`, push any work you want to keep, clone the project again
+> from your WSL home folder, and continue from that copy.
+
 1. Change directory to heat-stack
    ```
    cd heat-stack
@@ -84,25 +142,37 @@ not install NVM, skip `nvm` steps during setup.
    ```bash
    npm install
    ```
-4. Build the rules engine into the `public/pyodide-env` folder: Close Bash and
-   and on Windows, reopen Git Bash with Admin permissions (right click and Run
-   as Administrator).
-
-   - Before you run `buildpy`, you need to install `uv` See the
-     [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md).
-   - Navigate back to the heat-stack directory
-
-   On macOS:
+4. Set up Python and build the rules engine into the `public/pyodide-env`
+   folder. Before you run `buildpy`, you need to install `uv` (step 2 of the
+   [Python README](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md#local-environment-setup)).
 
    ```bash
    npm run buildpy
    ```
 
-   on Windows:
+   This works the same on macOS, Linux and Windows. Besides building the rules
+   engine, it installs the Python tools and sets up the
+   [pre-commit checks](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md#pre-commit-verification)
+   that run on every commit. Everyone needs this, even if you only work on
+   JavaScript. Run it again whenever the Python code changes.
 
-   ```bash
-   npm run buildpy-windows
-   ```
+   **Windows + WSL users:** use one system per project folder. `node_modules`
+   and `python/.venv` only work on the system that installed them. Inside WSL,
+   `which npm` should show a Linux path, not one starting with `/mnt/c` (which
+   is the Windows npm). If it starts with `/mnt/c`, install Node inside WSL:
+
+   1. In your WSL terminal, follow steps 1–3 of
+      [Install NVM (Official Method)](#install-nvm-official-method) at the top
+      of this file.
+   2. Close and reopen the WSL terminal. `which npm` should now show a path
+      starting with `/home/<your-username>/.nvm/`.
+   3. If `pwd` shows the project under `/mnt/c`, move it into WSL first (see the
+      note at the top of this section). Then, in `heat-stack`, delete the
+      Windows-installed packages and reinstall them:
+      ```bash
+      rm -rf node_modules
+      npm install
+      ```
 
 5. Copy the example environment file into a new `.env` file:
    ```bash
