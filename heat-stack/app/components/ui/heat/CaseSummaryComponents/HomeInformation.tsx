@@ -3,15 +3,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
 import {
-	ErrorList,
 	Field,
+	FieldErrors,
+	LabelWithHelp,
 	SectionTitle,
 	SubsectionTitle,
 } from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
-import { HelpButton } from '../../HelpButton.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
@@ -125,7 +125,7 @@ export function HomeInformation(props: HomeInformationProps) {
 	return (
 		<fieldset>
 			<div className="mb-[10px] flex items-center justify-between">
-				<SectionTitle>Home Information</SectionTitle>
+				<SectionTitle className="mb-0">Home Information</SectionTitle>
 
 				<Link
 					to="/cases/new?dev=true"
@@ -139,14 +139,16 @@ export function HomeInformation(props: HomeInformationProps) {
 
 			<Field
 				labelProps={{ children: 'Resident/Client Name(s)' }}
-				inputProps={getInputProps(props.fields.name, { type: 'text' })}
+				inputProps={{
+					...getInputProps(props.fields.name, { type: 'text' }),
+					className: 'mt-2',
+				}}
 				errors={props.fields.name.errors}
+				collapseEmptyErrors
 			/>
 
-			<fieldset>
-				<div className="mt-[25px]">
-					<SubsectionTitle as="legend">Address Information</SubsectionTitle>
-				</div>
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
 				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
@@ -166,14 +168,11 @@ export function HomeInformation(props: HomeInformationProps) {
 								aria-describedby={props.fields.street_address.errorId}
 							/>
 							{geoError && <div className="mt-2 text-red-600">{geoError}</div>}
-							{props.fields.street_address.errors?.length ? (
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.street_address.errorId}
-										errors={props.fields.street_address.errors}
-									/>
-								</div>
-							) : null}
+							<FieldErrors
+								id={props.fields.street_address.errorId}
+								errors={props.fields.street_address.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
@@ -192,14 +191,11 @@ export function HomeInformation(props: HomeInformationProps) {
 								}
 								aria-describedby={props.fields.town.errorId}
 							/>
-							{props.fields.town.errors?.length ? (
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.town.errorId}
-										errors={props.fields.town.errors}
-									/>
-								</div>
-							) : null}
+							<FieldErrors
+								id={props.fields.town.errorId}
+								errors={props.fields.town.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
@@ -212,31 +208,27 @@ export function HomeInformation(props: HomeInformationProps) {
 								onChange={(val) => setUsaStateAbbrev(val)}
 								onBlur={() => validateGeocode()}
 							/>
-							{props.fields.state.errors?.length ? (
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.state.errorId}
-										errors={props.fields.state.errors}
-									/>
-								</div>
-							) : null}
+							<FieldErrors
+								id={props.fields.state.errorId}
+								errors={props.fields.state.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
-				<div className="mt-[25px]">
-					<SubsectionTitle as="legend">
-						Heating Design Temperature
-					</SubsectionTitle>
-				</div>
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">
+					Heating Design Temperature
+				</SubsectionTitle>
 
 				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/2">
-						<div className="flex items-center gap-2">
-							<Label>Calculated Design Temperature (℉)</Label>
-							<HelpButton keyName="calculated_design_temperature.help" />
-						</div>
+						<LabelWithHelp
+							help={{ keyName: 'calculated_design_temperature.help' }}
+						>
+							Calculated Design Temperature (℉)
+						</LabelWithHelp>
 						<div className="mt-2 flex h-10 w-full items-center text-base font-bold md:text-sm">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
@@ -256,10 +248,14 @@ export function HomeInformation(props: HomeInformationProps) {
 					<div className="basis-1/2">
 						<Field
 							labelProps={{ children: 'Design Temperature Override (℉)' }}
-							inputProps={getInputProps(props.fields.design_temperature_override, {
-								type: 'number',
-							})}
+							inputProps={{
+								...getInputProps(props.fields.design_temperature_override, {
+									type: 'number',
+								}),
+								className: 'mt-2',
+							}}
 							errors={props.fields.design_temperature_override.errors}
+							collapseEmptyErrors
 							help={{ keyName: 'design_temperature_override.help' }}
 							description="Leave blank or enter a value in the range -10 to 32"
 						/>
@@ -293,17 +289,16 @@ export function HomeInformation(props: HomeInformationProps) {
 					value={livingAreaNumberHidden}
 				/>
 
-				{props.fields.living_area.errors?.length ? (
-					<div className="min-h-[12px] px-4 pb-2">
-						<ErrorList
-							id={props.fields.living_area.errorId}
-							errors={props.fields.living_area.errors}
-						/>
-					</div>
-				) : null}
+				<FieldErrors
+					id={props.fields.living_area.errorId}
+					errors={props.fields.living_area.errors}
+					collapseWhenEmpty
+				/>
 
 				<span className="mt-2 text-sm text-slate-500">
-					<span className="my-8">The home's above-grade, conditioned space</span>
+					<span className="my-8">
+						The home's above-grade, conditioned space
+					</span>
 				</span>
 			</div>
 		</fieldset>

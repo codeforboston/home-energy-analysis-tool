@@ -2,8 +2,9 @@ import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-	ErrorList,
 	Field,
+	FieldErrors,
+	SectionDivider,
 	SectionTitle,
 	SubsectionTitle,
 } from '#/app/components/forms.tsx'
@@ -59,128 +60,129 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 	const [fuelType, setFuelType] = useState('GAS')
 
 	return (
-		<fieldset>
-			<hr className="mt-[30px] border-gray-300" />
-			<div className="mt-[45px] mb-[10px]">
-				<SectionTitle>Existing Heating System</SectionTitle>
-			</div>
-
-			<div>
-				<Label htmlFor="fuel_type">Fuel Type</Label>
-				<div className="mt-2 flex space-x-4">
-					<div className="basis-1/4">
-						<Select onValueChange={(val) => setFuelType(val)} value={fuelType}>
-							<SelectTrigger className="w-[180px]">
-								<SelectValue placeholder="Fuel Type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="GAS">Natural Gas</SelectItem>
-							</SelectContent>
-						</Select>
-
-						{/* This hidden field submits the same value instead. */}
-						<Input type="hidden" name="fuel_type" value={fuelType} />
-					</div>
-				</div>
-				{props.fields.fuel_type.errors?.length ? (
-					<div className="min-h-[32px] px-4 pb-3 pt-1">
-						<ErrorList
-							id={props.fields.fuel_type.errorId}
-							errors={props.fields.fuel_type.errors}
-						/>
-					</div>
-				) : null}
-			</div>
-
-			<SubsectionTitle
-				as="label"
-				htmlFor="heating_system_efficiency_display"
-				help={{ keyName: 'heating_system_efficiency.help' }}
-				className="mt-[25px]"
-			>
-				Heating System Efficiency %
-			</SubsectionTitle>
-			<div className="mt-[5px] flex space-x-4">
-				<div className="basis-1/3">
-					{/* Display percentage to the user */}
-					<Input
-						id="heating_system_efficiency_display"
-						// Don't include a name to prevent it from being submitted
-						placeholder="Enter a percentage (60-100)"
-						type="number"
-						value={percentageValueDisplayed}
-						onChange={handlePercentageChange}
-					/>
-
-					{/* Use the actual field from Conform but with our calculated decimal value */}
-					<Input
-						type="hidden"
-						name={props.fields.heating_system_efficiency.name}
-						value={decimalValueHidden}
-					/>
-					<span className="mt-2 text-sm text-slate-500">
-						Enter efficiency as a percentage (60-100). Typical natural gas
-						efficiency is 80-95%.
-					</span>
-					{props.fields.heating_system_efficiency.errors?.length ? (
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.heating_system_efficiency.errorId}
-								errors={props.fields.heating_system_efficiency.errors}
-							/>
-						</div>
-					) : null}
-				</div>
-			</div>
-
+		<>
+			<SectionDivider />
 			<fieldset>
-				<div className="mt-[25px]">
-					<SubsectionTitle as="legend">Thermostat Settings</SubsectionTitle>
+				<SectionTitle>Existing Heating System</SectionTitle>
+
+				<div>
+					<Label htmlFor="fuel_type">Fuel Type</Label>
+					<div className="mt-2 flex space-x-4">
+						<div className="basis-1/4">
+							<Select
+								onValueChange={(val) => setFuelType(val)}
+								value={fuelType}
+							>
+								<SelectTrigger className="w-[180px]">
+									<SelectValue placeholder="Fuel Type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="GAS">Natural Gas</SelectItem>
+								</SelectContent>
+							</Select>
+
+							{/* This hidden field submits the same value instead. */}
+							<Input type="hidden" name="fuel_type" value={fuelType} />
+						</div>
+					</div>
+					<FieldErrors
+						id={props.fields.fuel_type.errorId}
+						errors={props.fields.fuel_type.errors}
+						collapseWhenEmpty
+					/>
 				</div>
+
+				<SubsectionTitle
+					as="label"
+					htmlFor="heating_system_efficiency_display"
+					help={{ keyName: 'heating_system_efficiency.help' }}
+					className="mt-[25px]"
+				>
+					Heating System Efficiency %
+				</SubsectionTitle>
 				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
-						<Field
-							labelProps={{ children: 'Set Point (°F)' }}
-							inputProps={{
-								placeholder: '(Fahrenheit)',
-								...getInputProps(props.fields.thermostat_set_point, {
-									type: 'text',
-								}),
-							}}
-							errors={props.fields.thermostat_set_point.errors}
-							description="Usual thermostat setting for heating"
+						{/* Display percentage to the user */}
+						<Input
+							id="heating_system_efficiency_display"
+							// Don't include a name to prevent it from being submitted
+							placeholder="Enter a percentage (60-100)"
+							type="number"
+							value={percentageValueDisplayed}
+							onChange={handlePercentageChange}
 						/>
-					</div>
 
-					<div className="basis-1/3">
-						<Field
-							labelProps={{ children: 'Setback Temperature (°F)' }}
-							inputProps={{
-								placeholder: 'Optional',
-								...getInputProps(props.fields.setback_temperature, {
-									type: 'text',
-								}),
-							}}
-							errors={props.fields.setback_temperature.errors}
-							description="Enter if thermostat is programmed to a lower or higher temperature during working or sleep hours"
+						{/* Use the actual field from Conform but with our calculated decimal value */}
+						<Input
+							type="hidden"
+							name={props.fields.heating_system_efficiency.name}
+							value={decimalValueHidden}
 						/>
-					</div>
-
-					<div className="basis-1/3">
-						<Field
-							labelProps={{ children: 'Setback hours per day' }}
-							inputProps={{
-								placeholder: 'Optional',
-								...getInputProps(props.fields.setback_hours_per_day, {
-									type: 'text',
-								}),
-							}}
-							errors={props.fields.setback_hours_per_day.errors}
-							description="Average hours per day that a lower or higher temperature setting is in effect"
+						<span className="mt-2 text-sm text-slate-500">
+							Enter efficiency as a percentage (60-100). Typical natural gas
+							efficiency is 80-95%.
+						</span>
+						<FieldErrors
+							id={props.fields.heating_system_efficiency.errorId}
+							errors={props.fields.heating_system_efficiency.errors}
+							collapseWhenEmpty
 						/>
 					</div>
 				</div>
+
+				<fieldset className="mt-[25px]">
+					<SubsectionTitle as="legend">Thermostat Settings</SubsectionTitle>
+					<div className="mt-[5px] flex space-x-4">
+						<div className="basis-1/3">
+							<Field
+								labelProps={{ children: 'Set Point (°F)' }}
+								inputProps={{
+									placeholder: '(Fahrenheit)',
+									...getInputProps(props.fields.thermostat_set_point, {
+										type: 'text',
+									}),
+									className: 'mt-2',
+								}}
+								collapseEmptyErrors
+								errors={props.fields.thermostat_set_point.errors}
+								description="Usual thermostat setting for heating"
+							/>
+						</div>
+
+						<div className="basis-1/3">
+							<Field
+								labelProps={{ children: 'Setback Temperature (°F)' }}
+								inputProps={{
+									placeholder: 'Optional',
+									...getInputProps(props.fields.setback_temperature, {
+										type: 'text',
+									}),
+									className: 'mt-2',
+								}}
+								collapseEmptyErrors
+								errors={props.fields.setback_temperature.errors}
+								description="Enter if thermostat is programmed to a lower or higher temperature during working or sleep hours"
+							/>
+						</div>
+
+						<div className="basis-1/3">
+							<Field
+								labelProps={{ children: 'Setback hours per day' }}
+								inputProps={{
+									placeholder: 'Optional',
+									...getInputProps(props.fields.setback_hours_per_day, {
+										type: 'text',
+									}),
+									className: 'mt-2',
+								}}
+								collapseEmptyErrors
+								errors={props.fields.setback_hours_per_day.errors}
+								description="Average hours per day that a lower or higher temperature setting is in effect"
+							/>
+						</div>
+					</div>
+				</fieldset>
 			</fieldset>
-		</fieldset>
+		</>
 	)
 }

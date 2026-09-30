@@ -1,10 +1,13 @@
 import { Upload } from 'lucide-react'
 import { useNavigation } from 'react-router'
-import { ErrorList, SectionTitle } from '#/app/components/forms.tsx'
+import {
+	ErrorList,
+	SectionDivider,
+	SectionTitle,
+} from '#/app/components/forms.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
-import { HelpButton } from '../../HelpButton'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
 
 interface EnergyUseHistoryProps {
@@ -36,48 +39,45 @@ export function EnergyUseHistory({
 	}
 
 	return (
-		<fieldset>
-			<hr className="mt-[30px] border-gray-300" />
-			<div className="mt-[45px] mb-[10px]">
-				<SectionTitle>
-					<span className="flex items-center gap-2">
-						Energy Use History
-						<HelpButton keyName="energy_use_history.help" />
-					</span>
+		<>
+			<SectionDivider />
+			<fieldset>
+				<SectionTitle help={{ keyName: 'energy_use_history.help' }}>
+					Energy Use History
 				</SectionTitle>
-			</div>
-			{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
-			{!isEditMode && (
-				<ErrorList
-					id={fields.energy_use_upload.errorId}
-					errors={fields.energy_use_upload.errors}
-				/>
-			)}
+				{/* Only show file upload errors if not in edit mode, or if in edit mode but errors exist and user is trying to process a file */}
+				{!isEditMode && (
+					<ErrorList
+						id={fields.energy_use_upload.errorId}
+						errors={fields.energy_use_upload.errors}
+					/>
+				)}
 
-			{!isEditMode && (
-				<div>
-					<CustomFileUpload name={fields.energy_use_upload.name} />
-					<Button
-						type="submit"
-						name="intent"
-						value={isEditMode ? 'save' : 'upload'}
-						disabled={!isIdle}
-						onClick={handleSubmit}
-						style={{ marginBottom: '20px' }}
-					>
-						{isIdle && <Upload className="mr-2 h-4 w-4" />}
-						<Spinner showSpinner={!isIdle} />
-						Calculate
-					</Button>
-				</div>
-			)}
+				{!isEditMode && (
+					<div>
+						<CustomFileUpload name={fields.energy_use_upload.name} />
+						<Button
+							type="submit"
+							name="intent"
+							value={isEditMode ? 'save' : 'upload'}
+							disabled={!isIdle}
+							onClick={handleSubmit}
+							style={{ marginBottom: '20px' }}
+						>
+							{isIdle && <Upload className="mr-2 h-4 w-4" />}
+							<Spinner showSpinner={!isIdle} />
+							Calculate
+						</Button>
+					</div>
+				)}
 
-			{showUsageData && usageData && (
-				<EnergyUseHistoryChart
-					usageData={usageData}
-					onClick={chartClickHandler}
-				/>
-			)}
-		</fieldset>
+				{showUsageData && usageData && (
+					<EnergyUseHistoryChart
+						usageData={usageData}
+						onClick={chartClickHandler}
+					/>
+				)}
+			</fieldset>
+		</>
 	)
 }

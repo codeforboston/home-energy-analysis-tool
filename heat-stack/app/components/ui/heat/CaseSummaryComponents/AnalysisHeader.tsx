@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { SectionTitle } from '#/app/components/forms.tsx'
+import { SectionDivider, SectionTitle } from '#/app/components/forms.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'
 
 interface AnalysisHeaderProps {
@@ -109,11 +109,8 @@ export function AnalysisHeader({
 
 	return (
 		<div className="section-title" ref={targetRef}>
-			<div className="mb-[10px] flex flex-row gap-0.5">
-				<SectionTitle as="h2" className="mt-[45px]">
-					Heat Load Analysis
-				</SectionTitle>
-			</div>
+			<SectionDivider />
+			<SectionTitle as="h2">Heat Load Analysis</SectionTitle>
 			<div
 				data-pw="analysis-header"
 				data-testid="analysis-header"
@@ -122,13 +119,13 @@ export function AnalysisHeader({
 				<div className="basis-1/3">
 					<div className="text-sm text-slate-500">
 						Average Indoor Temperature <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 						</div>
 						<br />
 						Balance Point Temperature
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.estimated_balance_point} °F
 						</div>
 						<br />
@@ -137,12 +134,12 @@ export function AnalysisHeader({
 				<div className="basis-1/3">
 					<div className="text-sm text-slate-500">
 						Number of Periods Included <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{numRecordsForHeatingCalculations} / {totalRecords}
 						</div>
 						<br />
 						Daily Non-heating Usage <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
 						</div>
@@ -151,14 +148,14 @@ export function AnalysisHeader({
 				<div className="basis-1/3">
 					<div className="text-sm text-slate-500">
 						Standard Deviation of UA <br />
-						<div className={`item font-bold ${textColor}`}>
+						<div className={`text-xl font-bold ${textColor}`}>
 							{/* Rounding to two decimal places */}
 							{value?.toFixed(2)} %
 						</div>
 						<br />
 						Whole-home UA
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to zero decimal places */}
 							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
 						</div>

@@ -1,6 +1,11 @@
 import { HelpCircle } from 'lucide-react'
-import { useState } from 'react'
-import { ModalFromMarkDown } from './ModalFromMarkdown'
+import { lazy, Suspense, useState } from 'react'
+
+// Loaded on first open so the markdown/dialog stack stays out of the bundle of
+// every route that renders a form field.
+const ModalFromMarkDown = lazy(() =>
+	import('./ModalFromMarkdown').then((m) => ({ default: m.ModalFromMarkDown })),
+)
 
 type HelpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 	keyName: string
@@ -26,11 +31,15 @@ export function HelpButton({
 			>
 				<HelpCircle size={size} /> {/* 18px icon size */}
 			</button>
-			<ModalFromMarkDown
-				keyName={keyName}
-				open={modalOpen}
-				onClose={() => setModalOpen(false)}
-			/>
+			{modalOpen ? (
+				<Suspense fallback={null}>
+					<ModalFromMarkDown
+						keyName={keyName}
+						open
+						onClose={() => setModalOpen(false)}
+					/>
+				</Suspense>
+			) : null}
 		</>
 	)
 }
