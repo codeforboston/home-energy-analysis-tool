@@ -122,8 +122,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						value={decimalValueHidden}
 					/>
 					<span className={`${descriptiveClass}`}>
-						Enter efficiency as a percentage (60-100). Typical natural gas
-						efficiency is 80-95%.
+						Enter efficiency as a percentage (60-100).
 					</span>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
@@ -139,7 +138,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="thermostat_set_point" className="font-bold">
-							Set Point (°F)
+							Set Point Temperature (°F)
 						</Label>
 						<Input
 							placeholder="(Fahrenheit)"
@@ -170,7 +169,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						/>
 						<span className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
-							during working or sleep hours
+							during work or sleep hours
 						</span>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
