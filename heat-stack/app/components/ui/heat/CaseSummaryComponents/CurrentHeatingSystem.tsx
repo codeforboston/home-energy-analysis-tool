@@ -138,7 +138,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor="thermostat_set_point" className="font-bold">
-							Set Point (°F)
+							Set Point Temperature (°F)
 						</Label>
 						<Input
 							placeholder="(Fahrenheit)"
