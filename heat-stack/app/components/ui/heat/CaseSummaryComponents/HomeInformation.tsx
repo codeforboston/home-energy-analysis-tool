@@ -145,7 +145,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 			<div className={`${componentMargin} mt-2`}>
 				<div className="mt-4 flex space-x-4">
-					<div>
+					<div className="basis-1/3">
 						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
