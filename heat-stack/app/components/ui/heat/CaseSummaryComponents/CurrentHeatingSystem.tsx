@@ -122,8 +122,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						value={decimalValueHidden}
 					/>
 					<span className={`${descriptiveClass}`}>
-						Enter efficiency as a percentage (60-100). Typical natural gas
-						efficiency is 80-95%.
+						Enter efficiency as a percentage (60-100).
 					</span>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList
