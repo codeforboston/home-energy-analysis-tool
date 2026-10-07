@@ -169,7 +169,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						/>
 						<span className={`${descriptiveClass}`}>
 							Enter if thermostat is programmed to a lower or higher temperature
-							during working or sleep hours
+							during work or sleep hours
 						</span>
 						<div className="min-h-[32px] px-4 pb-3 pt-1">
 							<ErrorList
