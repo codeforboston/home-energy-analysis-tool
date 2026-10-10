@@ -1,340 +1,341 @@
 name: Test, build, & deploy
 
-on: 
-  push:
-    branches:
-      - main
-      - gha-deployment
-      - dev
-  pull_request: {}
-  workflow_dispatch:
+on:
+    push:
+        branches:
+            - main
+            - gha-deployment
+            - dev
+    pull_request: {}
+    workflow_dispatch:
 
 env:
-  rules-engine-working-directory: python  
-  heat-stack-working-directory: heat-stack
+    rules-engine-working-directory: python
+    heat-stack-working-directory: heat-stack
 
 defaults:
-  run:
-    working-directory: env.heat-stack-working-directory 
+    run:
+        working-directory: env.heat-stack-working-directory
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  actions: write
-  contents: read
+    actions: write
+    contents: read
 
 jobs:
-  lint_rules_engine:
-    name: Rules Engine - Lint
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"] 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        uses: "./.github/actions/setup-rules-engine"
-        with:
-          python-version: ${{ matrix.python-version }}
-          working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Check style
-        run: |
-          make lint
-        working-directory: ${{ env.rules-engine-working-directory }} 
+    lint_rules_engine:
+        name: Rules Engine - Lint
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.13"]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up environment
+              uses: "./.github/actions/setup-rules-engine"
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  working-directory: ${{ env.rules-engine-working-directory }}
+                  install-dev: "true"
+            - name: Check style
+              run: |
+                  make lint
+              working-directory: ${{ env.rules-engine-working-directory }}
 
-  make-rules-engine-package:
-    name: Rules Engine - Mypy
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        uses: "./.github/actions/setup-rules-engine"
-        with:
-          python-version: ${{ matrix.python-version }}
-          working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Check typing
-        run: |
-          make mypy
-        working-directory: ${{ env.rules-engine-working-directory }} 
+    make-rules-engine-package:
+        name: Rules Engine - Mypy
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.13"]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up environment
+              uses: "./.github/actions/setup-rules-engine"
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  working-directory: ${{ env.rules-engine-working-directory }}
+                  install-dev: "true"
+            - name: Check typing
+              run: |
+                  make mypy
+              working-directory: ${{ env.rules-engine-working-directory }}
 
-  pytest-rules-engine:
-    name: Rules Engine - Pytest
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        uses: "./.github/actions/setup-rules-engine"
-        with:
-          python-version: ${{ matrix.python-version }}
-          working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Run tests
-        run: |
-          make test 
-        working-directory: ${{ env.rules-engine-working-directory }} 
+    pytest-rules-engine:
+        name: Rules Engine - Pytest
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.13"]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up environment
+              uses: "./.github/actions/setup-rules-engine"
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  working-directory: ${{ env.rules-engine-working-directory }}
+                  install-dev: "true"
+            - name: Run tests
+              run: |
+                  make test
+              working-directory: ${{ env.rules-engine-working-directory }}
 
-  # Make the wheel
-  build-rules-engine:
-    name: Rules Engine - Build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up environment
-        uses: "./.github/actions/setup-rules-engine"
-        with:
-          python-version: ${{ matrix.python-version }}
-          working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Install uv
-        run: |
-          pip install uv
-        working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Build wheel
-        run: |
-          uv build
-        working-directory: ${{ env.rules-engine-working-directory }}
-      - name: Store wheel as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-rules-engine-wheel
-          path: ${{ env.rules-engine-working-directory }}/dist/
-      - name: Pull Built Wheel Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: python-rules-engine-wheel 
-          path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
+    # Make the wheel
+    build-rules-engine:
+        name: Rules Engine - Build
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.13"]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up environment
+              uses: "./.github/actions/setup-rules-engine"
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  working-directory: ${{ env.rules-engine-working-directory }}
+                  install-dev: "true"
+            - name: Install uv
+              run: |
+                  pip install uv
+              working-directory: ${{ env.rules-engine-working-directory }}
+            - name: Build wheel
+              run: |
+                  uv build
+              working-directory: ${{ env.rules-engine-working-directory }}
+            - name: Store wheel as artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: python-rules-engine-wheel
+                  path: ${{ env.rules-engine-working-directory }}/dist/
+            - name: Pull Built Wheel Artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: python-rules-engine-wheel
+                  path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/
 
-  # Heat-Stack Jobs
-  lint-js:  
-    name: ⬣ Heat-Stack - ESLint
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory:  ${{ env.heat-stack-working-directory }}
-      - name: 🔬 Lint
-        run: npm run lint
-        working-directory:  ${{ env.heat-stack-working-directory }}
+    # Heat-Stack Jobs
+    lint-js:
+        name: ⬣ Heat-Stack - ESLint
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: ⎔ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+            - name: 📥 Download deps
+              uses: bahmutov/npm-install@v1
+              with:
+                  working-directory: ${{ env.heat-stack-working-directory }}
+            - name: 🔬 Lint
+              run: npm run lint
+              working-directory: ${{ env.heat-stack-working-directory }}
 
-  format-js:  
-    name: ⬣ Heat-Stack - Prettier
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory:  ${{ env.heat-stack-working-directory }}     
-      - name: 🔬 Format
-        run: npm run format:check
-        working-directory:  ${{ env.heat-stack-working-directory }}
+    format-js:
+        name: ⬣ Heat-Stack - Prettier
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: ⎔ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+            - name: 📥 Download deps
+              uses: bahmutov/npm-install@v1
+              with:
+                  working-directory: ${{ env.heat-stack-working-directory }}
+            - name: 🔬 Format
+              run: npm run format:check
+              working-directory: ${{ env.heat-stack-working-directory }}
 
-  typecheck-js:
-    name: ʦ Heat-Stack - TypeScript
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory:  ${{ env.heat-stack-working-directory }}
-      
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
-        working-directory:  ${{ env.heat-stack-working-directory }}
+    typecheck-js:
+        name: ʦ Heat-Stack - TypeScript
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: ⎔ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+            - name: 📥 Download deps
+              uses: bahmutov/npm-install@v1
+              with:
+                  working-directory: ${{ env.heat-stack-working-directory }}
 
-      - name: 🖼 Build icons
-        working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run build:icons
+            - name: 🏄 Copy test env vars
+              run: cp .env.example .env
+              working-directory: ${{ env.heat-stack-working-directory }}
 
-      - name: 🛠 Setup Database
-        working-directory:  ${{ env.heat-stack-working-directory }}
-        run: npx prisma migrate deploy && npx prisma generate --sql
+            - name: 🖼 Build icons
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run build:icons
 
-      - name: 🔎 Type check
-        working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run typecheck --if-present
+            - name: 🛠 Setup Database
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npx prisma migrate deploy && npx prisma generate --sql
 
-  vitest-pyodide-js:
-    name: ⚡ Heat-Stack - Vitest pyodide.test.ts
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory:  ${{ env.heat-stack-working-directory }}
+            - name: 🔎 Type check
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run typecheck --if-present
 
-      - name: 🏄 Copy test env vars
-        working-directory: ${{ env.heat-stack-working-directory }}
-        run: cp .env.example .env
+    vitest-pyodide-js:
+        name: ⚡ Heat-Stack - Vitest pyodide.test.ts
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: ⎔ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+            - name: 📥 Download deps
+              uses: bahmutov/npm-install@v1
+              with:
+                  working-directory: ${{ env.heat-stack-working-directory }}
 
-      - name: 🖼 Build icons
-        working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run build:icons
+            - name: 🏄 Copy test env vars
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: cp .env.example .env
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          # Optional: specify uv version
-          version: "latest"
-          # Optional: enable caching (default is true)
-          enable-cache: true
+            - name: 🖼 Build icons
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run build:icons
 
-      - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
-        working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run test-pyodide  
-        # --coverage
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+              with:
+                  # Optional: specify uv version
+                  version: "latest"
+                  # Optional: enable caching (default is true)
+                  enable-cache: true
 
-  playwright:
-      name: 🎭 Playwright
-      runs-on: ubuntu-22.04
-      timeout-minutes: 60
-      # CORS proxy settings for geocoding API calls
-      env:
-        VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL }}
-        VITE_CORS_ORIGIN: ${{ secrets.VITE_CORS_ORIGIN }}
-      steps:
-        - name: ⬇️ Checkout repo
-          uses: actions/checkout@v4
+            - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run test-pyodide
+              # --coverage
 
-        - name: 🏄 Copy test env vars
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          run: cp .env.example .env
-
-        - name: ⎔ Setup node
-          uses: actions/setup-node@v4
-          with:
-            node-version: 22
-
-        - name: 📥 Download deps
-          uses: bahmutov/npm-install@v1
-          with:
-            working-directory:  ${{ env.heat-stack-working-directory }}
-
-        - name: 📥 Install Playwright Browsers
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          run: npm run test:e2e:install
-
-        - name: 🛠 Setup Database
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          run: npx prisma migrate deploy && npx prisma generate --sql
-
-        - name: 🏦 Cache Database
-          id: db-cache
-          uses: actions/cache@v4
-          with:
-            path: prisma/data.db
-            key:
-              db-cache-schema_${{ hashFiles('./prisma/schema.prisma')
-              }}-migrations_${{ hashFiles('./prisma/migrations/*/migration.sql')
-              }}
-
-        - name: 🌱 Seed Database
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          if: steps.db-cache.outputs.cache-hit != 'true'
-          run: npx prisma migrate reset --force
-
-        - name: Pull Built Wheel Artifact 
-          uses: actions/download-artifact@v4 
-          with: 
-            name: python-rules-engine-wheel  
-            path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/  
-
-        - name: 🏗 Build
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          run: npm run build
-
-        - name: 🎭 Playwright tests
-          working-directory:  ${{ env.heat-stack-working-directory }}
-          run: npx playwright test
-
-        - name: 📊 Upload report
-          uses: actions/upload-artifact@v4
-          if: always()
-          with:
-            name: playwright-report
-            path: ${{ env.heat-stack-working-directory }}/playwright-report/
-            retention-days: 30
-
-
-  deploy-to-servers:
-    name: 🚀 Heat-Stack - Deploy
-    runs-on: ubuntu-22.04
-    needs: [lint-js, format-js, typecheck-js, vitest-pyodide-js , playwright]
-    # only build/deploy main branch on pushes
-    if:
-      ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
-      github.event_name == 'push' }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '50'
-
-      - name: 👀 Read app name
-        uses: SebRollen/toml-action@v1.2.0
-        id: app_name
-        with:
-          file: '${{ env.heat-stack-working-directory }}/fly.toml'
-          field: 'app'
-
-      # move Dockerfile to root
-      - name: 🚚 Move Dockerfile
-        working-directory: ${{ env.heat-stack-working-directory }} 
-        run: |
-          mv ./other/Dockerfile ./Dockerfile
-          mv ./other/.dockerignore ./.dockerignore
-
-      - name: Pull Built Wheel Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: python-rules-engine-wheel 
-          path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
-
-      - name: 🎈 Setup Fly
-        uses: superfly/flyctl-actions/setup-flyctl@1.5         
-
-      - name: 🚀 Deploy Staging
-        if: ${{ github.ref == 'refs/heads/dev' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
-        run:
-          flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
-          --app ${{ steps.app_name.outputs.value }}-staging
+    playwright:
+        name: 🎭 Playwright
+        runs-on: ubuntu-22.04
+        timeout-minutes: 60
+        # CORS proxy settings for geocoding API calls
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+            VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL }}
+            VITE_CORS_ORIGIN: ${{ secrets.VITE_CORS_ORIGIN }}
+        steps:
+            - name: ⬇️ Checkout repo
+              uses: actions/checkout@v4
 
-      - name: 🚀 Deploy Production
-        if: ${{  github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gha-deployment' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
-        run:
-          flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+            - name: 🏄 Copy test env vars
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: cp .env.example .env
+
+            - name: ⎔ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: 📥 Download deps
+              uses: bahmutov/npm-install@v1
+              with:
+                  working-directory: ${{ env.heat-stack-working-directory }}
+
+            - name: 📥 Install Playwright Browsers
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run test:e2e:install
+
+            - name: 🛠 Setup Database
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npx prisma migrate deploy && npx prisma generate --sql
+
+            - name: 🏦 Cache Database
+              id: db-cache
+              uses: actions/cache@v4
+              with:
+                  path: prisma/data.db
+                  key: db-cache-schema_${{ hashFiles('./prisma/schema.prisma')
+                      }}-migrations_${{ hashFiles('./prisma/migrations/*/migration.sql')
+                      }}
+
+            - name: 🌱 Seed Database
+              working-directory: ${{ env.heat-stack-working-directory }}
+              if: steps.db-cache.outputs.cache-hit != 'true'
+              run: npx prisma migrate reset --force
+
+            - name: Pull Built Wheel Artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: python-rules-engine-wheel
+                  path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/
+
+            - name: 🏗 Build
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npm run build
+
+            - name: 🎭 Playwright tests
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: npx playwright test
+
+            - name: 📊 Upload report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: playwright-report
+                  path: ${{ env.heat-stack-working-directory }}/playwright-report/
+                  retention-days: 30
+
+    deploy-to-servers:
+        name: 🚀 Heat-Stack - Deploy
+        runs-on: ubuntu-22.04
+        needs: [lint-js, format-js, typecheck-js, vitest-pyodide-js, playwright]
+        # only build/deploy main branch on pushes
+        if:
+            ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
+            github.event_name == 'push' }}
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: "50"
+
+            - name: 👀 Read app name
+              uses: SebRollen/toml-action@v1.2.0
+              id: app_name
+              with:
+                  file: "${{ env.heat-stack-working-directory }}/fly.toml"
+                  field: "app"
+
+            # move Dockerfile to root
+            - name: 🚚 Move Dockerfile
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: |
+                  mv ./other/Dockerfile ./Dockerfile
+                  mv ./other/.dockerignore ./.dockerignore
+
+            - name: Pull Built Wheel Artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: python-rules-engine-wheel
+                  path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/
+
+            - name: 🎈 Setup Fly
+              uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+            - name: 🚀 Deploy Staging
+              if: ${{ github.ref == 'refs/heads/dev' }}
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run:
+                  flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
+                  --app ${{ steps.app_name.outputs.value }}-staging
+              env:
+                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+            - name: 🚀 Deploy Production
+              if: ${{  github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gha-deployment' }}
+              working-directory: ${{ env.heat-stack-working-directory }}
+              run: flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
+              env:
+                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
