@@ -199,6 +199,7 @@ export async function processCaseUpdate(
 		usage: number
 		inclusion_override: number | boolean
 	}>,
+	designTemperature?: number,
 ) {
 	// Convert bills to the format required by calculateWithBills
 	const billsForCalc = bills

@@ -52,6 +52,7 @@ export type SubmitAnalysisProps = {
 	 * Billing records to save when form is submitted (edit mode only)
 	 */
 	billingRecords?: BillingRecordsSchema
+	storedDesignTemperature?: number
 	// actionData: (RulesEngineActionData & {
 	// 	/**
 	// 	 * Results returned from `parseWithZod` in the action function
@@ -74,6 +75,7 @@ export default function SingleCaseForm({
 	parsedAndValidatedFormSchema,
 	isEditMode = false,
 	billingRecords,
+	storedDesignTemperature,
 }: SubmitAnalysisProps) {
 	const [scrollAfterSubmit, setScrollAfterSubmit] = useState(true)
 
@@ -186,7 +188,10 @@ export default function SingleCaseForm({
 						value={JSON.stringify(usageData.heat_load_output)}
 					/>
 				)}
-				<HomeInformation fields={fields} />
+				<HomeInformation
+					fields={fields}
+					storedDesignTemperature={storedDesignTemperature}
+				/>
 				<CurrentHeatingSystem fields={fields} />
 				<EnergyUseHistory
 					setScrollAfterSubmit={setScrollAfterSubmit}
