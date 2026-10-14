@@ -1,7 +1,7 @@
 import { Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigation } from 'react-router'
-import { SectionTitle } from '#/app/components/forms.tsx'
+import { SectionDivider, SectionTitle } from '#/app/components/forms.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
@@ -62,44 +62,44 @@ export function EnergyUseHistory({
 		buttonToggled()
 	}
 	return (
-		<fieldset>
-			<SectionTitle
-				help={{ keyName: 'energy_use_history.help' }}
-				className="mt-10 pb-6"
-			>
-				Energy Use History
-			</SectionTitle>
-			{!isEditMode && (
-				<div>
-					<CustomFileUpload name={fields.energy_use_upload.name} />
-					<Button
-						type="submit"
-						name="intent"
-						value={isEditMode ? 'save' : 'upload'}
-						disabled={!isIdle}
-						onClick={handleSubmit}
-						style={{ marginBottom: '20px' }}
-					>
-						{isIdle && <Upload className="mr-2 h-4 w-4" />}
-						<Spinner showSpinner={!isIdle} />
-						Calculate
-					</Button>
-				</div>
-			)}
+		<>
+			<SectionDivider />
+			<fieldset>
+				<SectionTitle help={{ keyName: 'energy_use_history.help' }}>
+					Energy Use History
+				</SectionTitle>
+				{!isEditMode && (
+					<div>
+						<CustomFileUpload name={fields.energy_use_upload.name} />
+						<Button
+							type="submit"
+							name="intent"
+							value={isEditMode ? 'save' : 'upload'}
+							disabled={!isIdle}
+							onClick={handleSubmit}
+							style={{ marginBottom: '20px' }}
+						>
+							{isIdle && <Upload className="mr-2 h-4 w-4" />}
+							<Spinner showSpinner={!isIdle} />
+							Calculate
+						</Button>
+					</div>
+				)}
 
-			{showUsageData && usageData && (
-				<EnergyUseHistoryChart
-					usageData={usageData}
-					onClick={chartClickHandler}
+				{showUsageData && usageData && (
+					<EnergyUseHistoryChart
+						usageData={usageData}
+						onClick={chartClickHandler}
+					/>
+				)}
+
+				<ErrorModal
+					isOpen={showFileErrorModal}
+					onClose={() => setShowFileErrorModal(false)}
+					title="Upload Error"
+					message={FILE_REQUIRED_MESSAGE}
 				/>
-			)}
-
-			<ErrorModal
-				isOpen={showFileErrorModal}
-				onClose={() => setShowFileErrorModal(false)}
-				title="Upload Error"
-				message={FILE_REQUIRED_MESSAGE}
-			/>
-		</fieldset>
+			</fieldset>
+		</>
 	)
 }
