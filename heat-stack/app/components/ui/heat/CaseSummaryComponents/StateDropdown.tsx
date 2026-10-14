@@ -73,7 +73,7 @@ export function StateDropdown(props: StateDropDownProps) {
 		<div>
 			{/* <Form method="post" action="/current"> */}
 			<div>
-				<div className="mt-4 flex space-x-4">
+				<div className="flex space-x-4">
 					<div className="basis-1/4">
 						<Select
 							onValueChange={(val) => props.onChange && props.onChange(val)}
