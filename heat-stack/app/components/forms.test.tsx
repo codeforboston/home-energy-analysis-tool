@@ -198,6 +198,21 @@ describe('Field', () => {
 		)
 	})
 
+	it('uses the caller-supplied aria-describedby instead of the error id', () => {
+		render(
+			<Field
+				labelProps={{ children: label }}
+				inputProps={{ id: 'dto', 'aria-describedby': 'custom-hint' }}
+				errors={['Required']}
+				description={description}
+			/>,
+		)
+		expect(screen.getByLabelText(label)).toHaveAttribute(
+			'aria-describedby',
+			'custom-hint dto-description',
+		)
+	})
+
 	it('omits the help button, description, and aria-describedby when not passed', () => {
 		render(<Field labelProps={{ children: 'Name' }} inputProps={{}} />)
 		expect(screen.queryByRole('button')).toBeNull()
