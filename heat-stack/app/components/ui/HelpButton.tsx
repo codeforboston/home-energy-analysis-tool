@@ -1,10 +1,17 @@
 import { HelpCircle } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
+import { type ModalFromMarkDown as ModalComponent } from './ModalFromMarkdown'
 
 // Loaded on first open so the markdown/dialog stack stays out of the bundle of
-// every route that renders a form field.
-const ModalFromMarkDown = lazy(() =>
-	import('./ModalFromMarkdown').then((m) => ({ default: m.ModalFromMarkDown })),
+// every route that renders a form field. If the chunk fails to load (stale
+// deploy, dropped connection) render nothing rather than letting the error
+// reach the route boundary and wipe out the form the user is filling in.
+const ModalFromMarkDown = lazy<
+	React.ComponentType<React.ComponentProps<typeof ModalComponent>>
+>(() =>
+	import('./ModalFromMarkdown')
+		.then((m) => ({ default: m.ModalFromMarkDown }))
+		.catch(() => ({ default: () => null })),
 )
 
 type HelpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
