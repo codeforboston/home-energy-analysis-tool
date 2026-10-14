@@ -70,6 +70,10 @@ export function LabelWithHelp({
 	)
 }
 
+export function SectionDivider() {
+	return <hr className="mb-[45px] mt-[30px] border-gray-300" />
+}
+
 export function SectionTitle({
 	as = 'legend',
 	help,
@@ -83,7 +87,9 @@ export function SectionTitle({
 }) {
 	const Tag = as
 	return (
-		<Tag className={cn('text-4xl font-bold tracking-wide', className)}>
+		<Tag
+			className={cn('mb-[10px] text-4xl font-bold tracking-wide', className)}
+		>
 			<TitleText help={help}>{children}</TitleText>
 		</Tag>
 	)
