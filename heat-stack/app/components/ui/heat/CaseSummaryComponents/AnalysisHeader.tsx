@@ -122,45 +122,45 @@ export function AnalysisHeader({
 				className="flex flex-row gap-x-4"
 			>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Average Indoor Temperature <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 						</div>
 						<br />
 						Balance Point Temperature
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.estimated_balance_point} °F
 						</div>
 						<br />
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Number of Periods Included <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{numRecordsForHeatingCalculations} / {totalRecords}
 						</div>
 						<br />
 						Daily Non-heating Usage <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
 						</div>
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Standard Deviation of UA <br />
-						<div className={`item font-bold ${textColor}`}>
+						<div className={`text-xl font-bold ${textColor}`}>
 							{/* Rounding to two decimal places */}
 							{value?.toFixed(2)} %
 						</div>
 						<br />
 						Whole-home UA
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to zero decimal places */}
 							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
 						</div>

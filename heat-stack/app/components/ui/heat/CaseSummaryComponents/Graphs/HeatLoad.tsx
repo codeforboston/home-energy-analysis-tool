@@ -95,7 +95,7 @@ export function HeatLoad({
 	}, [data])
 
 	return (
-		<div className="min-w-[625px] rounded-lg shadow-lg">
+		<div className="min-w-[625px] rounded-lg border border-gray-200 shadow-lg">
 			<div className="mb-4 mt-4 flex items-center gap-2 pb-[0.5em] pl-[0.5em] text-2xl font-semibold">
 				Heating System Demand
 				<HelpButton keyName="heat_demand_graph.help" />
