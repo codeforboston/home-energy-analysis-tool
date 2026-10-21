@@ -7,7 +7,7 @@ import { useForm } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { Form, redirect, useActionData } from 'react-router'
 import { z } from 'zod'
-import { ErrorList } from '#app/components/ui/heat/CaseSummaryComponents/ErrorList.tsx'
+import { ErrorList } from '#app/components/forms.tsx'
 import { HomeInformation } from '../../components/ui/heat/CaseSummaryComponents/HomeInformation.tsx'
 import { type Route } from './+types/Inputs1.ts'
 

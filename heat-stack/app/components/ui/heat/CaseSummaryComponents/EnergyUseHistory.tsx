@@ -1,11 +1,11 @@
 import { Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigation } from 'react-router'
+import { SectionDivider, SectionTitle } from '#/app/components/forms.tsx'
 import { Button } from '#/app/components/ui/button.tsx'
 import { Spinner } from '#app/components/spinner.tsx'
 import { CustomFileUpload } from '#app/components/ui/CustomFileUpload'
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
-import { HelpButton } from '../../HelpButton'
 import { EnergyUseHistoryChart } from './EnergyUseHistoryChart'
 
 interface EnergyUseHistoryProps {
@@ -37,7 +37,6 @@ export function EnergyUseHistory({
 	usageData = null,
 	chartClickHandler = () => {},
 }: EnergyUseHistoryProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide mt-10'
 	const navigation = useNavigation()
 	const isIdle = navigation.state === 'idle'
 
@@ -63,41 +62,44 @@ export function EnergyUseHistory({
 		buttonToggled()
 	}
 	return (
-		<fieldset>
-			<legend className={`${titleClass} pb-6`}>
-				Energy Use History <HelpButton keyName="energy_use_history.help" />
-			</legend>
-			{!isEditMode && (
-				<div>
-					<CustomFileUpload name={fields.energy_use_upload.name} />
-					<Button
-						type="submit"
-						name="intent"
-						value={isEditMode ? 'save' : 'upload'}
-						disabled={!isIdle}
-						onClick={handleSubmit}
-						style={{ marginBottom: '20px' }}
-					>
-						{isIdle && <Upload className="mr-2 h-4 w-4" />}
-						<Spinner showSpinner={!isIdle} />
-						Calculate
-					</Button>
-				</div>
-			)}
+		<>
+			<SectionDivider />
+			<fieldset>
+				<SectionTitle help={{ keyName: 'energy_use_history.help' }}>
+					Energy Use History
+				</SectionTitle>
+				{!isEditMode && (
+					<div>
+						<CustomFileUpload name={fields.energy_use_upload.name} />
+						<Button
+							type="submit"
+							name="intent"
+							value={isEditMode ? 'save' : 'upload'}
+							disabled={!isIdle}
+							onClick={handleSubmit}
+							style={{ marginBottom: '20px' }}
+						>
+							{isIdle && <Upload className="mr-2 h-4 w-4" />}
+							<Spinner showSpinner={!isIdle} />
+							Calculate
+						</Button>
+					</div>
+				)}
 
-			{showUsageData && usageData && (
-				<EnergyUseHistoryChart
-					usageData={usageData}
-					onClick={chartClickHandler}
+				{showUsageData && usageData && (
+					<EnergyUseHistoryChart
+						usageData={usageData}
+						onClick={chartClickHandler}
+					/>
+				)}
+
+				<ErrorModal
+					isOpen={showFileErrorModal}
+					onClose={() => setShowFileErrorModal(false)}
+					title="Upload Error"
+					message={FILE_REQUIRED_MESSAGE}
 				/>
-			)}
-
-			<ErrorModal
-				isOpen={showFileErrorModal}
-				onClose={() => setShowFileErrorModal(false)}
-				title="Upload Error"
-				message={FILE_REQUIRED_MESSAGE}
-			/>
-		</fieldset>
+			</fieldset>
+		</>
 	)
 }

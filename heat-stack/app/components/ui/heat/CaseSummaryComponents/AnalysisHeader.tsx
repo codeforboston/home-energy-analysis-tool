@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { SectionDivider, SectionTitle } from '#/app/components/forms.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'
 
 interface AnalysisHeaderProps {
@@ -100,9 +101,6 @@ export function AnalysisHeader({
 		}
 	}, [scrollAfterSubmit, setScrollAfterSubmit])
 
-	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
-	const componentMargin = 'mt-10'
-
 	// Calculate the value
 	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
 
@@ -110,57 +108,54 @@ export function AnalysisHeader({
 	const textColor = value <= 10 ? 'text-green-400' : 'text-red-500'
 
 	return (
-		<div className="section-title -mt-4" ref={targetRef}>
-			<div className="mb-4 flex flex-row gap-0.5">
-				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
-					Heat Load Analysis
-				</h2>
-			</div>
+		<div className="section-title" ref={targetRef}>
+			<SectionDivider />
+			<SectionTitle as="h2">Heat Load Analysis</SectionTitle>
 			<div
 				data-pw="analysis-header"
 				data-testid="analysis-header"
 				className="flex flex-row gap-x-4"
 			>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Average Indoor Temperature <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 						</div>
 						<br />
 						Balance Point Temperature
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{summaryOutputs?.estimated_balance_point} °F
 						</div>
 						<br />
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Number of Periods Included <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{numRecordsForHeatingCalculations} / {totalRecords}
 						</div>
 						<br />
 						Daily Non-heating Usage <br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to two decimal places */}
 							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
 						</div>
 					</div>
 				</div>
 				<div className="basis-1/3">
-					<div className="item-title-small text-xl font-normal text-slate-700">
+					<div className="text-sm text-slate-500">
 						Standard Deviation of UA <br />
-						<div className={`item font-bold ${textColor}`}>
+						<div className={`text-xl font-bold ${textColor}`}>
 							{/* Rounding to two decimal places */}
 							{value?.toFixed(2)} %
 						</div>
 						<br />
 						Whole-home UA
 						<br />
-						<div className="item font-bold">
+						<div className="text-xl font-bold">
 							{/* Rounding to zero decimal places */}
 							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
 						</div>
