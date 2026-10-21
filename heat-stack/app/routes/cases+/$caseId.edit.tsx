@@ -209,13 +209,30 @@ export async function action({ request, params }: Route.ActionArgs) {
 			period_end_date: new Date(bill.period_end_date),
 		}))
 	const user = await getLoggedInUserFromRequest(request)
+
 	const existingCase = await getCaseForEditing(
 		caseId,
 		userId,
 		hasAdminRole(user),
 	)
+
+	// True if this save keeps the same address as the database.
+	// Design temp depends on location, so a new address must recalculate it.
+	const addressUnchanged = existingCase?.location.address === formData.get('street_address') && existingCase?.location.city === formData.get('town') && existingCase?.location.state === formData.get('state')
+
+	// The override box value from the last save (HeatingInput table).
+	// A number: the saved design temp is that typed value, so recalculate.
+	// Without this, clearing an override would keep the old typed value.
+	const previousOverride =
+		existingCase?.analysis?.[0]?.heatingInput?.[0]?.designTemperatureOverride
+
+	// Reuse the saved design temp (#772) only if the address is the same
+	// and it wasn't a typed-in override last time.
+	// undefined tells processCaseUpdate to recalculate.
 	const savedDesignTemperature =
-		existingCase?.analysis?.[0]?.heatingOutput?.[0]?.designTemperature
+		addressUnchanged && previousOverride == null
+			? existingCase?.analysis?.[0]?.heatingOutput?.[0]?.designTemperature
+			: undefined 
 
 	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
 	const caseUpdateResult = await processCaseUpdate(
