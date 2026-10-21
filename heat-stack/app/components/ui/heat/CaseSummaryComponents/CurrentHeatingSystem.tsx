@@ -1,7 +1,11 @@
 import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { ErrorList } from '#/app/components/forms.tsx'
+import {
+	ErrorList,
+	SectionTitle,
+	SubsectionTitle,
+} from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import {
@@ -11,15 +15,12 @@ import {
 	SelectContent,
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
-import { HelpButton } from '../../HelpButton.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 
 	// Create a state to track the percentage value
 	const [percentageValueDisplayed, setPercentageValueDisplayed] = useState(
@@ -61,15 +62,11 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 	return (
 		<fieldset>
-			<legend className={`${titleClass} ${componentMargin}`}>
-				<span className="mt-6">Existing Heating System</span>
-			</legend>
+			<SectionTitle className="mt-10">Existing Heating System</SectionTitle>
 
 			{/* <Form method="post" action="/current"> */}
 			<div className={`${componentMargin} mt-4`}>
-				<Label htmlFor="fuel_type" className={`${subtitleClass}`}>
-					Fuel Type
-				</Label>
+				<Label htmlFor="fuel_type">Fuel Type</Label>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/4">
 						<Select onValueChange={(val) => setFuelType(val)} value={fuelType}>
@@ -93,16 +90,13 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</div>
 			</div>
 
-			<Label
+			<SubsectionTitle
+				as="label"
 				htmlFor="heating_system_efficiency_display"
-				className={`${subtitleClass}`}
+				help={{ keyName: 'heating_system_efficiency.help' }}
 			>
 				Heating System Efficiency %
-			</Label>
-			<HelpButton
-				keyName="heating_system_efficiency.help"
-				className="ml-[1ch]"
-			/>
+			</SubsectionTitle>
 			<div className="mt-4 flex space-x-4">
 				<div className={`basis-1/3`}>
 					{/* Display percentage to the user */}
@@ -134,10 +128,12 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 			</div>
 
 			<fieldset>
-				<legend className={`${subtitleClass}`}>Thermostat Settings</legend>
+				<SubsectionTitle as="legend" className="mt-9">
+					Thermostat Settings
+				</SubsectionTitle>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="thermostat_set_point" className="font-bold">
+						<Label htmlFor="thermostat_set_point">
 							Set Point Temperature (°F)
 						</Label>
 						<Input
@@ -158,7 +154,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label className="font-bold" htmlFor="setback_temperature">
+						<Label htmlFor="setback_temperature">
 							Setback Temperature (°F)
 						</Label>
 						<Input
@@ -180,9 +176,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					</div>
 
 					<div className="basis-1/3">
-						<Label className="font-bold" htmlFor="setback_hours_per_day">
-							Setback hours per day
-						</Label>
+						<Label htmlFor="setback_hours_per_day">Setback hours per day</Label>
 						<Input
 							placeholder="Optional"
 							{...getInputProps(props.fields.setback_hours_per_day, {
