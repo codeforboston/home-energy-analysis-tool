@@ -64,7 +64,7 @@ export function EnergyUseHistory({
 	return (
 		<>
 			<SectionDivider />
-			<fieldset>
+			<fieldset className="min-w-0">
 				<SectionTitle help={{ keyName: 'energy_use_history.help' }}>
 					Energy Use History
 				</SectionTitle>
