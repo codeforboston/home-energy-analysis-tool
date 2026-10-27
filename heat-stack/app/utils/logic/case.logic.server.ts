@@ -199,6 +199,7 @@ export async function processCaseUpdate(
 		usage: number
 		inclusion_override: number | boolean
 	}>,
+	designTemperature?: number,
 ) {
 	// Convert bills to the format required by calculateWithBills
 	const billsForCalc = bills
@@ -223,8 +224,18 @@ export async function processCaseUpdate(
 	}
 	// Coerce fields after parsedFormObj is created
 	parsedFormObj = deserializeFormData(parsedFormObj)
+
+	// Reuse the saved design temp (#772): if the user left the override box empty, put the
+	// saved value in the override slot so the calculator uses it instead of recalculating.
+	// Use a copy so updateCaseRecord still saves the box as empty, not as a user override.
+	const formForCalc =
+    designTemperature != null && parsedFormObj.design_temperature_override == null
+        ? { ...parsedFormObj, design_temperature_override: designTemperature }
+        : parsedFormObj
+
+	// pass the form into the calculateWithBills form input value to calculate billing with temp value
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
-		await calculateWithBills(parsedFormObj, billsForCalc)
+		await calculateWithBills(formForCalc, billsForCalc)
 
 	const updatedCase = await updateCaseRecord(
 		caseId,
