@@ -109,7 +109,7 @@ export default function Cases({
 					</Link>
 				</div>
 			) : (
-				<div className="mt-6 overflow-hidden rounded-lg border">
+				<div className="mt-6 overflow-x-auto rounded-lg border">
 					<table className="min-w-full divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
