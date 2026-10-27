@@ -16,6 +16,10 @@ import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
 
+// The Names row and the address row both use these columns, so Names lines up
+// with Street Address. Street grows; City is a third; State is as wide as its dropdown.
+const nameAndAddressColumns = 'grid grid-cols-[1fr_33.333%_180px] gap-x-4'
+
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
 	return Math.round(n * factor) / factor
@@ -137,9 +141,8 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<div className="flex space-x-4">
+			<div className={nameAndAddressColumns}>
 				<Field
-					className="basis-1/3"
 					labelProps={{ children: 'Resident/Client Name(s)' }}
 					inputProps={{
 						...getInputProps(props.fields.name, { type: 'text' }),
@@ -150,10 +153,9 @@ export function HomeInformation(props: HomeInformationProps) {
 				/>
 			</div>
 
-			<fieldset className="mt-[25px]">
-				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
-				<div className="mt-[5px] flex space-x-4">
-					<div className="basis-1/3">
+			<div className="mt-[25px]">
+				<div className={nameAndAddressColumns}>
+					<div>
 						<Label htmlFor={props.fields.street_address.id}>
 							Street Address
 						</Label>
@@ -179,7 +181,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
-					<div className="basis-1/3">
+					<div>
 						<Label htmlFor={props.fields.town.id}>City/Town</Label>
 						<div className="mt-2">
 							<Input
@@ -202,7 +204,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
-					<div className="basis-1/3">
+					<div>
 						<Label htmlFor="state">State</Label>
 						<div className="mt-2">
 							<StateDropdown
@@ -219,7 +221,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 				</div>
-			</fieldset>
+			</div>
 			<fieldset className="mt-[25px]">
 				<SubsectionTitle as="legend">
 					Heating Design Temperature
