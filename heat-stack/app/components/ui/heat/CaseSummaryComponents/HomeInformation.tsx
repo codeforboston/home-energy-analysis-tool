@@ -128,7 +128,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div className="mb-[10px] flex items-center justify-between">
+			<div className="mb-[10px] flex flex-wrap items-center justify-between gap-4">
 				<SectionTitle className="mb-0">Home Information</SectionTitle>
 
 				<Link
