@@ -18,7 +18,9 @@ type HomeInformationProps = { fields: any }
 
 // The Names row and the address row both use these columns, so Names lines up
 // with Street Address. Street grows; City is a third; State is as wide as its dropdown.
-const nameAndAddressColumns = 'grid grid-cols-[1fr_33.333%_180px] gap-x-4'
+// On narrow screens the columns stack so each field gets the full width.
+const nameAndAddressColumns =
+	'grid grid-cols-1 gap-4 md:grid-cols-[1fr_33.333%_180px]'
 
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
