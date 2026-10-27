@@ -2,11 +2,15 @@ import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
-import { ErrorList } from '#/app/components/forms.tsx'
+import {
+	ErrorList,
+	LabelWithHelp,
+	SectionTitle,
+	SubsectionTitle,
+} from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
-import { HelpButton } from '../../HelpButton.tsx'
 import { StateDropdown } from './StateDropdown.tsx'
 
 type HomeInformationProps = { fields: any }
@@ -17,7 +21,6 @@ function roundTo(n: number, decimals = 0) {
 }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const titleClass = 'text-4xl font-bold tracking-wide'
 	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
 	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
@@ -127,7 +130,7 @@ export function HomeInformation(props: HomeInformationProps) {
 			<div
 				className={`flex items-center justify-between ${componentMargin} my-4`}
 			>
-				<legend className={titleClass}>Home Information</legend>
+				<SectionTitle>Home Information</SectionTitle>
 
 				<Link
 					to="/cases/new?dev=true"
@@ -158,7 +161,9 @@ export function HomeInformation(props: HomeInformationProps) {
 			</div>
 
 			<fieldset>
-				<legend className={subtitleClass}>Address Information</legend>
+				<SubsectionTitle as="legend" className="mt-9">
+					Address Information
+				</SubsectionTitle>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
@@ -231,15 +236,17 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend className={subtitleClass}>Heating Design Temperature</legend>
+				<SubsectionTitle as="legend" className="mt-9">
+					Heating Design Temperature
+				</SubsectionTitle>
 
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/2">
-						<Label>Calculated Design Temperature (℉)</Label>
-						<HelpButton
-							keyName="calculated_design_temperature.help"
-							className="ml-[1ch]"
-						/>
+						<LabelWithHelp
+							help={{ keyName: 'calculated_design_temperature.help' }}
+						>
+							Calculated Design Temperature (℉)
+						</LabelWithHelp>
 						<div className="item mt-4 flex h-10 items-center font-bold">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
@@ -257,14 +264,12 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 
 					<div className="basis-1/2">
-						<Label htmlFor="design_temperature_override">
+						<LabelWithHelp
+							htmlFor="design_temperature_override"
+							help={{ keyName: 'design_temperature_override.help' }}
+						>
 							Design Temperature Override (℉)
-						</Label>
-
-						<HelpButton
-							keyName="design_temperature_override.help"
-							className="ml-[1ch]"
-						/>
+						</LabelWithHelp>
 
 						<div className="mt-4 flex space-x-4">
 							<div>
@@ -290,10 +295,13 @@ export function HomeInformation(props: HomeInformationProps) {
 				</div>
 			</fieldset>
 			<div className="mt-1">
-				<Label className={subtitleClass} htmlFor="living_area">
+				<SubsectionTitle
+					as="label"
+					htmlFor="living_area"
+					help={{ keyName: 'living_area.help' }}
+				>
 					Living Area (sf)
-				</Label>
-				<HelpButton keyName="living_area.help" className="ml-[1ch]" />
+				</SubsectionTitle>
 				<NumericFormat
 					id="living_area"
 					placeholder="Enter a number 0-10000"

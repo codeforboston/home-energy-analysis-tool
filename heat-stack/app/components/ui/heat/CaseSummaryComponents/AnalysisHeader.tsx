@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { SectionTitle } from '#/app/components/forms.tsx'
 import { type UsageDataSchema } from '#/types/types.ts'
 
 interface AnalysisHeaderProps {
@@ -100,9 +101,6 @@ export function AnalysisHeader({
 		}
 	}, [scrollAfterSubmit, setScrollAfterSubmit])
 
-	const titleClassTailwind = 'text-4xl font-bold tracking-wide'
-	const componentMargin = 'mt-10'
-
 	// Calculate the value
 	const value = summaryOutputs?.standard_deviation_of_heat_loss_rate * 100
 
@@ -112,9 +110,9 @@ export function AnalysisHeader({
 	return (
 		<div className="section-title -mt-4" ref={targetRef}>
 			<div className="mb-4 flex flex-row gap-0.5">
-				<h2 className={`${titleClassTailwind} ${componentMargin}`}>
+				<SectionTitle as="h2" className="mt-10">
 					Heat Load Analysis
-				</h2>
+				</SectionTitle>
 			</div>
 			<div
 				data-pw="analysis-header"
