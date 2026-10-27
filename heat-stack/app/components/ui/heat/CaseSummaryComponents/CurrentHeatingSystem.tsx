@@ -1,6 +1,7 @@
 import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { ErrorList } from '#/app/components/forms.tsx'
 import { Input } from '#/app/components/ui/input.tsx'
 import { Label } from '#/app/components/ui/label.tsx'
 import {
@@ -11,7 +12,6 @@ import {
 	SelectItem,
 } from '#/app/components/ui/select.tsx'
 import { HelpButton } from '../../HelpButton.tsx'
-import { ErrorList } from './ErrorList.tsx'
 
 type CurrentHeatingSystemProps = { fields: any }
 
