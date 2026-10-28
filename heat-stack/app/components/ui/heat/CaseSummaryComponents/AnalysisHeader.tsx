@@ -114,52 +114,45 @@ export function AnalysisHeader({
 			<div
 				data-pw="analysis-header"
 				data-testid="analysis-header"
-				className="flex flex-row gap-x-4"
+				className="grid grid-flow-col grid-cols-3 grid-rows-2 gap-x-4 gap-y-5 pb-5"
 			>
-				<div className="basis-1/3">
-					<div className="text-sm text-slate-500">
-						Average Indoor Temperature <br />
-						<div className="text-xl font-bold">
-							{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
-						</div>
-						<br />
-						Balance Point Temperature
-						<br />
-						<div className="text-xl font-bold">
-							{summaryOutputs?.estimated_balance_point} °F
-						</div>
-						<br />
+				<div className="text-sm text-slate-500">
+					Average Indoor Temperature
+					<div className="text-xl font-bold">
+						{summaryOutputs?.average_indoor_temperature.toFixed(1)} °F
 					</div>
 				</div>
-				<div className="basis-1/3">
-					<div className="text-sm text-slate-500">
-						Number of Periods Included <br />
-						<div className="text-xl font-bold">
-							{numRecordsForHeatingCalculations} / {totalRecords}
-						</div>
-						<br />
-						Daily Non-heating Usage <br />
-						<div className="text-xl font-bold">
-							{/* Rounding to two decimal places */}
-							{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
-						</div>
+				<div className="text-sm text-slate-500">
+					Balance Point Temperature
+					<div className="text-xl font-bold">
+						{summaryOutputs?.estimated_balance_point} °F
 					</div>
 				</div>
-				<div className="basis-1/3">
-					<div className="text-sm text-slate-500">
-						Standard Deviation of UA <br />
-						<div className={`text-xl font-bold ${textColor}`}>
-							{/* Rounding to two decimal places */}
-							{value?.toFixed(2)} %
-						</div>
-						<br />
-						Whole-home UA
-						<br />
-						<div className="text-xl font-bold">
-							{/* Rounding to zero decimal places */}
-							{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
-						</div>
-						<br />
+				<div className="text-sm text-slate-500">
+					Number of Periods Included
+					<div className="text-xl font-bold">
+						{numRecordsForHeatingCalculations} / {totalRecords}
+					</div>
+				</div>
+				<div className="text-sm text-slate-500">
+					Daily Non-heating Usage
+					<div className="text-xl font-bold">
+						{/* Rounding to two decimal places */}
+						{summaryOutputs?.other_fuel_usage?.toFixed(2)} therms
+					</div>
+				</div>
+				<div className="text-sm text-slate-500">
+					Standard Deviation of UA
+					<div className={`text-xl font-bold ${textColor}`}>
+						{/* Rounding to two decimal places */}
+						{value?.toFixed(2)} %
+					</div>
+				</div>
+				<div className="text-sm text-slate-500">
+					Whole-home UA
+					<div className="text-xl font-bold">
+						{/* Rounding to zero decimal places */}
+						{summaryOutputs?.whole_home_heat_loss_rate?.toFixed(0)} BTU/h-°F
 					</div>
 				</div>
 			</div>
