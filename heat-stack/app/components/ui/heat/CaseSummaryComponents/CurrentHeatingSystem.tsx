@@ -101,7 +101,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					Heating System Efficiency %
 				</SubsectionTitle>
 				<div className="mt-[5px] flex space-x-4">
-					<div className="basis-1/3">
+					<div className="basis-full md:basis-1/3">
 						{/* Display percentage to the user */}
 						<Input
 							id="heating_system_efficiency_display"
