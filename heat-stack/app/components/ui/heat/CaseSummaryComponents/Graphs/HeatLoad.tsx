@@ -110,7 +110,7 @@ export function HeatLoad({
 							top: 20,
 							right: 20,
 							bottom: 50,
-							left: 100,
+							left: 50,
 						}}
 						data={data}
 					>

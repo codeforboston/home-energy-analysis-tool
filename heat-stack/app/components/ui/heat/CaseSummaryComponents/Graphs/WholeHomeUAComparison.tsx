@@ -130,7 +130,7 @@ export function WholeHomeUAComparison({
 							top: 20,
 							right: 20,
 							bottom: 30,
-							left: 80,
+							left: 50,
 						}}
 					>
 						{/* Grid lines for the chart */}
