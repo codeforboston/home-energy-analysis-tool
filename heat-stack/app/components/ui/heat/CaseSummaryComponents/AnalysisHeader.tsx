@@ -114,7 +114,7 @@ export function AnalysisHeader({
 			<div
 				data-pw="analysis-header"
 				data-testid="analysis-header"
-				className="grid grid-flow-col grid-cols-3 grid-rows-2 gap-x-4 gap-y-5 pb-5"
+				className="grid grid-flow-col grid-cols-2 grid-rows-3 gap-x-4 gap-y-5 pb-5 md:grid-cols-3 md:grid-rows-2"
 			>
 				<div className="text-sm text-slate-500">
 					Average Indoor Temperature
