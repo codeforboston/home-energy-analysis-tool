@@ -61,7 +61,7 @@ not install NVM, skip `nvm` steps during setup.
    If command cannot be found, add nvm to your environment variable (PATH).
 3. Install Node.js version 22:
    ```bash
-   nvm install 22
+   nvm install 22 --latest-npm
    ```
 4. Use Node.js version 22:
    ```bash
@@ -155,9 +155,9 @@ If using GitHub Codespaces, follow these steps:
    ```bash
    cp .env.example .env
    ```
-3. Use Node.js version 22:
+3. Use Node.js version 22 with latest npm:
    ```bash
-   nvm install 22
+   nvm install 22 --latest-npm
    nvm use 22
    ```
 4. Install dependencies and build (some errors due to headless mode at the end
