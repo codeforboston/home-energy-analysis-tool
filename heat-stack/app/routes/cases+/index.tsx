@@ -59,13 +59,13 @@ export default function Cases({
 
 	return (
 		<div id="cases-page" className="container mx-auto p-6">
-			<div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-center md:justify-between">
+			<div className="mb-4 grid grid-cols-[auto_1fr] items-center gap-4 md:mb-6 md:flex md:justify-between">
 				<h1 className="text-3xl font-bold">Cases</h1>
-				<div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-end">
+				<div className="contents md:flex md:flex-1 md:items-center md:justify-end md:gap-3">
 					<Form
 						method="GET"
 						action="/cases"
-						className="relative flex w-full max-w-sm"
+						className="relative flex w-full md:max-w-sm"
 						onChange={(event) => submit(event.currentTarget)}
 					>
 						<div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -84,7 +84,7 @@ export default function Cases({
 					</Form>
 					<Link
 						to="/cases/new"
-						className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700"
+						className="col-span-2 inline-flex items-center justify-center whitespace-nowrap rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-700 md:col-span-1"
 					>
 						Create New Case
 					</Link>
