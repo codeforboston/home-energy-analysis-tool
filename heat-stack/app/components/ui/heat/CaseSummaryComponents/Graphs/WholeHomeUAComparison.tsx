@@ -119,7 +119,7 @@ export function WholeHomeUAComparison({
 			</SubsectionTitle>
 
 			{/* Responsive container to ensure chart resizes */}
-			<div className="relative h-[400px] w-full">
+			<div className="relative w-full md:h-[400px]">
 				<ResponsiveContainer width="100%" height={400}>
 					{/* Main composed chart component */}
 					<ComposedChart

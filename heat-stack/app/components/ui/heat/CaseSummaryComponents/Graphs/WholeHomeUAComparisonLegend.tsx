@@ -13,7 +13,7 @@ export const WholeHomeUAComparisonLegend = () => {
 	]
 
 	return (
-		<div className="absolute bottom-20 right-6 z-10 rounded border border-gray-200 bg-white p-4 shadow-sm">
+		<div className="mx-4 mb-4 mt-2 rounded border border-gray-200 bg-white p-4 shadow-sm md:absolute md:bottom-20 md:right-6 md:z-10 md:m-0">
 			{legendItems.map((item, index) => (
 				<div key={index} className="mb-2 flex items-center gap-2 last:mb-0">
 					{item.type === 'line' ? (
