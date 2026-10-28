@@ -192,6 +192,14 @@ jobs:
         with:
           working-directory:  ${{ env.heat-stack-working-directory }}
 
+      - name: ⎔ Upgrade npm
+        run: npm i -g npm@11
+
+      - name: 🔧 Run approved install scripts
+        working-directory:  ${{ env.heat-stack-working-directory }}
+        run: npm rebuild prisma @prisma/client @prisma/engines esbuild @sentry/cli better-sqlite3 sharp --ignore-scripts=false
+
+
       - name: 🏄 Copy test env vars
         working-directory: ${{ env.heat-stack-working-directory }}
         run: cp .env.example .env
@@ -233,11 +241,18 @@ jobs:
           uses: actions/setup-node@v4
           with:
             node-version: 22
+        
+        - name: ⎔ Upgrade npm
+          run: npm i -g npm@11
 
         - name: 📥 Download deps
           uses: bahmutov/npm-install@v1
           with:
             working-directory:  ${{ env.heat-stack-working-directory }}
+
+        - name: 🔧 Run approved install scripts
+          working-directory:  ${{ env.heat-stack-working-directory }}
+          run: npm rebuild prisma @prisma/client @prisma/engines esbuild @sentry/cli better-sqlite3 sharp --ignore-scripts=false
 
         - name: 📥 Install Playwright Browsers
           working-directory:  ${{ env.heat-stack-working-directory }}
