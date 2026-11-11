@@ -229,8 +229,8 @@ export function HomeInformation(props: HomeInformationProps) {
 					Heating Design Temperature
 				</SubsectionTitle>
 
-				<div className="mt-[5px] flex space-x-4">
-					<div className="basis-1/2">
+				<div className="mt-[5px] grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div>
 						<LabelWithHelp
 							help={{ keyName: 'calculated_design_temperature.help' }}
 						>
@@ -252,7 +252,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
-					<div className="basis-1/2">
+					<div>
 						<Field
 							labelProps={{ children: 'Design Temperature Override (℉)' }}
 							inputProps={{
