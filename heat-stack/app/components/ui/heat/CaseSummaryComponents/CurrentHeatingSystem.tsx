@@ -2,7 +2,8 @@ import { getInputProps } from '@conform-to/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-	ErrorList,
+	Field,
+	FieldErrors,
 	SectionTitle,
 	SubsectionTitle,
 } from '#/app/components/forms.tsx'
@@ -19,7 +20,6 @@ import {
 type CurrentHeatingSystemProps = { fields: any }
 
 export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 
 	// Create a state to track the percentage value
@@ -82,12 +82,11 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						<Input type="hidden" name="fuel_type" value={fuelType} />
 					</div>
 				</div>
-				<div className="min-h-[32px] px-4 pb-3 pt-1">
-					<ErrorList
-						id={props.fields.fuel_type.errorId}
-						errors={props.fields.fuel_type.errors}
-					/>
-				</div>
+				<FieldErrors
+					id={props.fields.fuel_type.errorId}
+					errors={props.fields.fuel_type.errors}
+					collapseWhenEmpty
+				/>
 			</div>
 
 			<SubsectionTitle
@@ -115,15 +114,14 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 						name={props.fields.heating_system_efficiency.name}
 						value={decimalValueHidden}
 					/>
-					<span className={`${descriptiveClass}`}>
+					<span className="mt-2 text-sm text-slate-500">
 						Enter efficiency as a percentage (60-100).
 					</span>
-					<div className="min-h-[32px] px-4 pb-3 pt-1">
-						<ErrorList
-							id={props.fields.heating_system_efficiency.errorId}
-							errors={props.fields.heating_system_efficiency.errors}
-						/>
-					</div>
+					<FieldErrors
+						id={props.fields.heating_system_efficiency.errorId}
+						errors={props.fields.heating_system_efficiency.errors}
+						collapseWhenEmpty
+					/>
 				</div>
 			</div>
 
@@ -133,66 +131,51 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 				</SubsectionTitle>
 				<div className="mt-4 flex space-x-4">
 					<div className="basis-1/3">
-						<Label htmlFor="thermostat_set_point">
-							Set Point Temperature (°F)
-						</Label>
-						<Input
-							placeholder="(Fahrenheit)"
-							{...getInputProps(props.fields.thermostat_set_point, {
-								type: 'text',
-							})}
+						<Field
+							labelProps={{ children: 'Set Point Temperature (°F)' }}
+							inputProps={{
+								placeholder: '(Fahrenheit)',
+								...getInputProps(props.fields.thermostat_set_point, {
+									type: 'text',
+								}),
+								className: 'mt-2',
+							}}
+							errors={props.fields.thermostat_set_point.errors}
+							collapseEmptyErrors
+							description="Usual thermostat setting for heating"
 						/>
-						<span className={`${descriptiveClass}`}>
-							Usual thermostat setting for heating
-						</span>
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.thermostat_set_point.errorId}
-								errors={props.fields.thermostat_set_point.errors}
-							/>
-						</div>
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="setback_temperature">
-							Setback Temperature (°F)
-						</Label>
-						<Input
-							placeholder="Optional"
-							{...getInputProps(props.fields.setback_temperature, {
-								type: 'text',
-							})}
+						<Field
+							labelProps={{ children: 'Setback Temperature (°F)' }}
+							inputProps={{
+								placeholder: 'Optional',
+								...getInputProps(props.fields.setback_temperature, {
+									type: 'text',
+								}),
+								className: 'mt-2',
+							}}
+							errors={props.fields.setback_temperature.errors}
+							collapseEmptyErrors
+							description="Enter if thermostat is programmed to a lower or higher temperature during work or sleep hours"
 						/>
-						<span className={`${descriptiveClass}`}>
-							Enter if thermostat is programmed to a lower or higher temperature
-							during work or sleep hours
-						</span>
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.setback_temperature.errorId}
-								errors={props.fields.setback_temperature.errors}
-							/>
-						</div>
 					</div>
 
 					<div className="basis-1/3">
-						<Label htmlFor="setback_hours_per_day">Setback hours per day</Label>
-						<Input
-							placeholder="Optional"
-							{...getInputProps(props.fields.setback_hours_per_day, {
-								type: 'text',
-							})}
+						<Field
+							labelProps={{ children: 'Setback hours per day' }}
+							inputProps={{
+								placeholder: 'Optional',
+								...getInputProps(props.fields.setback_hours_per_day, {
+									type: 'text',
+								}),
+								className: 'mt-2',
+							}}
+							errors={props.fields.setback_hours_per_day.errors}
+							collapseEmptyErrors
+							description="Average hours per day that a lower or higher temperature setting is in effect"
 						/>
-						<span className={`${descriptiveClass}`}>
-							Average hours per day that a lower or higher temperature setting
-							is in effect
-						</span>
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.setback_hours_per_day.errorId}
-								errors={props.fields.setback_hours_per_day.errors}
-							/>
-						</div>
 					</div>
 				</div>
 			</fieldset>

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { Link } from 'react-router'
 import {
-	ErrorList,
+	Field,
+	FieldErrors,
 	LabelWithHelp,
 	SectionTitle,
 	SubsectionTitle,
@@ -21,8 +22,6 @@ function roundTo(n: number, decimals = 0) {
 }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const subtitleClass = 'text-2xl font-semibold text-zinc-950 mt-9'
-	const descriptiveClass = 'mt-2 text-sm text-slate-500'
 	const componentMargin = 'mt-10'
 
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
@@ -142,22 +141,17 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<Label className={subtitleClass} htmlFor="name">
-				Resident/Client Name(s)
-			</Label>
-
-			<div className={`${componentMargin} mt-2`}>
-				<div className="mt-4 flex space-x-4">
-					<div className="basis-1/3">
-						<Input {...getInputProps(props.fields.name, { type: 'text' })} />
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							<ErrorList
-								id={props.fields.name.errorId}
-								errors={props.fields.name.errors}
-							/>
-						</div>
-					</div>
-				</div>
+			<div className="mt-4 flex space-x-4">
+				<Field
+					className="basis-1/3"
+					labelProps={{ children: 'Resident/Client Name(s)' }}
+					inputProps={{
+						...getInputProps(props.fields.name, { type: 'text' }),
+						className: 'mt-2',
+					}}
+					errors={props.fields.name.errors}
+					collapseEmptyErrors
+				/>
 			</div>
 
 			<fieldset>
@@ -183,12 +177,11 @@ export function HomeInformation(props: HomeInformationProps) {
 								aria-describedby={props.fields.street_address.errorId}
 							/>
 							{geoError && <div className="mt-2 text-red-600">{geoError}</div>}
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.street_address.errorId}
-									errors={props.fields.street_address.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.street_address.errorId}
+								errors={props.fields.street_address.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
@@ -207,12 +200,11 @@ export function HomeInformation(props: HomeInformationProps) {
 								}
 								aria-describedby={props.fields.town.errorId}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.town.errorId}
-									errors={props.fields.town.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.town.errorId}
+								errors={props.fields.town.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 
@@ -225,12 +217,11 @@ export function HomeInformation(props: HomeInformationProps) {
 								onChange={(val) => setUsaStateAbbrev(val)}
 								onBlur={() => validateGeocode()}
 							/>
-							<div className="min-h-[32px] px-4 pb-3 pt-1">
-								<ErrorList
-									id={props.fields.state.errorId}
-									errors={props.fields.state.errors}
-								/>
-							</div>
+							<FieldErrors
+								id={props.fields.state.errorId}
+								errors={props.fields.state.errors}
+								collapseWhenEmpty
+							/>
 						</div>
 					</div>
 				</div>
@@ -257,40 +248,26 @@ export function HomeInformation(props: HomeInformationProps) {
 							)}
 						</div>
 
-						<div className={`mt-4 ${descriptiveClass}`}>
+						<div className="mt-4 text-sm text-slate-500">
 							This value is calculated from the address and will be used unless
 							an override value is entered.
 						</div>
 					</div>
 
 					<div className="basis-1/2">
-						<LabelWithHelp
-							htmlFor="design_temperature_override"
+						<Field
+							labelProps={{ children: 'Design Temperature Override (℉)' }}
+							inputProps={{
+								...getInputProps(props.fields.design_temperature_override, {
+									type: 'number',
+								}),
+								className: 'mt-2',
+							}}
+							errors={props.fields.design_temperature_override.errors}
+							collapseEmptyErrors
 							help={{ keyName: 'design_temperature_override.help' }}
-						>
-							Design Temperature Override (℉)
-						</LabelWithHelp>
-
-						<div className="mt-4 flex space-x-4">
-							<div>
-								<Input
-									{...getInputProps(props.fields.design_temperature_override, {
-										type: 'number',
-									})}
-								/>
-
-								<div className={`${descriptiveClass}`}>
-									Leave blank or enter a value in the range -10 to 32
-								</div>
-
-								<div className="min-h-[32px] px-4 pb-3 pt-1">
-									<ErrorList
-										id={props.fields.design_temperature_override.errorId}
-										errors={props.fields.design_temperature_override.errors}
-									/>
-								</div>
-							</div>
-						</div>
+							description="Leave blank or enter a value in the range -10 to 32"
+						/>
 					</div>
 				</div>
 			</fieldset>
@@ -321,14 +298,13 @@ export function HomeInformation(props: HomeInformationProps) {
 					value={livingAreaNumberHidden}
 				/>
 
-				<div className="min-h-[12px] px-4 pb-2">
-					<ErrorList
-						id={props.fields.living_area.errorId}
-						errors={props.fields.living_area.errors}
-					/>
-				</div>
+				<FieldErrors
+					id={props.fields.living_area.errorId}
+					errors={props.fields.living_area.errors}
+					collapseWhenEmpty
+				/>
 
-				<span className={`${descriptiveClass}`}>
+				<span className="mt-2 text-sm text-slate-500">
 					<span className="my-8">
 						The home's above-grade, conditioned space
 					</span>

@@ -3,7 +3,13 @@
  */
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { LabelWithHelp, SectionTitle, SubsectionTitle } from './forms.tsx'
+import {
+	Field,
+	FieldErrors,
+	LabelWithHelp,
+	SectionTitle,
+	SubsectionTitle,
+} from './forms.tsx'
 
 describe('SectionTitle', () => {
 	it('renders as a legend by default', () => {
@@ -117,5 +123,119 @@ describe('LabelWithHelp', () => {
 		const button = screen.getByRole('button')
 		expect(label.contains(button)).toBe(false)
 		expect(button.parentElement).toBe(label.parentElement)
+	})
+})
+
+describe('FieldErrors', () => {
+	it('reserves the error slot by default when there are no errors', () => {
+		const { container } = render(<FieldErrors errors={[]} />)
+		expect(container.firstElementChild).toBeEmptyDOMElement()
+	})
+
+	it('renders nothing when collapseWhenEmpty is set and there are no errors', () => {
+		const { container } = render(
+			<FieldErrors errors={[null, undefined]} collapseWhenEmpty />,
+		)
+		expect(container).toBeEmptyDOMElement()
+	})
+
+	it('renders the errors under the given id when collapseWhenEmpty is set', () => {
+		render(<FieldErrors id="x-error" errors={['Required']} collapseWhenEmpty />)
+		expect(screen.getByRole('list').id).toBe('x-error')
+		expect(screen.getByText('Required')).toBeInTheDocument()
+	})
+})
+
+describe('Field', () => {
+	const label = 'Design Temperature Override (℉)'
+	const description = 'Leave blank or enter a value in the range -10 to 32'
+
+	it('renders the help button beside, not inside, the label', () => {
+		render(
+			<Field
+				labelProps={{ children: label }}
+				inputProps={{ name: 'design_temperature_override' }}
+				help={{ keyName: 'design_temperature_override.help' }}
+			/>,
+		)
+		const labelEl = screen.getByText(label)
+		expect(labelEl.contains(screen.getByRole('button'))).toBe(false)
+		expect(screen.getByLabelText(label).tagName).toBe('INPUT')
+	})
+
+	it('renders the description after the input and links it via aria-describedby', () => {
+		render(
+			<Field
+				labelProps={{ children: label }}
+				inputProps={{ name: 'design_temperature_override' }}
+				description={description}
+			/>,
+		)
+		const input = screen.getByLabelText(label)
+		const descriptionEl = screen.getByText(description)
+		expect(
+			input.compareDocumentPosition(descriptionEl) &
+				Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy()
+		expect(input).toHaveAccessibleDescription(description)
+	})
+
+	it('keeps a caller-supplied aria-describedby alongside the description', () => {
+		render(
+			<Field
+				labelProps={{ children: label }}
+				inputProps={{ id: 'dto', 'aria-describedby': 'dto-error' }}
+				errors={['Required']}
+				description={description}
+			/>,
+		)
+		expect(screen.getByLabelText(label)).toHaveAttribute(
+			'aria-describedby',
+			'dto-error dto-description',
+		)
+		expect(screen.getByLabelText(label)).toHaveAccessibleDescription(
+			`Required ${description}`,
+		)
+	})
+
+	it('uses the caller-supplied aria-describedby instead of the error id', () => {
+		render(
+			<Field
+				labelProps={{ children: label }}
+				inputProps={{ id: 'dto', 'aria-describedby': 'custom-hint' }}
+				errors={['Required']}
+				description={description}
+			/>,
+		)
+		expect(screen.getByLabelText(label)).toHaveAttribute(
+			'aria-describedby',
+			'custom-hint dto-description',
+		)
+	})
+
+	it('omits the help button, description, and aria-describedby when not passed', () => {
+		render(<Field labelProps={{ children: 'Name' }} inputProps={{}} />)
+		expect(screen.queryByRole('button')).toBeNull()
+		expect(screen.getByLabelText('Name')).not.toHaveAttribute(
+			'aria-describedby',
+		)
+	})
+
+	it('reserves the error slot by default and drops it with collapseEmptyErrors', () => {
+		const { container, rerender } = render(
+			<Field labelProps={{ children: 'Name' }} inputProps={{}} />,
+		)
+		const wrapper = container.firstElementChild!
+		expect(wrapper.lastElementChild?.tagName).toBe('DIV')
+		expect(wrapper.lastElementChild).toBeEmptyDOMElement()
+
+		rerender(
+			<Field
+				labelProps={{ children: 'Name' }}
+				inputProps={{}}
+				collapseEmptyErrors
+			/>,
+		)
+		expect(wrapper.lastElementChild?.tagName).toBe('INPUT')
 	})
 })

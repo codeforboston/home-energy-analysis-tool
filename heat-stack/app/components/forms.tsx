@@ -122,32 +122,70 @@ export function SubsectionTitle(props: SubsectionTitleProps) {
 	)
 }
 
+// Reserves a fixed-height error slot by default so stacked fields keep their
+// spacing (the auth and settings forms rely on this). The case form passes
+// collapseWhenEmpty so an empty slot takes no space until there is an error.
+export function FieldErrors({
+	id,
+	errors,
+	collapseWhenEmpty = false,
+}: {
+	id?: string
+	errors?: ListOfErrors
+	collapseWhenEmpty?: boolean
+}) {
+	if (collapseWhenEmpty && !errors?.filter(Boolean).length) return null
+	return (
+		<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<ErrorList id={id} errors={errors} />
+		</div>
+	)
+}
+
 export function Field({
 	labelProps,
 	inputProps,
 	errors,
 	className,
+	help,
+	description,
+	collapseEmptyErrors = false,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: React.InputHTMLAttributes<HTMLInputElement>
 	errors?: ListOfErrors
 	className?: string
+	help?: Help
+	description?: React.ReactNode
+	collapseEmptyErrors?: boolean
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
+	const descriptionId = description ? `${id}-description` : undefined
+	const ariaDescribedBy =
+		[inputProps['aria-describedby'] ?? errorId, descriptionId]
+			.filter(Boolean)
+			.join(' ') || undefined
 	return (
 		<div className={className}>
-			<Label htmlFor={id} {...labelProps} />
+			<LabelWithHelp htmlFor={id} {...labelProps} help={help} />
 			<Input
 				id={id}
 				aria-invalid={errorId ? true : undefined}
-				aria-describedby={errorId}
 				{...inputProps}
+				aria-describedby={ariaDescribedBy}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{description ? (
+				<div id={descriptionId} className="mt-2 text-sm text-slate-500">
+					{description}
+				</div>
+			) : null}
+			<FieldErrors
+				id={errorId}
+				errors={errors}
+				collapseWhenEmpty={collapseEmptyErrors}
+			/>
 		</div>
 	)
 }
@@ -189,9 +227,7 @@ export function OTPField({
 					<InputOTPSlot index={5} />
 				</InputOTPGroup>
 			</InputOTP>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			<FieldErrors id={errorId} errors={errors} />
 		</div>
 	)
 }
@@ -219,9 +255,7 @@ export function TextareaField({
 				aria-describedby={errorId}
 				{...textareaProps}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			<FieldErrors id={errorId} errors={errors} />
 		</div>
 	)
 }
