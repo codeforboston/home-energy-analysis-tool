@@ -218,7 +218,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 	// True if this save keeps the same address as the database.
 	// Design temp depends on location, so a new address must recalculate it.
-	const addressUnchanged = existingCase?.location.address === formData.get('street_address') && existingCase?.location.city === formData.get('town') && existingCase?.location.state === formData.get('state')
+	const addressUnchanged =
+		existingCase?.location.address === formData.get('street_address') &&
+		existingCase?.location.city === formData.get('town') &&
+		existingCase?.location.state === formData.get('state')
 
 	// The override box value from the last save (HeatingInput table).
 	// A number: the saved design temp is that typed value, so recalculate.
@@ -232,7 +235,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 	const savedDesignTemperature =
 		addressUnchanged && previousOverride == null
 			? existingCase?.analysis?.[0]?.heatingOutput?.[0]?.designTemperature
-			: undefined 
+			: undefined
 
 	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
 	const caseUpdateResult = await processCaseUpdate(

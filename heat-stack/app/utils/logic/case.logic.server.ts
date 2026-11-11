@@ -229,9 +229,10 @@ export async function processCaseUpdate(
 	// saved value in the override slot so the calculator uses it instead of recalculating.
 	// Use a copy so updateCaseRecord still saves the box as empty, not as a user override.
 	const formForCalc =
-    designTemperature != null && parsedFormObj.design_temperature_override == null
-        ? { ...parsedFormObj, design_temperature_override: designTemperature }
-        : parsedFormObj
+		designTemperature != null &&
+		parsedFormObj.design_temperature_override == null
+			? { ...parsedFormObj, design_temperature_override: designTemperature }
+			: parsedFormObj
 
 	// pass the form into the calculateWithBills form input value to calculate billing with temp value
 	const { rulesEngineResult, state_id, county_id, convertedDatesTIWD } =
