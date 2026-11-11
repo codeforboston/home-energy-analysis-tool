@@ -101,7 +101,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 					Heating System Efficiency %
 				</SubsectionTitle>
 				<div className="mt-[5px] flex space-x-4">
-					<div className="basis-1/3">
+					<div className="basis-full md:basis-1/3">
 						{/* Display percentage to the user */}
 						<Input
 							id="heating_system_efficiency_display"
@@ -131,8 +131,8 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 
 				<fieldset className="mt-[25px]">
 					<SubsectionTitle as="legend">Thermostat Settings</SubsectionTitle>
-					<div className="mt-[5px] flex space-x-4">
-						<div className="basis-1/3">
+					<div className="mt-[5px] grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div>
 							<Field
 								labelProps={{ children: 'Set Point Temperature (°F)' }}
 								inputProps={{
@@ -148,7 +148,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							/>
 						</div>
 
-						<div className="basis-1/3">
+						<div>
 							<Field
 								labelProps={{ children: 'Setback Temperature (°F)' }}
 								inputProps={{
@@ -164,7 +164,7 @@ export function CurrentHeatingSystem(props: CurrentHeatingSystemProps) {
 							/>
 						</div>
 
-						<div className="basis-1/3">
+						<div>
 							<Field
 								labelProps={{ children: 'Setback hours per day' }}
 								inputProps={{
