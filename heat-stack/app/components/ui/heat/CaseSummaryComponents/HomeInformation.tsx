@@ -14,7 +14,10 @@ import { Label } from '#/app/components/ui/label.tsx'
 import { executeLookupDesignTempToDisplay } from '#app/utils/rules-engine.ts'
 import { StateDropdown } from './StateDropdown.tsx'
 
-type HomeInformationProps = { fields: any }
+type HomeInformationProps = {
+	fields: any
+	storedDesignTemperature?: number
+}
 
 // The Names row and the address row both use these columns, so Names lines up
 // with Street Address. Street grows; City is a third; State is as wide as its dropdown.
@@ -61,11 +64,15 @@ export function HomeInformation(props: HomeInformationProps) {
 	const lastRequestedAddressRef = useRef<string | null>(null)
 
 	useEffect(() => {
+		if (props.storedDesignTemperature != null) {
+			setCalcedDesignTemp([props.storedDesignTemperature, 0])
+			return
+		}
 		if (!geoCoordinates) return
 		executeLookupDesignTempToDisplay(geoCoordinates).then((result: any) => {
 			setCalcedDesignTemp(result)
 		})
-	}, [geoCoordinates])
+	}, [geoCoordinates, props.storedDesignTemperature])
 
 	// Geocode automatically as the user types (debounced), instead of waiting
 	// for the address fields to lose focus.
