@@ -95,7 +95,7 @@ export function HeatLoad({
 	}, [data])
 
 	return (
-		<div className="min-w-[625px] rounded-lg border border-gray-200 shadow-lg">
+		<div className="rounded-lg border border-gray-200 shadow-lg">
 			<SubsectionTitle
 				help={{ keyName: 'heat_demand_graph.help' }}
 				className="mb-4 mt-4 pb-[0.5em] pl-[0.5em]"
@@ -110,7 +110,7 @@ export function HeatLoad({
 							top: 20,
 							right: 20,
 							bottom: 50,
-							left: 100,
+							left: 50,
 						}}
 						data={data}
 					>
