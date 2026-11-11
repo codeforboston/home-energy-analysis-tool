@@ -22,8 +22,6 @@ function roundTo(n: number, decimals = 0) {
 }
 
 export function HomeInformation(props: HomeInformationProps) {
-	const componentMargin = 'mt-10'
-
 	const [livingAreaStringDisplayed, setLivingAreaStringDisplayed] = useState(
 		() => {
 			const string =
@@ -126,10 +124,8 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div
-				className={`flex items-center justify-between ${componentMargin} my-4`}
-			>
-				<SectionTitle>Home Information</SectionTitle>
+			<div className="mb-[10px] flex items-center justify-between">
+				<SectionTitle className="mb-0">Home Information</SectionTitle>
 
 				<Link
 					to="/cases/new?dev=true"
@@ -141,7 +137,7 @@ export function HomeInformation(props: HomeInformationProps) {
 				</Link>
 			</div>
 
-			<div className="mt-4 flex space-x-4">
+			<div className="flex space-x-4">
 				<Field
 					className="basis-1/3"
 					labelProps={{ children: 'Resident/Client Name(s)' }}
@@ -154,16 +150,14 @@ export function HomeInformation(props: HomeInformationProps) {
 				/>
 			</div>
 
-			<fieldset>
-				<SubsectionTitle as="legend" className="mt-9">
-					Address Information
-				</SubsectionTitle>
-				<div className="mt-4 flex space-x-4">
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">Address Information</SubsectionTitle>
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.street_address.id}>
 							Street Address
 						</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.street_address.id}
 								name={props.fields.street_address.name}
@@ -187,7 +181,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/3">
 						<Label htmlFor={props.fields.town.id}>City/Town</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<Input
 								id={props.fields.town.id}
 								name={props.fields.town.name}
@@ -210,7 +204,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 					<div className="basis-1/3">
 						<Label htmlFor="state">State</Label>
-						<div className="mt-4">
+						<div className="mt-2">
 							<StateDropdown
 								fields={props.fields}
 								value={usaStateAbbrev}
@@ -226,19 +220,19 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			<fieldset>
-				<SubsectionTitle as="legend" className="mt-9">
+			<fieldset className="mt-[25px]">
+				<SubsectionTitle as="legend">
 					Heating Design Temperature
 				</SubsectionTitle>
 
-				<div className="mt-4 flex space-x-4">
+				<div className="mt-[5px] flex space-x-4">
 					<div className="basis-1/2">
 						<LabelWithHelp
 							help={{ keyName: 'calculated_design_temperature.help' }}
 						>
 							Calculated Design Temperature (℉)
 						</LabelWithHelp>
-						<div className="item mt-4 flex h-10 items-center font-bold">
+						<div className="mt-2 flex h-10 w-full items-center text-base font-bold md:text-sm">
 							{geoCoordinates === null ? (
 								<>Enter address above</>
 							) : calcedDesignTemp === null ? (
@@ -248,7 +242,7 @@ export function HomeInformation(props: HomeInformationProps) {
 							)}
 						</div>
 
-						<div className="mt-4 text-sm text-slate-500">
+						<div className="mt-2 text-sm text-slate-500">
 							This value is calculated from the address and will be used unless
 							an override value is entered.
 						</div>
@@ -271,7 +265,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					</div>
 				</div>
 			</fieldset>
-			<div className="mt-1">
+			<div className="mt-[25px]">
 				<SubsectionTitle
 					as="label"
 					htmlFor="living_area"
@@ -283,7 +277,7 @@ export function HomeInformation(props: HomeInformationProps) {
 					id="living_area"
 					placeholder="Enter a number 0-10000"
 					value={livingAreaStringDisplayed}
-					className="mt-4 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
+					className="mt-[5px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid md:text-sm md:file:text-sm"
 					onChange={handleLivingAreaChange}
 					thousandSeparator={true}
 					valueIsNumericString={true}
