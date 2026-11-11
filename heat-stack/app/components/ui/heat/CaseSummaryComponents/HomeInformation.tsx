@@ -18,7 +18,9 @@ type HomeInformationProps = { fields: any }
 
 // The Names row and the address row both use these columns, so Names lines up
 // with Street Address. Street grows; City is a third; State is as wide as its dropdown.
-const nameAndAddressColumns = 'grid grid-cols-[1fr_33.333%_180px] gap-x-4'
+// On narrow screens the columns stack so each field gets the full width.
+const nameAndAddressColumns =
+	'grid grid-cols-1 gap-4 md:grid-cols-[1fr_33.333%_180px]'
 
 function roundTo(n: number, decimals = 0) {
 	const factor = 10 ** decimals
@@ -128,7 +130,7 @@ export function HomeInformation(props: HomeInformationProps) {
 
 	return (
 		<fieldset>
-			<div className="mb-[10px] flex items-center justify-between">
+			<div className="mb-[10px] flex flex-wrap items-center justify-between gap-4">
 				<SectionTitle className="mb-0">Home Information</SectionTitle>
 
 				<Link
@@ -227,8 +229,8 @@ export function HomeInformation(props: HomeInformationProps) {
 					Heating Design Temperature
 				</SubsectionTitle>
 
-				<div className="mt-[5px] flex space-x-4">
-					<div className="basis-1/2">
+				<div className="mt-[5px] grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div>
 						<LabelWithHelp
 							help={{ keyName: 'calculated_design_temperature.help' }}
 						>
@@ -250,7 +252,7 @@ export function HomeInformation(props: HomeInformationProps) {
 						</div>
 					</div>
 
-					<div className="basis-1/2">
+					<div>
 						<Field
 							labelProps={{ children: 'Design Temperature Override (℉)' }}
 							inputProps={{
