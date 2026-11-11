@@ -234,7 +234,7 @@ function App() {
 								style={{ borderRadius: '10px' }}
 							>
 								<div className="mx-auto max-w-5xl text-center">
-									<h1 className="text-4xl font-bold md:text-4xl">
+									<h1 className="text-2xl font-bold md:text-4xl">
 										Home Energy Analysis Tool (HEAT): <span>{caseLabel}</span>
 									</h1>
 								</div>
