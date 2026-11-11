@@ -1,24 +1,9 @@
 #!/bin/bash
 
-# Trap errors and print a message
 trap 'echo "An error occurred"; set +x' ERR
 
-# Create a virtual environment if it doesn't exist
-if [ ! -d ".venv" ]; then
-    python3 -m venv .venv || { echo "Failed to create virtual environment"; exit 1; }
-fi
+# Create virtual environment and install everything, including dev tools
+uv sync --extra dev
 
-# Activate the virtual environment
-case "$OSTYPE" in
-  msys*) source .venv/Scripts/activate;;
-  *) source .venv/bin/activate;;
-esac
-
-# Sync dependencies into the virtual environment
-uv sync --dev
-
-# Install development dependencies
-uv pip install -e ".[dev]"
-
-# End of script
-set +x
+# Install pre-commit into this repo's git hooks (pre-commit and pre-push)
+uv run pre-commit install --hook-type pre-commit --hook-type pre-push
