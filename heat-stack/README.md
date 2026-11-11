@@ -111,7 +111,8 @@ not install NVM, skip `nvm` steps during setup.
 >
 > ✅ **Do it in this order:**
 >
-> 1. Install WSL.
+> 1. Install the Windows Subsystem for Linux (WSL) using these
+>    [instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
 > 2. In the WSL terminal, install Node with nvm (see
 >    [Install NVM (Official Method)](#install-nvm-official-method)).
 > 3. In the WSL terminal, clone the project into your WSL home folder (for
@@ -191,8 +192,7 @@ not install NVM, skip `nvm` steps during setup.
    npm run dev
    ```
 
-Note: After the initial setup, run just commands 6 and 7 to start up the project
-again.
+Note: After the initial setup, run commands 6-8 to start up the project again.
 
 - The login is Kody (ask team for password)
 
