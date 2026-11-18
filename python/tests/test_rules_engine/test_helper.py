@@ -1,5 +1,4 @@
 import pytest
-
 from rules_engine.helpers import get_design_temp
 
 

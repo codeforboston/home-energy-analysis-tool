@@ -1,8 +1,7 @@
 from rules_engine import helpers
 
-async def executeLookupDesignTempToDisplay(
-    coordinates
-):
+
+async def executeLookupDesignTempToDisplay(coordinates):
     coordinatesFromJs = coordinates.to_py()
     latitude = coordinatesFromJs.get("y")
     longitude = coordinatesFromJs.get("x")

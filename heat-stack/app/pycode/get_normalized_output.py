@@ -40,14 +40,21 @@ async def executeGetNormalizedOutput(
             latitude, longitude, start_date, end_date
         )
         # print statement to display the values of the temperature design value along with the time it takes to extract the data
-        print("The weather design temp was found! " + "Design temp: " + str(design_temp) + ", elapsed: " + str(elapsed) + ", latitude: " + str(latitude) + ", longitude: " + str(longitude))
+        print(
+            "The weather design temp was found! "
+            + "Design temp: "
+            + str(design_temp)
+            + ", elapsed: "
+            + str(elapsed)
+            + ", latitude: "
+            + str(latitude)
+            + ", longitude: "
+            + str(longitude)
+        )
     else:
         design_temp = summaryInputFromJs.get("design_temperature_override")
-        
 
-    summaryInput = HeatLoadInput(
-        **summaryInputFromJs, design_temperature=design_temp
-    )
+    summaryInput = HeatLoadInput(**summaryInputFromJs, design_temperature=design_temp)
 
     temperatureInput = TemperatureInput(**temperatureInputFromJs)
 
