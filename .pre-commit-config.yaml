@@ -1,11 +1,18 @@
-# 4.4.0 renamed `language: system` to `language: unsupported`, which the local
-# hooks below use. Older versions reject it with an unclear error; this makes
-# them ask for an upgrade instead. To get the version pinned in
-# python/pyproject.toml, run `uv sync --extra dev` from the python folder.
+# Setup (run from the repository root). See CONTRIBUTING.md for details.
+#   uv sync
+#   uv sync --directory python --extra dev
+#   uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+#   cd heat-stack && npm install && cd ..
+#
+# black and isort run in pre-commit's own environments, pinned by `rev`.
+# mypy and pytest run through `uv run --directory python`.
+# prettier runs from heat-stack/node_modules, so `npm install` must be done first.
+# Run all hooks manually with:
+#   uv run pre-commit run --all-files
 minimum_pre_commit_version: "4.4.0"
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 26.10.1
     hooks:
       - id: black
   - repo: https://github.com/pre-commit/mirrors-isort
@@ -16,19 +23,21 @@ repos:
     hooks:
       - id: prettier
         name: prettier
-        entry: bash -c 'cd heat-stack && exec ./node_modules/.bin/prettier --check "${@#heat-stack/}"' --
-        language: unsupported
-        files: ^heat-stack/.*\.(css|js|jsx|json|md|ts|tsx|yaml|yml)$
+        entry: node heat-stack/node_modules/prettier/bin/prettier.cjs --check --ignore-path heat-stack/.prettierignore
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^heat-stack/
       - id: mypy
         name: mypy
-        entry: uv run --directory python mypy . --exclude build
-        language: unsupported
+        entry: uv run --directory python mypy . --exclude '(^|/)(build|dist|\.venv)/'
+        language: system
         files: ^python/
         pass_filenames: false
       - id: pytest
         name: pytest before push
         entry: uv run --directory python pytest
-        language: unsupported
+        language: system
         types: [python]
         stages: [pre-push]
         pass_filenames: false

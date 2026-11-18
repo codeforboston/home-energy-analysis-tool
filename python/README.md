@@ -4,40 +4,55 @@ This is the workspace for the HEAT rules engine.
 
 For an outline of the logic behind the rules engine and a glossary of common terms, see the [Intro to Rules Engine wiki page](https://github.com/codeforboston/home-energy-analysis-tool/wiki/Intro-to-Rules-Engine).
 
-## Local Environment Setup
+### Local Environment Setup
+
 This project uses Python version 3.13.
 
-Everyone working on this repository needs this setup, including JavaScript-only developers, because the [pre-commit checks](#pre-commit-verification) run Python tools on every commit.
+Everyone working on this repository needs this setup, including JavaScript-only developers, because [pre-commit](../CONTRIBUTING.md#setting-up-pre-commit-in-this-repository) runs Python tools on every commit.
 
 1. Clone or fork the git repository, if not already done.
 2. Install `uv`. uv installs Python 3.13 and all Python packages for you, so you don't need to install Python separately.
 
-- On MacOS: `brew install uv`
-- On Windows: `winget install --id=astral-sh.uv -e`, then close and reopen your terminal so it can find `uv`.
-- If neither works: `pip install uv`
+   - On MacOS: `brew install uv`
+   - On Windows: `winget install --id=astral-sh.uv -e`, then close and reopen your terminal so it can find `uv`.
+   - If neither works: `curl -LsSf https://astral.sh/uv/install.sh | sh` then `. "$HOME/.local/bin/env"` (or open a new terminal).
 
-3. Navigate to project's python directory by typing `cd python`.
-4. On macOS, Linux or Git Bash, run `bash setup-python.sh`. In Windows PowerShell or cmd, run the script's two commands directly instead (`bash` there is either missing or starts WSL's Linux bash, which builds a `.venv` that Windows can't use):
+3. From the `python` directory, run:
 
-   ```
+   ```bash
+   cd python
    uv sync --extra dev
+   ```
+
+4. From the repository root, install the pre-commit hooks:
+
+   ```bash
+   cd ..
+   uv sync
    uv run pre-commit install --hook-type pre-commit --hook-type pre-push
    ```
 
-   Either way, this does two things:
+   It is safe to run these commands again at any time, for example after pulling changes that update `pyproject.toml`. JavaScript developers still complete steps 1 to 4 here. Running `npm run buildpy` in `heat-stack` builds the rules engine for the browser but does not install the hooks.
 
-- Runs `uv sync --extra dev`, which creates the virtual environment (`python/.venv`) and installs all dependencies, including dev tools like pytest, black, mypy, isort and pre-commit.
-- Runs `uv run pre-commit install`, which tells git to run the [pre-commit checks](#pre-commit-verification) before each commit and push.
+   Dev dependencies live under `[project.optional-dependencies].dev` in `python/pyproject.toml`, which `uv` treats as an "extra" rather than a dependency group. `uv sync` and `uv run` only install the base `dependencies` list unless the extra is requested explicitly, so `uv sync --dev` (with no `--extra`) will silently create a venv without pytest, and any later `uv run pytest` will fail with `error: Failed to spawn: pytest`.
 
-  It is safe to run again at any time, for example after pulling changes that update `pyproject.toml`. JavaScript developers get the same setup by running `npm run buildpy` in `heat-stack`.
+   ### Checking the setup
 
-- Dev dependencies live under `[project.optional-dependencies].dev` in `pyproject.toml`, which `uv` treats as an "extra" rather than a dependency group. `uv sync` and `uv run` only install the base `dependencies` list unless the extra is requested explicitly, so `uv sync --dev` (with no `--extra`) will silently create a venv without pytest and any subsequent `uv run pytest` will fail with `error: Failed to spawn: pytest`.
+   After running `uv sync` at the repository root, you should see:
 
-5. Run `uv run pytest` and see tests run successfully.
-   Next steps: [README.md](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md)
+   - The command finishes without an `error:` line and returns you to the prompt.
+   - A `.venv` folder appears in the repository root.
+   - Running `uv run pre-commit --version` prints a version of 4.4.0 or higher.
+
+   After running `uv sync --directory python --extra dev`, a second `.venv` folder appears inside `python/`. This is expected, because the root and `python/` each keep their own environment.
+
+   If a step fails and you're not sure whether it succeeded, check the exit code. Run `echo $?` in bash or zsh, or `echo $LASTEXITCODE` in PowerShell. A `0` means the command succeeded.
+
+5. From the `python` directory, run `uv run pytest` and confirm the tests pass.
+
+   Next steps: [heat-stack README](../heat-stack/README.md)
 
 > **Windows + WSL users:** use one system per project folder. `.venv` only works on the system that created it, so running Windows `uv` or `npm` against a `.venv` made in WSL (or the reverse) breaks it. Inside WSL, `which npm` and `which uv` should show Linux paths, not paths starting with `/mnt/c`. If npm shows `/mnt/c/...`, install Node inside WSL by following the WSL steps under "Install Dependencies and Build" in [heat-stack/README.md](../heat-stack/README.md#install-dependencies-and-build).
-
 
 ## Development
 
@@ -117,32 +132,27 @@ If you have already pushed your branch to GitHub, you have two choices depending
 1. If you have opened a pull request, then do a force push via `git push origin <branch_name> --force-with-lease`
 2. If you have not, then delete the branch on GitHub and push your local branch up again.
 
-
 ### Adding Python Packages
 
-Check with a development lead before adding a python package. Adding python packages to development can be useful for syntax checking, testing, and building purposes, but should be avoided for production `src` code. Incorporating new packages into rules-engine.whl, which is used by the front end, is complicated. To add a package to development:
+Check with a development lead before adding a Python package. Packages in the dev group are useful for syntax checking, testing, and building, but should be avoided for production `src` code. Adding packages to `rules-engine.whl`, which the front end uses, is more involved. To add a package to development:
 
-1. Add package to the `project.optional-dependencies` section of pyproject.toml
-2. Run `uv sync --extra dev` to lock dependencies and update your environment.
+1. Add the package to the `project.optional-dependencies` section of `python/pyproject.toml`.
+2. In `python/`, run `uv sync --extra dev` to lock dependencies and update your environment.
 
-### Pre-Commit Verification
+We use [pre-commit](https://pre-commit.com/) to run checks automatically. For the full setup, see the [pre-commit setup guide](../CONTRIBUTING.md#setting-up-pre-commit-in-this-repository). The hooks are installed once per clone in step 4 of the [setup steps](../CONTRIBUTING.md#steps).
 
-We use [pre-commit](https://pre-commit.com/) to run checks automatically. It is installed by `bash setup-python.sh` (or `npm run buildpy` in `heat-stack`), and the checks are listed in `.pre-commit-config.yaml` at the root of the repository.
-
-- **On every `git commit`:** black and isort (Python formatting), mypy (Python type checking) and prettier (formatting for `heat-stack` files).
+- **On every `git commit`:** black and isort (Python formatting), mypy (Python type checking), and prettier (formatting for `heat-stack` files).
 - **On every `git push`:** pytest (the Python tests).
 
-To run all the checks by hand without committing, from the `python` directory:
+To run all the checks by hand without committing, run this from the repository root:
 
-```
+```bash
 uv run pre-commit run --all-files
 ```
 
-If a check fails, the commit or push is stopped and the output says which check failed. Formatters like black, isort and prettier often fix the files themselves ("files were modified by this hook"). Review the changes, `git add` the fixed files, and commit again.
+If a check fails, the commit or push is stopped and the output says which check failed. Formatters like black and isort often fix the files themselves ("files were modified by this hook"). Review the changes, `git add` the fixed files, and commit again.
 
-### Committing Your Changes
-
-The [pre-commit checks](#pre-commit-verification) run automatically when you commit. Fix anything they report before pushing.
+If you prefer setting up locally without using a codespace, follow the steps in Local Environment Setup above.
 
 ### Creating a Pull Request
 

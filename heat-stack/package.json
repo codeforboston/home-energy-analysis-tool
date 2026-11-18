@@ -28,7 +28,7 @@
     "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
     "test": "npm run buildpy && vitest",
     "test-pyodide": "npm run buildpy && vitest app/utils/pyodide.test.ts",
-    "buildpy": "node other/buildpy.js",
+    "buildpy": "uv run other/build.py",
     "buildpy-docker": "cd ../py/python",
     "coverage": "vitest run --coverage",
     "coverage:unit": "vitest run --coverage",

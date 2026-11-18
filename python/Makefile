@@ -1,25 +1,24 @@
 black:
-	black --check .
+	uv run black --check .
 
 isort:
-	isort --check .
+	uv run isort --check .
 
 pydocstyle:
-	pydocstyle .
+	uv run pydocstyle .
 
 lint: black isort pydocstyle
 
 mypy:
-	mypy . --exclude build
+	uv run mypy . --exclude build
 
 gen_examples:
-	python .\tests\test_rules_engine\generate_example_data.py
+	uv run python tests/test_rules_engine/generate_example_data.py
 
 test:
-	pytest .
+	uv run pytest .
 
 build:
-	pip install -q build
-	python -m build
+	uv build
 
 all: lint mypy gen_examples test build

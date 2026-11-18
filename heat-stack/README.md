@@ -32,41 +32,6 @@ Analysis Tool (H.E.A.T.) project. Please follow these instructions carefully.
 
 ### Node.js Setup
 
-> **Windows + WSL users: before installing Node, check where the project is.**
-> Clone the project inside WSL's own Linux file system (for example `~/code`),
-> not under `/mnt/c/...` (your Windows drive), and do every step below in the
-> WSL terminal. Two reasons:
->
-> - **Speed:** WSL reads and writes files on the Windows drive much more slowly,
->   and folders synced by OneDrive are slower still. `npm install` creates tens
->   of thousands of files, so it can take 10+ minutes there instead of 1–2.
-> - **The right Node:** installing nvm from the WSL terminal (it doesn't matter
->   which directory you're in to install node) gives you the Linux (WSL) version
->   of Node. Using Windows Node on a project you also use from WSL breaks
->   `node_modules` and `python/.venv`, which only work on the system that
->   installed them.
->
-> **How to know you are in your Linux directory**
->
-> Run `pwd` (print the current folder) in the project folder. If it starts with
-> `/mnt/c`, clone the repository again inside your WSL home folder (`~`) and
-> work from that copy:
->
-> ```bash
-> mkdir -p ~/path/where/you/want/this/project
-> cd ~/path/where/you/want/this/project
-> git clone git@github.com:your-username/home-energy-analysis-tool.git
-> ```
->
-> `mkdir -p` creates the folder (and any missing folders above it) if it does
-> not exist yet, because `cd` fails on a folder that doesn't exist. `git clone`
-> then creates a `home-energy-analysis-tool` folder inside it.
->
-> To see these files in Windows File Explorer, paste
-> `\\wsl$\<distro name>\home\<your-username>` into File Explorer's address bar
-> (to the left of the search bar; you can in fact type things into it), or run
-> `explorer.exe .` from that folder in the WSL terminal.
-
 The project requires Node.js version 22.
 [Use Node Version Manager (NVM)](https://github.com/nvm-sh/nvm/blob/master/README.md)
 for managing Node.js versions (nvm is preinstalled in coding spaces).
@@ -107,73 +72,33 @@ not install NVM, skip `nvm` steps during setup.
 
 ### Install Dependencies and Build
 
-> **Windows + WSL users: the order of setup matters.**
->
-> ✅ **Do it in this order:**
->
-> 1. Install the Windows Subsystem for Linux (WSL) using these
->    [instructions](https://learn.microsoft.com/en-us/windows/wsl/install).
-> 2. In the WSL terminal, install Node with nvm (see
->    [Install NVM (Official Method)](#install-nvm-official-method)).
-> 3. In the WSL terminal, clone the project into your WSL home folder (for
->    example `cd ~`, then `git clone ...`).
-> 4. Then install the node modules (step 3 below).
->
-> ❌ **Avoid this order:** cloning the project on Windows first, then installing
-> WSL, then installing Node in WSL, then running `npm install` from WSL. The
-> project then lives on the Windows drive (`/mnt/c/...` in WSL), and WSL has to
-> pay a flat time tax at reading and writing each file there and, if OneDrive
-> syncs the folder, slows down. `npm install` writes tens of thousands of files,
-> so it can take 10+ minutes instead of 1–2, and every later build and test is
-> slower too.
->
-> **Already cloned on Windows?** Run `pwd` in the project folder. If the path
-> starts with `/mnt/c`, push any work you want to keep, clone the project again
-> from your WSL home folder, and continue from that copy.
+1. If you're not already in the `heat-stack` directory, change into it:
 
-1. Change directory to heat-stack
-   ```
+   ```bash
    cd heat-stack
    ```
+
 2. Use Node.js version 22:
+
    ```bash
    nvm use 22
    ```
+
 3. Install project dependencies:
+
    ```bash
    npm install
    ```
-4. Set up Python and build the rules engine into the `public/pyodide-env`
-   folder. Before you run `buildpy`, you need to install `uv` (step 2 of the
-   [Python README](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md#local-environment-setup)).
+
+4. Set up Python and build the rules engine into the `public/pyodide-env` folder. Before you run `buildpy`, you need to install `uv` (step 2 of the [Python README](/python/README.md#local-environment-setup)).
 
    ```bash
    npm run buildpy
    ```
 
-   This works the same on macOS, Linux and Windows. Besides building the rules
-   engine, it installs the Python tools and sets up the
-   [pre-commit checks](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/python/README.md#pre-commit-verification)
-   that run on every commit. Everyone needs this, even if you only work on
-   JavaScript. Run it again whenever the Python code changes.
+   This builds the rules engine into `public/pyodide-env` and needs no Python installed separately. Run it again whenever the Python code changes.
 
-   **Windows + WSL users:** use one system per project folder. `node_modules`
-   and `python/.venv` only work on the system that installed them. Inside WSL,
-   `which npm` should show a Linux path, not one starting with `/mnt/c` (which
-   is the Windows npm). If it starts with `/mnt/c`, install Node inside WSL:
-
-   1. In your WSL terminal, follow steps 1–3 of
-      [Install NVM (Official Method)](#install-nvm-official-method) at the top
-      of this file.
-   2. Close and reopen the WSL terminal. `which npm` should now show a path
-      starting with `/home/<your-username>/.nvm/`.
-   3. If `pwd` shows the project under `/mnt/c`, move it into WSL first (see the
-      note at the top of this section). Then, in `heat-stack`, delete the
-      Windows-installed packages and reinstall them:
-      ```bash
-      rm -rf node_modules
-      npm install
-      ```
+   Everyone who commits to this repository also needs the pre-commit hooks, even if you only work on JavaScript. Set them up from the repository root, not from `heat-stack/`, by following step 4 of the [Python README](/python/README.md#local-environment-setup).  If you're currently in `heat-stack/`, run `cd ..` first. `uv` commands run from `heat-stack/` will fail.
 
 5. Copy the example environment file into a new `.env` file:
    ```bash
@@ -215,32 +140,55 @@ If you encounter errors during this process, try the following steps:
 
 ### Setting Up in GitHub Codespaces
 
-If using GitHub Codespaces, follow these steps:
+If using GitHub Codespaces, follow these steps. The Codespace opens at the repository root, so the `uv` and hook setup runs there before you move into `heat-stack/`.
 
-1. Navigate to the project directory:
+1. Install `uv` and set up the root and Python environments from the repository root:
+
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   . "$HOME/.local/bin/env"
+   uv sync
+   uv sync --directory python --extra dev
+   ```
+
+2. Install the pre-commit hooks:
+
+   ```bash
+   uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+   ```
+
+   Confirm that `.git/hooks/pre-commit` and `.git/hooks/pre-push` both exist.
+
+3. Navigate to the project directory:
+
    ```bash
    cd heat-stack
    ```
-2. Create an environment file:
+
+4. Create an environment file:
+
    ```bash
    cp .env.example .env
    ```
-3. Use Node.js version 22:
+
+5. Use Node.js version 22:
+
    ```bash
    nvm install 22
    nvm use 22
    ```
-4. Install dependencies and build (some errors due to headless mode at the end
-   of `npm run setup` are okay):
+
+6. Install dependencies and build (some errors due to headless mode at the end of `npm run setup` are okay):
+
    ```bash
-   pip install uv
    npm install
    npm run buildpy
    npm run setup
    npx prisma db seed # create kody user
    npm run dev
    ```
-5. Disable auto-save in VSCode (this is to avoid auto recompiling and page
+
+7. Disable auto-save in VSCode (this is to avoid auto recompiling and page
    refresh while making changes):
    - Go to **File** > **Preferences** > **Settings**.
    - Search for "Auto Save" and uncheck it.
@@ -253,6 +201,65 @@ If using GitHub Codespaces, follow these steps:
 
 Before committing your changes, make sure to lint `npm run lint` and format
 `npm run format`
+
+---
+
+### Windows and WSL
+
+On Windows, do every step in the WSL terminal, and keep the project in your WSL home folder rather than under `/mnt/c`. The `.venv` folders and `node_modules` only work on the system that created them, so mixing Windows and WSL tools in one project breaks them.
+
+#### Install uv and Node in WSL
+
+1. Install WSL by following the [Microsoft WSL install guide](https://learn.microsoft.com/en-us/windows/wsl/install).
+2. Open the WSL terminal and install uv:
+
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   . "$HOME/.local/bin/env"
+   ```
+
+3. Close and reopen the WSL terminal so `uv` is on your PATH.
+4. Install Node.js 22 with nvm by following steps 1 to 4 of [Install NVM (Official Method)](https://github.com/codeforboston/home-energy-analysis-tool/blob/main/heat-stack/README.md#install-nvm-official-method) in the heat-stack README.
+
+#### Clone into your WSL home folder
+
+Clone the repository from the WSL terminal, not from Windows:
+
+```bash
+cd ~
+mkdir -p ~/code
+cd ~/code
+git clone git@github.com:your-username/home-energy-analysis-tool.git
+cd home-energy-analysis-tool
+```
+
+Run `pwd` to confirm the path does not start with `/mnt/c`. To open the folder in Windows File Explorer, run `explorer.exe .` from the project folder.
+
+#### Check which tools WSL is using
+
+Run these from the project folder:
+
+```bash
+which uv
+which npm
+```
+
+Both should show Linux paths. `uv` should be under `/home/<your-username>/`, and `npm` should be under `/home/<your-username>/.nvm/`. If either starts with `/mnt/c`, WSL is picking up the Windows version from your PATH. The quickest fix is to install the tool inside WSL as described above and reopen the terminal. If the problem persists, set `appendWindowsPath = false` under `[interop]` in `/etc/wsl.conf`, then run `wsl --shutdown` from Windows and reopen WSL.
+
+#### If you set up on Windows first
+
+Delete the Windows-created environments, then reinstall inside WSL:
+
+```bash
+rm -rf .venv python/.venv heat-stack/node_modules
+uv sync
+uv sync --directory python --extra dev
+uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+cd heat-stack
+npm install
+```
+
+Reinstalling the hooks is required because the hook files in `.git/hooks` point to the Python environment that created them.
 
 ---
 
