@@ -1,6 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { parseMultipartFormData } from '@remix-run/server-runtime/dist/formData.js'
 import { useEffect, useState } from 'react'
+import { data } from 'react-router'
 
 import { ErrorModal } from '#app/components/ui/ErrorModal.tsx'
 import SingleCaseForm from '#app/components/ui/heat/CaseSummaryComponents/SingleCaseForm.tsx'
@@ -12,6 +13,7 @@ import {
 } from '#app/utils/db/case.server.ts'
 import { uploadHandler } from '#app/utils/file-upload-handler.ts'
 import GeocodeUtil from '#app/utils/GeocodeUtil.ts'
+import { formatErrorMessage } from '#app/utils/hooks/use-fetcher-error-handler.ts'
 import { processCaseUpdate } from '#app/utils/logic/case.logic.server.ts'
 import { hasAdminRole } from '#app/utils/user.ts'
 import { invariantResponse } from '#node_modules/@epic-web/invariant/dist'
@@ -209,13 +211,33 @@ export async function action({ request, params }: Route.ActionArgs) {
 			period_end_date: new Date(bill.period_end_date),
 		}))
 
-	//  TODO: instead of individual variables, use a single argument, an obj, with the variables as keys and pass to processCaseUpdate
-	const caseUpdateResult = await processCaseUpdate(
-		caseId,
-		formData,
-		userId,
-		bills,
-	)
+	// processCaseUpdate geocodes the address, fetches weather and runs the rules
+	// engine, any of which can throw (e.g. an address that can't be geocoded).
+	// An uncaught throw here escapes to the route ErrorBoundary and replaces the
+	// whole page, losing the user's in-progress edits. Catch it and return it as
+	// actionData.error instead so the ErrorModal below can show it in place.
+	let caseUpdateResult: Awaited<ReturnType<typeof processCaseUpdate>>
+	try {
+		//  TODO: maybe instead of individual variables, use a single argument obj, with the variables as keys and pass to processCaseUpdate
+		caseUpdateResult = await processCaseUpdate(caseId, formData, userId, bills)
+	} catch (error: any) {
+		console.error('❌ Case update failed', error)
+		const message = formatErrorMessage(error)
+		return data(
+			{
+				submitResult: submission.reply({ formErrors: [message] }),
+				parsedAndValidatedFormSchema: undefined,
+				data: undefined,
+				gasBillData: undefined,
+				convertedDatesTIWD: undefined,
+				state_id: undefined,
+				county_id: undefined,
+				caseInfo: undefined,
+				error: message,
+			},
+			{ status: 500 },
+		)
+	}
 
 	const formDataWithFile = {
 		...submission.value,
