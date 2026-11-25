@@ -1,6 +1,6 @@
 name: Test, build, & deploy
 
-on: 
+on:
   push:
     branches:
       - main
@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 env:
-  rules-engine-working-directory: python  
+  rules-engine-working-directory: python
   heat-stack-working-directory: heat-stack
-  
+
 defaults:
   run:
     working-directory: heat-stack
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.13"] 
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up environment
@@ -42,7 +42,7 @@ jobs:
       - name: Check style
         run: |
           make lint
-        working-directory: ${{ env.rules-engine-working-directory }} 
+        working-directory: ${{ env.rules-engine-working-directory }}
 
   make-rules-engine-package:
     name: Rules Engine - Mypy
@@ -60,7 +60,7 @@ jobs:
       - name: Check typing
         run: |
           make mypy
-        working-directory: ${{ env.rules-engine-working-directory }} 
+        working-directory: ${{ env.rules-engine-working-directory }}
 
   pytest-rules-engine:
     name: Rules Engine - Pytest
@@ -77,8 +77,8 @@ jobs:
           working-directory: ${{ env.rules-engine-working-directory }}
       - name: Run tests
         run: |
-          make test 
-        working-directory: ${{ env.rules-engine-working-directory }} 
+          make test
+        working-directory: ${{ env.rules-engine-working-directory }}
 
   # Make the wheel
   build-rules-engine:
@@ -107,14 +107,9 @@ jobs:
         with:
           name: python-rules-engine-wheel
           path: ${{ env.rules-engine-working-directory }}/dist/
-      - name: Pull Built Wheel Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: python-rules-engine-wheel 
-          path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
 
   # Heat-Stack Jobs
-  lint-js:  
+  lint-js:
     name: ⬣ Heat-Stack - ESLint
     runs-on: ubuntu-22.04
     steps:
@@ -131,7 +126,7 @@ jobs:
         run: npm run lint
         working-directory:  ${{ env.heat-stack-working-directory }}
 
-  format-js:  
+  format-js:
     name: ⬣ Heat-Stack - Prettier
     runs-on: ubuntu-22.04
     steps:
@@ -143,7 +138,7 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
-          working-directory:  ${{ env.heat-stack-working-directory }}     
+          working-directory:  ${{ env.heat-stack-working-directory }}
       - name: 🔬 Format
         run: npm run format:check
         working-directory:  ${{ env.heat-stack-working-directory }}
@@ -157,11 +152,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: ⎔ Upgrade npm
+        run: npm i -g npm@11
+
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
           working-directory:  ${{ env.heat-stack-working-directory }}
-      
+
+      - name: 🔧 Run approved install scripts
+        working-directory:  ${{ env.heat-stack-working-directory }}
+        run: npm run rebuild-scripts
+
       - name: 🏄 Copy test env vars
         run: cp .env.example .env
         working-directory:  ${{ env.heat-stack-working-directory }}
@@ -187,18 +190,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: ⎔ Upgrade npm
+        run: npm i -g npm@11
+
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
         with:
           working-directory:  ${{ env.heat-stack-working-directory }}
 
-      - name: ⎔ Upgrade npm
-        run: npm i -g npm@11
-
       - name: 🔧 Run approved install scripts
         working-directory:  ${{ env.heat-stack-working-directory }}
-        run: npm rebuild prisma @prisma/client @prisma/engines esbuild @sentry/cli better-sqlite3 sharp --ignore-scripts=false
-
+        run: npm run rebuild-scripts
 
       - name: 🏄 Copy test env vars
         working-directory: ${{ env.heat-stack-working-directory }}
@@ -218,13 +221,14 @@ jobs:
 
       - name: ⚡ Run vitest (restore to run test after epic-web v7 upgrade)
         working-directory: ${{ env.heat-stack-working-directory }}
-        run: npm run test-pyodide  
+        run: npm run test-pyodide
         # --coverage
 
   playwright:
       name: 🎭 Playwright
       runs-on: ubuntu-22.04
       timeout-minutes: 60
+      needs: [build-rules-engine]
       # CORS proxy settings for geocoding API calls
       env:
         VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL }}
@@ -241,7 +245,7 @@ jobs:
           uses: actions/setup-node@v4
           with:
             node-version: 22
-        
+
         - name: ⎔ Upgrade npm
           run: npm i -g npm@11
 
@@ -252,7 +256,7 @@ jobs:
 
         - name: 🔧 Run approved install scripts
           working-directory:  ${{ env.heat-stack-working-directory }}
-          run: npm rebuild prisma @prisma/client @prisma/engines esbuild @sentry/cli better-sqlite3 sharp --ignore-scripts=false
+          run: npm run rebuild-scripts
 
         - name: 📥 Install Playwright Browsers
           working-directory:  ${{ env.heat-stack-working-directory }}
@@ -266,10 +270,10 @@ jobs:
           id: db-cache
           uses: actions/cache@v4
           with:
-            path: prisma/data.db
+            path: heat-stack/prisma/data.db
             key:
-              db-cache-schema_${{ hashFiles('./prisma/schema.prisma')
-              }}-migrations_${{ hashFiles('./prisma/migrations/*/migration.sql')
+              db-cache-schema_${{ hashFiles('heat-stack/prisma/schema.prisma')
+              }}-migrations_${{ hashFiles('heat-stack/prisma/migrations/*/migration.sql')
               }}
 
         - name: 🌱 Seed Database
@@ -277,11 +281,11 @@ jobs:
           if: steps.db-cache.outputs.cache-hit != 'true'
           run: npx prisma migrate reset --force
 
-        - name: Pull Built Wheel Artifact 
-          uses: actions/download-artifact@v4 
-          with: 
-            name: python-rules-engine-wheel  
-            path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/  
+        - name: Pull Built Wheel Artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: python-rules-engine-wheel
+            path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/
 
         - name: 🏗 Build
           working-directory:  ${{ env.heat-stack-working-directory }}
@@ -303,7 +307,7 @@ jobs:
   deploy-to-servers:
     name: 🚀 Heat-Stack - Deploy
     runs-on: ubuntu-22.04
-    needs: [lint-js, format-js, typecheck-js, vitest-pyodide-js , playwright]
+    needs: [lint-js, format-js, typecheck-js, vitest-pyodide-js , playwright, build-rules-engine]
     # only build/deploy main branch on pushes
     if:
       ${{ (github.ref == 'refs/heads/gha-deployment' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') &&
@@ -323,7 +327,7 @@ jobs:
 
       # move Dockerfile to root
       - name: 🚚 Move Dockerfile
-        working-directory: ${{ env.heat-stack-working-directory }} 
+        working-directory: ${{ env.heat-stack-working-directory }}
         run: |
           mv ./other/Dockerfile ./Dockerfile
           mv ./other/.dockerignore ./.dockerignore
@@ -331,15 +335,15 @@ jobs:
       - name: Pull Built Wheel Artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-rules-engine-wheel 
-          path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/ 
+          name: python-rules-engine-wheel
+          path: ${{ env.heat-stack-working-directory }}/public/pyodide-env/
 
       - name: 🎈 Setup Fly
-        uses: superfly/flyctl-actions/setup-flyctl@1.5         
+        uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: 🚀 Deploy Staging
         if: ${{ github.ref == 'refs/heads/dev' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
+        working-directory: ${{ env.heat-stack-working-directory }}
         run:
           flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
           --app ${{ steps.app_name.outputs.value }}-staging
@@ -348,7 +352,7 @@ jobs:
 
       - name: 🚀 Deploy Production
         if: ${{  github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gha-deployment' }}
-        working-directory: ${{ env.heat-stack-working-directory }} 
+        working-directory: ${{ env.heat-stack-working-directory }}
         run:
           flyctl deploy --remote-only --build-arg COMMIT_SHA=${{ github.sha }}
         env:
