@@ -9,13 +9,22 @@ ENV NODE_ENV production
 # Install openssl for Prisma
 RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
 
+# Upgrade to an npm that understands min-release-age in .npmrc (11.10+).
+# The bundled npm 10 doesn't know min-release-age, so apply the same 7-day gate with --before.
+RUN npm install -g "npm@^11.10.0" \
+      --before="$(date -u -d '-7 days' +%Y-%m-%d)" \
+      --ignore-scripts \
+  && npm --version
+
 # Install all node_modules, including dev dependencies
 FROM base as deps
 
 WORKDIR /myapp
 
 ADD package.json package-lock.json .npmrc ./
-RUN npm ci --include=dev
+# .npmrc sets ignore-scripts=true; rebuild-scripts re-runs install scripts
+# only for the allowlisted packages (see package.json)
+RUN npm ci --include=dev && npm run rebuild-scripts
 
 # Setup production node_modules
 FROM base as production-deps
@@ -82,7 +91,7 @@ COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 COPY --from=build /myapp/server-build /myapp/server-build
 COPY --from=build /myapp/build /myapp/build
 # HEAT Stack custom line for Pyodide
-COPY --from=build /myapp/public /myapp/public 
+COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
 COPY --from=build /myapp/prisma /myapp/prisma
 COPY --from=build /myapp/app/components/ui/icons /myapp/app/components/ui/icons
