@@ -52,7 +52,7 @@ export const CustomLegend = () => {
 	)
 
 	return (
-		<div className="absolute right-6 top-6 rounded border border-gray-200 bg-white p-4 shadow-sm">
+		<div className="mx-4 mb-4 mt-2 rounded border border-gray-200 bg-white p-4 shadow-sm md:absolute md:right-6 md:top-6 md:m-0">
 			{legendItems.map((item, index) => (
 				<div key={index} className="mb-2 flex items-center gap-2 last:mb-0">
 					{item.type === 'line' ? (
