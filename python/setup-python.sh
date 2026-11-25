@@ -14,11 +14,22 @@ case "$OSTYPE" in
   *) source .venv/bin/activate;;
 esac
 
-# Sync dependencies into the virtual environment
-uv sync --dev
+MODE="${1:-dev}"
 
-# Install development dependencies
-uv pip install -e ".[dev]"
+if [ "$MODE" = "production" ]; then
+    echo "Setting up production environment..."
+
+    uv sync
+    uv pip install -e .
+else
+    echo "Setting up development environment..."
+
+    # Sync dependencies into the virtual environment
+    uv sync --dev
+
+    # Install development dependencies
+    uv pip install -e ".[dev]"
+fi
 
 # End of script
 set +x
