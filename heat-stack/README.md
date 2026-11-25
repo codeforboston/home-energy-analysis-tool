@@ -59,7 +59,7 @@ not install NVM, skip `nvm` steps during setup.
    nvm --version
    ```
    If command cannot be found, add nvm to your environment variable (PATH).
-3. Install Node.js version 22:
+3. Install Node.js version 22 with the latest npm:
    ```bash
    nvm install 22 --latest-npm
    ```
