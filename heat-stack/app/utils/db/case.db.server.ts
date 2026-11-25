@@ -177,6 +177,8 @@ export async function updateCaseRecord(
 					thermostatSetPoint: formValues.thermostat_set_point,
 					setbackTemperature: formValues.setback_temperature ?? null,
 					setbackHoursPerDay: formValues.setback_hours_per_day ?? null,
+					designTemperatureOverride:
+						formValues.design_temperature_override ?? null,
 					livingArea: formValues.living_area,
 				},
 			})

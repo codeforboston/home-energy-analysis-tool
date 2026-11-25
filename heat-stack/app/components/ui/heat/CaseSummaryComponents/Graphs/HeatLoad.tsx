@@ -11,7 +11,7 @@ import {
 	Label,
 	Scatter,
 } from 'recharts'
-import { HelpButton } from '#app/components/ui/HelpButton.tsx'
+import { SubsectionTitle } from '#app/components/forms.tsx'
 import { type SummaryOutputSchema } from '../../../../../../types/types.ts'
 import { DESIGN_SET_POINT } from '../../../../../global_constants.ts'
 import { COLOR_GREY_LIGHT, COLOR_ORANGE, COLOR_BLUE } from '../constants.ts'
@@ -95,20 +95,22 @@ export function HeatLoad({
 	}, [data])
 
 	return (
-		<div className="min-w-[625px] rounded-lg shadow-lg">
-			<div className="mb-4 mt-4 flex items-center gap-2 pb-[0.5em] pl-[0.5em] text-2xl font-semibold">
+		<div className="rounded-lg border border-gray-200 shadow-lg">
+			<SubsectionTitle
+				help={{ keyName: 'heat_demand_graph.help' }}
+				className="mb-4 mt-4 pb-[0.5em] pl-[0.5em]"
+			>
 				Heating System Demand
-				<HelpButton keyName="heat_demand_graph.help" />
-			</div>
+			</SubsectionTitle>
 
-			<div className="relative h-[400px] w-full">
+			<div className="relative w-full md:h-[400px]">
 				<ResponsiveContainer width="100%" height={400}>
 					<ComposedChart
 						margin={{
 							top: 20,
 							right: 20,
 							bottom: 50,
-							left: 100,
+							left: 50,
 						}}
 						data={data}
 					>
